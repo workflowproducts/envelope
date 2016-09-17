@@ -1,21 +1,21 @@
-# Postage - A fast replacement for PGAdmin
+# Envelope - Publish web apps based on your PostgreSQL database fast!
 
 ## Dependencies
 
 #### LIBEV
-Different versions of libev may not work with every version of Postage. To avoid problems, the Postage compile process is set up to statically compile libev. This way we control what version you use. If you need a different version, start with the dependencies/update.sh file.
+Different versions of libev may not work with every version of Envelope. To avoid problems, the Envelope compile process is set up to statically compile libev. This way we control what version you use. If you need a different version, start with the dependencies/update.sh file.
 
 #### LIBRESSL
-Postage uses the new TLS API found in LibreSSL. It can take some time to compile LibreSSL. If LibreSSL is already installed on your machine, then the compile process dynamically loads that one. This way you can avoid the wait. If not, it's compiled in statically.
+Envelope uses the new TLS API found in LibreSSL. It can take some time to compile LibreSSL. If LibreSSL is already installed on your machine, then the compile process dynamically loads that one. This way you can avoid the wait. If not, it's compiled in statically.
 
 #### LIBPQ
-In order for Postage to talk to PostgreSQL you need to have the libpq library installed.
+In order for Envelope to talk to PostgreSQL you need to have the libpq library installed.
 
-Mac OS X ships with a PostgreSQL install with no libpq header files. If you then install PostgreSQL but don't add it to your PATH (in .profile) then the Postage configure process will error saying that it found pg_config (but it will be the wrong one) and fail to find the libpq header files. To fix this situation, make sure you add the proper pgsql/bin folder in the beginning of your path.
+Mac OS X ships with a PostgreSQL install with no libpq header files. If you then install PostgreSQL but don't add it to your PATH (in .profile) then the Envelope configure process will error saying that it found pg_config (but it will be the wrong one) and fail to find the libpq header files. To fix this situation, make sure you add the proper pgsql/bin folder in the beginning of your path.
 
-Usually, if you have psql then you'll have the libpq library files and be fine. Rarely, you may encounter issues by using the wrong version of libpq. In these cases, or in the case where you want to run postage on a computer that doesn't have libpq installed, you can consult the file INSTALL_LIBPQ for some OS specific advice on how to get libpq.
+Usually, if you have psql then you'll have the libpq library files and be fine. Rarely, you may encounter issues by using the wrong version of libpq. In these cases, or in the case where you want to run envelope on a computer that doesn't have libpq installed, you can consult the file INSTALL_LIBPQ for some OS specific advice on how to get libpq.
 
-If postage compiles and links but doesn't run (on linux):
+If envelope compiles and links but doesn't run (on linux):
 
 Add this line to `/etc/ld.so.conf`:
 
@@ -27,105 +27,100 @@ And then run (as root):
 
 This will add /usr/local/lib to the default library path. Now try again.
 
-####DOWNLOADING POSTAGE
+####DOWNLOADING THE LATEST VERSION OF ENVELOPE
 
 If you prefer wget:
 
-    wget https://www.workflowproducts.com/downloads/postage-stable.zip
-    unzip postage-stable.zip
+    wget https://www.workflowproducts.com/downloads/envelope.zip
+    unzip envelope.zip
 
 OR if you prefer curl:
 
-    curl -L https://www.workflowproducts.com/downloads/postage-stable.zip > postage-stable.zip
-    unzip postage-stable.zip
+    curl -L https://www.workflowproducts.com/downloads/envelope.zip > envelope.zip
+    unzip envelope.zip
 
-####INSTALLING POSTAGE
+####INSTALLING ENVELOPE
 
-If you'd like to test Postage before you install, see the section "Testing Postage Before Installing" further down.
+If you'd like to test Envelope before you install, see the section "Testing Envelope Before Installing" further down.
 
 *`make` will take a while as it builds libressl.*
 
-    cd postage
+    cd envelope
     ./configure
     make
     sudo make install
 
 If you are on OpenBSD or FreeBSD, use gmake instead.
-Postage will be installed in `/usr/local/sbin`. All other files such as the html, javascript and configuration files will be installed to `/usr/local/etc/postage`.
+Envelope will be installed in `/usr/local/sbin`. All other files such as the html, javascript and configuration files will be installed to `/usr/local/etc/envelope`.
 
-####RUNNING POSTAGE
+####RUNNING ENVELOPE
 
-To run Postage:
+To run Envelope:
 
-    /usr/local/sbin/postage
+    /usr/local/sbin/envelope
 
-Long Version:
+Long version:
 
-    /usr/local/sbin/postage \
-    -c /usr/local/etc/postage/postage.conf \
-    -d /usr/local/etc/postage/postage-connections.conf
+    /usr/local/sbin/envelope \
+    -c /usr/local/etc/envelope/envelope.conf \
+    -d /usr/local/etc/envelope/envelope-connections.conf
 
-####Configuring POSTAGE
+####Configuring ENVELOPE
 
-Before running Postage for the first time you may want to configure some options. All the options are explained in the Postage man file:
+Before running Envelope for the first time you may want to configure some options. All the options are explained in the Envelope man file:
 
-    man postage
+    man envelope
 
-Current configuration options allow you to set various paths, various access restrictions, web port and log level. Note that in order to make Postage publish to HTTPS, you need to add paths for a TLS cert and key.
+Current configuration options allow you to set various paths, various access restrictions, web port and log level. Note that in order to make Envelope publish to HTTPS, you need to add paths for a TLS cert and key.
 
-You'll also need to set up a connection string to tell Postage where your PostgreSQL databases are published. The default connection string config file located in /usr/local/etc/postage/. There are examples in the provided postage-connections.conf file and further info is available in the man file.
+You'll also need to set up a connection string to tell Envelope where your PostgreSQL database is published. The default connection string config file located in /usr/local/etc/envelope/. There are examples in the provided envelope-connections.conf file and further info is available in the man file.
 
-####TESTING POSTAGE BEFORE INSTALLING
+####TESTING ENVELOPE BEFORE INSTALLING
 
-    cd postage
+    cd envelope
     ./configure
     make
-    nano config/postage-connections.conf
+    nano config/envelope-connections.conf
     make test
 
-If you want to test Postage before you install, edit the `config/postage-connections.conf` file to add a connection string for your Postgres database. Instructions for adding a connection string are included in the Postage man page. To look at the Postage man page before installing Postage:
+If you want to test Envelope before you install, edit the `config/envelope-connections.conf` file to add a connection string for your Postgres database. Instructions for adding a connection string are included in the Envelope man page. To look at the Envelope man page before installing Envelope:
 
     ./configure
-    man -M man postage
+    man -M man envelope
 
-By default Postage runs on port 8080, so if you need to change that you do it in the `postage.conf` file. You can also set other options like whether to use TLS to connect.
+By default Envelope runs on port 8080, so if you need to change that you do it in the `envelope.conf` file. You can also set other options like whether to use TLS to connect.
 
-Once you've added a connection string to the postage-connections.conf file, start the Postage server with:
+Once you've added a connection string to the envelope-connections.conf file, start the Envelope server with:
 
     make test
 
-Postage will push a message like:
+Envelope will push a message like:
 
     Open http(s)://<this computer's ip>:8080/ in your web browser
 
-Once you see that message that means Postage is running, open your web browser to the link shown.
+Once you see that message that means Envelope is running, open your web browser to the link shown.
 
-####UNINSTALLING POSTAGE (from original build directory)
+####UNINSTALLING ENVELOPE (from original build directory)
 
-If you install Postage and then decide you want to uninstall it then you need to have done a `./configure` with the same version of Postage. If you still have your original build directory around then you can just cd into it and run:
+If you install Envelope and then decide you want to uninstall it then you need to have done a `./configure` with the same version of Envelope. If you still have your original build directory around then you can just cd into it and run:
 
     make uninstall
 
-Postage saves SQL scripts to the .postage folder. If you're removing Postage you may want to remove the .postage directory.
+####UNINSTALLING ENVELOPE (without original build directory)
 
-    rm -r ~/.postage/
+If you lost your original build directory then download the correct version of Envelope and run:
 
-####UNINSTALLING POSTAGE (without original build directory)
-
-If you lost your original build directory then download the correct version of Postage and run:
-
-    cd postage
+    cd envelope
     ./configure
     make uninstall
-    rm -r ~/.postage/
 
 
 ####FEEDBACK AND BUG REPORTS
 
-Please contact us with your feedback! Please report any issues you have for FREE support. More information is available at the project home page: https://www.workflowproducts.com/postage.html
+Please contact us with your feedback! Please report any issues you have for FREE support. More information is available at the project home page: https://www.workflowproducts.com/envelope.html
 
 ####Licensing
 
-If you like some or all of Postage's functionality and the current license won't suit your needs, alternative licensing is available for a small fee. Please call for details. 817-503-9545
+If you like some or all of Envelope's functionality and the current license won't suit your needs, alternative licensing is available for a small fee. Please call for details. 817-503-9545
 
 Copyright 2016 Workflow Products LLC

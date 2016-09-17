@@ -1,6 +1,6 @@
 #!/bin/sh
 
-( cd postage && ./configure )
+( cd envelope && ./configure )
 
 cp Makefile.in Makefile
 
