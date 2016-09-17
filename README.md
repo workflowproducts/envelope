@@ -98,10 +98,8 @@ If you still have your original build directory then:
 
 If you don't have your original build directory check the following locations:
 
-*Warning*
-    
-    The /usr/local/etc/envelope folder contains app/, role/, web_root/ and your config files. Make sure you have backups before you remove these folders. If you've made apps or altered your website then back up these folders before removing envelope. 
-    
+####Warning: The /usr/local/etc/envelope folder contains app/, role/, web_root/ and your config files. Make sure you have backups before you remove these folders. If you've made apps or altered your website then back up these folders before removing envelope. 
+
     rm -r /usr/local/etc/envelope
     rm /usr/local/sbin/envelope             # this removes the binary
     rm /usr/local/man/man1/envelope.1       # this removes the man page
