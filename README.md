@@ -76,7 +76,7 @@ If you want to test Envelope before you install, edit the `config/envelope-conne
     ./configure
     man -M man envelope
 
-By default Envelope runs on port 8080, so if you need to change that you do it in the `envelope.conf` file. You can also set other options like whether to use TLS to connect.
+By default Envelope runs on port 8888, so if you need to change that you do it in the `envelope.conf` file. You can also set other options like whether to use TLS to connect.
 
 Once you've added a connection string to the envelope-connections.conf file, start the Envelope server with:
 
@@ -84,7 +84,7 @@ Once you've added a connection string to the envelope-connections.conf file, sta
 
 Envelope will push a message like:
 
-    Open http(s)://<this computer's ip>:8080/ in your web browser
+    Open http(s)://<this computer's ip>:8888/ in your web browser
 
 Once you see that message that means Envelope is running, open your web browser to the link shown.
 
