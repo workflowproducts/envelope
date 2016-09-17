@@ -15,18 +15,6 @@ Mac OS X ships with a PostgreSQL install with no libpq header files. If you then
 
 Usually, if you have psql then you'll have the libpq library files and be fine. Rarely, you may encounter issues by using the wrong version of libpq. In these cases, or in the case where you want to run envelope on a computer that doesn't have libpq installed, you can consult the file INSTALL_LIBPQ for some OS specific advice on how to get libpq.
 
-If envelope compiles and links but doesn't run (on linux):
-
-Add this line to `/etc/ld.so.conf`:
-
-    /usr/local/lib
-
-And then run (as root):
-
-    # ldconfig
-
-This will add /usr/local/lib to the default library path. Now try again.
-
 ####DOWNLOADING THE LATEST VERSION OF ENVELOPE
 
 If you prefer wget:
@@ -100,27 +88,30 @@ Envelope will push a message like:
 
 Once you see that message that means Envelope is running, open your web browser to the link shown.
 
-####UNINSTALLING ENVELOPE (from original build directory)
+####UNINSTALLING ENVELOPE
 
-If you install Envelope and then decide you want to uninstall it then you need to have done a `./configure` with the same version of Envelope. If you still have your original build directory around then you can just cd into it and run:
-
-    make uninstall
-
-####UNINSTALLING ENVELOPE (without original build directory)
-
-If you lost your original build directory then download the correct version of Envelope and run:
+If you still have your original build directory then:
 
     cd envelope
     ./configure
     make uninstall
 
+If you don't have your original build directory check the following locations:
 
+*Warning*
+    
+    The /usr/local/etc/envelope folder contains app/, role/, web_root/ and your config files. Make sure you have backups before you remove these folders. If you've made apps or altered your website then back up these folders before removing envelope. 
+    
+    rm -r /usr/local/etc/envelope
+    rm /usr/local/sbin/envelope             # this removes the binary
+    rm /usr/local/man/man1/envelope.1       # this removes the man page
+    
 ####FEEDBACK AND BUG REPORTS
 
 Please contact us with your feedback! Please report any issues you have for FREE support. More information is available at the project home page: https://www.workflowproducts.com/envelope.html
 
 ####Licensing
 
-If you like some or all of Envelope's functionality and the current license won't suit your needs, alternative licensing is available for a small fee. Please call for details. 817-503-9545
+If you like some or all of Envelope's functionality and the current license won't suit your needs, commercial licensing is available starting at $99. Please call Justin at Workflow Products, 817-503-9545 for details.
 
 Copyright 2016 Workflow Products LLC
