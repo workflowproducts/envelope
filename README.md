@@ -1,19 +1,15 @@
 # Envelope - Publish web apps based on your PostgreSQL database fast!
 
+## About
+Envelope is a product of Workflow Products, LLC. This is the free PostgreSQL version. Information about the Microsoft SQL Server version can be obtained from the product page at http://www.workflowproducts.com/envelope_sql_server.html
+
 ## Dependencies
 
-#### LIBEV
-Different versions of libev may not work with every version of Envelope. To avoid problems, the Envelope compile process is set up to statically compile libev. This way we control what version you use. If you need a different version, start with the dependencies/update.sh file.
+#### LIBPQ
+In order for Envelope to talk to PostgreSQL you need to have the libpq library installed. If you don't have LibPQ or the Envelope compile process can't find it, please consult the file INSTALL_LIBPQ for some OS-specific advice on how to get libpq.
 
 #### LIBRESSL
 Envelope uses the new TLS API found in LibreSSL. It can take some time to compile LibreSSL. If LibreSSL is already installed on your machine, then the compile process dynamically loads that one. This way you can avoid the wait. If not, it's compiled in statically.
-
-#### LIBPQ
-In order for Envelope to talk to PostgreSQL you need to have the libpq library installed.
-
-Mac OS X ships with a PostgreSQL install with no libpq header files. If you then install PostgreSQL but don't add it to your PATH (in .profile) then the Envelope configure process will error saying that it found pg_config (but it will be the wrong one) and fail to find the libpq header files. To fix this situation, make sure you add the proper pgsql/bin folder in the beginning of your path.
-
-Usually, if you have psql then you'll have the libpq library files and be fine. Rarely, you may encounter issues by using the wrong version of libpq. In these cases, or in the case where you want to run envelope on a computer that doesn't have libpq installed, you can consult the file INSTALL_LIBPQ for some OS specific advice on how to get libpq.
 
 ####DOWNLOADING THE LATEST VERSION OF ENVELOPE
 
@@ -90,7 +86,7 @@ If you still have your original build directory then:
 
 If you don't have your original build directory check the following locations:
 
-####Warning: The /usr/local/etc/envelope folder contains app/, role/, web_root/ and your config files. Make sure you have backups before you remove these folders. If you've made apps or altered your website then back up these folders before removing envelope. 
+####Warning: The /usr/local/etc/envelope folder contains app/, role/, web_root/ and your config files. Make sure you have backups before you remove these folders. If you've made apps or altered your website then back up these folders before removing envelope manually. 
 
     rm -r /usr/local/etc/envelope
     rm /usr/local/sbin/envelope             # this removes the binary
