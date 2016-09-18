@@ -17,15 +17,7 @@ Usually, if you have psql then you'll have the libpq library files and be fine. 
 
 ####DOWNLOADING THE LATEST VERSION OF ENVELOPE
 
-If you prefer wget:
-
-    wget https://www.workflowproducts.com/downloads/envelope.zip
-    unzip envelope.zip
-
-OR if you prefer curl:
-
-    curl -L https://www.workflowproducts.com/downloads/envelope.zip > envelope.zip
-    unzip envelope.zip
+https://github.com/workflowproducts/envelope/releases
 
 ####INSTALLING ENVELOPE
 
