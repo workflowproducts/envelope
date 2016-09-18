@@ -94,7 +94,7 @@ If you don't have your original build directory check the following locations:
     
 ####FEEDBACK AND BUG REPORTS
 
-Please contact us with your feedback! Please report any issues you have for FREE support. More information is available at the project home page: https://www.workflowproducts.com/envelope.html
+Please contact us with your feedback! Github issues and pull requests are welcome. Please report any issues you have for FREE support. More information is available at the project home page: https://www.workflowproducts.com/envelope.html
 
 ####Licensing
 
