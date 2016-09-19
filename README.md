@@ -100,4 +100,27 @@ Please contact us with your feedback! Github issues and pull requests are welcom
 
 If you like some or all of Envelope's functionality and the current license won't suit your needs, commercial licensing is available starting at $99. Please call Justin at Workflow Products, 817-503-9545 for details.
 
+## Why?
+
+Workflow Products has been building custom ERP and MRP applications, mostly in PostgreSQL and Microsoft Access for about ten years now. At about the four year mark we developed the first in-house only version of Envelope and put up a simple timekeeping application. It allowed us to punch in and out of various customer projects all day. Suddenly, we were getting paid a lot more because the overhead of keeping track of small amounts of time was gone.
+
+Prior to that we had turned down many web projects but no longer! We now have many projects in maintenance mode, some on very old versions of Envelope that were never open sourced. 
+
+Envelope seeks to be the easiest way to build web apps for accounting, inventory and other business applications. Over time we notice when we're writing similar Javascript over and over and we'll build another Web Component to remove all that. 
+
+Around 2014 we got a government contract than they said they prefered open source. We polished it up and released it. It was a disaster. It had integrated developement source and SQL code control and users were unable to comprehend it. All the feedback was negative. We ripped all the extras out and re-released it. The simpler, cleaner version seems to be easier to understand, install and manage. 
+
+## Roadmap
+
+Frankly, we miss our integrated SQL and source code control. Our highest priority is to figure out a way to add that functionality back in while keeping it in a seperate, optional project or something.
+
+Then we'll move back into feature expansion. The features we want to bring to Envelope next, in no particular order:
+
+* Increase Datasheet and Combo box element performance to thousands of records in real time.
+* More Web Components for specific data types.
+* Small improvements to Web Components to bring functionality up to desktop level.
+* Paste into Datasheet to create new records.
+
+Workflow Products itself is healthier than it's ever been. We're celebrating our tenth year in November 2016. We're now at five full time employees and we expect to be around in another ten years. If you have any further questions please contact us directly at 817-503-9545.
+
 Copyright 2016 Workflow Products LLC
