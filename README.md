@@ -1,43 +1,19 @@
 # Envelope - Publish web apps based on your PostgreSQL database fast!
 
+## About
+Envelope is a product of Workflow Products, LLC. This is the free PostgreSQL version. Information about the Microsoft SQL Server version can be obtained from the product page at http://www.workflowproducts.com/envelope_sql_server.html
+
 ## Dependencies
 
-#### LIBEV
-Different versions of libev may not work with every version of Envelope. To avoid problems, the Envelope compile process is set up to statically compile libev. This way we control what version you use. If you need a different version, start with the dependencies/update.sh file.
+#### LIBPQ
+In order for Envelope to talk to PostgreSQL you need to have the libpq library installed. If you don't have LibPQ or the Envelope compile process can't find it, please consult the file INSTALL_LIBPQ for some OS-specific advice on how to get libpq.
 
 #### LIBRESSL
 Envelope uses the new TLS API found in LibreSSL. It can take some time to compile LibreSSL. If LibreSSL is already installed on your machine, then the compile process dynamically loads that one. This way you can avoid the wait. If not, it's compiled in statically.
 
-#### LIBPQ
-In order for Envelope to talk to PostgreSQL you need to have the libpq library installed.
-
-Mac OS X ships with a PostgreSQL install with no libpq header files. If you then install PostgreSQL but don't add it to your PATH (in .profile) then the Envelope configure process will error saying that it found pg_config (but it will be the wrong one) and fail to find the libpq header files. To fix this situation, make sure you add the proper pgsql/bin folder in the beginning of your path.
-
-Usually, if you have psql then you'll have the libpq library files and be fine. Rarely, you may encounter issues by using the wrong version of libpq. In these cases, or in the case where you want to run envelope on a computer that doesn't have libpq installed, you can consult the file INSTALL_LIBPQ for some OS specific advice on how to get libpq.
-
-If envelope compiles and links but doesn't run (on linux):
-
-Add this line to `/etc/ld.so.conf`:
-
-    /usr/local/lib
-
-And then run (as root):
-
-    # ldconfig
-
-This will add /usr/local/lib to the default library path. Now try again.
-
 ####DOWNLOADING THE LATEST VERSION OF ENVELOPE
 
-If you prefer wget:
-
-    wget https://www.workflowproducts.com/downloads/envelope.zip
-    unzip envelope.zip
-
-OR if you prefer curl:
-
-    curl -L https://www.workflowproducts.com/downloads/envelope.zip > envelope.zip
-    unzip envelope.zip
+https://github.com/workflowproducts/envelope/releases
 
 ####INSTALLING ENVELOPE
 
@@ -88,7 +64,7 @@ If you want to test Envelope before you install, edit the `config/envelope-conne
     ./configure
     man -M man envelope
 
-By default Envelope runs on port 8080, so if you need to change that you do it in the `envelope.conf` file. You can also set other options like whether to use TLS to connect.
+By default Envelope runs on port 8888, so if you need to change that you do it in the `envelope.conf` file. You can also set other options like whether to use TLS to connect.
 
 Once you've added a connection string to the envelope-connections.conf file, start the Envelope server with:
 
@@ -96,31 +72,56 @@ Once you've added a connection string to the envelope-connections.conf file, sta
 
 Envelope will push a message like:
 
-    Open http(s)://<this computer's ip>:8080/ in your web browser
+    Open http(s)://<this computer's ip>:8888/ in your web browser
 
 Once you see that message that means Envelope is running, open your web browser to the link shown.
 
-####UNINSTALLING ENVELOPE (from original build directory)
+####UNINSTALLING ENVELOPE
 
-If you install Envelope and then decide you want to uninstall it then you need to have done a `./configure` with the same version of Envelope. If you still have your original build directory around then you can just cd into it and run:
-
-    make uninstall
-
-####UNINSTALLING ENVELOPE (without original build directory)
-
-If you lost your original build directory then download the correct version of Envelope and run:
+If you still have your original build directory then:
 
     cd envelope
     ./configure
     make uninstall
 
+If you don't have your original build directory check the following locations:
 
+####Warning: The /usr/local/etc/envelope folder contains app/, role/, web_root/ and your config files. Make sure you have backups before you remove these folders. If you've made apps or altered your website then back up these folders before removing envelope manually. 
+
+    rm -r /usr/local/etc/envelope
+    rm /usr/local/sbin/envelope             # this removes the binary
+    rm /usr/local/man/man1/envelope.1       # this removes the man page
+    
 ####FEEDBACK AND BUG REPORTS
 
-Please contact us with your feedback! Please report any issues you have for FREE support. More information is available at the project home page: https://www.workflowproducts.com/envelope.html
+Please contact us with your feedback! Github issues and pull requests are welcome. Please report any issues you have for FREE support. More information is available at the project home page: https://www.workflowproducts.com/envelope.html
 
 ####Licensing
 
-If you like some or all of Envelope's functionality and the current license won't suit your needs, alternative licensing is available for a small fee. Please call for details. 817-503-9545
+If you like some or all of Envelope's functionality and the current license won't suit your needs, commercial licensing is available starting at $99. Please call Justin at Workflow Products, 817-503-9545 for details.
+
+## Why?
+
+Workflow Products has been building custom ERP and MRP applications, mostly in PostgreSQL and Microsoft Access for about ten years now. At about the four year mark we developed the first in-house only version of Envelope and put up a simple timekeeping application. It allowed us to punch in and out of various customer projects all day. Suddenly, we were getting paid a lot more because the overhead of keeping track of small amounts of time was gone.
+
+Prior to that we had turned down many web projects but no longer! We now have many projects in maintenance mode, some on very old versions of Envelope that were never open sourced. 
+
+Envelope seeks to be the easiest way to build web apps for accounting, inventory and other business applications. Over time we notice when we're writing similar Javascript over and over and we'll build another Web Component to remove all that. 
+
+Around 2014 we got a government contract than they said they prefered open source. We polished it up and released it. It was a disaster. It had integrated developement source and SQL code control and users were unable to comprehend it. All the feedback was negative. We ripped all the extras out and re-released it. The simpler, cleaner version seems to be easier to understand, install and manage. 
+
+## Roadmap
+
+Frankly, we miss our integrated SQL and source code control. Our highest priority is to figure out a way to add that functionality back in while keeping it in a seperate, optional project or something.
+
+Then we'll move back into feature expansion. The features we want to bring to Envelope next, in no particular order:
+
+* Increase Datasheet and Combo box element performance to thousands of records in real time.
+* More Web Components for specific data types.
+* Small improvements to Web Components to bring functionality up to desktop level.
+* Paste into Datasheet to create new records.
+
+Workflow Products itself is healthier than it's ever been. We're celebrating our tenth year in November 2016. We're now at five full time employees and we expect to be around in another ten years. If you have any further questions please contact us directly at 817-503-9545.
 
 Copyright 2016 Workflow Products LLC
+
