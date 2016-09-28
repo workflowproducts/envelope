@@ -3,6 +3,8 @@
 ## About
 Envelope is a product of Workflow Products, LLC. This is the free PostgreSQL version. Information about the Microsoft SQL Server version can be obtained from the product page at http://www.workflowproducts.com/envelope_sql_server.html
 
+Since postage runs in a browser it will use the UTF8 encoding. Therefore we don't recommend you use postage with a non-UTF8 database.
+
 ## Dependencies
 
 #### LIBPQ
