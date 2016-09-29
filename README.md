@@ -110,11 +110,11 @@ Prior to that we had turned down many web projects but no longer! We now have ma
 
 Envelope seeks to be the easiest way to build web apps for accounting, inventory and other business applications. Over time we notice when we're writing similar Javascript over and over and we'll build another Web Component to remove all that. 
 
-Around 2014 we got a government contract than they said they prefered open source. We polished it up and released it. It was a disaster. It had integrated developement source and SQL code control and users were unable to comprehend it. All the feedback was negative. We ripped all the extras out and re-released it. The simpler, cleaner version seems to be easier to understand, install and manage. 
+Around 2014 we got a government contract than they said they preferred open source. We polished it up and released it. It was a disaster. It had integrated development source and SQL code control and users were unable to comprehend it. All the feedback was negative. We ripped all the extras out and re-released it. The simpler, cleaner version seems to be easier to understand, install and manage. 
 
 ## Roadmap
 
-Frankly, we miss our integrated SQL and source code control. Our highest priority is to figure out a way to add that functionality back in while keeping it in a seperate, optional project or something.
+Frankly, we miss our integrated SQL and source code control. Our highest priority is to figure out a way to add that functionality back in while keeping it in a separate, optional project or something.
 
 Then we'll move back into feature expansion. The features we want to bring to Envelope next, in no particular order:
 
@@ -124,6 +124,15 @@ Then we'll move back into feature expansion. The features we want to bring to En
 * Paste into Datasheet to create new records.
 
 Workflow Products itself is healthier than it's ever been. We're celebrating our tenth year in November 2016. We're now at five full time employees and we expect to be around in another ten years. If you have any further questions please contact us directly at 817-503-9545.
+
+## Contributors
+
+If you would like to contribute to Envelope, first submit an issue. Please include how you plan to solve the issue. Then work on the patch. This way we get a moment to give feedback before you invest your time. 
+
+Anyone presenting a quality patch that asks for commit privileges will likely receive them! 
+
+We're not against forking. We just want people communicating. Preferably before putting forth effort. If we all use the Github issue tracker then there will be a minimum of wasted effort. 
+
 
 Copyright 2016 Workflow Products LLC
 
