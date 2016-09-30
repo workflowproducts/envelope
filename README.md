@@ -3,7 +3,9 @@
 ## About
 Envelope is a product of Workflow Products, LLC. This is the free PostgreSQL version. Information about the Microsoft SQL Server version can be obtained from the product page at http://www.workflowproducts.com/envelope_sql_server.html
 
-Since envelope runs in a browser it will use the UTF8 encoding. Therefore we don't recommend you use envelope with a non-UTF8 database.
+Since envelope runs in a browser we don't recommend you use envelope with a non-UTF8 PostgreSQL database.
+
+Currently we release once a week. To download Envelope for install purposes, please go to ["Releases"](https://github.com/workflowproducts/postage/releases)
 
 ## Dependencies
 
@@ -124,6 +126,17 @@ Then we'll move back into feature expansion. The features we want to bring to En
 * Paste into Datasheet to create new records.
 
 Workflow Products itself is healthier than it's ever been. We're celebrating our tenth year in November 2016. We're now at five full time employees and we expect to be around in another ten years. If you have any further questions please contact us directly at 817-503-9545.
+
+## Contributing
+
+If you would like to contribute to Postage, first submit an issue. Please include how you plan to solve the issue. Then work on the patch. This way we get a moment to give feedback before you invest your time. 
+
+Anyone presenting a quality patch that asks for commit privileges will likely receive them! Please leave the releases to Nunzio though. He has an extensive testing process. 
+
+We're not against forking. We just want people communicating. It would be preferable if everyone did that before putting forth effort. If we all use the Github issue tracker then there will be a minimum of wasted effort. 
+
+You should probably also read the [README_DEV](https://github.com/workflowproducts/postage/blob/master/README_DEV.md) file.
+
 
 Copyright 2016 Workflow Products LLC
 
