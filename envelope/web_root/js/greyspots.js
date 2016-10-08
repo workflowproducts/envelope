@@ -12973,7 +12973,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //element.parentNode.insertBefore(element.placeholderElement, element);
         
         // change element open state variable
-        element.open = true;
+        element.dropdownOpen = true;
         
         
         // bind drop down
@@ -13043,7 +13043,7 @@ document.addEventListener('DOMContentLoaded', function () {
             element.currentDropDownContainer = undefined;
             
             element.classList.remove('open');
-            element.open = false;
+            element.dropdownOpen = false;
             element.droppingDown = false;
             
             //element.parentNode.removeChild(element.placeholderElement);
@@ -13064,7 +13064,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         if (!element.hasAttribute('disabled')) {
             if ((intKeyCode === 40 || intKeyCode === 38) && !event.shiftKey && !event.metaKey && !event.ctrlKey && !element.error) {
-                if (!element.open) {
+                if (!element.dropdownOpen) {
                     openDropDown(element);
                     
                 } else {
@@ -13479,12 +13479,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         // bind change event to control
-        console.log('change bound');
         element.control.addEventListener('change', function (event) {
             event.preventDefault();
             event.stopPropagation();
             
-            console.log('change detected');
             if (!element.ignoreChange) {
                 selectRecordFromValue(element, this.value, true);
             }
@@ -13600,7 +13598,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!element.inserted) {
                 element.inserted = true;
                 
-                element.open = false;
+                element.dropdownOpen = false;
                 element.error = false;
                 element.ready = false;
                 
@@ -13657,8 +13655,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     var clickHandler;
                     
                     if (event.target.classList.contains('drop_down_button')) {
-                        //console.log(element.open, element.error);
-                        if (!element.open && !element.error) {
+                        //console.log(element.dropdownOpen, element.error);
+                        if (!element.dropdownOpen && !element.error) {
                             clickHandler = function () {
                                 openDropDown(element);
                                 window.removeEventListener('click', clickHandler);
@@ -13791,8 +13789,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 this.control.focus();
             },
             
-            'getData': function () {
-                getData(this);
+            'getData': function (callback) {
+                getData(this, undefined, true, callback);
+            },
+            
+            'refresh': function (callback) {
+                getData(this, undefined, true, callback);
+            },
+            
+            'open': function () {
+                openDropDown(this);
+            },
+            
+            'close': function () {
+                closeDropDown(this);
             }
         }
     });
