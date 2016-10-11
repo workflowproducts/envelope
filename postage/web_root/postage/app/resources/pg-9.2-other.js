@@ -180,12 +180,12 @@ function menuTools(target) {
                             no-focus iconleft icon="lock" onclick="dialogLocks()">Transaction Locks</gs-button>
                 <gs-button class="postage-menu-item-button" dialogclose
                             no-focus iconleft icon="film" onclick="dialogPreparedTransactions()">Prepared Transactions</gs-button>
-                
+
                 <gs-button class="postage-menu-item-button" dialogclose
                             no-focus iconleft icon="list-alt" onclick="dialogReloadConf()">Reload Postgres Conf</gs-button>
                 <gs-button class="postage-menu-item-button" dialogclose
                             no-focus iconleft icon="history" onclick="dialogRotateLog()">Rotate Log File</gs-button>
-                
+
                 <gs-button class="postage-menu-item-button" dialogclose
                             no-focus iconleft onclick="dialogStats()" icon="bar-chart-o">Database Info &amp; Stats</gs-button>
                 <gs-button class="postage-menu-item-button" dialogclose
@@ -217,27 +217,56 @@ function menuTab(target) {
 
     templateElement.setAttribute('data-max-width', '150px');
     templateElement.setAttribute('data-overlay-close', 'true');
-    templateElement.innerHTML = ml(function () {/*
-        <gs-page>
-            <gs-body>
-                <gs-button class="postage-menu-item-button" dialogclose iconleft
-                        onclick="dialogScriptUpload()" icon="upload"
-                        title="Upload a .sql file to create a script" no-focus>Upload File To Tab</gs-button>
-                <gs-button class="postage-menu-item-button" dialogclose iconleft
-                        onclick="newTab('sql', '', {'strContent': '\n\n\n\n\n\n\n\n\n'})" icon="folder-o"
-                        title="Create a blank script tab" no-focus id="menu-button-new-tab">
-                    <span id="menu-button-new-tab-plus">+</span>
-                    New Tab
-                </gs-button>
-                <gs-button class="postage-menu-item-button" dialogclose iconleft
-                        onclick="dialogOpenTabs()" no-focus icon="list"
-                        title="All open tabs">View All Open Tabs</gs-button>
-                <gs-button class="postage-menu-item-button" dialogclose iconleft
-                        onclick="dialogClosedTabs()" no-focus icon="clock-o"
-                        title="All closed tabs">View All Closed Tabs</gs-button>
-            </gs-body>
-        </gs-page>
-    */});
+	if (window.process && window.process.type === 'renderer') {
+	    templateElement.innerHTML = ml(function () {/*
+	        <gs-page>
+	            <gs-body>
+	                <gs-button class="postage-menu-item-button" dialogclose iconleft
+	                        onclick="dialogScriptOpen()" icon="folder-open-o"
+	                        title="Open a .sql file to a tab" no-focus>Open File...</gs-button>
+					<gs-button onclick="saveCurrentScript()" icon="save" iconleft  class="postage-menu-item-button" title="Save" no-focus>Save File</gs-button>
+					<gs-button id="button-tab-current-save-as" onclick="saveCurrentScript(true)" icon="save" iconleft class="postage-menu-item-button button-save-as" title="Save As..." remove-all no-focus>
+	                    <span class="save-as-pencil">&#xf040;</span>
+						Save As...
+					</gs-button>
+	                <gs-button class="postage-menu-item-button" dialogclose iconleft
+	                        onclick="newTab('sql', '', {'strContent': '\n\n\n\n\n\n\n\n\n'})" icon="folder-o"
+	                        title="Create a blank script tab" no-focus id="menu-button-new-tab">
+	                    <span id="menu-button-new-tab-plus">+</span>
+	                    New Tab
+	                </gs-button>
+	                <gs-button class="postage-menu-item-button" dialogclose iconleft
+	                        onclick="dialogOpenTabs()" no-focus icon="list"
+	                        title="All open tabs">View All Open Tabs</gs-button>
+	                <gs-button class="postage-menu-item-button" dialogclose iconleft
+	                        onclick="dialogClosedTabs()" no-focus icon="clock-o"
+	                        title="All closed tabs">View All Closed Tabs</gs-button>
+	            </gs-body>
+	        </gs-page>
+	    */});
+	} else {
+	    templateElement.innerHTML = ml(function () {/*
+	        <gs-page>
+	            <gs-body>
+	                <gs-button class="postage-menu-item-button" dialogclose iconleft
+	                        onclick="dialogScriptUpload()" icon="upload"
+	                        title="Upload a .sql file to create a script" no-focus>Upload File To Tab</gs-button>
+	                <gs-button class="postage-menu-item-button" dialogclose iconleft
+	                        onclick="newTab('sql', '', {'strContent': '\n\n\n\n\n\n\n\n\n'})" icon="folder-o"
+	                        title="Create a blank script tab" no-focus id="menu-button-new-tab">
+	                    <span id="menu-button-new-tab-plus">+</span>
+	                    New Tab
+	                </gs-button>
+	                <gs-button class="postage-menu-item-button" dialogclose iconleft
+	                        onclick="dialogOpenTabs()" no-focus icon="list"
+	                        title="All open tabs">View All Open Tabs</gs-button>
+	                <gs-button class="postage-menu-item-button" dialogclose iconleft
+	                        onclick="dialogClosedTabs()" no-focus icon="clock-o"
+	                        title="All closed tabs">View All Closed Tabs</gs-button>
+	            </gs-body>
+	        </gs-page>
+	    */});
+	}
 
     GS.openDialogToElement(target, templateElement, 'down');
 }

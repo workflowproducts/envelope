@@ -266,6 +266,94 @@ function alreadyLoadedFiles() {
 //    }
 //}
 
+function dialogScriptOpen() {
+	console.log('test');
+	GS.closeDialog(document.getElementsByTagName('gs-dialog')[0]);
+
+	// We are in electron here
+	var fs = require('fs');
+	var path = require('path');
+	var electron = require('electron').remote;
+	var dialog = electron.dialog;
+	var arrFilePath = dialog.showOpenDialog({
+		title: 'Open File',
+		filters: [
+			{
+				name: 'Sql Files',
+				extensions: ['sql']
+			},
+    		{
+				name: 'All Files',
+				extensions: ['*']
+			}
+		],
+		properties: ['openFile']
+	});
+
+	// dialog.showOpenDialog will return undefined if the user cancels the selection
+	if (arrFilePath !== undefined) {
+		var 	filePath = arrFilePath[0]
+			,	fileName = path.basename(filePath);
+		fs.readFile(filePath, 'utf8', function readCallback(err, strContent) {
+			if (err) {
+				var templateElement = document.createElement('template');
+				templateElement.innerHTML = ml(function () {/*
+					<gs-page>
+						<gs-header><center><h3>Reading failed!</h3></center></gs-header>
+						<gs-body padded>
+							<center>{{desc}}/center>
+						</gs-body>
+						<gs-footer>
+							<gs-button dialogclose bg-primary tabindex="0">Try Again</gs-button>
+						</gs-footer>
+					</gs-page>
+				*/}).replace(/\{\{desc\}\}/, err.message);
+
+				GS.openDialog(templateElement, function () {
+
+				}, function (event) {
+					fs.readFile(filePath, 'utf8', readCallback);
+				});
+			} else {
+				GS.requestFromSocket(GS.envSocket, 'TAB\tWRITE\topen/' + encodeTabNameForFileName(fileName) + '\t0\n' + strContent, function (data, error, errorData) {
+		            if (!error) {
+						if (data === 'TRANSACTION COMPLETED') {
+							GS.requestFromSocket(GS.envSocket, 'TAB\tWRITE\topen/' + encodeTabNameForFileName(fileName + '~') + '\t0\n' + filePath, function (data, error, errorData) {
+					            if (!error) {
+									if (data === 'TRANSACTION COMPLETED') {
+										loadTabsFromServer(true);
+									}
+					            } else {
+									loadTabsFromServer(true);
+					                GS.webSocketErrorDialog(errorData);
+					            }
+							});
+						}
+		            } else {
+		                GS.webSocketErrorDialog(errorData);
+		            }
+				});
+			}
+		});
+	}
+}
+
+function saveCurrentScript(bolForceSaveAs) {
+	var strQueryString = GS.getQueryString()
+      , strView = GS.qryGetVal(strQueryString, 'view')
+      , strCurrentTab;
+
+    if (strView.indexOf('tab:') === 0) {
+        strCurrentTab = strView.substring('tab:'.length);
+		strCurrentTab = '/open/' + encodeTabNameForFileName(strCurrentTab.substring('/open/'.length));
+		saveScriptAsFile(strCurrentTab, bolForceSaveAs);
+    } else {
+		alert('There is no tab selected!');
+	}
+
+	GS.closeDialog(document.getElementsByTagName('gs-dialog')[0]);
+}
+
 function dialogScriptUpload() {
     'use strict';
     var templateElement = document.createElement('template');

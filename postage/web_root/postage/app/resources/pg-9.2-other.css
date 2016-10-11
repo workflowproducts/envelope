@@ -212,6 +212,58 @@ table.table-dep th {
 
 
 /* ##################################################### */
+/* ################### SAVE AS BUTTON ################## */
+/* ##################################################### */
+
+gs-button.button-save-as {
+    position: relative;
+    line-height: 1em;
+    text-indent: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#button-tab-current-save-as:after {
+    top: 0.65em !important;
+    left: 0.05em !important;
+}
+
+gs-button.button-save-as .save-as-floppy {
+    font-family: fontawesome;
+    display: inline-block;
+	top: 0.65em;
+	left: 0.65em;
+	margin-top: -0.57em;
+	margin-left: -0.56em;
+	position: absolute;
+    display: block;
+    width: 1.12em;
+    height: 1.12em;
+    text-align: center;
+    text-indent: 0;
+    line-height: 1.25;
+    font-size: 1.4em;
+}
+
+gs-button.button-save-as .save-as-pencil {
+    font-family: fontawesome;
+    display: inline-block;
+	top: 1em;
+	left: 1em;
+	margin-top: -0.57em;
+	margin-left: -0.56em;
+	position: absolute;
+    display: block;
+    width: 1.12em;
+    height: 1.12em;
+    text-align: center;
+    text-indent: 0;
+    line-height: 1.25;
+    font-size: 1.4em;
+}
+
+
+/* ##################################################### */
 /* ################## EXPLAIN BUTTONS ################## */
 /* ##################################################### */
 
