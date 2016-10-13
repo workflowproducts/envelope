@@ -193,7 +193,7 @@ function getUserName() {
 
 window.addEventListener('load', function () {
     var strQueryString = GS.getQueryString(); //, strUnameCookie = GS.getCookie('greyspots_postage_username');
-
+	
     // fill the error element with any error text from the query string (coalesce to empty string)
     document.getElementById('container-error').textContent = GS.qryGetVal(strQueryString, 'error') || '';
 
