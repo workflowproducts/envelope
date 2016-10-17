@@ -14560,7 +14560,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return strHTML;
     }
     
-    function handleData(element, data, bolFirstLoad) {
+    function handleData(element, data, bolFirstLoad, bolManualRefresh) {
         var strHTML, i, len, cell_i, cell_len, col_len, arrRecords
           , arrCells, disabled, arrColumns, arrElements, tbodyElement
           , trMaker, intStart, bolHeader, strWidth, numberOffset;
@@ -14712,7 +14712,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             refreshReflow(element);
             refreshHeight(element);
-            synchronize(element);
+            synchronize(element, undefined, true, bolManualRefresh);
             synchronizeHeaderWidths(element);
             synchronizeHeaderScroll(element);
             
@@ -14900,7 +14900,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return GS.envSocket;
     }
     
-    function getData(element, refocusSelector, refocusSelection, bolFirstLoad) {
+    function getData(element, refocusSelector, refocusSelection, bolFirstLoad, bolManualRefresh) {
         var strSchema = GS.templateWithQuerystring(element.getAttribute('schema') || '')
           , strObject = GS.templateWithQuerystring(element.getAttribute('object') || '')
           , strReturn = getReturn(element) || ''
@@ -14947,7 +14947,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var refocusElement;
                 
                 if (!error) {
-                    handleData(element, data, bolFirstLoad);
+                    handleData(element, data, bolFirstLoad, bolManualRefresh);
                     
                     if (data.strMessage === 'TRANSACTION COMPLETED') {
                         GS.removeLoader(element);
@@ -15202,7 +15202,7 @@ document.addEventListener('DOMContentLoaded', function () {
         synchronize(element);
     }
     
-    function synchronize(element, bolScroll) {
+    function synchronize(element, bolScroll, bolOnLoad, bolManualRefresh) {
         var arrRecords = xtag.query(element, 'tr'), selectCells = [], i, len,
             arrParts, arrTextareas, focusedElement, recordIndex, cellIndex;
         
@@ -15228,9 +15228,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (element.lastFocusedControl) {
             element.lastFocusedControl.focus();
             focusedElement = element.lastFocusedControl;
-        } else {
+        } else if (!bolOnLoad || bolManualRefresh) {
             focusedElement = element.copyControl;
-            focusedElement.focus();
+            element.copyControl.focus();
         }
         
         // if there was no control to focus and
@@ -15974,6 +15974,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
         
+        // focus
+        window.addEventListener('focus', function (event) {//element
+            if (GS.findParentTag(document.activeElement, 'gs-datasheet') === element) {
+                element.lastFocusedControl = document.activeElement;
+            } else {
+                element.lastFocusedControl = null;
+            }
+        });//, true
+        
         // paste
         element.addEventListener('paste', function (event) {
             if (document.activeElement === element.copyControl) {
@@ -16027,6 +16036,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         element.dragOrigin !== target || element.selectedCells.length > 0) {
                         element.lastFocusedControl = null;
                         element.copyControl.focus();
+                        GS.triggerEvent(element.copyControl, 'focus');
                         event.preventDefault();
                     }
                     
@@ -16045,6 +16055,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (cellFromTarget && element.dragAllowed && element.dragCurrentCell !== cellFromTarget) {
                         element.lastFocusedControl = null;
                         element.copyControl.focus();
+                        GS.triggerEvent(element.copyControl, 'focus');
                         
                         element.dragCurrentCell = cellFromTarget;
                         selectHandler(element, element.dragOrigin, element.dragCurrentCell, element.dragMode);
@@ -16060,6 +16071,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.dragAllowed) {
                     if (document.activeElement === element || document.activeElement === document.body) {
                         element.copyControl.focus();
+                        GS.triggerEvent(element.copyControl, 'focus');
                     }
                     element.dragAllowed = false;
                     element.selectionPreviousOrigin = element.dragOrigin;
@@ -16588,7 +16600,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 
             // refresh button
             } else if (target.classList.contains('refresh-button')) {
-                getData(element);
+                getData(element, undefined, undefined, undefined, true);
                 
             // refresh button
             } else if (target.classList.contains('insert-button')) {
@@ -24764,6 +24776,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 arrElements = xtag.query(element, '[column]');
                 matchElement = GS.findParentElement(document.activeElement, '[column]');
                 
+                console.log('0***', matchElement);
+                
                 if (document.activeElement.nodeName === 'INPUT' || document.activeElement.nodeName === 'TEXTAREA') {
                     jsnSelection = GS.getInputSelection(document.activeElement);
                 }
@@ -24797,14 +24811,21 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             
             // if there is a intColumnElementFocusNumber: restore focus
+            console.log('1***', intColumnElementFocusNumber);
             if (intColumnElementFocusNumber) {
                 arrElements = xtag.query(element, '[column]');
                 
                 //console.log(intColumnElementFocusNumber, jsnSelection);
                 
-                if (arrElements.length > intColumnElementFocusNumber && jsnSelection) {
+                console.log('2***', arrElements[intColumnElementFocusNumber]);
+                console.log('3***', arrElements);
+                console.log('4***', jsnSelection);
+                
+                if (arrElements.length > intColumnElementFocusNumber) {
                     arrElements[intColumnElementFocusNumber].focus();
-                    GS.setInputSelection(document.activeElement, jsnSelection.start, jsnSelection.end);
+                    if (jsnSelection) {
+                        GS.setInputSelection(document.activeElement, jsnSelection.start, jsnSelection.end);
+                    }
                 }
             }
             
