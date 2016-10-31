@@ -1680,11 +1680,11 @@ function saveFile(tabElement, strPath, changeStamp, strContent, callbackSuccess,
         //console.log(data, error, errorData);
         
         if (!error) {
-            tabElement.saveState = 'saved';
             if (data !== 'TRANSACTION COMPLETED') {
                 callbackSuccess(data);
             }
-            
+            tabElement.saveState = 'saved';
+
         } else {
             // saveFile is called on datasheet, editor and table designer tabs.
             //      this warning popup code is now only used on an editor tab
@@ -1700,14 +1700,14 @@ function saveFile(tabElement, strPath, changeStamp, strContent, callbackSuccess,
                     saveFile(tabElement, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
                 });
             }
-            
-            tabElement.saveState = 'error';
-            
+
             if (callbackFail) {
                 callbackFail(errorData);
             } else {
                 GS.webSocketErrorDialog(errorData);
             }
+
+            tabElement.saveState = 'error';
         }
     });
 }
