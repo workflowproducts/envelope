@@ -7,7 +7,7 @@ Information about the Microsoft SQL Server version can be obtained from the prod
 
 Since Envelope websites run in a browser, we don't recommend you use envelope with a non-UTF8 PostgreSQL database.
 
-Currently we release once a week. To download Envelope for install purposes, please go to ["Releases"](https://github.com/workflowproducts/postage/releases)
+Currently we release twice a month. To download Envelope for install purposes, please go to ["Releases"](https://github.com/workflowproducts/postage/releases)
 
 ## Dependencies
 
