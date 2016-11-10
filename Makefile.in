@@ -23,7 +23,7 @@ uninstall:
 	$(MAKE) -C envelope uninstall
 
 destroy:
-	$(MAKE) -C postage destroy
+	$(MAKE) -C envelope destroy
 
 clean:
 	$(MAKE) -C envelope clean
