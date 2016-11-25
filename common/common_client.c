@@ -14,17 +14,20 @@
 void notice_processor(void *arg, const char *str_notice) {
 	struct sock_ev_client *client = (struct sock_ev_client *)arg;
 	char *str_temp = NULL;
-	SDEBUG("%s", str_notice);
+	SINFO("%s", str_notice);
+	for (int i = 0, len = strlen(str_notice); i < len; i += 1) {
+		SINFO("%c: %u", str_notice[i], (unsigned char)str_notice[i]);
+	}
 	char *ptr_actual_message = strstr(str_notice, ": ");
 	if (ptr_actual_message == NULL) {
-		ptr_actual_message = str_notice;
+		ptr_actual_message = (char *)str_notice;
 		str_notice = "NOTICE";
 	} else {
 		ptr_actual_message += 2;
 		*(ptr_actual_message - 2) = 0;
 	}
 	str_temp = escape_value(ptr_actual_message);
-	SDEBUG("%s\t%s", str_notice, str_temp);
+	SINFO("%s\t%s", str_notice, str_temp);
 	if (client->str_notice != NULL) {
 		client->str_notice = cat_append(client->str_notice, "\012", str_notice, "\t", str_temp);
 	} else {
@@ -41,9 +44,9 @@ void _send_notices(struct sock_ev_client *client) {
 	PGnotify *pg_notify_current = NULL;
 	pg_notify_current = PQnotifies(client->cnxn);
 
-	SDEBUG("preparing to send notices");
+	SINFO("preparing to send notices");
 	if (client->str_notice != NULL) {
-		SDEBUG("sending notices");
+		SINFO("sending notices");
 		if (client->cur_request != NULL) {
 			client->cur_request->int_response_id += 1;
 			snprintf(str_temp, 100, "%zd", client->cur_request->int_response_id);
@@ -63,7 +66,7 @@ void _send_notices(struct sock_ev_client *client) {
 			DArray_push(client->cur_request->arr_response, str_response);
 		}
 		str_response = NULL;
-		SDEBUG("notices sent");
+		SINFO("notices sent");
 	}
 
 	if (pg_notify_current != NULL) {
@@ -286,7 +289,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				SERROR("read() failed");
 			}
 		} else if (int_len >= 0) {
-			if (bol_tls == false && (client->int_request_len == 0 || int_len == 0) && bstrstr(str_buffer, int_len, "HTTP", 4) == NULL) {
+			if (bol_tls == false && (client->int_request_len == 0 || int_len == 0) && bstrstr(str_buffer, (size_t)int_len, "HTTP", 4) == NULL) {
 				SERROR("Someone is trying to connect with TLS!");
 			}
 
@@ -1228,6 +1231,7 @@ void cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 	client->bol_connected = true;
 
 #ifdef POSTAGE_INTERFACE_LIBPQ
+	//PQsetNoticeProcessor(client->cnxn, notice_processor, client);
 	PQsetNoticeProcessor(client->cnxn, notice_processor, client);
 	SERROR_SALLOC(client->notify_watcher, sizeof(struct sock_ev_client_notify_watcher));
 	ev_io_init(&client->notify_watcher->io, client_notify_cb, GET_CLIENT_PQ_SOCKET(client), EV_READ);
@@ -1763,6 +1767,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 	SFREE(client->str_database);
 	SFREE(client->str_notice);
 	SFREE(client->str_boundary);
+	SFREE(client->str_connname_folder);
 	// DEBUG("%p->str_cookie: %p", client, client->str_cookie);
 	SFREE_PWORD(client->str_cookie);
 	SFREE_PWORD(client->str_cookie_name);
