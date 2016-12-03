@@ -137,7 +137,6 @@ Anyone presenting a quality patch that asks for commit privileges will likely re
 
 We're not against forking. We just want people communicating. Preferably before putting forth effort. If we all use the Github issue tracker then there will be a minimum of wasted effort. 
 
-
 Copyright 2016 Workflow Products LLC
 
 
