@@ -15,7 +15,9 @@ Currently we release twice a month. To download Envelope for install purposes, p
 In order for Envelope to talk to PostgreSQL you need to have the libpq library installed. If you don't have LibPQ or the Envelope compile process can't find it, please consult the file INSTALL_LIBPQ for some OS-specific advice on how to get libpq.
 
 #### LIBRESSL
-Envelope uses the new TLS API found in LibreSSL. It can take some time to compile LibreSSL. If LibreSSL is already installed on your machine, then the compile process dynamically loads that one. This way you can avoid the wait. If not, it's compiled in statically.
+Envelope uses the new TLS API found in LibreSSL. It can take some time to compile LibreSSL. If LibreSSL is already installed on your machine, then the compile process dynamically loads that one. This way you can avoid the wait. 
+
+If you don't already have LibreSSL then it is recommended that you do NOT install LibreSSL just for Envelope. It might break your existing server software. Instead, just install Envelope and during the make process, LibreSSL will be compiled into Envelope statically. This will take some time but it's worth it. Compiling statically means LibreSSL will become a part of Envelope. No other programs on your server will know LibreSSL is around and therefore nothing will break. 
 
 ####DOWNLOADING THE LATEST VERSION OF ENVELOPE
 
