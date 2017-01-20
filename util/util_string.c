@@ -1,5 +1,27 @@
 #include "util_string.h"
 
+// This is based on OpenBSD strcspn
+size_t strncspn(const char *str_search, size_t int_search_len, const char *str_chars, size_t int_chars_len) {
+	const char *p, *spanp;
+	char c, sc;
+	size_t int_i = 0;
+	size_t int_j = 0;
+
+	// Stop as soon as we find any character from str_chars
+	for (p = str_search; int_i < int_search_len; int_i += 1) {
+		c = *p++;
+		spanp = str_chars;
+		int_j = 0;
+		do {
+			if ((sc = *spanp++) == c) {
+				return (size_t)(p - 1 - str_search);
+			}
+			int_j += 1;
+		} while (int_j < int_chars_len);
+	}
+	return int_search_len;
+}
+
 bool check_to_escape(char *str_input, bool bol_as_ident) {
 	char *ptr_input = str_input;
 	char *ptr_end_input = (str_input + strlen(str_input));
@@ -41,11 +63,6 @@ bool check_to_escape(char *str_input, bool bol_as_ident) {
 	return (int_num_quotes % 2) != 0;
 }
 
-char *escape_value(char *str_input) {
-	size_t int_length = strlen(str_input);
-	return bescape_value(str_input, &int_length);
-}
-
 char *bescape_value(char *str_input, size_t *ptr_int_length) {
 	char *str_return = NULL;
 	SERROR_SALLOC(str_return, (*ptr_int_length) + 1);
@@ -62,11 +79,6 @@ error:
 	bol_error_state = false;
 	SFREE(str_return);
 	return NULL;
-}
-
-char *unescape_value(char *str_input) {
-	size_t int_length = strlen(str_input);
-	return bunescape_value(str_input, &int_length);
 }
 
 char *bunescape_value(char *str_input, size_t *ptr_int_length) {
@@ -107,8 +119,8 @@ char *breplace(char *str_input, size_t *ptr_int_length, char *str_find_in, char 
 	SERROR_SNCAT(str_replace, &int_replace_len,
 		str_replace_in, strlen(str_replace_in));
 	if (strchr(str_flags, 'i') != NULL) {
-		str_find = str_tolower(str_find);
-		str_replace = str_tolower(str_replace);
+		str_find = bstr_tolower(str_find, strlen(str_find));
+		str_replace = bstr_tolower(str_replace, strlen(str_replace));
 	}
 
 	size_t int_find_length = strlen(str_find);
@@ -450,19 +462,17 @@ error:
 }
 
 // encode string to JSON
-char *jsonify(char *str_inputstring) {
-	size_t int_inputstring_len;
+char *jsonify(char *str_inputstring, size_t *ptr_int_result_len) {
 	char *str_result = NULL;
 	char *ptr_result;
 	char *ptr_loop;
 	size_t int_result_len;
 	size_t int_chunk_len;
-
-	int_inputstring_len = strlen(str_inputstring);
+	size_t int_inputstring_len = *ptr_int_result_len;
 
 	/* return empty array for empty input string */
 	if (int_inputstring_len < 1) {
-		SERROR_SNCAT(str_result, &int_result_len,
+		SERROR_SNCAT(str_result, ptr_int_result_len,
 			"\"\"", (size_t)2);
 		return str_result;
 	}
@@ -544,21 +554,14 @@ char *jsonify(char *str_inputstring) {
 	SERROR_SREALLOC(str_result, int_result_len + 2);
 	str_result[int_result_len] = 34;	// dbl quote(")
 	str_result[int_result_len + 1] = 0; // null term(\0)
+	*ptr_int_result_len = int_result_len + 1;
 	return str_result;
 error:
 	SFREE(str_result);
+	*ptr_int_result_len = 0;
 	return NULL;
 }
 
-/* upper-cases s in place */
-char *str_toupper(char *str) {
-	char *s = str;
-	while (*s) {
-		*s = (char)toupper(*s);
-		s++;
-	}
-	return str;
-}
 char *bstr_toupper(char *str, size_t int_strlen) {
 	char *s = str;
 	size_t int_i = 0;
@@ -570,15 +573,6 @@ char *bstr_toupper(char *str, size_t int_strlen) {
 	return str;
 }
 
-/* lower-cases s in place */
-char *str_tolower(char *str) {
-	char *s = str;
-	while (*s) {
-		*s = (char)tolower(*s);
-		s++;
-	}
-	return str;
-}
 char *bstr_tolower(char *str, size_t int_strlen) {
 	char *s = str;
 	size_t int_i = 0;
@@ -623,30 +617,45 @@ error:
 	return NULL;
 }
 
-char *cstr_to_uri(char *str_input) {
+char *snuri(char *str_input, size_t int_in_len, size_t *ptr_int_out_len) {
 	char *str_result = NULL;
-	size_t int_result_len = 0;
-
-	SERROR_SNCAT(str_result, &int_result_len,
-		"", (size_t)0);
-	char str_temp[10];
-
 	char *ptr_input = str_input;
-	for (; *ptr_input; ptr_input++) {
+	*ptr_int_out_len = int_in_len;
+	char *ptr_end_input = str_input + (*ptr_int_out_len);
+
+	// Calculate actual needed length
+	for (; ptr_input < ptr_end_input; ptr_input++) {
 		if (!((*ptr_input >= 'a' && *ptr_input <= 'z') || (*ptr_input >= 'A' && *ptr_input <= 'Z') ||
-				(*ptr_input >= '0' && *ptr_input <= '9') || *ptr_input == '+' || *ptr_input == ',' ||
-				*ptr_input == '.' || *ptr_input == '_' || *ptr_input == '-' || *ptr_input == '/')) {
-			sprintf(str_temp, "%%%02X", *ptr_input);
-		} else {
-			str_temp[0] = *ptr_input;
-			str_temp[1] = 0;
+			(*ptr_input >= '0' && *ptr_input <= '9') || *ptr_input == '+' || *ptr_input == ',' ||
+			*ptr_input == '.' || *ptr_input == '_' || *ptr_input == '-' || *ptr_input == '/')) {
+
+			// Only need to add two chars because there is already space for one.
+			*ptr_int_out_len = (*ptr_int_out_len) + 2;
 		}
-		SERROR_SNFCAT(str_result, &int_result_len,
-			str_temp, strlen(str_temp));
+	}
+
+	SERROR_SALLOC(str_result, (*ptr_int_out_len) + 1);
+
+	ptr_input = str_input;
+	char *ptr_result = str_result;
+
+	for (; ptr_input < ptr_end_input; ptr_input++) {
+		if (!((*ptr_input >= 'a' && *ptr_input <= 'z') || (*ptr_input >= 'A' && *ptr_input <= 'Z') ||
+			(*ptr_input >= '0' && *ptr_input <= '9') || *ptr_input == '+' || *ptr_input == ',' ||
+			*ptr_input == '.' || *ptr_input == '_' || *ptr_input == '-' || *ptr_input == '/')) {
+
+			// Insert encoded char right where we need it
+			snprintf(ptr_result, 4, "%%%02X", *ptr_input);
+			ptr_result += 3;
+		} else {
+			ptr_result[0] = *ptr_input;
+			ptr_result += 1;
+		}
 	}
 	bol_error_state = false;
 	return str_result;
 error:
+	*ptr_int_out_len = 0;
 	SFREE(str_result);
 	return NULL;
 }

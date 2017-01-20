@@ -46,19 +46,23 @@
 #include "util_salloc.h"
 
 /*
+Check str_search for characters from str_chars
+*/
+size_t strncspn(const char *str_search, size_t int_search_len, const char *str_chars, size_t int_chars_len);
+
+/*
 Check to see if a string needs to be escaped as either an identifier or a literal
 */
 bool check_to_escape(char *str_input, bool bol_as_ident);
+
 /*
 Escape a string for use in tab delimited data.
 */
-char *escape_value(char *str_input);
 char *bescape_value(char *str_input, size_t *ptr_int_length);
 
 /*
 Unescape a string from tab delimited data.
 */
-char *unescape_value(char *str_input);
 char *bunescape_value(char *str_input, size_t *ptr_int_length);
 
 /*
@@ -68,13 +72,9 @@ g -> Replace all instances
 i -> Case Insensitive
 
 //str_string_to_replace = "Apples are awesome!"
-SERROR_REPLACE(str_string_to_replace, "Apple", "Orange", "g")
+SERROR_BREPLACE(str_string_to_replace, &int_string_to_replace_len, "Apple", "Orange", "g")
 //str_string_to_replace = "Oranges are awesome!"
 */
-char *replace(char *str_input, char *str_find, char *str_replace, char *str_flags);
-
-#define SERROR_REPLACE(A, B, C, D) SERROR_CHECK(A = replace(A, B, C, D), "replace failed")
-#define SFINISH_REPLACE(A, B, C, D) SFINISH_ERROR_CHECK(A = replace(A, B, C, D), "replace failed")
 
 char *breplace(char *str_input, size_t *ptr_int_length, char *str_find, char *str_replace, char *str_flags);
 
@@ -105,7 +105,7 @@ char *getpar(char *str_query, char *str_key, size_t int_query_length, size_t *in
 /*
 Encodes string into a JSON string.
 */
-char *jsonify(char *inputstring);
+char *jsonify(char *str_inputstring, size_t *ptr_int_result_len);
 
 /*
 Makes all the characters in a string lowercase.
@@ -113,8 +113,6 @@ Makes all the characters in a string lowercase.
 TO_LOWER(str_string)
 //str_string = "the string"
 */
-char *str_tolower(char *str);
-#define TO_LOWER(A) A = str_tolower(A);
 char *bstr_tolower(char *str, size_t int_strlen);
 
 /*
@@ -123,8 +121,6 @@ Makes all the characters in a string uppercase.
 TO_UPPER(str_string)
 //str_string = "THE STRING"
 */
-char *str_toupper(char *str);
-#define TO_UPPER(A) A = str_toupper(A);
 char *bstr_toupper(char *str, size_t int_strlen);
 
 /*
@@ -135,9 +131,9 @@ Since it finds the extension itself, you should just send the whole name over.
 char *contenttype(char *str_filename);
 
 /*
-Encodes a string for use in a URI.
+Encodes a string (with a length) for use in a URI.
 */
-char *cstr_to_uri(char *str_input);
+char *snuri(char *str_input, size_t int_in_len, size_t *ptr_int_out_len);
 
 /*
 Same as the standard function strstr, but you send the lengths too. This makes

@@ -19,6 +19,9 @@ char *ws_tab_step1(struct sock_ev_client_request *client_request) {
 	char *ptr_query = NULL;
 	size_t int_response_len = 0;
 	size_t int_query_len = 0;
+	size_t int_path_len = 0;
+	size_t int_path_to_len = 0;
+	size_t int_change_stamp_len = 0;
 
 	client_request->int_response_id = 0;
 	client_request->arr_response = DArray_create(sizeof(char *), 1);
@@ -36,8 +39,8 @@ char *ws_tab_step1(struct sock_ev_client_request *client_request) {
 	// right after TAB\t
 	str_request_type = client_request->ptr_query + 4;
 	// right after TYPE\t
-	ptr_query = strstr(str_request_type, "\t");
-	SFINISH_CHECK(ptr_query != NULL, "strstr failed");
+	ptr_query = bstrstr(str_request_type, client_request->frame->int_length - (size_t)(str_request_type - client_request->frame->str_message), "\t", (size_t)1);
+	SFINISH_CHECK(ptr_query != NULL, "bstrstr failed");
 	ptr_query += 1;
 	*(ptr_query - 1) = 0;
 
@@ -52,14 +55,15 @@ char *ws_tab_step1(struct sock_ev_client_request *client_request) {
 
 	if (strcmp(str_request_type, "LIST") == 0) {
 		client_tab->str_path = ptr_query;
-		ptr_query = strstr(client_tab->str_path, "\012");
+		ptr_query = bstrstr(client_tab->str_path, client_request->frame->int_length - (size_t)(client_tab->str_path - client_request->frame->str_message), "\012", (size_t)1);
 		if (ptr_query != NULL) {
 			*ptr_query = 0;
 		}
 
 		str_temp = client_tab->str_path;
-		client_tab->str_path = unescape_value(str_temp);
-		SFINISH_CHECK(client_tab->str_path != NULL, "unescape_value failed");
+		int_path_len = ptr_query != NULL ? (size_t)(ptr_query - str_temp) : (client_request->frame->int_length - (size_t)(client_tab->str_path - client_request->frame->str_message));
+		client_tab->str_path = bunescape_value(str_temp, &int_path_len);
+		SFINISH_CHECK(client_tab->str_path != NULL, "bunescape_value failed");
 
 		str_path_temp = client_tab->str_path;
 		client_tab->str_path = canonical(str_local_path_root, str_path_temp, "read_dir");
@@ -70,14 +74,15 @@ char *ws_tab_step1(struct sock_ev_client_request *client_request) {
 
 	} else if (strcmp(str_request_type, "READ") == 0) {
 		client_tab->str_path = ptr_query;
-		ptr_query = strstr(client_tab->str_path, "\012");
+		ptr_query = bstrstr(client_tab->str_path, client_request->frame->int_length - (size_t)(client_tab->str_path - client_request->frame->str_message), "\012", (size_t)1);
 		if (ptr_query != NULL) {
 			*ptr_query = 0;
 		}
 
 		str_temp = client_tab->str_path;
-		client_tab->str_path = unescape_value(str_temp);
-		SFINISH_CHECK(client_tab->str_path != NULL, "unescape_value failed");
+		int_path_len = ptr_query != NULL ? (size_t)(ptr_query - str_temp) : (client_request->frame->int_length - (size_t)(client_tab->str_path - client_request->frame->str_message));
+		client_tab->str_path = bunescape_value(str_temp, &int_path_len);
+		SFINISH_CHECK(client_tab->str_path != NULL, "bunescape_value failed");
 
 		str_path_temp = client_tab->str_path;
 		client_tab->str_path = canonical(str_local_path_root, str_path_temp, "read_file");
@@ -87,26 +92,29 @@ char *ws_tab_step1(struct sock_ev_client_request *client_request) {
 		ws_tab_read_step2(global_loop, client_request);
 
 	} else if (strcmp(str_request_type, "WRITE") == 0) {
-		// TODO: replace these `strstr` calls with `bstrstr`
-		client_tab->ptr_content = strstr(ptr_query, "\012") + 1;
+		client_tab->ptr_content = bstrstr(ptr_query, client_request->frame->int_length - (size_t)(ptr_query - client_request->frame->str_message), "\012", (size_t)1);
+		SFINISH_CHECK(client_tab->ptr_content != NULL, "bstrstr failed");
+		client_tab->ptr_content += 1;
 		SFINISH_SNCAT(
 			str_query, &int_query_len,
 			ptr_query, (size_t)(client_request->frame->int_length - (size_t)(ptr_query - client_request->frame->str_message))
 		);
-		ptr_query = strstr(str_query, "\t");
+		ptr_query = bstrstr(str_query, int_query_len, "\t", (size_t)1);
 		SFINISH_CHECK(ptr_query != NULL, "strstr failed");
 		*ptr_query = 0;
 		ptr_change_stamp = ptr_query + 1;
-		ptr_query = strstr(ptr_change_stamp, "\012");
+		ptr_query = bstrstr(ptr_change_stamp, int_query_len - (size_t)(ptr_change_stamp - str_query), "\012", (size_t)1);
 		if (ptr_query != NULL) {
 			*ptr_query = 0;
 		}
 
-		client_tab->str_path = unescape_value(str_query);
-		SFINISH_CHECK(client_tab->str_path != NULL, "unescape_value failed");
+		int_path_len = ptr_query != NULL ? (size_t)(ptr_query - str_query) : int_query_len;
+		client_tab->str_path = bunescape_value(str_query, &int_path_len);
+		SFINISH_CHECK(client_tab->str_path != NULL, "bunescape_value failed");
 
-		client_tab->str_change_stamp = unescape_value(ptr_change_stamp);
-		SFINISH_CHECK(client_tab->str_change_stamp != NULL, "unescape_value failed");
+		int_change_stamp_len = strlen(ptr_change_stamp);
+		client_tab->str_change_stamp = bunescape_value(ptr_change_stamp, &int_change_stamp_len);
+		SFINISH_CHECK(client_tab->str_change_stamp != NULL, "bunescape_value failed");
 
 		str_path_temp = client_tab->str_path;
 		client_tab->str_path = canonical(str_local_path_root, str_path_temp, "write_file");
@@ -117,23 +125,24 @@ char *ws_tab_step1(struct sock_ev_client_request *client_request) {
 
 	} else if (strcmp(str_request_type, "MOVE") == 0) {
 		str_temp = ptr_query;
-		ptr_query = strstr(str_temp, "\t");
-		SFINISH_CHECK(ptr_query != NULL, "strstr failed");
+		ptr_query = bstrstr(str_temp, client_request->frame->int_length - (size_t)(str_temp - client_request->frame->str_message), "\t", (size_t)1);
 		if (ptr_query != NULL) {
 			*ptr_query = 0;
 		}
 
-		client_tab->str_path = unescape_value(str_temp);
-		SFINISH_CHECK(client_tab->str_path != NULL, "unescape_value failed");
+		int_path_len = strlen(str_temp);
+		client_tab->str_path = bunescape_value(str_temp, &int_path_len);
+		SFINISH_CHECK(client_tab->str_path != NULL, "bunescape_value failed");
 
 		str_temp = ptr_query + 1;
-		ptr_query = strstr(str_temp, "\012");
+		ptr_query = bstrstr(str_temp, client_request->frame->int_length - (size_t)(str_temp - client_request->frame->str_message), "\012", (size_t)1);
 		if (ptr_query != NULL) {
 			*ptr_query = 0;
 		}
 
-		client_tab->str_path_to = unescape_value(str_temp);
-		SFINISH_CHECK(client_tab->str_path_to != NULL, "unescape_value failed");
+		int_path_to_len = ptr_query != NULL ? (size_t)(ptr_query - str_temp) : (client_request->frame->int_length - (size_t)(str_temp - client_request->frame->str_message));
+		client_tab->str_path_to = bunescape_value(str_temp, &int_path_to_len);
+		SFINISH_CHECK(client_tab->str_path_to != NULL, "bunescape_value failed");
 
 		str_path_temp = client_tab->str_path;
 		client_tab->str_path = canonical(str_local_path_root, str_path_temp, "read_file");
@@ -1008,7 +1017,8 @@ void ws_tab_write_step4(EV_P, struct sock_ev_client_request *client_request) {
 		) > 0,
 		"snprintf() failed"
 	);
-		str_response[100] = 0;
+	str_response[100] = 0;
+	int_response_len = strlen(str_response);
 #else
 	SFINISH_SALLOC(statdata, sizeof(struct stat));
 	if (stat(client_tab->str_path, statdata) == 0) {

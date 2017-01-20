@@ -105,7 +105,7 @@ void http_file_step1(struct sock_ev_client *client) {
 #else
 	if (client_http_file->bol_download) {
 		str_temp1 = client_http_file->str_uri_part;
-		SFINISH_CHECK((client_http_file->str_uri_part = cstr_to_uri(str_temp1)) != NULL, "cstr_to_uri failed");
+		SFINISH_CHECK((client_http_file->str_uri_part = snuri(str_temp1, client_http_file->int_uri_part_len, &client_http_file->int_uri_part_len)) != NULL, "snuri failed");
 		SFREE(str_temp1);
 
 		SFINISH_CHECK(client_http_file->str_uri = canonical(str_global_sql_root, client_http_file->str_uri_part, "valid_path"),
@@ -328,7 +328,8 @@ void http_file_step2(EV_P, ev_check *w, int revents) {
 	SERROR_CHECK(tm_change_stamp != NULL, "gmtime() failed");
 	tm_change_stamp->tm_isdst = 0;
 
-	str_if_modified_since = request_header(client->str_request, "If-Modified-Since");
+	size_t int_if_modified_since_len = 0;
+	str_if_modified_since = request_header(client->str_request, client->int_request_len, "If-Modified-Since", &int_if_modified_since_len);
 	if (str_if_modified_since != NULL) {
 		SERROR_SALLOC(tm_if_modified_by, sizeof(struct tm));
 		SERROR_CHECK(strptime(str_if_modified_since, str_date_format, tm_if_modified_by) != NULL, "strptime() failed");

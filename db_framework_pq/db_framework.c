@@ -50,6 +50,7 @@ DB_conn *DB_connect(EV_P, void *cb_data, char *str_connstring, char *str_user,
 
 	SFINISH_SNCAT(str_conn, &int_conn_len,
 		str_connstring, strlen(str_connstring),
+		//" application_name='"SUN_PROGRAM_WORD_NAME"'", strlen(" application_name='"SUN_PROGRAM_WORD_NAME"'"),
 		" user=", (size_t)6,
 		str_escape_username, int_escape_username_len,
 		" password=", (size_t)10,
@@ -61,6 +62,16 @@ DB_conn *DB_connect(EV_P, void *cb_data, char *str_connstring, char *str_user,
 	// SDEBUG("str_conn>%s<", str_conn);
 	// **** WARNING ****
 	pg_conn = PQconnectStart(str_conn);
+#ifdef UTIL_DEBUG
+	PQconninfoOption *arr_conn_info = PQconninfo(pg_conn);
+	size_t int_cur = 0;
+	while (arr_conn_info[int_cur].keyword != NULL) {
+		SDEBUG("arr_conn_info[int_cur].keyword: %s", arr_conn_info[int_cur].keyword);
+		SDEBUG("arr_conn_info[int_cur].val: %s", arr_conn_info[int_cur].val);
+		int_cur += 1;
+	}
+#endif
+
 
 	SFINISH_CHECK(PQstatus(pg_conn) != CONNECTION_BAD, "cannot start connect: %s\012", PQerrorMessage(pg_conn));
 	SFINISH_CHECK(PQsetnonblocking(pg_conn, 1) != -1, "could not set nonblocking connection: %i (%s), %s\012", errno,
@@ -457,6 +468,7 @@ char *_DB_get_diagnostic(DB_conn *conn, PGresult *res) {
 	// DO NOT MESS WITH THE RETURN FORMAT OF THIS FUNCTION WITHOUT UPDATING THE JS
 	char *str_response = NULL;
 	size_t int_response_len = 0;
+	size_t int_temp_len = 0;
 	char *str_temp = NULL;
 
 	// get vars with error stuff
@@ -495,33 +507,39 @@ err_pos: %s\012",
 		return_error, return_detail, return_hint, return_query, return_context, return_err_pos);
 
 	str_temp = return_error;
-	return_error = escape_value(str_temp);
-	SFINISH_CHECK(return_error != NULL, "escape_value failed");
+	int_temp_len = strlen(str_temp);
+	return_error = bescape_value(str_temp, &int_temp_len);
+	SFINISH_CHECK(return_error != NULL, "bescape_value failed");
 	SFREE(str_temp);
 
 	str_temp = return_detail;
-	return_detail = escape_value(str_temp);
-	SFINISH_CHECK(return_detail != NULL, "escape_value failed");
+	int_temp_len = strlen(str_temp);
+	return_detail = bescape_value(str_temp, &int_temp_len);
+	SFINISH_CHECK(return_detail != NULL, "bescape_value failed");
 	SFREE(str_temp);
 
 	str_temp = return_hint;
-	return_hint = escape_value(str_temp);
-	SFINISH_CHECK(return_hint != NULL, "escape_value failed");
+	int_temp_len = strlen(str_temp);
+	return_hint = bescape_value(str_temp, &int_temp_len);
+	SFINISH_CHECK(return_hint != NULL, "bescape_value failed");
 	SFREE(str_temp);
 
 	str_temp = return_query;
-	return_query = escape_value(str_temp);
-	SFINISH_CHECK(return_query != NULL, "escape_value failed");
+	int_temp_len = strlen(str_temp);
+	return_query = bescape_value(str_temp, &int_temp_len);
+	SFINISH_CHECK(return_query != NULL, "bescape_value failed");
 	SFREE(str_temp);
 
 	str_temp = return_context;
-	return_context = escape_value(str_temp);
-	SFINISH_CHECK(return_context != NULL, "escape_value failed");
+	int_temp_len = strlen(str_temp);
+	return_context = bescape_value(str_temp, &int_temp_len);
+	SFINISH_CHECK(return_context != NULL, "bescape_value failed");
 	SFREE(str_temp);
 
 	str_temp = return_err_pos;
-	return_err_pos = escape_value(str_temp);
-	SFINISH_CHECK(return_err_pos != NULL, "escape_value failed");
+	int_temp_len = strlen(str_temp);
+	return_err_pos = bescape_value(str_temp, &int_temp_len);
+	SFINISH_CHECK(return_err_pos != NULL, "bescape_value failed");
 	SFREE(str_temp);
 
 	// build response
@@ -557,6 +575,7 @@ finish:
 	return str_response;
 }
 
+// It isn't practical to return a length for these functions because PQescapeLiteral doesn't
 // Escape string for use in a query
 char *DB_escape_literal(DB_conn *conn, char *str, size_t int_len) {
 	SDEBUG("str: %s", str);
@@ -856,14 +875,14 @@ static void db_copy_out_check_cb(EV_P, ev_check *w, int revents) {
 		} else if (int_status == -2) {
 			decrement_idle(EV_A);
 
-			SFINISH_ERROR("Copy statement failed: %s", PQerrorMessage(copy_check->conn->conn));
+			SFINISH("Copy statement failed: %s", PQerrorMessage(copy_check->conn->conn));
 
 			// success, end of data
 		} else if (int_status == -1) {
 			res = PQgetResult(copy_check->conn->conn);
 			result = PQresultStatus(res);
 			if (result == PGRES_FATAL_ERROR) {
-				SFINISH_ERROR("Failed to copy query: %s", PQerrorMessage(copy_check->conn->conn));
+				SFINISH("Failed to copy query: %s", PQerrorMessage(copy_check->conn->conn));
 			}
 			PQclear(res);
 			res = PQgetResult(copy_check->conn->conn);
@@ -1004,7 +1023,7 @@ static void db_cnxn_cb(EV_P, ev_io *w, int revents) {
 	} else if (status == PGRES_POLLING_FAILED) {
 		// Connection failed
 		SDEBUG("PGRES_POLLING_FAILED");
-		SFINISH_ERROR("Connect failed: %s", PQerrorMessage(conn->conn));
+		SFINISH("Connect failed: %s", PQerrorMessage(conn->conn));
 
 	} else if (status == PGRES_POLLING_READING) {
 		// We want to read

@@ -25,7 +25,8 @@ void notice_processor(void *arg, const char *str_notice) {
 		ptr_actual_message += 2;
 		*(ptr_actual_message - 2) = 0;
 	}
-	str_temp = escape_value(ptr_actual_message);
+	size_t int_temp_len = strlen(ptr_actual_message);
+	str_temp = bunescape_value(ptr_actual_message, &int_temp_len);
 	SDEBUG("%s\t%s", str_notice, str_temp);
 	if (client->str_notice != NULL) {
 		int_notice_len = strlen(client->str_notice);
@@ -33,12 +34,12 @@ void notice_processor(void *arg, const char *str_notice) {
 			"\012", (size_t)1,
 			str_notice, strlen(str_notice),
 			"\t", (size_t)1,
-			str_temp, strlen(str_temp));
+			str_temp, int_temp_len);
 	} else {
 		SERROR_SNCAT(client->str_notice, &int_notice_len,
 			str_notice, strlen(str_notice),
 			"\t", (size_t)1,
-			str_temp, strlen(str_temp));
+			str_temp, int_temp_len);
 	}
 	SFREE(str_temp);
 	bol_error_state = false;
@@ -101,8 +102,9 @@ void _send_notices(struct sock_ev_client *client) {
 	while (pg_notify_current != NULL) {
 		memset(str_temp, 0, 101);
 		sprintf(str_temp, "%d", pg_notify_current->be_pid);
-		str_temp2 = escape_value(pg_notify_current->extra != NULL ? pg_notify_current->extra : "");
-		SFINISH_CHECK(str_temp2 != NULL, "escape_value failed");
+		size_t int_temp2_len = pg_notify_current->extra != NULL ? strlen(pg_notify_current->extra) : 0;
+		str_temp2 = bescape_value(pg_notify_current->extra != NULL ? pg_notify_current->extra : "", &int_temp2_len);
+		SFINISH_CHECK(str_temp2 != NULL, "bescape_value failed");
 		SFINISH_SNFCAT(str_response, &int_response_len,
 			"NOTIFY\t", (size_t)7,
 			pg_notify_current->relname, strlen(pg_notify_current->relname),
@@ -550,17 +552,21 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				SDEBUG("other_client_node: %p", other_client_node);
 				SDEBUG("client->str_request: %p", client->str_request);
 				if (other_client_node != NULL) {
-					str_client_cookie = str_cookie(client->str_request, client->str_cookie_name);
-					str_session_client_cookie = str_cookie(session_client->str_request, session_client->str_cookie_name);
+					size_t int_current_cookie_len = 0;
+					size_t int_session_cookie_len = 0;
+					str_client_cookie = str_cookie(client->str_request, client->int_request_len, client->str_cookie_name, &int_current_cookie_len);
+					str_session_client_cookie = str_cookie(session_client->str_request, session_client->int_request_len, session_client->str_cookie_name, &int_session_cookie_len);
+
 					SDEBUG("client->str_request: %p", client->str_request);
 					// clang-format off
                     if (str_client_cookie != NULL &&
                         str_session_client_cookie != NULL &&
                         strcmp(str_client_cookie, str_session_client_cookie) == 0 &&
-                        (       (       (       session_client->client_timeout_prepare != NULL &&
-                                                (       (session_client->client_timeout_prepare->close_time + (ev_tstamp)int_global_login_timeout) > ev_now(EV_A) ||
-                                                        session_client->client_timeout_prepare->close_time == 0
-                              ))) || session_client->client_timeout_prepare == NULL)) {
+                        (	(	(		session_client->client_timeout_prepare != NULL
+									&&	(			(session_client->client_timeout_prepare->close_time + (ev_tstamp)int_global_login_timeout) > ev_now(EV_A)
+												||	session_client->client_timeout_prepare->close_time == 0
+							))) || session_client->client_timeout_prepare == NULL)
+						) {
 						// clang-format on
 						client_timeout_prepare_free(session_client->client_timeout_prepare);
 
@@ -620,7 +626,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				if (client->conn == NULL) {
 					SDEBUG("client->str_request: %p", client->str_request);
 					// set_cnxn does its own error handling
-					if (set_cnxn(client, client->str_request, cnxn_cb) == NULL) {
+					if (set_cnxn(client, cnxn_cb) == NULL) {
 						ev_io_stop(EV_A, &client->io);
 						SERROR_CLIENT_CLOSE(client);
 					}
@@ -629,7 +635,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				} else {
 					// The reason for this, is because later functions depend on the
 					// values this function sets
-					if (set_cnxn(client, client->str_request, NULL) == NULL) {
+					if (set_cnxn(client, NULL) == NULL) {
 						ev_io_stop(EV_A, &client->io);
 						SERROR_CLIENT_CLOSE(client);
 					}
@@ -638,7 +644,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				if (client != NULL) {
 					////HANDSHAKE
 					SERROR_CHECK(
-						(str_response = WS_handshakeResponse(client->str_request)) != NULL, "Error getting handshake response");
+						(str_response = WS_handshakeResponse(client->str_request, client->int_request_len)) != NULL, "Error getting handshake response");
 
 					SDEBUG("str_response       : %s", str_response);
 					SDEBUG("client->str_request: %s", client->str_request);
@@ -666,20 +672,22 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				}
 
 			} else {
-				str_uri_temp = str_uri_path(client->str_request, client->int_request_len, &int_uri_length);
-				SERROR_CHECK(str_uri_temp != NULL, "str_uri_path failed");
 #ifdef ENVELOPE
 				SERROR_SNCAT(client->str_cookie_name, &int_cookie_name_len,
 					"envelope", (size_t)8);
 #else
-				char *ptr_slash = strchr(str_uri_temp + 9, '/');
-				if (ptr_slash != NULL) {
-					*ptr_slash = 0;
-					SERROR_SNCAT(str_conn_index, &int_conn_index_len,
-						str_uri_temp + 9, strlen(str_uri_temp + 9));
-					SERROR_SNCAT(client->str_cookie_name, &int_cookie_name_len,
-						"postage_", (size_t)8,
-						str_conn_index, strlen(str_conn_index));
+				str_uri_temp = str_uri_path(client->str_request, client->int_request_len, &int_uri_length);
+				SERROR_CHECK(str_uri_temp != NULL, "str_uri_path failed");
+				if (int_uri_length > 8) {
+					char *ptr_slash = strchr(str_uri_temp + 9, '/');
+					if (ptr_slash != NULL) {
+						*ptr_slash = 0;
+						SERROR_SNCAT(str_conn_index, &int_conn_index_len,
+							str_uri_temp + 9, strlen(str_uri_temp + 9));
+						SERROR_SNCAT(client->str_cookie_name, &int_cookie_name_len,
+							"postage_", (size_t)8,
+							str_conn_index, strlen(str_conn_index));
+					}
 				}
 #endif
 				SDEBUG("http request");
@@ -740,7 +748,6 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 	size_t int_response_confirmed = 0;
 	char *ptr_query = NULL;
 	char *ptr_end_query = NULL;
-	size_t int_temp_len = 0;
 	size_t int_old_length = 0;
 	size_t int_message_id_len = 0;
 	size_t int_transaction_id_len = 0;
@@ -868,17 +875,12 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 
 		SERROR_SNCAT(str_first_word, &int_first_word_len,
 			ptr_query, ptr_end_query - ptr_query);
-		str_temp = str_first_word + strcspn(str_first_word, "\t \012");
+		str_temp = str_first_word + strncspn(str_first_word, int_first_word_len, "\t \012", (size_t)3);
 		if (str_temp) {
 			*str_temp = 0;
 		}
 
-		SERROR_SNCAT(str_temp, &int_temp_len,
-			str_first_word, int_first_word_len);
-		SFREE(str_first_word);
-		// str_toupper operates in-place
-		str_first_word = str_toupper(str_temp);
-		str_temp = NULL;
+		bstr_toupper(str_first_word, int_first_word_len);
 
 		SDEBUG("str_first_word: >%s<", str_first_word);
 
@@ -1394,8 +1396,8 @@ bool ws_client_info_cb(EV_P, void *cb_data, DB_result *res) {
 			get_connection_info(client_request->parent->str_connname, NULL)
 		));
 
-	str_conn_desc_enc = escape_value(str_conn_desc);
-	SFINISH_CHECK(str_conn_desc_enc != NULL, "escape_value failed!");
+	str_conn_desc_enc = bescape_value(str_conn_desc, &int_conn_desc_len);
+	SFINISH_CHECK(str_conn_desc_enc != NULL, "bescape_value failed!");
 	SFINISH_SNCAT(str_response, &int_response_len,
 		"VERSION\t", (size_t)8,
 		VERSION, strlen(VERSION),

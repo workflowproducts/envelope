@@ -55,7 +55,7 @@ void http_select_step1(struct sock_ev_client *client) {
 	// If src is in fact a query, not a object name, then wrap with parentheses
 	SFINISH_SNCAT(str_temp, &int_temp_len,
 		client_select->str_real_table_name, client_select->int_real_table_name_len);
-	str_temp = str_toupper(str_temp);
+	bstr_toupper(str_temp, int_temp_len);
 	SDEBUG("str_temp: %s", str_temp);
 	if (strstr(str_temp, "SELECT") != NULL && *client_select->str_real_table_name != '(') {
 		SFREE(str_temp);
@@ -361,6 +361,7 @@ bool http_select_step3(EV_P, void *cb_data, DB_result *res) {
 	char *str_response = NULL;
 	size_t int_len = 0, i = 0;
 	SDEFINE_VAR_ALL(str_json_columns, str_json_one_column, str_row_count);
+	size_t int_json_one_column_len = 0;
 	size_t int_json_columns_len = 0;
 	struct sock_ev_client_copy_check *client_copy_check = NULL;
 	size_t int_response_len = 0;
@@ -380,10 +381,10 @@ bool http_select_step3(EV_P, void *cb_data, DB_result *res) {
 		"", (size_t)0);
 	for (i = 1; i < int_len; i += 1) {
 		// Add the type to the response
-		// TODO: jsonify lengths
-		str_json_one_column = jsonify(DArray_get(client_select->darr_column_names, i));
+		int_json_one_column_len = strlen(DArray_get(client_select->darr_column_names, i));
+		str_json_one_column = jsonify(DArray_get(client_select->darr_column_names, i), &int_json_one_column_len);
 		SFINISH_SNFCAT(str_json_columns, &int_json_columns_len,
-			str_json_one_column, strlen(str_json_one_column),
+			str_json_one_column, int_json_one_column_len,
 			i < (int_len - 1) ? "," : "", strlen(i < (int_len - 1) ? "," : ""));
 		SFREE(str_json_one_column);
 	}
@@ -518,13 +519,13 @@ void http_select_step4(EV_P, ev_check *w, int revents) {
 					   strncmp(str_type, "int8", 4) == 0) {
 				int_one_column_len = (size_t)int_current_len;
 				str_one_column = bescape_value(DArray_get(arr_row_values, i), &int_one_column_len);
-				SFINISH_CHECK(str_one_column != NULL, "escape_value failed");
+				SFINISH_CHECK(str_one_column != NULL, "bescape_value failed");
 			} else {
 				// SDEBUG("DArray_get(arr_row_values, i): %s", DArray_get(arr_row_values, i));
-				str_one_column = jsonify(DArray_get(arr_row_values, i));
+				int_one_column_len = (size_t)int_current_len;
+				str_one_column = jsonify(DArray_get(arr_row_values, i), &int_one_column_len);
 				// SDEBUG("str_one_column: %s", str_one_column);
 				SFINISH_CHECK(str_one_column != NULL, "jsonify failed");
-				int_one_column_len = strlen(str_one_column);
 			}
 			// Add it to the response
 			SFINISH_SNFCAT(str_rows, &int_rows_len,
