@@ -1088,7 +1088,7 @@ function newTab(strType, strTabName, jsnParameters, bolLoadedFromServer, strFile
         frameElement.innerHTML =
             '<div id="frame-' + intTabNumber + '-indicator" class="frame-indicator"></div>' +
             '<div id="script-window-container-' + intTabNumber + '" class="script-window-container" flex-vertical flex-fill>' +
-                '<div class="ace-container-position-container" flex>' +
+                '<div id="ace-container-position-container-' + intTabNumber + '" class="ace-container-position-container" flex>' +
                     '<div class="ace-container">' +
                     '    <div id="sql-ace-area-' + intTabNumber + '" class="ace-area"></div>' +
                     '</div>' +
@@ -1167,6 +1167,7 @@ function newTab(strType, strTabName, jsnParameters, bolLoadedFromServer, strFile
         tabElement.relatedResultsTitleElement = document.getElementById('sql-results-title-' + intTabNumber);
         tabElement.relatedResultsAreaContainer = document.getElementById('sql-results-area-' + intTabNumber + '-container');
         tabElement.relatedPropertyButton = document.getElementById('sql-property-' + intTabNumber + '-button');
+        tabElement.relatedAcePositionContainer = document.getElementById('ace-container-position-container-' + intTabNumber);
         tabElement.relatedDocLinksContainer = document.getElementById('sql-doc-links-' + intTabNumber);
         tabElement.bolAutoOpenPropertyList = true;
         
@@ -1174,10 +1175,26 @@ function newTab(strType, strTabName, jsnParameters, bolLoadedFromServer, strFile
         tabElement.relatedClearButton = document.getElementById('sql-results-clear-' + intTabNumber);
         tabElement.relatedCopyOptionsButton = document.getElementById('sql-results-copy-options-' + intTabNumber);
         tabElement.relatedStopLoadingButton = document.getElementById('sql-results-stop-loading-' + intTabNumber);
-        
-        tabElement.relatedDownloadButton = document.getElementById('button-tab-' + intTabNumber + '-download');
-        
-        
+
+        if (window.process && window.process.type === 'renderer') {
+            tabElement.relatedDownloadButton = document.getElementById('button-tab-' + intTabNumber + '-save');
+            tabElement.relatedDownloadButton2 = document.getElementById('button-tab-' + intTabNumber + '-save-as');
+
+            tabElement.relatedDownloadButton.addEventListener('click', function (event) {
+                //console.log(event, event.which);
+                var strFileName = this.getAttribute('data-filename');
+                saveScriptAsFile(strFileName);
+            });
+
+            tabElement.relatedDownloadButton2.addEventListener('click', function (event) {
+                //console.log(event, event.which);
+                var strFileName = this.getAttribute('data-filename');
+                saveScriptAsFile(strFileName, true);
+            });
+        } else {
+            tabElement.relatedDownloadButton = document.getElementById('button-tab-' + intTabNumber + '-download');
+        }
+
         tabElement.relatedEditorToolbar = document.getElementById('sql-ace-toolbar-' + intTabNumber);
         tabElement.relatedEditorToolbar.addEventListener('click', function () {
             tabElement.relatedEditor.focus();
@@ -1359,7 +1376,15 @@ function newTab(strType, strTabName, jsnParameters, bolLoadedFromServer, strFile
             tabElement.relatedResultsTitleElement.innerHTML = 'Results';
             tabElement.relatedResultsArea.innerHTML = '';
         });
-        
+
+        if (evt.touchDevice) {
+            console.log(tabElement.relatedAcePositionContainer);
+            tabElement.relatedAcePositionContainer.style.height = '1px';
+            //if (tabElement.relatedAcePositionContainer.offsetHeight < 3) {
+            //    tabElement.relatedAcePositionContainer.style.height = '';
+            //}
+        }
+
         // bind sql results resizing
         tabElement.relatedResizeHandle.addEventListener(evt.mousedown, function (event) {
             var resizeTarget = tabElement.relatedResultsAreaContainer
@@ -1369,10 +1394,14 @@ function newTab(strType, strTabName, jsnParameters, bolLoadedFromServer, strFile
             
             resizeHandler = function (event) {
                 var intHeight = (GS.mousePosition(event).bottom + intOffset);
-                
+
+                //console.log('step 1:', intHeight, intMin, intMax);
+
                 if (intHeight < intMin) { intHeight = intMin; }
                 if (intHeight > intMax) { intHeight = intMax; }
-                
+
+                //console.log('step 2:', intHeight, intMin, intMax);
+
                 resizeTarget.style.height = intHeight + 'px';
                 tabElement.relatedEditor.resize();
             };
