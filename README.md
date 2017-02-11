@@ -59,6 +59,20 @@ Current configuration options allow you to set various paths, various access res
 
 You'll also need to set up a connection string to tell Envelope where your PostgreSQL database is published. The default connection string config file located in /usr/local/etc/envelope/. There are examples in the provided envelope-connections.conf file and further info is available in the man file.
 
+####Pooling
+
+To use Envelope with a connection pool, you need a Super User in your database that specifically for Envelope.
+
+The recommended script for creating this user is:
+```
+CREATE ROLE <username> LOGIN SUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD '<password>'
+```
+
+Of course, you should choose a name and password that doesn't have 'envelope' in it, otherwise people who try to break into your database can make that assumption.
+
+Envelope will detect if you want to use this mode if you have a `user` key in your `envelope-connections.conf`.
+It is recommended to use a `.pgpass` or some other means of storing the password so that it isn't in the `envelope-connections.conf`.
+
 ####TESTING ENVELOPE BEFORE INSTALLING
 
     cd envelope
