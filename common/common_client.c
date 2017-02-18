@@ -616,15 +616,6 @@ void client_cb(EV_P, ev_io *w, int revents) {
 							}
 						}
 
-						client->que_message = session_client->que_message;
-						session_client->que_message = NULL;
-						if (client->que_message != NULL) {
-							QUEUE_FOREACH(client->que_message, node) {
-								struct sock_ev_client_message *client_message = (struct sock_ev_client_message *)node->value;
-								client_message->frame->parent = client;
-							}
-						}
-
 						client->bol_request_in_progress = session_client->bol_request_in_progress;
 
 						client->client_paused_request = session_client->client_paused_request;
