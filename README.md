@@ -146,7 +146,6 @@ Then we'll move back into feature expansion. The features we want to bring to En
 Workflow Products itself is healthier than it's ever been. We're celebrating our tenth year in November 2016. We're now at five full time employees and we expect to be around in another ten years. If you have any further questions please contact us directly at 817-503-9545.
 
 ## Contributors
-
 If you would like to contribute to Envelope, first submit an issue. Please include how you plan to solve the issue. Then work on the patch. This way we get a moment to give feedback before you invest your time. 
 
 Anyone presenting a quality patch that asks for commit privileges will likely receive them! 
