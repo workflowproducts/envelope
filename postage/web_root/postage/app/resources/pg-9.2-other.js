@@ -205,6 +205,7 @@ function menuTools(target) {
                             href="https://github.com/workflowproducts/postage/" icon="github">Postage On Github</gs-button>
                 <gs-button class="postage-menu-item-button" dialogclose no-focus iconleft target="_blank"
                             href="https://github.com/workflowproducts/postage/issues" icon="bug">Report An Issue</gs-button>
+                <gs-button class="postage-menu-item-button" dialogclose no-focus iconleft onclick="dialogOptions();" icon="gear">Postage Options</gs-button>
             </gs-body>
         </gs-page>
     */});
@@ -690,6 +691,243 @@ function dialogSettings() {
                     '</tbody>' +
                 '</table>';
         });
+    });
+}
+
+// Postage Options in localStorage
+function dialogOptions() {
+    'use strict';
+    var templateElement = document.createElement('template');
+
+    //build zoom page list
+    var strZoom = '';
+    var i, len;
+    for (i=0,len=localStorage.length;i < len;i++) {
+        var strProp = localStorage.key(i);
+        //console.log(strProp);
+        if (/^postageZoom/.test(strProp)) {
+            strZoom = strZoom + '<tr>' +
+                    '<td>' + strProp.toString().replace(/^postageZoom/,'') + '</td>' +
+                    '<td><gs-text id="postage-options-left-panel-' + strProp.toString().replace(/^postageZoom/,'') + '"></gs-text></td>' +
+                '</tr>';
+        }
+    }
+
+    templateElement.setAttribute('data-max-width', '90em');
+    templateElement.setAttribute('data-overlay-close', 'true');
+    if (evt.touchDevice) {
+        templateElement.setAttribute('data-mode', 'full');
+    }
+    templateElement.innerHTML = ml(function () {/*
+        <gs-page>
+            <gs-header><center><h3>Postage Options</h3></center></gs-header>
+            <gs-body padded>
+                <h3>General</h3>
+                <div flex-horizontal>
+                    <label for="postage-options-left-panel" style="min-width: 7.25em;">Panel Width:</label>
+                    <gs-text id="postage-options-left-panel" flex></gs-text>
+                </div>
+                
+                <h3>Clip Options</h3>
+                <gs-grid widths="1,1" gutter>
+                    <gs-block>
+                        <gs-optionbox id="clip-options-quote-which" style="padding: 0 0.25em 0.25em 0.25em;">
+                                <label>Quote:</label>
+                                <gs-option value="none">Nothing</gs-option>
+                                <gs-option value="strings">Strings</gs-option>
+                                <gs-option value="all">All Fields</gs-option>
+                        </gs-optionbox>
+                    </gs-block>
+                    <gs-block>
+                        <gs-optionbox id="clip-options-column-names" style="padding: 0 0.25em 0.25em 0.25em;">
+                                <label>Column Names:</label>
+                                <gs-option value="true">Always</gs-option>
+                                <gs-option value="false">Only When Selected</gs-option>
+                        </gs-optionbox>
+                    </gs-block>
+                </gs-grid>
+                <div flex-horizontal>
+                    <label for="clip-options-quote-char" style="min-width: 7.25em;">Quote Char:</label>
+                    <gs-combo id="clip-options-quote-char" flex>
+                        <template>
+                            <table>
+                                <tbody>
+                                    <tr value="&#34;"><td>(Double Quote)</td></tr>
+                                    <tr value="&#39;"><td>(Single Quote)</td></tr>
+                                </tbody>
+                            </table>
+                        </template>
+                    </gs-combo>
+                </div>
+                <div flex-horizontal>
+                    <label for="clip-options-field-delimiter" style="min-width: 7.25em;">Field Delimiter:</label>
+                    <gs-combo id="clip-options-field-delimiter" flex>
+                        <template>
+                            <table>
+                                <tbody>
+                                    <tr value="&#9;"><td>(Tab)</td></tr>
+                                    <tr value="&#44;"><td>(Comma)</td></tr>
+                                    <tr value="&#124;"><td>(Vertical Bar)</td></tr>
+                                </tbody>
+                            </table>
+                        </template>
+                    </gs-combo>
+                </div>
+                <div flex-horizontal>
+                    <label for="clip-options-null-values" style="min-width: 7.25em;">Null Values:</label>
+                    <gs-combo id="clip-options-null-values" flex>
+                        <template>
+                            <table>
+                                <tbody>
+                                    <tr value="&lt;NULL&gt;"><td>&lt;NULL&gt;</td></tr>
+                                    <tr value="NULL"><td>NULL</td></tr>
+                                    <tr value=""><td>(Nothing)</td></tr>
+                                </tbody>
+                            </table>
+                        </template>
+                    </gs-combo>
+                </div>
+                
+                <h3>Page Zoom Levels</h3>
+                <div id="options-container" style="position: relative; min-height: 10em;">
+                    <table class="simple-table">
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th>Setting Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{ZOOM}}
+                        </tbody>
+                    </table>
+                </div>
+                <gs-grid widths="1,2" gutter>
+                    <gs-block>
+                        <label for="button-options" style="min-width: 20">SQL Toolbar Buttons</label>
+                        <gs-optionbox id="button-options" style="padding: 0 0.25em 0.25em 0.25em;">
+                                <label>Button Style:</label>
+                                <gs-option value="true">Labeled</gs-option>
+                                <gs-option value="false">Unlabeled</gs-option>
+                        </gs-optionbox>
+                    </gs-block>
+                    <gs-block style="min-height: 15em;">
+                        <label for="customCSSAce" style="min-width: 20">Custom CSS Stylesheet</label>
+                        <div id="customCSSAce"></div>
+                        <div><p>This Ace is stored in your local storage. Because this can get emptied it's recommended to save a copy.</p><div>
+                    </gs-block>
+                </gs-grid>
+            </gs-body>
+            <gs-footer><gs-button dialogclose id="settingsClose">Done</gs-button></gs-footer>
+        </gs-page>
+    */}).replace('{{ZOOM}}', strZoom);
+
+    GS.openDialog(templateElement, function () {
+        //left panel
+        document.getElementById('postage-options-left-panel').value = localStorage.leftPanelWidth;
+        document.getElementById('postage-options-left-panel').addEventListener('change', function () {
+            localStorage.leftPanelWidth = document.getElementById('postage-options-left-panel').value;
+        });
+  
+        var CSSEditor = ace.edit('customCSSAce');
+        CSSEditor.setTheme('ace/theme/eclipse');
+        CSSEditor.getSession().setMode('ace/mode/css');
+        CSSEditor.setShowPrintMargin(false);
+        CSSEditor.setDisplayIndentGuides(true);
+        CSSEditor.setShowFoldWidgets(false);
+        CSSEditor.session.setUseWrapMode('free');
+        CSSEditor.setBehavioursEnabled(false);
+        CSSEditor.$blockScrolling = Infinity; // <== blocks a warning
+    
+        CSSEditor.setOptions({
+            'enableBasicAutocompletion': true,
+            'enableSnippets'           : true,
+            'enableLiveAutocompletion' : true
+        });
+    
+        // if we're on a touch device: make the ace grow with it's content
+        if (evt.touchDevice) {
+            CSSEditor.setOptions({
+                maxLines: Infinity
+            });
+            document.getElementById('customCSSAce').classList.add('childrenneedsclick');
+            document.getElementById('customCSSAce').style.borderBottom = '1px solid #AAAAAA';
+    
+        // else: full height
+        } else {
+            document.getElementById('customCSSAce').style.height = '15em';
+        }
+        
+
+        CSSEditor.setValue(localStorage.customCSS);
+        CSSEditor.focus();
+        CSSEditor.selection.setSelectionRange(new Range(0, 0, 0, 0));
+        
+        
+        // set control values
+        document.getElementById('clip-options-quote-which').value = getClipSetting("quoteType");
+        document.getElementById('button-options').value = localStorage.labeledButtons;
+        document.getElementById('clip-options-quote-char').value = getClipSetting("quoteChar");
+        document.getElementById('clip-options-field-delimiter').value = getClipSetting("fieldDelimiter");
+        document.getElementById('clip-options-null-values').value = getClipSetting("nullValues");
+        document.getElementById('clip-options-column-names').value = getClipSetting("columnNames");
+        
+        
+        document.getElementById('clip-options-quote-which').addEventListener('change', setAllClipSettings);
+        document.getElementById('button-options').addEventListener('change', function () {
+            refreshButtons(document.getElementById('button-options').value);
+            //console.log(document.getElementById('button-options').value);
+        });
+        document.getElementById('settingsClose').addEventListener('click', function () {
+            refreshCustomCSS(CSSEditor.getValue());
+        });
+        document.getElementById('clip-options-quote-char').addEventListener('change', setAllClipSettings);
+        document.getElementById('clip-options-field-delimiter').addEventListener('change', setAllClipSettings);
+        document.getElementById('clip-options-null-values').addEventListener('change', setAllClipSettings);
+        document.getElementById('clip-options-column-names').addEventListener('change', setAllClipSettings);
+        
+        function setAllClipSettings() {
+            var arrElements, i, len;
+            
+            // save clip settings
+            setClipSetting("quoteType", document.getElementById('clip-options-quote-which').value);
+            setClipSetting("quoteChar", document.getElementById('clip-options-quote-char').value);
+            setClipSetting("fieldDelimiter", document.getElementById('clip-options-field-delimiter').value);
+            setClipSetting("nullValues", document.getElementById('clip-options-null-values').value);
+            setClipSetting("columnNames", document.getElementById('clip-options-column-names').value);
+    
+            // set all the table elements clip setting attributes
+            arrElements = xtag.query(document.getElementsByClassName('current-tab')[0].relatedResultsArea, 'table.results-table');
+    
+            for (i = 0, len = arrElements.length; i < len; i += 1) {
+                arrElements[i].setAttribute('quote-type', getClipSetting("quoteType"));
+                arrElements[i].setAttribute('quote-char', getClipSetting("quoteChar"));
+                arrElements[i].setAttribute('field-delimiter', getClipSetting("fieldDelimiter"));
+                arrElements[i].setAttribute('null-values', getClipSetting("nullValues"));
+                arrElements[i].setAttribute('column-names', getClipSetting("columnNames"));
+            }
+        }
+        
+        
+        var i, len;
+        for (i=0,len=localStorage.length;i < len;i++) {
+            var strProp = localStorage.key(i);
+            //console.log(strProp);
+            if (/^postageZoom/.test(strProp)) {
+                var strLink = strProp.toString().replace(/^postageZoom/,'');
+                console.log('strLink:' + strLink);
+                var objZoom = document.getElementById('postage-options-left-panel-' + strLink);
+                console.log('objZoom', objZoom);
+                
+                
+                objZoom.value = localStorage[strProp];
+                
+                objZoom.addEventListener('change', function (event) {
+                    localStorage['postageZoom' + event.target.getAttribute('id').replace(/^postage\-options\-left\-panel\-/,'')] =
+                        event.target.value;
+                });
+            }
+        }
     });
 }
 

@@ -1,4 +1,13 @@
-var elemPos = GS.getElementPositionData(document.getElementById('left-panel-body'));
+if (document.getElementById('left-panel-body')) {
+    var elemPos = GS.getElementPositionData(document.getElementById('left-panel-body'));
+} else {
+    var elemPosInterval = setInterval(function(){
+        if (document.getElementById('left-panel-body')) {
+            var elemPos = GS.getElementPositionData(document.getElementById('left-panel-body'));
+            clearInterval(elemPosInterval);
+        }
+    }, 1000); 
+}
 var bolTreeFunctionsLoaded = true
   , treeGlobals = {
         'ace':          null
@@ -195,7 +204,7 @@ function treeStart() {
                 jsnSelection = treeGlobals.ace.getSelectionRange();
                 intSelectionRow = jsnSelection.start.row;
                 jsnData = treeGlobals.data[intSelectionRow];
-                console.log(jsnData);
+                //console.log(jsnData);
                 if (jsnData) {
                     // tables
                     if (jsnData.query === 'objectTable') {
