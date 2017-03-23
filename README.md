@@ -98,7 +98,11 @@ Envelope will push a message like:
 
 Once you see that message that means Envelope is running, open your web browser to the link shown.
 
+<<<<<<< HEAD
 ####UNINSTALLING ENVELOPE
+=======
+If you'd like to support Postage and you're in a position to get us paid work then that helps a lot. We mostly do fussy custom ERP solutions for the Aerospace and Medical industries. Any kind of accounting or inventory application is right up our alley, especially the complex stuff. Our specialty is implementing new systems without disrupting operations (training-free implementations). Check out our website or give us a call [WorkflowProducts.com](http://www.workflowproducts.com/about.html).
+>>>>>>> 950a3991c7cc128d8c4de7873be481c4c2d60ca7
 
 If you still have your original build directory then:
 
