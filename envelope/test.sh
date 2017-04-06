@@ -1,8 +1,8 @@
  #!/bin/bash
 
- set -e
+set -e
 
-rm -rf envelope-master master.zip ~/.mozilla ~/.envelope
+rm -rf envelope-master master.zip ~/.mozilla
 
 wget https://github.com/workflowproducts/envelope/archive/master.zip
 unzip master.zip
@@ -25,12 +25,13 @@ sudo /usr/local/sbin/envelope & export ENVELOPEPID="$!"
 sleep 5
 xdg-open "http://127.0.0.1:8888/test.html"
 printf "HTTP/1.1 200 OK\r\n\r\n\r\n" | ncat -l -p 45654
-kill $ENVELOPEPID
+sudo kill $ENVELOPEPID
 
 sudo make uninstall
 
 kill -9 $(cat envelope/postgres.pid)
+getchar
 
 cd ..
 
-rm -rf envelope-master master.zip ~/.mozilla ~/.envelope
+rm -rf envelope-master master.zip ~/.mozilla
