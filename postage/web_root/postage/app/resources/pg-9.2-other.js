@@ -202,6 +202,30 @@ function menuTools(target) {
                             no-focus iconleft onclick="dialogSettings()" icon="cogs">Server Settings</gs-button>
                 <gs-button class="postage-menu-item-button" dialogclose
                             no-focus iconleft onclick="dialogDatabaseInfo()" icon="plug">Connection Info</gs-button>
+            </gs-body>
+        </gs-page>
+    */});
+
+    // dialogAbout()
+
+    GS.openDialogToElement(target, templateElement, 'down', function () {
+        //if we are in electron, remove the clear cache button
+        if (window.process && window.process.type === 'renderer') {
+            var element = document.getElementById('clear-cache-button');
+            element.parentNode.removeChild(element);
+        }
+    });
+}
+
+function menuOptions(target) {
+    'use strict';
+    var templateElement = document.createElement('template');
+
+    templateElement.setAttribute('data-max-width', '11em');
+    templateElement.setAttribute('data-overlay-close', 'true');
+    templateElement.innerHTML = ml(function () {/*
+        <gs-page>
+            <gs-body>
                 <gs-button class="postage-menu-item-button" dialogclose
                             no-focus iconleft onclick="dialogSplash()" icon="info">About Postage</gs-button>
                 <gs-button class="postage-menu-item-button" dialogclose
@@ -2897,12 +2921,34 @@ function executeScript(bolCursorQuery) {
                     resultsHeaderElement.classList.add('error');
 
                     //console.log(intLine, jsnCurrentQuery.start_row, intErrorStartLine);
-                    if (intLine) {
+                    if (data.error_position) {
+						var arrLines = jsnCurrentQuery.strQuery.substring(jsnCurrentQuery.start_char, data.error_position).split('\n');
+						var intErrorLine = arrLines.length;
+						var intErrorCol = parseInt(data.error_position, 10);
+						var i = 0;
+						var len = arrLines.length - 1;
+						while (i < len) {
+							intErrorCol -= arrLines[i].length + 1;
+							i += 1
+						}
+
                         editor.getSession().setAnnotations([
-                            {'row': jsnCurrentQuery.start_row + intErrorStartLine + (intLine - 1), 'column': parseInt(data.error_position, 10) || 0,
+                            {'row': jsnCurrentQuery.start_row + intErrorStartLine + (intErrorLine - 1), 'column': intErrorCol || 0,
                                 'text': strError, 'type': 'error'}
                         ]);
 
+						editor.getSelection().setSelectionRange({
+							start: {
+								row: jsnCurrentQuery.start_row + intErrorStartLine + (intErrorLine - 1),
+								column: intErrorCol || 0
+							},
+							end: {
+								row: jsnCurrentQuery.start_row + intErrorStartLine + (intErrorLine - 1),
+								column: intErrorCol || 0
+							}
+						});
+					}
+                    if (intLine) {
                         editor.scrollToLine((jsnCurrentQuery.start_row + intErrorStartLine + (intLine - 1)), true, true);
                     }
 
