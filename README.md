@@ -1,6 +1,8 @@
 # Envelope - Publish web apps based on your PostgreSQL database fast!
 
 ## About
+See the document "What_is_Envelope.pdf" for a quick overview.
+
 Envelope is a product of Workflow Products, LLC. This is the free PostgreSQL version. 
 
 Information about the Microsoft SQL Server version can be obtained from the product page at http://www.workflowproducts.com/envelope_sql_server.html
