@@ -7,7 +7,7 @@
 
 void ws_select_step1(struct sock_ev_client_request *client_request) {
 	SDEBUG("ws_select_step1");
-	struct sock_ev_client_select *client_select = (struct sock_ev_client_select *)(client_request->vod_request_data);
+	struct sock_ev_client_select *client_select = (struct sock_ev_client_select *)(client_request->client_request_data);
 	char *str_response = NULL;
 	char *ptr_attr_header = NULL;
 	char *ptr_end_attr_header = NULL;
@@ -237,10 +237,6 @@ finish:
 		WS_sendFrame(global_loop, client_request->parent, true, 0x01, str_response, strlen(str_response));
 		DArray_push(client_request->arr_response, str_response);
 		str_response = NULL;
-		ws_select_free(client_select);
-		// client_request_free(client_request);
-		// client_request_free takes care of this
-		// SFREE(client_select);
 	}
 	SFREE_ALL();
 }
@@ -250,7 +246,7 @@ finish:
 bool ws_select_step4(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	SDEBUG("ws_select_step4");
-	struct sock_ev_client_select *client_select = (struct sock_ev_client_select *)(client_request->vod_request_data);
+	struct sock_ev_client_select *client_select = (struct sock_ev_client_select *)(client_request->client_request_data);
 	SDEFINE_VAR_ALL(str_temp, str_temp1, str_oid_type, str_int_mod, str_sql, str_inner_top, str_col);
 
 #ifdef POSTAGE_INTERFACE_LIBPQ
@@ -491,11 +487,6 @@ finish:
 
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, strlen(str_response));
 		DArray_push(client_request->arr_response, str_response);
-
-		ws_select_free(client_select);
-		// client_request_free(client_request);
-		// client_request_free takes care of this
-		// SFREE(client_select);
 	} else {
 		SFREE(str_response);
 	}
@@ -503,28 +494,29 @@ finish:
 	return true;
 }
 
-void ws_select_free(struct sock_ev_client_select *to_free) {
-	SFREE(to_free->str_real_table_name);
-	SFREE(to_free->str_return_columns);
+void ws_select_free(struct sock_ev_client_request_data *client_request_data) {
+	struct sock_ev_client_select *client_select = (struct sock_ev_client_select *)client_request_data;
+	SFREE(client_select->str_real_table_name);
+	SFREE(client_select->str_return_columns);
 #ifndef POSTAGE_INTERFACE_LIBPQ
-	SFREE(to_free->str_return_escaped_columns);
-	SFREE(to_free->str_sql_escaped_return);
+	SFREE(client_select->str_return_escaped_columns);
+	SFREE(client_select->str_sql_escaped_return);
 #endif
-	SFREE(to_free->str_statement_name);
-	SFREE(to_free->str_sql);
-	SFREE(to_free->str_row_count);
+	SFREE(client_select->str_statement_name);
+	SFREE(client_select->str_sql);
+	SFREE(client_select->str_row_count);
 
-	SFREE(to_free->str_where);
-	SFREE(to_free->str_order_by);
-	SFREE(to_free->str_offset);
-	SFREE(to_free->str_limit);
+	SFREE(client_select->str_where);
+	SFREE(client_select->str_order_by);
+	SFREE(client_select->str_offset);
+	SFREE(client_select->str_limit);
 
-	if (to_free->darr_column_types != NULL) {
-		DArray_clear_destroy(to_free->darr_column_types);
-		to_free->darr_column_types = NULL;
+	if (client_select->darr_column_types != NULL) {
+		DArray_clear_destroy(client_select->darr_column_types);
+		client_select->darr_column_types = NULL;
 	}
-	if (to_free->darr_column_names != NULL) {
-		DArray_clear_destroy(to_free->darr_column_names);
-		to_free->darr_column_names = NULL;
+	if (client_select->darr_column_names != NULL) {
+		DArray_clear_destroy(client_select->darr_column_names);
+		client_select->darr_column_names = NULL;
 	}
 }

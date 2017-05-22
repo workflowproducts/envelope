@@ -20,7 +20,7 @@ void http_insert_step1(struct sock_ev_client *client) {
 	client->cur_request =
 		create_request(client, NULL, NULL, NULL, NULL, sizeof(struct sock_ev_client_insert), POSTAGE_REQ_INSERT);
 	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");
-	client_insert = (struct sock_ev_client_insert *)(client->cur_request->vod_request_data);
+	client_insert = (struct sock_ev_client_insert *)(client->cur_request->client_request_data);
 
 	str_uri = str_uri_path(client->str_request, client->int_request_len, &int_uri_len);
 	SFINISH_CHECK(str_uri != NULL, "str_uri_path() failed");
@@ -159,13 +159,8 @@ finish:
 		);
 		SFREE(_str_response);
 	}
-	if (str_response != NULL && (int_client_write_len = CLIENT_WRITE(client, str_response, strlen(str_response))) < 0) {
-		SFREE(str_response);
-		if (bol_tls) {
-			SERROR_NORESPONSE_LIBTLS_CONTEXT(client->tls_postage_io_context, "tls_write() failed");
-		} else {
-			SERROR_NORESPONSE("write() failed");
-		}
+	if (str_response != NULL && (int_client_write_len = client_write(client, str_response, strlen(str_response))) < 0) {
+		SERROR_NORESPONSE("client_write() failed");
 	}
 	SFREE(str_response);
 	if (int_client_write_len != 0) {
@@ -178,7 +173,7 @@ finish:
 
 bool http_insert_step2(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client *client = cb_data;
-	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client->cur_request->vod_request_data);
+	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client->cur_request->client_request_data);
 	char *str_response = NULL;
 	DArray *arr_row_values = NULL;
 	size_t int_response_len = 0;
@@ -227,13 +222,8 @@ finish:
 		SFREE(_str_response2);
 	}
 	ssize_t int_client_write_len = 0;
-	if (str_response != NULL && (int_client_write_len = CLIENT_WRITE(client, str_response, strlen(str_response))) < 0) {
-		SFREE(str_response);
-		if (bol_tls) {
-			SERROR_NORESPONSE_LIBTLS_CONTEXT(client->tls_postage_io_context, "tls_write() failed");
-		} else {
-			SERROR_NORESPONSE("write() failed");
-		}
+	if (str_response != NULL && (int_client_write_len = client_write(client, str_response, strlen(str_response))) < 0) {
+		SERROR_NORESPONSE("client_write() failed");
 	}
 	SFREE(str_response);
 	DB_free_result(res);
@@ -249,7 +239,7 @@ finish:
 
 bool http_insert_step3(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client *client = cb_data;
-	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client->cur_request->vod_request_data);
+	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client->cur_request->client_request_data);
 	char *str_response = NULL;
 	size_t int_response_len = 0;
 	size_t i = 0, int_len = 0;
@@ -354,13 +344,9 @@ finish:
 		SFREE(_str_response2);
 	}
 	ssize_t int_client_write_len = 0;
-	if (str_response != NULL && (int_client_write_len = CLIENT_WRITE(client, str_response, strlen(str_response))) < 0) {
+	if (str_response != NULL && (int_client_write_len = client_write(client, str_response, strlen(str_response))) < 0) {
 		SFREE(str_response);
-		if (bol_tls) {
-			SERROR_NORESPONSE_LIBTLS_CONTEXT(client->tls_postage_io_context, "tls_write() failed");
-		} else {
-			SERROR_NORESPONSE("write() failed");
-		}
+		SERROR_NORESPONSE("client_write() failed");
 	}
 	SFREE(str_response);
 	DB_free_result(res);
@@ -376,7 +362,7 @@ finish:
 
 bool http_insert_step4(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client *client = cb_data;
-	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client->cur_request->vod_request_data);
+	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client->cur_request->client_request_data);
 	char *str_response = NULL;
 	DArray *arr_row_values = NULL;
 	size_t int_response_len = 0;
@@ -460,13 +446,8 @@ finish:
 		SFREE(_str_response2);
 	}
 	ssize_t int_client_write_len = 0;
-	if (str_response != NULL && (int_client_write_len = CLIENT_WRITE(client, str_response, strlen(str_response))) < 0) {
-		SFREE(str_response);
-		if (bol_tls) {
-			SERROR_NORESPONSE_LIBTLS_CONTEXT(client->tls_postage_io_context, "tls_write() failed");
-		} else {
-			SERROR_NORESPONSE("write() failed");
-		}
+	if (str_response != NULL && (int_client_write_len = client_write(client, str_response, strlen(str_response))) < 0) {
+		SERROR_NORESPONSE("client_write() failed");
 	}
 	SFREE(str_response);
 	DB_free_result(res);
@@ -482,7 +463,7 @@ finish:
 
 bool http_insert_step5(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client *client = cb_data;
-	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client->cur_request->vod_request_data);
+	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client->cur_request->client_request_data);
 	char *str_response = NULL;
 	DArray *arr_row_values = NULL;
 	size_t int_response_len = 0;
@@ -542,13 +523,8 @@ finish:
 		SFREE(_str_response2);
 	}
 	ssize_t int_client_write_len = 0;
-	if (str_response != NULL && (int_client_write_len = CLIENT_WRITE(client, str_response, strlen(str_response))) < 0) {
-		SFREE(str_response);
-		if (bol_tls) {
-			SERROR_NORESPONSE_LIBTLS_CONTEXT(client->tls_postage_io_context, "tls_write() failed");
-		} else {
-			SERROR_NORESPONSE("write() failed");
-		}
+	if (str_response != NULL && (int_client_write_len = client_write(client, str_response, strlen(str_response))) < 0) {
+		SERROR_NORESPONSE("client_write() failed");
 	}
 	SFREE(str_response);
 	DB_free_result(res);
@@ -564,7 +540,7 @@ finish:
 
 bool http_insert_step6(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client *client = cb_data;
-	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client->cur_request->vod_request_data);
+	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client->cur_request->client_request_data);
 	char *str_response = NULL;
 	size_t int_response_len = 0;
 	DArray *arr_row_values = NULL;
@@ -636,13 +612,8 @@ finish:
 		SFREE(_str_response2);
 	}
 	ssize_t int_client_write_len = 0;
-	if (str_response != NULL && (int_client_write_len = CLIENT_WRITE(client, str_response, strlen(str_response))) < 0) {
-		SFREE(str_response);
-		if (bol_tls) {
-			SERROR_NORESPONSE_LIBTLS_CONTEXT(client->tls_postage_io_context, "tls_write() failed");
-		} else {
-			SERROR_NORESPONSE("write() failed");
-		}
+	if (str_response != NULL && (int_client_write_len = client_write(client, str_response, strlen(str_response))) < 0) {
+		SERROR_NORESPONSE("client_write() failed");
 	}
 	SFREE(str_response);
 	DB_free_result(res);

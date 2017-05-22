@@ -16,12 +16,27 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 	size_t int_error_len = 0;
 	size_t int_error_uri_len = 0;
 
+	size_t int_query_length = 0;
+	size_t int_action_length = 0;
+	size_t int_expiration_len = 0;
+	size_t int_cookie_len = 0;
+	size_t int_response_len = 0;
+	size_t int_uri_new_password_len = 0;
+	size_t int_uri_expiration_len = 0;
+
 #ifdef ENVELOPE
 #else
 	char *ptr_conn = NULL;
 	char *ptr_conn_end = NULL;
 	size_t int_referer_len = 0;
 #endif
+
+	struct sock_ev_client_request *client_request =
+		create_request(client_auth->parent, NULL, NULL, NULL, NULL, 0, POSTAGE_REQ_AUTH, NULL);
+	SFINISH_CHECK(client_request != NULL, "Could not create request data!");
+	client_request->client_request_data = (struct sock_ev_client_request_data *)client_auth;
+	client_auth->self.free = http_auth_free;
+	client_auth->parent->cur_request = client_request;
 
 	SFINISH_SALLOC(str_session_id_temp, 32);
 	SFINISH_CHECK(RAND_bytes((unsigned char *)str_session_id_temp, 32), "RAND_bytes failed");
@@ -32,14 +47,6 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 	char str_buf[101] = {0};
 	memcpy(str_buf, client_auth->parent->str_request, 100);
 	SDEBUG("str_buf: %s", str_buf);
-
-	size_t int_query_length = 0;
-	size_t int_action_length = 0;
-	size_t int_expiration_len = 0;
-	size_t int_cookie_len = 0;
-	size_t int_response_len = 0;
-	size_t int_uri_new_password_len = 0;
-	size_t int_uri_expiration_len = 0;
 
 	// get form data
 	str_form_data = query(client_auth->parent->str_request, client_auth->parent->int_request_len, &int_query_length);
@@ -117,6 +124,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 
 		SFINISH_SNCAT(
 			str_cookie_decrypted, &int_cookie_len,
+			"valid=true&", (size_t)11,
 			str_form_data, int_query_length,
 			"&expiration=", (size_t)12,
 			str_uri_expires, int_uri_expires_len,
@@ -202,12 +210,6 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		SDEBUG("client_auth: %p", client_auth);
 		SDEBUG("client_auth->parent: %p", client_auth->parent);
 
-		// set up cnxn socket
-		// SFINISH_SET_CLIENT_PQ_SOCKET(client_auth->parent);
-		// ev_io_init(&client_auth_cnxn->io, http_auth_cnxn_cb,
-		// GET_CLIENT_PQ_SOCKET(client_auth->parent), EV_WRITE);
-		// ev_io_start(EV_A, &client_auth_cnxn->io);
-
 		//////
 		// CHANGE PW, RESET COOKIE
 	} else if (strncmp(client_auth->str_action, "change_pw", 10) == 0) {
@@ -279,7 +281,8 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		SFINISH_CHECK(str_uri_expiration != NULL, "snuri failed!");
 		SFINISH_SNCAT(
 			str_new_cookie, &int_cookie_len,
-			"username=", (size_t)9,
+			"valid=true", (size_t)10,
+			"&username=", (size_t)10,
 			client_auth->str_user, client_auth->int_user_length,
 			"&connname=", (size_t)10,
 			client_auth->str_connname, client_auth->int_connname_length,
@@ -470,7 +473,8 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		SFINISH_CHECK(str_uri_expiration != NULL, "snuri failed!");
 		SFINISH_SNCAT(
 			str_new_cookie, &int_cookie_len,
-			"username=", (size_t)9,
+			"valid=true", (size_t)10,
+			"&username=", (size_t)10,
 			client_auth->str_user, client_auth->int_user_length,
 			"&connname=", (size_t)10,
 			client_auth->str_connname, client_auth->int_connname_length,
@@ -521,12 +525,6 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		client_auth->parent->conn =
 			DB_connect(global_loop, client_auth, str_conn, client_auth->str_user, client_auth->int_user_length,
 				client_auth->str_password, client_auth->int_password_length, "", http_auth_change_database_step2);
-
-		// set up cnxn socket
-		// SFINISH_SET_CLIENT_PQ_SOCKET(client_auth->parent);
-		// ev_io_init(&client_auth_cnxn->io, http_auth_cnxn_cb,
-		// GET_CLIENT_PQ_SOCKET(client_auth->parent), EV_WRITE);
-		// ev_io_start(global_loop, &client_auth_cnxn->io);
 
 	} else if (strncmp(client_auth->str_action, "list", 5) == 0) {
 		char *str_temp =
@@ -709,19 +707,13 @@ finish:
 	}
 
 	if (str_response != NULL) {
-		if ((int_write_len = CLIENT_WRITE(client_auth->parent, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
-			SFREE(str_response);
-			if (bol_tls) {
-				SERROR_NORESPONSE_LIBTLS_CONTEXT(client_auth->parent->tls_postage_io_context, "tls_write() failed");
-			} else {
-				SERROR_NORESPONSE("write() failed");
-			}
+		if ((int_write_len = client_write(client_auth->parent, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
+			SERROR_NORESPONSE("client_write() failed");
 		}
 		SFREE(str_response);
 
-		SERROR_CLIENT_CLOSE_NORESPONSE(client_auth->parent);
-		http_auth_free(client_auth);
-		SFREE(client_auth);
+		struct sock_ev_client *client = client_auth->parent;
+		SERROR_CLIENT_CLOSE_NORESPONSE(client);
 	}
 
 	SFREE_PWORD(str_form_data);
@@ -814,19 +806,13 @@ finish:
 		SFREE(_str_response);
 	}
 	if (str_response != NULL) {
-		if ((int_len2 = CLIENT_WRITE(client_auth->parent, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
-			SFREE(str_response);
-			if (bol_tls) {
-				SERROR_NORESPONSE_LIBTLS_CONTEXT(client_auth->parent->tls_postage_io_context, "tls_write() failed");
-			} else {
-				SERROR_NORESPONSE("write() failed");
-			}
+		if ((int_len2 = client_write(client_auth->parent, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
+			SERROR_NORESPONSE("client_write() failed");
 		}
 		SFREE(str_response);
 
-		SERROR_CLIENT_CLOSE_NORESPONSE(client_auth->parent);
-		http_auth_free(client_auth);
-		SFREE(client_auth);
+		struct sock_ev_client *client = client_auth->parent;
+		SERROR_CLIENT_CLOSE_NORESPONSE(client);
 	}
 	bol_error_state = false;
 	SFREE_ALL();
@@ -916,19 +902,13 @@ finish:
 	}
 
 	if (str_response != NULL) {
-		if ((int_len = CLIENT_WRITE(client_auth->parent, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
-			SFREE(str_response);
-			if (bol_tls) {
-				SERROR_NORESPONSE_LIBTLS_CONTEXT(client_auth->parent->tls_postage_io_context, "tls_write() failed");
-			} else {
-				SERROR_NORESPONSE("write() failed");
-			}
+		if ((int_len = client_write(client_auth->parent, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
+			SERROR_NORESPONSE("client_write() failed");
 		}
 		SFREE(str_response);
 
-		SERROR_CLIENT_CLOSE_NORESPONSE(client_auth->parent);
-		http_auth_free(client_auth);
-		SFREE(client_auth);
+		struct sock_ev_client *client = client_auth->parent;
+		SERROR_CLIENT_CLOSE_NORESPONSE(client);
 	}
 
 	bol_error_state = false;
@@ -991,19 +971,13 @@ finish:
 	}
 
 	if (str_response != NULL) {
-		if ((int_len = CLIENT_WRITE(client_auth->parent, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
-			SFREE(str_response);
-			if (bol_tls) {
-				SERROR_NORESPONSE_LIBTLS_CONTEXT(client_auth->parent->tls_postage_io_context, "tls_write() failed");
-			} else {
-				SERROR_NORESPONSE("write() failed");
-			}
+		if ((int_len = client_write(client_auth->parent, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
+			SERROR_NORESPONSE("client_write() failed");
 		}
 		SFREE(str_response);
 
-		SERROR_CLIENT_CLOSE_NORESPONSE(client_auth->parent);
-		http_auth_free(client_auth);
-		SFREE(client_auth);
+		struct sock_ev_client *client = client_auth->parent;
+		SERROR_CLIENT_CLOSE_NORESPONSE(client);
 	}
 
 	bol_error_state = false;
@@ -1013,6 +987,7 @@ finish:
 
 void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 	struct sock_ev_client_auth *client_auth = cb_data;
+	struct sock_ev_client_request *client_request = client_auth->parent->cur_request;
 	SDEFINE_VAR_ALL(str_group_literal, str_sql, str_expires, str_temp, str_user_literal, str_int_len);
 	char *str_response = NULL;
 	size_t int_response_len = 0;
@@ -1127,10 +1102,6 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 	SFREE(str_user_literal);
 	SFREE(str_group_literal);
 
-	struct sock_ev_client_request *client_request =
-		create_request(client_auth->parent, NULL, NULL, NULL, NULL, 0, POSTAGE_REQ_AUTH);
-	SFINISH_CHECK(client_request != NULL, "Could not create request data!");
-	client_request->vod_request_data = client_auth;
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 	SFINISH_CHECK(DB_exec(EV_A, client_auth->parent->conn, client_request, str_sql, http_auth_login_step3), "DB_exec failed");
 	SFREE(str_sql);
@@ -1159,19 +1130,13 @@ finish:
 		SFREE(_str_response);
 	}
 	if (str_response != NULL) {
-		if ((int_len = CLIENT_WRITE(client_auth->parent, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
-			SFREE(str_response);
-			if (bol_tls) {
-				SERROR_NORESPONSE_LIBTLS_CONTEXT(client_auth->parent->tls_postage_io_context, "tls_write() failed");
-			} else {
-				SERROR_NORESPONSE("write() failed");
-			}
+		if ((int_len = client_write(client_auth->parent, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
+			SERROR_NORESPONSE("client_write() failed");
 		}
 		SFREE(str_response);
 
-		SERROR_CLIENT_CLOSE_NORESPONSE(client_auth->parent);
-		http_auth_free(client_auth);
-		SFREE(client_auth);
+		struct sock_ev_client *client = client_auth->parent;
+		SERROR_CLIENT_CLOSE_NORESPONSE(client);
 	}
 	bol_error_state = false;
 	SFREE_ALL();
@@ -1179,7 +1144,7 @@ finish:
 
 bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
-	struct sock_ev_client_auth *client_auth = (struct sock_ev_client_auth *)(client_request->vod_request_data);
+	struct sock_ev_client_auth *client_auth = (struct sock_ev_client_auth *)(client_request->client_request_data);
 	SDEFINE_VAR_ALL(str_user_literal, str_temp1, str_expires, str_int_len);
 	SDEFINE_VAR_MORE(str_content_length, str_connstring, str_user, str_open);
 	SDEFINE_VAR_MORE(str_closed, str_temp_connstring, str_rolsuper, str_rolgroup, str_temp);
@@ -1491,17 +1456,11 @@ finish:
 		SFREE(client_request->parent->conn->str_response);
 	}
 
-	if ((int_len = CLIENT_WRITE(client_request->parent, str_response, strlen(str_response))) < 0) {
-		if (bol_tls) {
-			SERROR_NORESPONSE_LIBTLS_CONTEXT(client_request->parent->tls_postage_io_context, "tls_write() failed");
-		} else {
-			SERROR_NORESPONSE("write() failed");
-		}
+	if ((int_len = client_write(client_auth->parent, str_response, strlen(str_response))) < 0) {
+		SERROR_NORESPONSE("client_write() failed");
 	}
 	SFREE(str_response);
 	struct sock_ev_client *client = client_request->parent;
-	http_auth_free(client_auth);
-	client_request_free(client_request);
 	SFINISH_CLIENT_CLOSE(client);
 
 	bol_error_state = false;
@@ -1510,6 +1469,7 @@ finish:
 
 void http_auth_change_pw_step2(EV_P, void *cb_data, DB_conn *conn) {
 	struct sock_ev_client_auth *client_auth = cb_data;
+	struct sock_ev_client_request *client_request = client_auth->parent->cur_request;
 	SDEFINE_VAR_ALL(str_sql, str_user_quote, str_old_password_literal, str_new_password_literal);
 	char *str_response = NULL;
 	size_t int_response_len = 0;
@@ -1568,11 +1528,6 @@ void http_auth_change_pw_step2(EV_P, void *cb_data, DB_conn *conn) {
 	SFREE(str_new_password_literal);
 	str_new_password_literal = NULL;
 
-	struct sock_ev_client_request *client_request =
-		create_request(client_auth->parent, NULL, NULL, NULL, NULL, 0, POSTAGE_REQ_AUTH);
-	SFINISH_CHECK(client_request != NULL, "Could not create request data!");
-	client_request->vod_request_data = client_auth;
-
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 	SFINISH_CHECK(
 		DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, http_auth_change_pw_step3), "DB_exec failed");
@@ -1607,26 +1562,20 @@ finish:
 			_str_response, strlen(_str_response)
 		);
 		SFREE(_str_response);
-		if ((int_len = CLIENT_WRITE(client_auth->parent, str_response, int_response_len)) < 0) {
-			SFREE(str_response);
-			if (bol_tls) {
-				SERROR_NORESPONSE_LIBTLS_CONTEXT(client_auth->parent->tls_postage_io_context, "tls_write() failed");
-			} else {
-				SERROR_NORESPONSE("write() failed");
-			}
+		if ((int_len = client_write(client_auth->parent, str_response, int_response_len)) < 0) {
+			SERROR_NORESPONSE("client_write() failed");
 		}
 		// This prevents an infinite loop if CLIENT_CLOSE fails
 		SFREE(str_response);
-		SFINISH_CLIENT_CLOSE(client_auth->parent);
-		http_auth_free(client_auth);
-		SFREE(client_auth);
+		struct sock_ev_client *client = client_auth->parent;
+		SFINISH_CLIENT_CLOSE(client);
 	}
 	bol_error_state = false;
 }
 
 bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
-	struct sock_ev_client_auth *client_auth = (struct sock_ev_client_auth *)(client_request->vod_request_data);
+	struct sock_ev_client_auth *client_auth = (struct sock_ev_client_auth *)(client_request->client_request_data);
 	char *str_response = NULL;
 	size_t int_response_len = 0;
 	size_t int_temp = 0;
@@ -1709,9 +1658,7 @@ bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res) {
 
 	bol_error_state = false;
 finish:
-
 	SFREE_ALL();
-	http_auth_free(client_auth);
 
 	if (bol_error_state == true) {
 		SDEBUG("str_response: %s", str_response);
@@ -1738,12 +1685,8 @@ finish:
 	}
 	DB_free_result(res);
 
-	if (CLIENT_WRITE(client_request->parent, str_response, int_response_len) < 0) {
-		if (bol_tls) {
-			SERROR_NORESPONSE_LIBTLS_CONTEXT(client_request->parent->tls_postage_io_context, "tls_write() failed");
-		} else {
-			SERROR_NORESPONSE("write() failed");
-		}
+	if (client_write(client_auth->parent, str_response, int_response_len) < 0) {
+		SERROR_NORESPONSE("client_write() failed");
 	}
 	SFREE(str_response);
 	struct sock_ev_client *client = client_request->parent;
@@ -1964,26 +1907,18 @@ finish:
 		SFREE(_str_response);
 	}
 
-	if (CLIENT_WRITE(client_auth->parent, str_response, int_response_len) < 0) {
-		if (bol_tls) {
-			SERROR_NORESPONSE_LIBTLS_CONTEXT(client_auth->parent->tls_postage_io_context, "tls_write() failed");
-		} else {
-			SERROR_NORESPONSE("write() failed");
-		}
+	if (client_write(client_auth->parent, str_response, int_response_len) < 0) {
+		SERROR_NORESPONSE("client_write() failed");
 	}
 	SFREE(str_response);
 	struct sock_ev_client *client = client_auth->parent;
-	http_auth_free(client_auth);
-	SFREE(client_auth);
 	SFINISH_CLIENT_CLOSE(client);
 	bol_error_state = false;
 }
 
-void http_auth_free(struct sock_ev_client_auth *client_auth) {
+void http_auth_free(struct sock_ev_client_request_data *client_request_data) {
+	struct sock_ev_client_auth *client_auth = (struct sock_ev_client_auth *)client_request_data;
 	if (client_auth != NULL) {
-		if (client_auth->io.fd != 0) {
-			ev_io_stop(global_loop, &client_auth->io);
-		}
 		SFREE(client_auth->str_action);
 		SFREE_PWORD(client_auth->str_cookie_encrypted);
 		SFREE(client_auth->str_connname);

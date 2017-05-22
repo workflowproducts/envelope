@@ -358,31 +358,13 @@ void client_cb(EV_P, ev_io *w, int revents) {
 	// we haven't done the handshake yet
 	if (client->bol_handshake == false) {
 		errno = 0;
-		int_len = CLIENT_READ(client, str_buffer, MAX_BUFFER);
+		int_len = client_read(client, str_buffer, MAX_BUFFER);
 		SDEBUG("client->int_request_len: %zu", client->int_request_len);
 		SDEBUG("int_len: %zd", int_len);
 		SWARN_CHECK(
-			client->int_request_len != 0 || int_len != 0, "Libev said EV_READ, but there is nothing to read. Closing socket");
+			client->int_request_len > 0 || int_len != 0, "Libev said EV_READ, but there is nothing to read. Closing socket");
 
-		if (int_len == -1) {
-			if (errno == EAGAIN) {
-				SDEBUG("Should never get to EAGAIN");
-			}
-			/*
-			if (client->cnxn != NULL) {
-				PGcancel *cancel = PQgetCancel(client->cnxn);
-				if (cancel != NULL) {
-					SERROR_CHECK(PQcancel(cancel, str_buffer, MAX_BUFFER), "Error canceling query: %s", str_buffer);
-					PQfreeCancel(cancel);
-				}
-			}*/
-
-			if (bol_tls) {
-				SERROR_LIBTLS_CONTEXT(client->tls_postage_io_context, "tls_read() failed");
-			} else {
-				SERROR("read() failed");
-			}
-		} else if (int_len >= 0) {
+		if (int_len >= 0) {
 			if (bol_tls == false && (client->int_request_len == 0 || int_len == 0) && bstrstr(str_buffer, (size_t)int_len, "HTTP", 4) == NULL) {
 				SERROR("Someone is trying to connect with TLS!");
 			}
@@ -391,14 +373,16 @@ void client_cb(EV_P, ev_io *w, int revents) {
 			memcpy(client->str_request + client->int_request_len, str_buffer, (size_t)int_len);
 			client->int_request_len += (size_t)int_len;
 			client->str_request[client->int_request_len] = '\0';
-		} else if (int_len == TLS_WANT_POLLIN) {
+		} else if (int_len == SOCK_WANT_READ) {
 			ev_io_stop(EV_A, w);
 			ev_io_set(w, w->fd, EV_READ);
 			ev_io_start(EV_A, w);
-		} else if (int_len == TLS_WANT_POLLOUT) {
+		} else if (int_len == SOCK_WANT_WRITE) {
 			ev_io_stop(EV_A, w);
 			ev_io_set(w, w->fd, EV_WRITE);
 			ev_io_start(EV_A, w);
+		} else if (int_len < 0) {
+			SERROR("client_read() failed");
 		}
 
 		if (client->bol_upload == false) {
@@ -526,12 +510,8 @@ void client_cb(EV_P, ev_io *w, int revents) {
 
 					SBFREE_PWORD(str_upper_request, client->int_request_len);
 
-					if ((int_len = CLIENT_WRITE(client, str_response, strlen(str_response))) < 0) {
-						if (bol_tls) {
-							SERROR_LIBTLS_CONTEXT(client->tls_postage_io_context, "tls_write() failed");
-						} else {
-							SERROR_NORESPONSE("write() failed");
-						}
+					if ((int_len = client_write(client, str_response, strlen(str_response))) < 0) {
+						SERROR_NORESPONSE("client_write() failed");
 					}
 
 					SERROR_CLIENT_CLOSE(client);
@@ -690,18 +670,14 @@ void client_cb(EV_P, ev_io *w, int revents) {
 					SDEBUG("str_response       : %s", str_response);
 					SDEBUG("client->str_request: %s", client->str_request);
 					// return handshake response
-					if ((int_len = CLIENT_WRITE(client, str_response, int_response_len)) < 0) {
+					if ((int_len = client_write(client, str_response, strlen(str_response))) < 0) {
 						SERROR_CLIENT_CLOSE(client);
-						if (bol_tls) {
-							SERROR_LIBTLS_CONTEXT(client->tls_postage_io_context, "tls_write() failed");
-						} else {
-							SERROR("write() failed");
-						}
+						SERROR("client_write() failed");
 					}
 					SFREE(str_response);
 
 					SERROR_SALLOC(client->str_session_id, 10 + 1);
-					snprintf(client->str_session_id, 11, "0x%08llx", int_global_session_id++);
+					snprintf(client->str_session_id, 11, "0x%08" PRIu64, int_global_session_id++);
 					SERROR_SNCAT(str_response, &int_response_len, "sessionid = ", (size_t)12, client->str_session_id, (size_t)10, "\n", (size_t)1);
 
 					SERROR_CHECK(
@@ -925,62 +901,79 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 
 		if (strcmp(str_first_word, "SELECT") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				sizeof(struct sock_ev_client_select), POSTAGE_REQ_SELECT);
+				sizeof(struct sock_ev_client_select), POSTAGE_REQ_SELECT, ws_select_free);
+
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 		} else if (strcmp(str_first_word, "INSERT") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				sizeof(struct sock_ev_client_insert), POSTAGE_REQ_INSERT);
+				sizeof(struct sock_ev_client_insert), POSTAGE_REQ_INSERT, ws_insert_free);
+
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 		} else if (strcmp(str_first_word, "UPDATE") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				sizeof(struct sock_ev_client_update), POSTAGE_REQ_UPDATE);
+				sizeof(struct sock_ev_client_update), POSTAGE_REQ_UPDATE, ws_update_free);
+
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 		} else if (strcmp(str_first_word, "DELETE") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				sizeof(struct sock_ev_client_delete), POSTAGE_REQ_DELETE);
+				sizeof(struct sock_ev_client_delete), POSTAGE_REQ_DELETE, ws_delete_free);
+
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 		} else if (strcmp(str_first_word, "BEGIN") == 0) {
-			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query, 0, POSTAGE_REQ_BEGIN);
+			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
+				0, POSTAGE_REQ_BEGIN, NULL);
+
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 		} else if (strcmp(str_first_word, "COMMIT") == 0) {
-			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query, 0, POSTAGE_REQ_COMMIT);
+			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
+				0, POSTAGE_REQ_COMMIT, NULL);
+
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 		} else if (strcmp(str_first_word, "ROLLBACK") == 0) {
-			client_request =
-				create_request(client, frame, str_message_id, str_transaction_id, ptr_query, 0, POSTAGE_REQ_ROLLBACK);
+			client_request = create_request(client, frame, str_message_id, str_transaction_id,ptr_query,
+				0, POSTAGE_REQ_ROLLBACK, NULL);
+
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 #ifdef ENVELOPE
 #else
 		} else if (strcmp(str_first_word, "RAW") == 0) {
-			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query, sizeof(struct sock_ev_client_raw), POSTAGE_REQ_RAW);
+			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
+				sizeof(struct sock_ev_client_raw), POSTAGE_REQ_RAW, ws_raw_free);
+
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 #endif
 #ifdef ENVELOPE
 		} else if (strcmp(str_first_word, "FILE") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				sizeof(struct sock_ev_client_file), POSTAGE_REQ_FILE);
+				sizeof(struct sock_ev_client_file), POSTAGE_REQ_FILE, ws_file_free);
+
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 #else
 		} else if (strcmp(str_first_word, "TAB") == 0) {
-			client_request = create_request(
-				client, frame, str_message_id, str_transaction_id, ptr_query, sizeof(struct sock_ev_client_tab), POSTAGE_REQ_TAB);
+			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
+				sizeof(struct sock_ev_client_tab), POSTAGE_REQ_TAB, ws_tab_free);
+
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 #endif
 
 		} else if (strcmp(str_first_word, "INFO") == 0) {
-			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query, 0, POSTAGE_REQ_INFO);
+			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
+				0, POSTAGE_REQ_INFO, NULL);
+
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 #ifdef ENVELOPE
 		} else if (strcmp(str_first_word, "ACTION") == 0) {
-			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query, 0, POSTAGE_REQ_ACTION);
+			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
+				0, POSTAGE_REQ_ACTION, NULL);
+
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 #endif
 
@@ -1042,8 +1035,8 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 				SINFO("cur_request branch");
 				struct sock_ev_client_request *client_request = client->cur_request;
 
-				if (client_request->int_req_type == POSTAGE_REQ_RAW && client_request->vod_request_data != NULL) {
-					struct sock_ev_client_raw *client_raw = client_request->vod_request_data;
+				if (client_request->int_req_type == POSTAGE_REQ_RAW && client_request->client_request_data != NULL) {
+					struct sock_ev_client_raw *client_raw = (struct sock_ev_client_raw *)client_request->client_request_data;
 
 					if (client_raw->copy_check != NULL) {
 						char str_temp[101] = { 0 };
@@ -1077,8 +1070,6 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 						} else {
 							query_callback(EV_A, client_request, ws_raw_step3);
 						}
-
-						ws_raw_free(client_raw);
 					}
 				}
 			}
@@ -1246,8 +1237,8 @@ void client_send_from_cb(EV_P, ev_check *w, int revents) {
 				ev_io_start(EV_A, (ev_io *)client->client_paused_request->watcher);
 			}
 			ev_feed_event(EV_A, client->client_paused_request->watcher, client->client_paused_request->revents);
-			SINFO("client->client_paused_request->bol_is_db_framework: %s", client->client_paused_request->bol_is_db_framework ? "true" : "false");
-			if (client->client_paused_request->bol_is_db_framework) {
+			SINFO("client->client_paused_request->bol_free_watcher: %s", client->client_paused_request->bol_free_watcher ? "true" : "false");
+			if (client->client_paused_request->bol_free_watcher) {
 				increment_idle(EV_A);
 			}
 			SFREE(client->client_paused_request);
@@ -1267,7 +1258,7 @@ void client_send_from_cb(EV_P, ev_check *w, int revents) {
 // **************************************************************************************
 
 struct sock_ev_client_request *create_request(struct sock_ev_client *client, WSFrame *frame, char *str_message_id,
-	char *str_transaction_id, char *ptr_query, size_t siz_data, size_t int_req_type) {
+	char *str_transaction_id, char *ptr_query, size_t siz_data, size_t int_req_type, sock_ev_client_request_data_free_func free_func) {
 	struct sock_ev_client_request *client_request = NULL;
 	SERROR_SALLOC(client_request, sizeof(struct sock_ev_client_request));
 	client_request->parent = client;
@@ -1279,9 +1270,10 @@ struct sock_ev_client_request *create_request(struct sock_ev_client *client, WSF
 	client_request->cb_data = NULL;
 
 	if (siz_data > 0) {
-		SERROR_SALLOC(client_request->vod_request_data, siz_data);
+		SERROR_SALLOC(client_request->client_request_data, siz_data);
+		client_request->client_request_data->free = free_func;
 	} else {
-		client_request->vod_request_data = NULL;
+		client_request->client_request_data = NULL;
 	}
 	client_request->int_req_type = int_req_type;
 
@@ -1289,12 +1281,16 @@ struct sock_ev_client_request *create_request(struct sock_ev_client *client, WSF
 	return client_request;
 error:
 	SFREE(client_request);
-	SFREE(client_request->vod_request_data);
+	SFREE(client_request->client_request_data);
 	return NULL;
 }
 
 void _client_request_free(struct sock_ev_client_request *client_request) {
 	SDEBUG("Freeing request with messageid %s at location %p", client_request->str_message_id, client_request);
+	if (client_request->client_request_data != NULL) {
+		client_request->client_request_data->free(client_request->client_request_data);
+		SFREE(client_request->client_request_data);
+	}
 	if (client_request->parent != NULL) {
 		client_request->parent->bol_request_in_progress = false;
 		client_request->parent->cur_request = NULL;
@@ -1318,7 +1314,6 @@ void _client_request_free(struct sock_ev_client_request *client_request) {
 	SFREE(client_request->str_current_response);
 	SFREE(client_request->str_message_id);
 	SFREE(client_request->str_transaction_id);
-	SFREE(client_request->vod_request_data);
 	SFREE(client_request);
 }
 
@@ -1832,14 +1827,12 @@ bool client_close(struct sock_ev_client *client) {
 		}
 		// This must be done NOW, or else the browser will hang
 		if (bol_tls) {
-			if (tls_close(client->tls_postage_io_context) != 0) {
-				SERROR_NORESPONSE_LIBTLS_CONTEXT(client->tls_postage_io_context, "tls_close() failed");
+			if (SSL_shutdown(client->ssl) != 0) {
+				SERROR_NORESPONSE("SSL_shutdown() failed");
 			}
 			SFREE(str_global_error);
-			tls_free(client->tls_postage_io_context);
-			// The documentation (poorly) states that IF tls_close is called on a
-			// CLIENT context, it will close the socket, but
-			// it won't on a server context
+			SSL_free(client->ssl);
+
 			close(client->int_sock);
 		} else {
 			shutdown(client->int_sock, SHUT_RDWR);
@@ -2034,6 +2027,8 @@ void client_close_cancel_query_cb(EV_P, ev_io *w, int revents) {
 	}
 }
 bool client_close_close_cnxn_cb(EV_P, void *cb_data, DB_result *res) {
+	if (EV_A) { // for unused variable warning
+	}
 	SINFO("RESET SESSION AUTHORIZATION finished!");
 	struct sock_ev_client *client = cb_data;
 	DB_finish(client->conn);
@@ -2060,7 +2055,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 		SFREE(client->client_copy_check->str_response);
 		SFREE(client->client_copy_check);
 	}
-	if (client->client_paused_request != NULL && client->client_paused_request->bol_is_db_framework) {
+	if (client->client_paused_request != NULL && client->client_paused_request->bol_free_watcher) {
 		client->client_paused_request->watcher = NULL;
 
 		// this won't effect the event loop, because DB_finish will have the decrement_idle
@@ -2093,13 +2088,12 @@ void client_close_immediate(struct sock_ev_client *client) {
 		}
 
 		if (bol_tls) {
-			if (tls_close(client->tls_postage_io_context) != 0) {
-				SERROR_NORESPONSE_LIBTLS_CONTEXT(client->tls_postage_io_context, "tls_close() failed");
+			if (SSL_shutdown(client->ssl) != 0) {
+				SERROR_NORESPONSE("SSL_shutdown() failed");
 			}
-			tls_free(client->tls_postage_io_context);
-			// The documentation states that IF tls_close is called on a
-			// CLIENT context, it will close the socket, but
-			// it won't on a server context
+			SFREE(str_global_error);
+			SSL_free(client->ssl);
+
 			close(client->int_sock);
 		} else {
 			shutdown(client->int_sock, SHUT_RDWR);
@@ -2115,30 +2109,6 @@ void client_close_immediate(struct sock_ev_client *client) {
 	client_timeout_prepare_free(client->client_timeout_prepare);
 	if (client->cur_request != NULL) {
 		client->cur_request->parent = NULL;
-		if (client->cur_request->int_req_type == POSTAGE_REQ_SELECT) {
-			ws_select_free(client->cur_request->vod_request_data);
-		} else if (client->cur_request->int_req_type == POSTAGE_REQ_INSERT) {
-			ws_insert_free(client->cur_request->vod_request_data);
-		} else if (client->cur_request->int_req_type == POSTAGE_REQ_UPDATE) {
-			ws_update_free(client->cur_request->vod_request_data);
-		} else if (client->cur_request->int_req_type == POSTAGE_REQ_DELETE) {
-			ws_delete_free(client->cur_request->vod_request_data);
-#ifdef ENVELOPE
-		} else if (client->cur_request->int_req_type == POSTAGE_REQ_FILE) {
-			ws_file_free(client->cur_request->vod_request_data);
-#else
-		} else if (client->cur_request->int_req_type == POSTAGE_REQ_TAB) {
-			ws_tab_free(client->cur_request->vod_request_data);
-		} else if (client->cur_request->int_req_type == POSTAGE_REQ_RAW) {
-			struct sock_ev_client_raw *client_raw = client->cur_request->vod_request_data;
-			if (client_raw->copy_check != NULL && client->client_paused_request->watcher == ((ev_watcher *)&client_raw->copy_check->check)) {
-				client->client_paused_request->watcher = NULL;
-			}
-			ws_raw_free(client->cur_request->vod_request_data);
-#endif
-		} else if (client->cur_request->int_req_type == POSTAGE_REQ_AUTH) {
-			http_auth_free(client->cur_request->vod_request_data);
-		}
 		client_request_free(client->cur_request);
 		client->cur_request = NULL;
 	}
@@ -2146,26 +2116,6 @@ void client_close_immediate(struct sock_ev_client *client) {
 		QUEUE_FOREACH(client->que_request, node) {
 			struct sock_ev_client_request *client_request = node->value;
 			client_request->parent = NULL;
-			if (client_request->int_req_type == POSTAGE_REQ_SELECT) {
-				ws_select_free(client_request->vod_request_data);
-			} else if (client_request->int_req_type == POSTAGE_REQ_INSERT) {
-				ws_insert_free(client_request->vod_request_data);
-			} else if (client_request->int_req_type == POSTAGE_REQ_UPDATE) {
-				ws_update_free(client_request->vod_request_data);
-			} else if (client_request->int_req_type == POSTAGE_REQ_DELETE) {
-				ws_delete_free(client_request->vod_request_data);
-#ifdef ENVELOPE
-			} else if (client_request->int_req_type == POSTAGE_REQ_FILE) {
-				ws_file_free(client_request->vod_request_data);
-#else
-			} else if (client_request->int_req_type == POSTAGE_REQ_TAB) {
-				ws_tab_free(client_request->vod_request_data);
-			} else if (client_request->int_req_type == POSTAGE_REQ_RAW) {
-				ws_raw_free(client_request->vod_request_data);
-#endif
-			} else if (client_request->int_req_type == POSTAGE_REQ_AUTH) {
-				http_auth_free(client_request->vod_request_data);
-			}
 			client_request_free(client_request);
 			// This is because we increment idle when we push to this queue
 			decrement_idle(global_loop);
@@ -2174,6 +2124,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 		client->que_request = NULL;
 	}
 	client_paused_request_free(client->client_paused_request);
+	client->client_paused_request = NULL;
 
 	if (client->client_request_watcher != NULL) {
 		ev_check_stop(global_loop, &client->client_request_watcher->check);
@@ -2231,6 +2182,9 @@ void client_paused_request_free(struct sock_ev_client_paused_request *client_pau
 			} else {
 				ev_io_stop(global_loop, (ev_io *)client_paused_request->watcher);
 			}
+			SINFO("client_paused_request->revents: %x", client_paused_request->revents);
+			SINFO("client_paused_request: %p", client_paused_request);
+			SINFO("client_paused_request->watcher: %p", client_paused_request->watcher);
 			SFREE(client_paused_request->watcher);
 		}
 	}

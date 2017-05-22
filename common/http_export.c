@@ -109,7 +109,7 @@ void http_export_step1(struct sock_ev_client *client) {
 
 	SDEBUG("str_sql: %s", str_sql);
 
-	client_request = create_request(client, NULL, NULL, NULL, NULL, 0, POSTAGE_REQ_STANDARD);
+	client_request = create_request(client, NULL, NULL, NULL, NULL, 0, POSTAGE_REQ_STANDARD, NULL);
 	client->cur_request = client_request;
 	SFINISH_CHECK(client_request != NULL, "Could not create request data!");
 
@@ -143,12 +143,8 @@ finish:
 		);
 		SFREE(_str_response);
 
-		if (CLIENT_WRITE(client, str_response, int_response_len) < 0) {
-			if (bol_tls) {
-				SERROR_NORESPONSE_LIBTLS_CONTEXT(client->tls_postage_io_context, "tls_write() failed");
-			} else {
-				SERROR_NORESPONSE("write() failed");
-			}
+		if (client_write(client, str_response, int_response_len) < 0) {
+			SERROR_NORESPONSE("client_write() failed");
 		}
 		// This prevents an infinite loop if CLIENT_CLOSE fails
 		SFREE(str_response);

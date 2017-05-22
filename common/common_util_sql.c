@@ -301,7 +301,6 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 	size_t int_response_len = 0;
 	SFINISH_SNCAT(str_response, &int_len, arg_str_response, int_len);
 	SFREE(str_global_error);
-	SDEBUG("str_response: %s", str_response);
 
 	if (client_request->bol_cancel_return == true) {
 		if (bol_last) {
@@ -313,11 +312,11 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 			client_request->int_current_response_length = 0;
 
 			if (client_request->int_req_type == POSTAGE_REQ_INSERT) {
-				ws_insert_free(client_request->vod_request_data);
+				ws_insert_free(client_request->client_request_data);
 			} else if (client_request->int_req_type == POSTAGE_REQ_UPDATE) {
-				ws_update_free(client_request->vod_request_data);
+				ws_update_free(client_request->client_request_data);
 			} else if (client_request->int_req_type == POSTAGE_REQ_SELECT) {
-				ws_select_free(client_request->vod_request_data);
+				ws_select_free(client_request->client_request_data);
 			}
 		}
 
@@ -366,9 +365,10 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 			// If copy_check is null, that means we are on the last message of the request
 			if (client_request->parent->conn->copy_check != NULL && close_client_if_needed(client_request->parent, (ev_watcher *)&client_request->parent->conn->copy_check->check, EV_CHECK)) {
 				ev_check_stop(EV_A, &client_request->parent->conn->copy_check->check);
-				client_request->parent->client_paused_request->bol_is_db_framework = true;
+				client_request->parent->client_paused_request->bol_free_watcher = true;
 				SDEBUG("client_request->parent->cur_request: %p", client_request->parent->cur_request);
 				decrement_idle(EV_A);
+				SFREE(str_response);
 				return false;
 			}
 
@@ -404,11 +404,11 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 				client_request->int_current_response_length = 0;
 
 				if (client_request->int_req_type == POSTAGE_REQ_INSERT) {
-					ws_insert_free(client_request->vod_request_data);
+					ws_insert_free(client_request->client_request_data);
 				} else if (client_request->int_req_type == POSTAGE_REQ_UPDATE) {
-					ws_update_free(client_request->vod_request_data);
+					ws_update_free(client_request->client_request_data);
 				} else if (client_request->int_req_type == POSTAGE_REQ_SELECT) {
-					ws_select_free(client_request->vod_request_data);
+					ws_select_free(client_request->client_request_data);
 				}
 			}
 
@@ -463,11 +463,11 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 			client_request->int_current_response_length = 0;
 
 			if (client_request->int_req_type == POSTAGE_REQ_INSERT) {
-				ws_insert_free(client_request->vod_request_data);
+				ws_insert_free(client_request->client_request_data);
 			} else if (client_request->int_req_type == POSTAGE_REQ_UPDATE) {
-				ws_update_free(client_request->vod_request_data);
+				ws_update_free(client_request->client_request_data);
 			} else if (client_request->int_req_type == POSTAGE_REQ_SELECT) {
-				ws_select_free(client_request->vod_request_data);
+				ws_select_free(client_request->client_request_data);
 			}
 		}
 	}
@@ -499,11 +499,11 @@ finish:
 		str_response = NULL;
 
 		if (client_request->int_req_type == POSTAGE_REQ_INSERT) {
-			ws_insert_free(client_request->vod_request_data);
+			ws_insert_free(client_request->client_request_data);
 		} else if (client_request->int_req_type == POSTAGE_REQ_UPDATE) {
-			ws_update_free(client_request->vod_request_data);
+			ws_update_free(client_request->client_request_data);
 		} else if (client_request->int_req_type == POSTAGE_REQ_SELECT) {
-			ws_select_free(client_request->vod_request_data);
+			ws_select_free(client_request->client_request_data);
 		}
 		return false;
 	}
@@ -565,13 +565,8 @@ bool http_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, ch
 			_str_response[client_request->int_current_response_length + int_header_len] = '\0';
 
 			SDEBUG("_str_response: %s", _str_response);
-			if ((int_response_write_len = CLIENT_WRITE(
-					 client_request->parent, _str_response, client_request->int_current_response_length + int_header_len)) < 0) {
-				if (bol_tls) {
-					SFINISH_LIBTLS_CONTEXT(client_request->parent->tls_postage_io_context, "tls_write() failed");
-				} else {
-					SERROR_NORESPONSE("write() failed");
-				}
+			if ((int_response_write_len = client_write(client, _str_response, client_request->int_current_response_length + int_header_len)) < 0) {
+				SERROR_NORESPONSE("client_write() failed");
 			}
 			SDEBUG("int_response_write_len: %d", int_response_write_len);
 			SFREE(_str_response);
@@ -600,12 +595,9 @@ finish:
 			"\015\012\015\012", (size_t)4,
 			str_response, int_response_len);
 
-		if ((int_response_write_len = CLIENT_WRITE(client_request->parent, _str_response, strlen(_str_response))) < 0) {
-			if (bol_tls) {
-				SERROR_NORESPONSE_LIBTLS_CONTEXT(client_request->parent->tls_postage_io_context, "tls_write() failed");
-			} else {
-				SERROR_NORESPONSE("write() failed");
-			}
+		SFREE(str_response);
+		if ((int_response_write_len = client_write(client, _str_response, strlen(_str_response) + int_header_len)) < 0) {
+			SERROR_NORESPONSE("client_write() failed");
 		}
 		SFREE(_str_response);
 

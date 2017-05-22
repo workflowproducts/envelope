@@ -24,12 +24,10 @@
 #pragma comment(lib, "Ws2_32.lib")
 #ifdef _WIN64
 #pragma comment(lib, "../lib/x64/libpq.lib")
-#pragma comment(lib, "../lib/x64/libtls-15.lib")
-#pragma comment(lib, "../lib/x64/libssl-3943lib")
+#pragma comment(lib, "../lib/x64/libssl-43.lib")
 #pragma comment(lib, "../lib/x64/libcrypto-41.lib")
 #else
 #pragma comment(lib, "../lib/x86/libpq.lib")
-#pragma comment(lib, "../lib/x86/libtls-15.lib")
 #pragma comment(lib, "../lib/x86/libssl-43.lib")
 #pragma comment(lib, "../lib/x86/libcrypto-41.lib")
 #endif
@@ -113,10 +111,15 @@ void program_exit() {
 		DArray_destroy(darr_global_connection);
 
 		if (bol_tls) {
-			tls_config_free(_server.tls_postage_config);
-			tls_free(_server.tls_postage_context);
+			SSL_CTX_free(_server.ssl_ctx);
 		}
+		EVP_cleanup();
 		CRYPTO_cleanup_all_ex_data();
+		ERR_free_strings();
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		ERR_remove_thread_state(NULL);
+#endif
 
 		ev_break(global_loop, EVBREAK_ALL);
 		ev_loop_destroy(global_loop);
@@ -311,6 +314,7 @@ int main(int argc, char *const *argv) {
 	}
 
 	// Initialize AES
+	SSL_library_init();
 	init_aes_key_iv();
 
 	// Get address info
@@ -347,42 +351,29 @@ int main(int argc, char *const *argv) {
 	_server.int_sock = int_sock;
 
 	if (bol_tls) {
-		tls_init();
-
-		// Initialize a configuration context
-		_server.tls_postage_config = tls_config_new();
-		if (_server.tls_postage_config == NULL) {
-			SERROR_LIBTLS_NOCONTEXT("tls_config_new() failed");
+		// Initialize an SSL context
+		_server.ssl_ctx = SSL_CTX_new(SSLv23_server_method());
+		if (!_server.ssl_ctx) {
+			perror("Unable to create SSL context");
+			ERR_print_errors_fp(stderr);
+			goto error;
 		}
 
-		// Set the certificate file in the configuration context
-		if (tls_config_set_cert_file(_server.tls_postage_config, str_global_tls_cert) != 0) {
-			SERROR_LIBTLS_NOCONTEXT("tls_config_set_cert_file() failed");
+		// Set the certificate file
+		if (SSL_CTX_use_certificate_file(_server.ssl_ctx, str_global_tls_cert, SSL_FILETYPE_PEM) <= 0) {
+			ERR_print_errors_fp(stderr);
+			goto error;
 		}
 
-		// Set the key file in the configuration context
-		if (tls_config_set_key_file(_server.tls_postage_config, str_global_tls_key) != 0) {
-			SERROR_LIBTLS_NOCONTEXT("tls_config_set_key_file() failed");
-		}
-		
-		if (tls_config_set_ciphers(_server.tls_postage_config, "compat") != 0) {
-			SERROR_LIBTLS_NOCONTEXT("tls_config_set_ciphers() failed");
+		// Set the key file
+		if (SSL_CTX_use_PrivateKey_file(_server.ssl_ctx, str_global_tls_key, SSL_FILETYPE_PEM) <= 0) {
+			ERR_print_errors_fp(stderr);
+			goto error;
 		}
 
-		// tls_config_set_protocols(_server.tls_postage_config, TLS_PROTOCOL_TLSv1_0
-		// | TLS_PROTOCOL_TLSv1_1 | TLS_PROTOCOL_TLSv1_2);
-
-		// Create a _server context
-		_server.tls_postage_context = tls_server();
-		if (_server.tls_postage_context == NULL) {
-			SERROR_LIBTLS_NOCONTEXT("tls_server() failed");
-		}
-
-		// Attach the configuration context to the _server context
-		if (tls_configure(_server.tls_postage_context, _server.tls_postage_config) != 0) {
-			SWARN_NORESPONSE("str_global_tls_cert: %s", str_global_tls_cert);
-			SWARN_NORESPONSE("str_global_tls_key: %s", str_global_tls_key);
-			SERROR_LIBTLS_CONTEXT(_server.tls_postage_context, "tls_configure() failed");
+		if (SSL_CTX_set_cipher_list(_server.ssl_ctx, "HIGH:!aNULL") != 1) {
+			ERR_print_errors_fp(stderr);
+			goto error;
 		}
 	}
 

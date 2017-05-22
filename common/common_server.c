@@ -22,6 +22,7 @@ void server_cb(EV_P, ev_io *w, int revents) {
 	if (revents != 0) {
 	} // get rid of unused parameter warning
 	SDEBUG("TCP stream socket has become readable");
+	struct sock_ev_client *client = NULL;
 
 	SOCKET int_client_sock;
 
@@ -49,7 +50,6 @@ void server_cb(EV_P, ev_io *w, int revents) {
 		}
 		SDEBUG("accepted a client");
 
-		struct sock_ev_client *client = NULL;
 		SERROR_SALLOC(client, sizeof(struct sock_ev_client));
 		SERROR_CHECK(List_push(server->list_client, client) == true, "Failed to push client to array");
 		SDEBUG("Client %p opened", client);
@@ -80,8 +80,7 @@ void server_cb(EV_P, ev_io *w, int revents) {
 		client->bol_request_in_progress = false;
 		client->notify_watcher = NULL;
 		client->int_request_len = 0;
-
-		setnonblock(client->int_sock);
+		client->bol_ssl_handshake = false;
 
 		if (inet_ntop(AF_INET, &client_address.sin_addr.s_addr, client->str_client_ip, sizeof(client->str_client_ip)) != NULL) {
 			SDEBUG("Got connection from %s:%d", client->str_client_ip, ntohs(client_address.sin_port));
@@ -91,37 +90,27 @@ void server_cb(EV_P, ev_io *w, int revents) {
 
 		errno = 0;
 
-		// DEBUG("client->bol_handshake == %s", client->bol_handshake ? "true" :
-		// "false");
+		setnonblock(client->int_sock);
+
 		if (bol_tls) {
-			// The tls accept command takes the socket you send and makes a tls I/O
-			// context out of it
-			int int_status =
-				tls_accept_socket(client->server->tls_postage_context, &client->tls_postage_io_context, client->int_sock);
-			if (int_status != 0) {
-				SERROR_LIBTLS_CONTEXT(client->server->tls_postage_context, "tls_accept_fds() failed");
-			}
-			// we don't need to use tls_handshake becuase tls_read/write handle it
-			// automatically
-			SDEBUG("client->tls_postage_io_context: %p", client->tls_postage_io_context);
+			client->ssl = SSL_new(client->server->ssl_ctx);
+			SSL_set_fd(client->ssl, client->int_sock);
 		}
 
 #ifdef _WIN32
-		// HANDLE h_dup_handle = 0;
-		// SERROR_CHECK(DuplicateHandle(GetCurrentProcess(), client->_int_sock,
-		// GetCurrentProcess(), &h_dup_handle, 0, FALSE,
-		// DUPLICATE_SAME_ACCESS), "WSADuplicateHandle failed: %x",
-		// WSAGetLastError());
-
-		client->int_sock = _open_osfhandle(client->_int_sock, 0); // h_dup_handle
+		client->int_sock = _open_osfhandle(client->_int_sock, 0);
 		SERROR_CHECK(client->int_sock != -1, "_open_osfhandle failed!");
 		SDEBUG("Windows fd: %d", client->int_sock);
 #endif
 		ev_io_init(&client->io, client_cb, GET_CLIENT_SOCKET(client), EV_READ);
 		ev_io_start(EV_A, &client->io);
+		client = NULL;
 	}
 	bol_error_state = false;
 error:
+	if (client && client->ssl) {
+		SSL_free(client->ssl);
+	}
 	return;
 }
 

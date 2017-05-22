@@ -759,10 +759,19 @@ static void db_query_cb(EV_P, ev_io *w, int revents) {
 		int_j = 0;
 		res = PQgetResult(conn->conn);
 		result = PQresultStatus(res);
-		//                      This is because if we keep calling PQgetResult while we are in a COPY state,
-		//                              we keep getting a COPY result
-		//                      Also note, this will only work if the COPY is the only query
-		while (res != NULL && (int_j == 0 || (result != PGRES_COPY_OUT && result != PGRES_COPY_IN))) {
+		while (res != NULL
+			// This is because if we keep calling
+			//		PQgetResult while we are in a COPY state,
+			//		we keep getting a COPY result
+			// Also note, this will only work if the COPY is the only query
+			&& (
+				   int_j == 0
+				|| (
+					   result != PGRES_COPY_OUT
+					&& result != PGRES_COPY_IN
+					)
+				)
+		) {
 			DArray_push(arr_res, res);
 			res = PQgetResult(conn->conn);
 			result = PQresultStatus(res);
@@ -783,7 +792,6 @@ static void db_query_cb(EV_P, ev_io *w, int revents) {
 			int_i = 0;
 			int_len = DArray_end(arr_res);
 			while (int_i < int_len) {
-
 				res = DArray_get(arr_res, int_i);
 				if (res != NULL) {
 					PQclear(res);
@@ -918,7 +926,7 @@ static void db_copy_out_check_cb(EV_P, ev_check *w, int revents) {
 	char *str_response = NULL;
 	size_t int_response_len = 0;
 
-	char **buffer_ptr_ptr;
+	char **buffer_ptr_ptr = NULL;
 	PGresult *res = NULL;
 	ExecStatusType result = 0;
 
@@ -981,23 +989,30 @@ static void db_copy_out_check_cb(EV_P, ev_check *w, int revents) {
 		int_i += 1;
 		PQfreemem(*buffer_ptr_ptr);
 	} while (int_status > 0 && int_i < 10);
-	SFREE(buffer_ptr_ptr);
 
 	bol_error_state = false;
 finish:
+	SFREE(buffer_ptr_ptr);
 	if (bol_error_state == true || int_status == -2 || result == PGRES_FATAL_ERROR) {
-		// client_request_free(client_request);
-		// client_request_free takes care of this
-		// SFREE(client_insert);
 		bol_error_state = false;
 
-		str_response = _DB_get_diagnostic(copy_check->conn, res ? res : PQgetResult(copy_check->conn->conn));
-		copy_cb_t copy_cb = copy_check->copy_cb;
-		decrement_idle(EV_A);
-		ev_check_stop(EV_A, &copy_check->check);
-		copy_check->conn->copy_check = NULL;
-		copy_cb(EV_A, false, true, copy_check->cb_data, str_response, strlen(str_response));
-		SFREE(copy_check);
+		SFREE(str_response);
+
+		res = res ? res : PQgetResult(copy_check->conn->conn);
+		str_response = _DB_get_diagnostic(copy_check->conn, res);
+		if (res) {
+			PQclear(res);
+		}
+
+		if (copy_check) {
+			copy_cb_t copy_cb = copy_check->copy_cb;
+			decrement_idle(EV_A);
+			ev_check_stop(EV_A, &copy_check->check);
+			PQclear(copy_check->res);
+			copy_check->conn->copy_check = NULL;
+			copy_cb(EV_A, false, true, copy_check->cb_data, str_response, strlen(str_response));
+			SFREE(copy_check);
+		}
 	}
 	SFREE(str_response);
 }
