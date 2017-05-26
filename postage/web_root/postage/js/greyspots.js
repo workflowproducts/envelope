@@ -7247,6 +7247,8 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('GS.numberSuffix', 'GS.numberSuffix', 'GS.numberSuffix(${1:intNumber});');
 
     registerDesignSnippet('GS.hitLink', 'GS.hitLink', 'GS.hitLink(${1:strLink});');
+    
+    registerDesignSnippet('GS.log', 'GS.log', 'GS.log(\'${1:send}\', ${2:message});');
 });
 
 
@@ -7267,6 +7269,31 @@ GS.hitLink = function (strLink) {
 
     iframeElement.setAttribute("src", strLink);
     document.body.appendChild(iframeElement);
+};
+
+
+GS.log = function (bolsend, message) {
+    "use strict";
+    var msg = message;
+    if (bolsend) {
+        var e = new Error();
+        if (!e.stack) {
+            try {
+                // IE requires the Error to actually be thrown or else the 
+                // Error's 'stack' property is undefined.
+                throw e;
+            } catch (e) {
+                if (!e.stack) {
+                    //return 0; // IE < 10, likely
+                }
+            }
+        }
+        var stack = e.stack.toString().split(/\r\n|\n/);
+        if (msg === '') {
+            msg = '""';
+        }
+        console.log(msg, ' ' + stack[1].trim().substring(stack[1].trim().indexOf('('), stack[1].trim().length) + '');
+    }
 };
 
 

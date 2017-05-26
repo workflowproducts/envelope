@@ -404,10 +404,12 @@ function autocompleteBindEditor(tabElement, editor) {
         if (event.action === 'insert') {
             //we we typed a key (four spaces is a tab from the indent action (tab key))
             if (event.lines[0] === '    ') {
+                /*
                 editor.selection.moveCursorTo(
                     editor.selection.getRange().start.row
                     , editor.selection.getRange().start.column + 4
                 );
+                */
                 
                 autocompleteKeyEvent = 'indent';
             } else if (event.lines[0].length === 1
