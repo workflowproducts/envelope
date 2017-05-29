@@ -123,7 +123,7 @@
                     
                 var tableElement = document.createElement('gs-table');
                 GS.requestRawFromSocket(GS.envSocket, strQuery, function (data, error) {
-                    var arrColumns, strPK, strColumns, strSequenceDefaults, arrSequenceDefaults, i, len, strHTML, arrColumns;
+                    var arrColumns, strPK, strColumns, strSequenceDefaults, arrSequenceDefaults, i, len, strHTML, arrColumns, strLock;
                     
                     if (!error) {
                         if (data.intCallbackNumber === 0) {
@@ -135,8 +135,8 @@
                             arrSequenceDefaults = strSequenceDefaults.split(',');
                             
                             if (arrColumns[1]) {
-                            strColumns = GS.decodeFromTabDelimited(arrColumns[1]);
-                            arrColumns = strColumns.split(',');
+                                strColumns = GS.decodeFromTabDelimited(arrColumns[1]);
+                                arrColumns = strColumns.split(',');
                             }
                             
                             tableElement.setAttribute('all-cols', strColumns);
@@ -154,8 +154,8 @@
                             for (i = 0, len = arrColumns.length; i < len; i += 1) {
                                 headerContent += '<gs-cell>' + arrColumns[i] + '</gs-cell>\n';
                                 recordContent += '<gs-cell header="' + arrColumns[i] + '"><label><input column="' + arrColumns[i] + '" /></label></gs-cell>\n';
-                                copyContent += '<gs-cell header="' + arrColumns[i] + '">{{! row[' + JSON.stringify(arrColumns[i]) + '] }}</gs-cell>\n';
-                                insertContent += '<gs-cell header="' + arrColumns[i] + '"></gs-cell>\n';
+                                copyContent += '<gs-cell header="' + arrColumns[i] + '">{{= row[' + JSON.stringify(arrColumns[i]) + '] }}</gs-cell>\n';
+                                insertContent += '<gs-cell header="' + arrColumns[i] + '"><label><input column="' + arrColumns[i] + '" /></label></gs-cell>\n';
                             }
                             
                             tableElement.innerHTML = ml(function () {/*
@@ -215,8 +215,8 @@
                                 
                                 strSequenceDefaults = arrSequenceDefaults.join(',');
                                 tableElement.setAttribute('seq', strSequenceDefaults);
-                                
-                            } else if (strColumns) {
+                            }
+                            if (strColumns) {
                                 tableElement.setAttribute('lock', strColumns);
                             }
                             
