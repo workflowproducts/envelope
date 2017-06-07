@@ -10,3 +10,5 @@ www.wfprod
 ```
 
 Because the cookie isn't saved, the login process seems to work... but the main menu won't work. The only known workaround right now is to use a standard domain.
+
+Or use Chrome.
