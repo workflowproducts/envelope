@@ -196,7 +196,7 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 		// **** WARNING ****
 
 		SFINISH_CHECK(str_cookie_decrypted != NULL, "aes_decrypt failed");
-		SFINISH_CHECK(strncmp(str_cookie_decrypted, "valid=true&", 11) == 0, "Invalid cookie");
+		SFINISH_CHECK(strncmp(str_cookie_decrypted, "valid=true&", 11) == 0, "Session expired");
 
 		////GET THINGS FOR CONNECTION STRING
 		str_username = getpar(str_cookie_decrypted, "username", int_cookie_len, &int_user_length);
@@ -395,7 +395,7 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 			str_uri_ip_address, int_uri_ip_address_len,
 			"&request_host=", (size_t)14,
 			str_uri_host, int_uri_host_len,
-			"&request_user_agent=", (size_t)21,
+			"&request_user_agent=", (size_t)20,
 			str_uri_user_agent, int_uri_user_agent_len
 		);
 
