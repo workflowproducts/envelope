@@ -24,11 +24,11 @@ sudo dnf install openssl-devel # Fedora
 ```
 Or if you choose LibreSSL, make sure its `openssl` is first in the $PATH (On OpenBSD you don't need to worry about this).
 
-####DOWNLOADING THE LATEST VERSION OF ENVELOPE
+#### DOWNLOADING THE LATEST VERSION OF ENVELOPE
 
 https://github.com/workflowproducts/envelope/releases
 
-####INSTALLING ENVELOPE
+#### INSTALLING ENVELOPE
 
 If you'd like to test Envelope before you install, see the section "Testing Envelope Before Installing" further down.
 
@@ -40,7 +40,7 @@ If you'd like to test Envelope before you install, see the section "Testing Enve
 If you are on OpenBSD or FreeBSD, use gmake instead.
 Envelope will be installed in `/usr/local/sbin`. All other files such as the html, javascript and configuration files will be installed to `/usr/local/etc/envelope`.
 
-####RUNNING ENVELOPE
+#### RUNNING ENVELOPE
 
 To run Envelope:
 
@@ -52,7 +52,7 @@ Long version:
     -c /usr/local/etc/envelope/envelope.conf \
     -d /usr/local/etc/envelope/envelope-connections.conf
 
-####Configuring ENVELOPE
+#### Configuring ENVELOPE
 
 Before running Envelope for the first time you may want to configure some options. All the options are explained in the Envelope man file:
 
@@ -62,7 +62,7 @@ Current configuration options allow you to set various paths, various access res
 
 You'll also need to set up a connection string to tell Envelope where your PostgreSQL database is published. The default connection string config file located in /usr/local/etc/envelope/. There are examples in the provided envelope-connections.conf file and further info is available in the man file.
 
-####Pooling
+#### Pooling
 
 To use Envelope with a connection pool, you need a Super User in your database that specifically for Envelope.
 
@@ -76,7 +76,7 @@ Of course, you should choose a name and password that doesn't have 'envelope' in
 Envelope will detect if you want to use this mode if you have a `user` key in your `envelope-connections.conf`.
 It is recommended to use a `.pgpass` or some other means of storing the password so that it isn't in the `envelope-connections.conf`.
 
-####TESTING ENVELOPE BEFORE INSTALLING
+#### TESTING ENVELOPE BEFORE INSTALLING
 
     cd envelope
     ./configure
@@ -101,7 +101,7 @@ Envelope will push a message like:
 
 Once you see that message that means Envelope is running, open your web browser to the link shown.
 
-####UNINSTALLING ENVELOPE
+#### UNINSTALLING ENVELOPE
 
 If you still have your original build directory then:
 
@@ -111,17 +111,17 @@ If you still have your original build directory then:
 
 If you don't have your original build directory check the following locations:
 
-####Warning: The /usr/local/etc/envelope folder contains app/, role/, web_root/ and your config files. Make sure you have backups before you remove these folders. If you've made apps or altered your website then back up these folders before removing envelope manually. 
+#### Warning: The /usr/local/etc/envelope folder contains app/, role/, web_root/ and your config files. Make sure you have backups before you remove these folders. If you've made apps or altered your website then back up these folders before removing envelope manually. 
 
     rm -r /usr/local/etc/envelope
     rm /usr/local/sbin/envelope             # this removes the binary
     rm /usr/local/man/man1/envelope.1       # this removes the man page
     
-####FEEDBACK AND BUG REPORTS
+#### FEEDBACK AND BUG REPORTS
 
 Please contact us with your feedback! Github issues and pull requests are welcome. Please report any issues you have for FREE support. More information is available at the project home page: https://www.workflowproducts.com/envelope.html
 
-####Licensing
+#### Licensing
 
 If you like some or all of Envelope's functionality and the current license won't suit your needs, commercial licensing is available starting at $99. Please call Justin at Workflow Products, 817-503-9545 for details.
 
