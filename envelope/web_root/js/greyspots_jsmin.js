@@ -1052,7 +1052,7 @@ function cleanErrorValue(strValue){strValue=strValue||'';if(strValue.indexOf('DB
 if(strValue.indexOf('Query failed:')!==-1){strValue=strValue.replace(/[.\s\S]*Query\ failed:/mi,'');}
 if(strValue.indexOf('FATAL')!==-1){strValue=strValue.replace(/[.\s\S]*FATAL/mi,'');}
 strValue=strValue.replace(/\\n/gi,'\n').replace(/\\t/gi,'\t').replace(/\[.*\]/gi,'').replace(/\([0-9]*\)/gi,'');return GS.trim(strValue.trim(),'"');}
-function errorJSONToHTML(errorJSON){console.log(errorJSON);return'<pre style="word-break: break-all; white-space: pre-wrap;">'+
+function errorJSONToHTML(errorJSON){return'<pre style="word-break: break-all; white-space: pre-wrap;">'+
 (errorJSON.error_title?'There was '+
 (['A','E','I','O','U'].indexOf(errorJSON.error_title[0].toUpperCase())===-1?'a':'an')+' "'+encodeHTML(errorJSON.error_title)+'" error:':'There was an error:')+
 (errorJSON.error_text?'<br /><br />'+encodeHTML(errorJSON.error_text):(errorJSON.error_hint?'<br /><br />HINT: '+encodeHTML(errorJSON.error_hint):'')+
@@ -1153,7 +1153,7 @@ deleteData;GS.requestBegin(socket,function(data,error){var transactionID;if(!err
 GS.requestFromSocket(GS.envSocket,'transactionid = '+transactionID+'\n'+strMessage,function(data,error,errorData){var commitFunction,rollbackFunction;if(!error){data=data.substring(data.indexOf('\n')+1);}
 commitFunction=function(){GS.requestCommit(socket,transactionID,function(data,error){if(!error){data=data.substring(data.indexOf('\n')+1);}
 finalCallback('COMMIT',data,error);});};rollbackFunction=function(){GS.requestRollback(socket,transactionID,function(data,error){if(!error){data=data.substring(data.indexOf('\n')+1);}
-finalCallback('ROLLBACK',data,error);});};if(!error){confirmCallback(data,error,transactionID,commitFunction,rollbackFunction);}else{confirmCallback(errorData,error,transactionID,commitFunction,rollbackFunction);}});}else{if(typeof beginCallback==='function'){beginCallback(data,error);}}});};GS.requestBegin=function(socket,callback){GS.requestFromSocket(GS.envSocket,'BEGIN',function(data,error,errorData){var transactionID;if(typeof callback==='function'){if(!error){transactionID=data.substring('transactionid = '.length,data.indexOf('\n'));callback(transactionID,error);}else{callback(errorData,error);}}});};GS.requestRollback=function(socket,transactionID,callback){GS.requestFromSocket(socket,'transactionid = '+transactionID+'\nROLLBACK',function(data,error,errorData){if(typeof callback==='function'){if(!error){callback(data,error);}else{callback(errorData,error);}}});};GS.requestCommit=function(socket,transactionID,callback){GS.requestFromSocket(socket,'transactionid = '+transactionID+'\nCOMMIT',function(data,error,errorData){if(typeof callback==='function'){if(!error){callback(data,error);}else{callback(errorData,error);}}});};GS.rebootSocket=function(socket){socket.stayClosed=false;socket.close();};GS.closeSocket=function(socket){socket.stayClosed=true;socket.close();};var cacheLedger=[];window.testtesttest=cacheLedger;GS.requestCachingSelect=function(socket,strSchema,strObject,strColumns,strWhere,strOrd,strLimit,strOffset,callback,bolClearCache){var strKey=(strSchema+strObject+strColumns+strWhere+strOrd+strLimit+strOffset),intQueryIndex,i,len,currentEntry;console.log(strKey,bolClearCache,cacheLedger[strKey]);if(bolClearCache){cacheLedger[strKey]=null;}
+finalCallback('ROLLBACK',data,error);});};if(!error){confirmCallback(data,error,transactionID,commitFunction,rollbackFunction);}else{confirmCallback(errorData,error,transactionID,commitFunction,rollbackFunction);}});}else{if(typeof beginCallback==='function'){beginCallback(data,error);}}});};GS.requestBegin=function(socket,callback){GS.requestFromSocket(GS.envSocket,'BEGIN',function(data,error,errorData){var transactionID;if(typeof callback==='function'){if(!error){transactionID=data.substring('transactionid = '.length,data.indexOf('\n'));callback(transactionID,error);}else{callback(errorData,error);}}});};GS.requestRollback=function(socket,transactionID,callback){GS.requestFromSocket(socket,'transactionid = '+transactionID+'\nROLLBACK',function(data,error,errorData){if(typeof callback==='function'){if(!error){callback(data,error);}else{callback(errorData,error);}}});};GS.requestCommit=function(socket,transactionID,callback){GS.requestFromSocket(socket,'transactionid = '+transactionID+'\nCOMMIT',function(data,error,errorData){if(typeof callback==='function'){if(!error){callback(data,error);}else{callback(errorData,error);}}});};GS.rebootSocket=function(socket){socket.stayClosed=false;socket.close();};GS.closeSocket=function(socket){socket.stayClosed=true;socket.close();};var cacheLedger=[];window.testtesttest=cacheLedger;GS.requestCachingSelect=function(socket,strSchema,strObject,strColumns,strWhere,strOrd,strLimit,strOffset,callback,bolClearCache){var strKey=(strSchema+strObject+strColumns+strWhere+strOrd+strLimit+strOffset),intQueryIndex,i,len,currentEntry;if(bolClearCache){cacheLedger[strKey]=null;}
 if(cacheLedger[strKey]){for(i=0,len=cacheLedger[strKey].results.length;i<len;i+=1){callback(cacheLedger[strKey].results[i][0],cacheLedger[strKey].results[i][1]);}
 cacheLedger[strKey].callbacks.push({'callback':callback,'ready':true});}else{currentEntry=cacheLedger[strKey]={results:[],callbacks:[{'callback':callback,'ready':true}]};GS.requestSelectFromSocket(socket,strSchema,strObject,strColumns,strWhere,strOrd,strLimit,strOffset,function(data,error){var i,len;currentEntry.results.push([data,error]);for(i=0,len=currentEntry.callbacks.length;i<len;i+=1){if(currentEntry.callbacks[i].ready){currentEntry.callbacks[i].callback(data,error);}}});}};/*
     var cacheQueries = [], cacheCallbacks = [], cacheResults = [];
@@ -1178,14 +1178,14 @@ cacheLedger[strKey].callbacks.push({'callback':callback,'ready':true});}else{cur
             cacheCallbacks[intQueryIndex].push({'callback': callback, 'ready': true});
 
         } else {
-            console.log(strKey);
-            console.log(cacheQueries.length);
+            //console.log(strKey);
+            //console.log(cacheQueries.length);
             cacheQueries.push(strKey);
             cacheCallbacks.push([{'callback': callback, 'ready': true}]);
             cacheResults.push([]);
-            console.log(cacheQueries.length);
+            //console.log(cacheQueries.length);
             intQueryIndex = (cacheQueries.length - 1);
-            console.log(intQueryIndex);
+            //console.log(intQueryIndex);
 
             GS.requestSelectFromSocket(socket, strSchema, strObject, strColumns
                                      , strWhere, strOrd, strLimit, strOffset
@@ -5152,7 +5152,7 @@ element.elems.dataViewport.appendChild(cellElement);};}
 var createRecord=function(strTemplate,index){var strRecord;var arrRecord;var jsnRecord;var strCell;var delim;var cell_i;var cell_len;strRecord=element.internalData.records[index]+'\t';arrRecord=[];cell_i=0;cell_len=element.internalData.columnNames.length;while(cell_i<cell_len){delim=strRecord.indexOf('\t');strCell=strRecord.substring(0,delim);strRecord=strRecord.substring(delim+1);arrRecord.push(GS.decodeFromTabDelimited(strCell,strNullString));cell_i+=1;}
 col_i=0;col_len=arrRecord.length;jsnRecord={};while(col_i<col_len){jsnRecord[arrColumnNames[col_i]]=arrRecord[col_i];col_i+=1;}
 strRecord=('{{'+'var row_number = jo.index + 1;'+'var qs = jo.qs;'+'var row = jo.row;'+'var arrRow = jo.arrRow;'+'var i = jo.index;'+'var len = jo.len;'+'}}'+
-strTemplate);strRecord=doT.template(strRecord)({'qs':jsnQS,'row':jsnRecord,'arrRow':arrRecord,'index':index,'len':intTotalRecords});console.log(strRecord);return strRecord;};var createNonDataCells=function(strTemplate){var strRecord;strRecord=strTemplate;strRecord='{{ var qs = jo.qs; }}'+strRecord;strRecord=doT.template(strRecord)({'qs':jsnQS});return strRecord;};var arrDoomed=[];arrCell=xtag.queryChildren(element.elems.dataViewport,'[data-row-number], [data-col-number]');cell_i=0;cell_len=arrCell.length;while(cell_i<cell_len){cell=arrCell[cell_i];strRow=cell.getAttribute('data-row-number');strCol=cell.getAttribute('data-col-number');intRowNumber=parseInt(strRow,10);intColNumber=parseInt(strCol,10);if(intColNumber<fromColumn||intRowNumber<fromRecord||intColNumber>=toColumn||intRowNumber>=toRecord||(bolInsertRecord===false&&strRow==='insert')){arrDoomed.push(arrCell[cell_i]);}
+strTemplate);strRecord=doT.template(strRecord)({'qs':jsnQS,'row':jsnRecord,'arrRow':arrRecord,'index':index,'len':intTotalRecords});return strRecord;};var createNonDataCells=function(strTemplate){var strRecord;strRecord=strTemplate;strRecord='{{ var qs = jo.qs; }}'+strRecord;strRecord=doT.template(strRecord)({'qs':jsnQS});return strRecord;};var arrDoomed=[];arrCell=xtag.queryChildren(element.elems.dataViewport,'[data-row-number], [data-col-number]');cell_i=0;cell_len=arrCell.length;while(cell_i<cell_len){cell=arrCell[cell_i];strRow=cell.getAttribute('data-row-number');strCol=cell.getAttribute('data-col-number');intRowNumber=parseInt(strRow,10);intColNumber=parseInt(strCol,10);if(intColNumber<fromColumn||intRowNumber<fromRecord||intColNumber>=toColumn||intRowNumber>=toRecord||(bolInsertRecord===false&&strRow==='insert')){arrDoomed.push(arrCell[cell_i]);}
 cell_i+=1;}
 var deleteNext=function(){cell_i=0;cell_len=arrDoomed.length;while(cell_i<cell_len){if(arrDoomed[cell_i].parentNode===element.elems.dataViewport){element.elems.dataViewport.removeChild(arrDoomed[cell_i]);}
 cell_i+=1;}};if(window.requestAnimationFrame){window.requestAnimationFrame(deleteNext);}else{deleteNext();}
@@ -5322,7 +5322,7 @@ if(element.getAttribute('lock')){arrLock=(GS.templateWithQuerystring(element.get
 strHashColumns='';strHashString='';strRoles='';strColumns='';strUpdateData='';strRow=element.internalData.records[startingIndex];jsnRow={};i=0;len=strRow.length;cell_i=0;cell="";while(i<len){char=strRow[i];if(char==="\t"){jsnRow[arrColumnNames[cell_i]]=GS.decodeFromTabDelimited(cell,'\\N');cell="";cell_i+=1;}else{cell+=char;}
 i+=1;}
 jsnRow[arrColumnNames[cell_i]]=GS.decodeFromTabDelimited(cell,'\\N');i=0;len=arrPK.length;while(i<len){strRoles+=(strRoles?'\t':'');strRoles+='pk';strColumns+=(strColumns?'\t':'');strColumns+=arrPK[i];strUpdateData+=(strUpdateData?'\t':'');strUpdateData+=jsnRow[arrPK[i]];i+=1;}
-i=0;len=arrLock.length;while(i<len){strHashColumns+=(strHashColumns?'\t':'');strHashColumns+=arrLock[i];strHashString+=(strHashString?'\t':'');strTemp=jsnRow[arrLock[i]];strHashString+=(strTemp==='\\N'?'':strTemp);i+=1;}
+i=0;len=arrLock.length;while(i<len){strHashColumns+=(strHashColumns?'\t':'');strHashColumns+=arrLock[i];strHashString+=(strHashString?'\t':'');strTemp=jsnRow[arrLock[i]];strHashString+=(strTemp==='\\N'?'':GS.encodeForTabDelimited(strTemp,'\\N'));i+=1;}
 if(strHashString){strRoles+=(strRoles?'\t':'');strRoles+='hash';strColumns+=(strColumns?'\t':'');strColumns+='hash';strUpdateData+=(strUpdateData?'\t':'');strUpdateData+=GS.utfSafeMD5(strHashString).toString();}
 strRoles+=(strRoles?'\t':'');strRoles+='set';strColumns+=(strColumns?'\t':'');strColumns+=jsnUpdate.data.columnName;strUpdateData+=(strUpdateData?'\t':'');strUpdateData+=GS.encodeForTabDelimited(jsnUpdate.data.newValue);strUpdateData+='\n';strUpdateData=(strRoles+'\n'+
 strColumns+'\n'+
@@ -5334,7 +5334,7 @@ i=0;len=jsnUpdate.data.columns.length;while(i<len){strColumns+=(strColumns?'\t':
 strColumns+='\t';strColumns+='hash';i=0;len=arrPK.length;while(i<len){strRoles+=(strRoles?'\tpk':'pk');i+=1;}
 i=0;len=jsnUpdate.data.columns.length;while(i<len){strRoles+=(strRoles?'\tset':'set');i+=1;}
 strRoles+='\t';strRoles+='hash';i=0;len=jsnUpdate.data.records.length;while(i<len){strRecord='';pk_i=0;pk_len=arrPK.length;while(pk_i<pk_len){strRecord+=(strRecord?'\t':'');strRecord+=getCell(element,arrPK[pk_i],jsnUpdate.data.records[i],false);pk_i+=1;}
-strRecord+=(strRecord?'\t':'');strRecord+=jsnUpdate.data.values[i];strHashString='';lock_i=0;lock_len=arrLock.length;while(lock_i<lock_len){strHashString+=(strHashString?'\t':'');strTemp=getCell(element,arrLock[lock_i],jsnUpdate.data.records[i],false);strHashString+=(strTemp==='\\N'?'':strTemp);lock_i+=1;}
+strRecord+=(strRecord?'\t':'');strRecord+=jsnUpdate.data.values[i];strHashString='';lock_i=0;lock_len=arrLock.length;while(lock_i<lock_len){strHashString+=(strHashString?'\t':'');strTemp=getCell(element,arrLock[lock_i],jsnUpdate.data.records[i],false);strHashString+=(strTemp==='\\N'?'':GS.encodeForTabDelimited(strTemp,'\\N'));lock_i+=1;}
 strRecord+=(strRecord?'\t':'');strRecord+=GS.utfSafeMD5(strHashString).toString();strUpdateData+=strRecord;strUpdateData+='\n';i+=1;}
 strUpdateData=(strRoles+'\n'+
 strColumns+'\n'+
@@ -5347,7 +5347,7 @@ function databaseWSDELETE(element,jsnDelete){var i;var len;var col_i;var col_len
 strPK=(element.getAttribute("pk")||"");strLock=(element.getAttribute("lock")||"");arrPK=strPK.split(/[\s]*,[\s]*/);arrLock=strLock.split(/[\s]*,[\s]*/);arrColumns=element.internalData.columnNames;strColumnRoles='';strColumnNames='';i=0;len=arrPK.length;while(i<len){strColumnNames+=(strColumnNames?"\t":"");strColumnNames+=arrPK[i];strColumnRoles+=(strColumnRoles?"\t":"");strColumnRoles+="pk";i+=1;}
 strColumnNames+=(strColumnNames?"\t":"");strColumnNames+="hash";strColumnRoles+=(strColumnRoles?"\t":"");strColumnRoles+="hash";strHashColumns='';i=0;len=arrLock.length;while(i<len){strHashColumns+=(strHashColumns?"\t":"");strHashColumns+=arrLock[i];i+=1;}
 strDeleteRecords='';i=0;len=jsnDelete.recordIndexes.length;while(i<len){strRecord='';arrDeleteRecord=element.internalData.records[jsnDelete.recordIndexes[i]].split("\t");col_i=0;col_len=arrPK.length;while(col_i<col_len){intIndex=arrColumns.indexOf(arrPK[col_i]);strRecord+=(strRecord?"\t":"");strRecord+=GS.encodeForTabDelimited(arrDeleteRecord[intIndex],strNullString);col_i+=1;}
-strRecordToHash="";col_i=0;col_len=arrLock.length;while(col_i<col_len){strRecordToHash+=(strRecordToHash?"\t":"");strTemp=getCell(element,arrLock[col_i],jsnDelete.recordIndexes[i],false);strRecordToHash+=(strTemp==="\\N"?"":strTemp);col_i+=1;}
+strRecordToHash="";col_i=0;col_len=arrLock.length;while(col_i<col_len){strRecordToHash+=(strRecordToHash?"\t":"");strTemp=getCell(element,arrLock[col_i],jsnDelete.recordIndexes[i],false);strRecordToHash+=(strTemp==="\\N"?"":strTemp);console.log(strTemp,strRecordToHash);col_i+=1;}
 strDeleteRecords+=strRecord;strDeleteRecords+=(strRecord?'\t':'');strDeleteRecords+=GS.utfSafeMD5(strRecordToHash).toString();strDeleteRecords+='\n';i+=1;}
 strDeleteData=(strColumnRoles+'\n'+
 strColumnNames+'\n'+
