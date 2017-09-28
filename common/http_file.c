@@ -439,7 +439,7 @@ void http_file_step2(EV_P, ev_check *w, int revents) {
 	struct sock_ev_client_copy_check *client_copy_check = (struct sock_ev_client_copy_check *)w;
 	struct sock_ev_client_http_file *client_http_file = (struct sock_ev_client_http_file *)(client_copy_check->client_request);
 	struct sock_ev_client *client = client_http_file->parent;
-	bool bol_not_modified = false;
+	bool bol_modified = true;
 
 	struct stat *statdata = NULL;
 	SERROR_SALLOC(statdata, sizeof(struct stat));
@@ -469,7 +469,7 @@ void http_file_step2(EV_P, ev_check *w, int revents) {
 	size_t int_if_modified_since_len = 0;
 	str_if_modified_since = request_header(client->str_request, client->int_request_len, "If-Modified-Since", &int_if_modified_since_len);
 	if (str_if_modified_since != NULL) {
-		bol_not_modified = strncmp(str_last_modified, str_if_modified_since, int_if_modified_since_len) == 0;
+		bol_modified = strncmp(str_last_modified, str_if_modified_since, int_if_modified_since_len) != 0;
 	} else {
 		SFREE(str_global_error);
 	}
@@ -493,7 +493,7 @@ void http_file_step2(EV_P, ev_check *w, int revents) {
 
 	char *str_maybe_download = client_http_file->bol_download ? "Content-Disposition: attachment\015\012" : "";
 
-	if (strncmp(str_content_type, "text/html", 9) != 0 && bol_not_modified) {
+	if (strncmp(str_content_type, "text/html", 9) != 0 && !bol_modified) {
 		char *str_temp1 = "HTTP/1.1 304 Not Modified\015\012ETag: \"";
 		char *str_temp2 = "\"\015\012Last-Modified: ";
 		char *str_temp3 = "\015\012Server: " SUN_PROGRAM_LOWER_NAME "\015\012"

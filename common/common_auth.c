@@ -74,10 +74,13 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	str_cookie_encrypted = str_cookie(client->str_request, client->int_request_len, client->str_cookie_name, &int_cookie_len);
 	if (str_cookie_encrypted == NULL || int_cookie_len <= 0) {
 #ifdef ENVELOPE
-		if (client->bol_handshake) {
+		if (client->bol_handshake && strncmp(str_uri_temp, "/envnc", 6) == 0) {
 			client->bol_public = true;
+		} else if (client->bol_handshake) {
+			SFINISH_CHECK(client->bol_public, "No Cookie. If you want to open a no-cookie websocket, use /envnc");
+		} else {
+			SFINISH_CHECK(client->bol_public, "No Cookie.");
 		}
-		SFINISH_CHECK(client->bol_public, "No Cookie.");
 #else
 		SFINISH("No Cookie.");
 #endif
