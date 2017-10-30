@@ -1,3 +1,4 @@
+#define UTIL_DEBUG
 #include "util_canonical.h"
 
 static bool path_valid_char(char *path);
@@ -15,6 +16,9 @@ char *realpath(char *N, char *R) {
 
 	return ret;
 }
+
+#pragma comment(lib, "Shlwapi.lib")
+#endif
 
 int mkpath(char *file_path) {
 	char *p;
@@ -34,9 +38,6 @@ int mkpath(char *file_path) {
 	}
 	return 0;
 }
-
-#pragma comment(lib, "Shlwapi.lib")
-#endif
 
 // ############ EXTERNAL FUNCTION DEFINITIONS ####################
 
@@ -171,34 +172,20 @@ char *canonical(const char *file_base, char *_path, char *check_type) {
 
 			// if no such file exists create any dirs that are needed
 		} else {
-#ifdef _WIN32
 			SERROR_SNCAT(str_temp, &int_canonical_filename_len,
 				canonical_filename, int_canonical_filename_len);
+#ifdef _WIN32
 			char *ptr_last_slash = strrchr(str_temp, '\\');
+#else
+			char *ptr_last_slash = strrchr(str_temp, '/');
+#endif
 			SDEBUG("str_temp>%s<", str_temp);
 			SDEBUG("ptr_last_slash: %s", str_temp);
 			SERROR_CHECK(ptr_last_slash != NULL, "strrchr failed");
 			*(ptr_last_slash + 1) = 0;
 			SDEBUG("mkpath>%s<", str_temp);
 			mkpath(str_temp);
-#else
-			int limit_mkdir = 4;
-			// DEBUG("test1>%s|%s|%s<", canonical_filename, str_file_base, str);
-			// if (strncmp(canonical_filename, str_file_base, strlen(str_file_base))
-			// !=
-			// 0) {
-			// DEBUG("test2");
-			while (strncmp(canonical_filename, str, strlen(str)) != 0 && limit_mkdir > 0) {
-				SDEBUG("mkdir>%s|%s<", canonical_filename, str);
-				SERROR_CHECK(
-					mkdir(canonical_filename, S_IRWXU | S_IRWXG) == 0, "%s is a bad path. Directory creation error.\012", path);
-				realpath(str, canonical_filename);
-				limit_mkdir -= 1;
-			}
-// SDEBUG("test3");
-//}
-// SDEBUG("test4");
-#endif
+
 			errno = 0;
 			SERROR_SNCAT(str_return, &int_return_len,
 				str, int_len);

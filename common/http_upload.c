@@ -1,3 +1,4 @@
+#define UTIL_DEBUG
 #include "http_upload.h"
 
 void http_upload_step1(struct sock_ev_client *client) {
@@ -40,7 +41,7 @@ void http_upload_step1(struct sock_ev_client *client) {
 	SFINISH_CHECK(client_upload->str_file_name != NULL, "canonical_strip_start() failed, %s", str_temp);
 
 	str_full_path = canonical(client_upload->str_canonical_start, client_upload->str_file_name, "valid_path");
-	SFINISH_CHECK(str_full_path != NULL, "invaild path: %s", client_upload->str_file_name);
+	SFINISH_CHECK(str_full_path != NULL, "invalid path: %s", client_upload->str_file_name);
 	SDEBUG("str_full_path: %s", str_full_path);
 
 	SDEBUG("str_temp: %s", str_temp);
