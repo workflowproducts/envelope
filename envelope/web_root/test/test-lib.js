@@ -287,6 +287,7 @@ var $ = {
                 //console.log(i, data);
                 if (data !== '\\.') {
                     data = data.replace(/c\:\\users\\nunzio\\repos\\postage\\/gi, '../');
+                    data = data.replace(/c\:\\users\\nunzio\\repos\\envelope\\/gi, '../');
 	                data = data.replace(/\.\.\\\.\.\\/g, '../');
                     data = data.replace(/\\(?![rnt])/g, '/');
 					data = data.replace(/\/Users\\nunzio\//g, '/Users/nunzio/');
@@ -304,9 +305,10 @@ var $ = {
 					data = data.replace(/\\test/g, '/test');
 	                data = data.replace(/\/\//g, '\\\\');
 	                data = data.replace('CreateFile failed: 0x50 (The file exists.\r\n)', 'File already exists.');
-                    data = data.replace(/\.\.\/envelope\/app/gi, '/home/super/Repos/postage/envelope/app');
-                    data = data.replace(/\.\.\/envelope\/role/gi, '/home/super/Repos/postage/envelope/role');
-                    data = data.replace(/\.\.\/envelope\/web_root/gi, '/home/super/Repos/postage/envelope/web_root');
+                    data = data.replace(/\.\.\/envelope\/app/gi, '/home/super/Repos/envelope/envelope/app');
+                    data = data.replace(/\.\.\/envelope\/role/gi, '/home/super/Repos/envelope/envelope/role');
+                    data = data.replace(/\.\.\/envelope\/web_root/gi, '/home/super/Repos/envelope/envelope/web_root');
+                    data = data.replace('C:', '');
 				}
                 arrStrActualOutput.push(data.replace(/transactionid = .*\n/gim, ''));
                 i += 1;
