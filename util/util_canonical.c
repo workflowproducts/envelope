@@ -26,14 +26,26 @@ int mkpath(char *file_path) {
 		*p = 0;
 		SDEBUG("mkdir(%s)", file_path);
 		errno = 0;
+#ifdef _WIN32
 		if (mkdir(file_path) == -1) {
+#else
+		if (mkdir(file_path, S_IRWXU | S_IRWXG) == -1) {
+#endif
 			if (errno != EEXIST) {
+#ifdef _WIN32
 				*p = '\\';
+#else
+				*p = '/';
+#endif
 				return -1;
 			}
 		}
 		errno = 0;
+#ifdef _WIN32
 		*p = '\\';
+#else
+		*p = '/';
+#endif
 	}
 	return 0;
 }
