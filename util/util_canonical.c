@@ -41,7 +41,7 @@ int mkpath(char *file_path) {
 
 int mkpath(char *file_path) {
 	char *p;
-	for (p = strchr(file_path, '/'); p; p = strchr(p + 1, '/')) {
+	for (p = strchr(file_path + 1, '/'); p; p = strchr(p + 1, '/')) {
 		SDEBUG("p: %s", p);
 		*p = 0;
 		SDEBUG("mkdir(%s)", file_path);
