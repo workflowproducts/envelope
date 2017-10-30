@@ -1072,7 +1072,7 @@ finish:
 				"\012responsenumber = ", (size_t)18,
 				str_temp, strlen(str_temp),
 				"\012FATAL\012", (size_t)7,
-				"Failed to open file for writing ", (size_t)30,
+				"Failed to open file for writing ", (size_t)32,
 				client_file->str_path, strlen(client_file->str_path),
 				": ", (size_t)2,
 				strerror(errno), strlen(strerror(errno))

@@ -17,7 +17,6 @@ char *realpath(char *N, char *R) {
 }
 
 #pragma comment(lib, "Shlwapi.lib")
-#endif
 
 int mkpath(char *file_path) {
 	char *p;
@@ -26,29 +25,40 @@ int mkpath(char *file_path) {
 		*p = 0;
 		SDEBUG("mkdir(%s)", file_path);
 		errno = 0;
-#ifdef _WIN32
 		if (mkdir(file_path) == -1) {
-#else
-		if (mkdir(file_path, S_IRWXU | S_IRWXG) == -1) {
-#endif
 			if (errno != EEXIST) {
-#ifdef _WIN32
 				*p = '\\';
-#else
-				*p = '/';
-#endif
 				return -1;
 			}
 		}
 		errno = 0;
-#ifdef _WIN32
 		*p = '\\';
-#else
-		*p = '/';
-#endif
 	}
 	return 0;
 }
+
+#else
+
+int mkpath(char *file_path) {
+	char *p;
+	for (p = strchr(file_path, '/'); p; p = strchr(p + 1, '/')) {
+		SDEBUG("p: %s", p);
+		*p = 0;
+		SDEBUG("mkdir(%s)", file_path);
+		errno = 0;
+		if (mkdir(file_path, S_IRWXU | S_IRWXG) == -1) {
+			if (errno != EEXIST && errno != 0) {
+				*p = '/';
+				return -1;
+			}
+		}
+		errno = 0;
+		*p = '/';
+		}
+	return 0;
+	}
+
+#endif
 
 // ############ EXTERNAL FUNCTION DEFINITIONS ####################
 
