@@ -284,6 +284,11 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 							  client_request, ws_file_create_step2),
 				"permissions_write_check() failed");
 		} else {
+			SFREE(client_file->str_path);
+			client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "write_file");
+			SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
+				client_file->str_partial_path);
+
 			client_file->ptr_content = "";
 			SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path,
 							  client_request, ws_file_write_step2),
