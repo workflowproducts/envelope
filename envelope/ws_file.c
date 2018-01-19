@@ -284,6 +284,11 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 							  client_request, ws_file_create_step2),
 				"permissions_write_check() failed");
 		} else {
+			SFREE(client_file->str_path);
+			client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "write_file");
+			SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
+				client_file->str_partial_path);
+
 			client_file->ptr_content = "";
 			SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path,
 							  client_request, ws_file_write_step2),
@@ -1072,7 +1077,7 @@ finish:
 				"\012responsenumber = ", (size_t)18,
 				str_temp, strlen(str_temp),
 				"\012FATAL\012", (size_t)7,
-				"Failed to open file for writing ", (size_t)30,
+				"Failed to open file for writing ", (size_t)32,
 				client_file->str_path, strlen(client_file->str_path),
 				": ", (size_t)2,
 				strerror(errno), strlen(strerror(errno))

@@ -16,6 +16,8 @@ char *realpath(char *N, char *R) {
 	return ret;
 }
 
+#pragma comment(lib, "Shlwapi.lib")
+
 int mkpath(char *file_path) {
 	char *p;
 	for (p = strchr(file_path + (file_path[1] == ':' ? 3 : 1), '\\'); p; p = strchr(p + 1, '\\')) {
@@ -35,7 +37,6 @@ int mkpath(char *file_path) {
 	return 0;
 }
 
-#pragma comment(lib, "Shlwapi.lib")
 #endif
 
 // ############ EXTERNAL FUNCTION DEFINITIONS ####################
@@ -182,23 +183,21 @@ char *canonical(const char *file_base, char *_path, char *check_type) {
 			SDEBUG("mkpath>%s<", str_temp);
 			mkpath(str_temp);
 #else
-			int limit_mkdir = 4;
-			// DEBUG("test1>%s|%s|%s<", canonical_filename, str_file_base, str);
-			// if (strncmp(canonical_filename, str_file_base, strlen(str_file_base))
-			// !=
-			// 0) {
-			// DEBUG("test2");
-			while (strncmp(canonical_filename, str, strlen(str)) != 0 && limit_mkdir > 0) {
-				SDEBUG("mkdir>%s|%s<", canonical_filename, str);
-				SERROR_CHECK(
-					mkdir(canonical_filename, S_IRWXU | S_IRWXG) == 0, "%s is a bad path. Directory creation error.\012", path);
-				realpath(str, canonical_filename);
-				limit_mkdir -= 1;
-			}
-// SDEBUG("test3");
-//}
-// SDEBUG("test4");
+ 			int limit_mkdir = 20;
+ 			// DEBUG("test1>%s|%s|%s<", canonical_filename, str_file_base, str);
+ 			// if (strncmp(canonical_filename, str_file_base, strlen(str_file_base))
+ 			// !=
+ 			// 0) {
+ 			// DEBUG("test2");
+ 			while (strncmp(canonical_filename, str, strlen(str)) != 0 && limit_mkdir > 0) {
+ 				SDEBUG("mkdir>%s|%s<", canonical_filename, str);
+ 				SERROR_CHECK(
+ 					mkdir(canonical_filename, S_IRWXU | S_IRWXG) == 0, "%s is a bad path. Directory creation error.\012", path);
+ 				realpath(str, canonical_filename);
+ 				limit_mkdir -= 1;
+ 			}
 #endif
+
 			errno = 0;
 			SERROR_SNCAT(str_return, &int_return_len,
 				str, int_len);
