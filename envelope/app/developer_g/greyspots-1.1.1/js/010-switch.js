@@ -11,7 +11,7 @@ window.addEventListener('design-register-element', function () {
 
     window.designElementProperty_GSSWITCH = function (selectedElement) {
 
-        addProp('Template', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('value') || '') + '" mini></gs-text>', function () {
+        addProp('Template', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('template') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'template', this.value);
         });
 
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             jsnAttr = element.attributes[i];
 
-            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.nodeValue || '');
+            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
 
             i += 1;
         }
@@ -481,6 +481,23 @@ document.addEventListener('DOMContentLoaded', function () {
             template: {
                 get: function () {
                     return this.getAttribute('template');
+                },
+                set: function (newValue) {
+                    this.setAttribute('template', newValue);
+                }
+            },
+            currentTemplate: {
+                get: function () {
+                    var templateName;
+                    var strQueryString = GS.getQueryString();
+                    var strQSAttribute = this.getAttribute('qs');
+                    var strValueAttribute = this.getAttribute('template') || this.getAttribute('value');
+                    if (strQSAttribute && GS.qryGetVal(strQueryString, strQSAttribute)) {
+                        templateName = GS.qryGetVal(strQueryString, strQSAttribute);
+                    } else if (strValueAttribute) {
+                        templateName = GS.templateWithQuerystring(strValueAttribute);
+                    }
+                    return templateName;
                 },
                 set: function (newValue) {
                     this.setAttribute('template', newValue);

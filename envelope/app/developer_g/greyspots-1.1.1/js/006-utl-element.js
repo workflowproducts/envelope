@@ -267,6 +267,9 @@ GS.isElementFocusable = function (element) {
                 element.nodeName === 'SELECT' ||
                 element.nodeName === 'BUTTON' ||
                 element.nodeName === 'IFRAME' ||
+                GS.findParentTag(element, 'gs-text') ||
+                GS.findParentTag(element, 'gs-combo') ||
+                GS.findParentTag(element, 'gs-number') ||
                 (element.hasAttribute('tabindex') && element.getAttribute('tabindex') !== '-1') ||
                 (element.focus &&
                     element.focus.toString().indexOf('[native code]') === -1 &&
@@ -421,6 +424,7 @@ GS.getInputSelection = function (input) {
 
 GS.setInputSelection = function (input, intStart, intEnd) {
     'use strict';
+    //console.trace('setInputSelection');
     var range;
     
     if (intStart === undefined || intStart === '' || isNaN(intStart) || intStart === null) {
@@ -431,16 +435,16 @@ GS.setInputSelection = function (input, intStart, intEnd) {
         intEnd = intStart;
     }
     
-    if (input.createTextRange) {
+    if (input.setSelectionRange) {
+        input.focus();
+        input.setSelectionRange(intStart, intEnd);
+    } else if (input.createTextRange) {
         range = input.createTextRange();
         range.collapse();
         range.moveStart('character', intStart);
         range.collapse();
-        range.moveEnd('character', intEnd);
+        range.moveEnd('character', intEnd - intStart);
         range.select();
-    } else if (input.setSelectionRange) {
-        input.focus();
-        input.setSelectionRange(intStart, intEnd);
     }
 };
 

@@ -25,7 +25,8 @@
             
         <gs-container padded>
             <h3>Attributes:</h3>
-            <pre><code>show-on-phone
+            <pre><code>hidden
+show-on-phone
 show-on-tablet
 show-on-desktop
 hide-on-phone
@@ -53,6 +54,16 @@ medium  //&gt;= 992px AND &lt;= 1200px
 large   //&gt;= 1200px</code></pre>
             
             <h3>Examples:</h3>
+            <div class="doc-example-description">
+                <span class="h3"><code>[hidden]</code> Example:</span>
+                <p>The hidden attribute is shorthand for <code>style="display: none;"</code></p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="20">
+                    <div>1 2 3 nothing</div>
+                    <div hidden>1 2 3 hidden</div>
+                </template>
+            </gs-doc-example>
             <div class="doc-example-description">
                 <span class="h3">Device Attributes Example:</span>
                 <p>In this example we have a list of divs each with one of the hide or show attributes. In each div are some numbers and the name of the attribute that was used on it. The numbers are just to show at what sizes an element would be visible.</p>

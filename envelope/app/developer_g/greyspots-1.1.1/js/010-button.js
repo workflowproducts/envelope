@@ -379,7 +379,7 @@
                 while (i < len) {
                     jsnAttr = arrAttr[i];
         
-                    element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.nodeValue || '');
+                    element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
         
                     i += 1;
                 }
@@ -1418,7 +1418,7 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             jsnAttr = arrAttr[i];
 
-            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.nodeValue || '');
+            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
 
             i += 1;
         }

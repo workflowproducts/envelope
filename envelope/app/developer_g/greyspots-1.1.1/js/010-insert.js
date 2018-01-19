@@ -106,16 +106,19 @@ document.addEventListener('DOMContentLoaded', function () {
                   , arrElement, arrKey, arrValue, i, len, strResponse, parentSrcElement;
                 
                 // addin insert data
-                strAddIn = GS.templateWithQuerystring(element.getAttribute('addin'));
+                strAddIn = GS.templateWithQuerystring(element.getAttribute('addin') || '');
                 if (strAddIn) {
                     arrKey = GS.qryGetKeys(strAddIn);
-                    arrValue = GS.qryGetKeys(strAddIn);
-                    
-                    for (i = 0, len = arrKey.length; i < len; i += 1) {
-                        strColumns += (strColumns ? '\t' : '') + GS.encodeForTabDelimited(arrKey[i]);
-                        strInsertRecord += (strInsertRecord ? '\t' : '') + GS.encodeForTabDelimited(arrValue[i]);
+                    arrValue = GS.qryGetVals(strAddIn);
+                    //console.log(arrKey, arrValue);
+                    if (!(arrKey.length === 1 && arrKey[0] === '')) {
+                        for (i = 0, len = arrKey.length; i < len; i += 1) {
+                            strColumns += (strColumns ? '\t' : '') + GS.encodeForTabDelimited(arrKey[i]);
+                            strInsertRecord += (strInsertRecord ? '\t' : '') + GS.encodeForTabDelimited(arrValue[i]);
+                            console.log(GS.encodeForTabDelimited(arrValue[i]));
+                        }
                     }
-                }
+                }                
                 
                 // control insert data
                 arrElement = xtag.query(element, '[column]');
@@ -137,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 strSeqCols = GS.templateWithQuerystring(element.getAttribute('seq') || '');
                 strInsertData = (strColumns + '\n' + strInsertRecord);
                 strResponseColumns = (strPkCols + (strPkCols ? '\t' : '') + strColumns);
-                
+
                 GS.requestInsertFromSocket(
                         GS.envSocket, strSchema, strObject, strResponseColumns, strPkCols, strSeqCols, strInsertData
                         // beginCallback
@@ -150,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (data !== 'TRANSACTION COMPLETED') {
                                 if (!error) {
                                     strResponse = data;
-                                    commitFunction();
+                                    //commitFunction();
                                     
                                 } else {
                                     GS.webSocketErrorDialog(data);

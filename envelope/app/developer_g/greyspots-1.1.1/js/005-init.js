@@ -71,23 +71,19 @@ evt.click     = 'click';
 // ##############################################################
 // ########### PINK BACKGROUND WHEN NOT IN PRODUCTION ###########
 // ##############################################################
-/*
-//DO NOT UNCOMMENT
-//To use:
-//Add this javascript to the test.sh file
-//Append to greyspots.js after the rsync of the web_root files
-window.addEventListener('load', function () {
-    var styleElement, helperElement, helperFunction;
-    
-    styleElement = document.createElement('style');
-    styleElement.innerHTML = 'body, body gs-panel, body gs-panel gs-header, body gs-panel gs-body, ' +
-                             'body gs-page, body gs-page gs-header, body gs-page gs-body {\n' +
-                             '    background-color: #FFBBBB;\n' +
-                             '}';
-    
-    document.head.appendChild(styleElement);
-});
-*/
+if (window.location.hostname.toString().match(/test[^.]*\.sunnyserve.com/i)) {
+    window.addEventListener('load', function () {
+        var styleElement, helperElement, helperFunction;
+        
+        styleElement = document.createElement('style');
+        styleElement.innerHTML = 'body, body gs-panel, body gs-panel gs-header, body gs-panel gs-body, ' +
+                                 'body gs-page, body gs-page gs-header, body gs-page gs-body {\n' +
+                                 '    background-color: #FFBBBB;\n' +
+                                 '}';
+        
+        document.head.appendChild(styleElement);
+    });
+}
 
 // #############################################################
 // #################### DEFINE GS NAMESPACE ####################
@@ -454,6 +450,10 @@ window.addEventListener('click', function (event) {
             
             menuElement.innerHTML = '<div id="gs-document-menu-link-container" style="height: ' + intMaxHeight + 'em;">' + strHTML + '</div>';
             document.body.appendChild(menuElement);
+            // var testEMPXElement = document.createElement('div');
+            // testEMPXElement.setAttribute('hidden', '');
+            // testEMPXElement.setAttribute('id', 'testEMPXElement')
+            // document.body.appendChild(testEMPXElement);
             
             if (location.pathname.indexOf('/env/') === 0) {
                 document.getElementById('gs-button-about').addEventListener('click', aboutDialog);
@@ -749,7 +749,7 @@ window.addEventListener('load', function () {
 window.addEventListener('design-register-element', function () {
     'use strict';
     
-    registerDesignSnippet('GS.addUnloadEvent', 'GS.addUnloadEvent', 'GS.addUnloadEvent(function () {' +
+    registerDesignSnippet('GS.addBeforeUnloadEvent', 'GS.addBeforeUnloadEvent', 'GS.addBeforeUnloadEvent(function () {' +
                                                                     '    $0' +
                                                                     '});');
 });

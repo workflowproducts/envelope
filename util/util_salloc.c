@@ -17,7 +17,7 @@ void *salloc(size_t size) {
 	}
 
 	// Oh come on, it seems we have some serious problems
-	SERROR_NORESPONSE("Out of memory.");
+	SERROR_NORESPONSE("Out of memory, tried to allocate %zu bytes.", size);
 	return NULL;
 }
 

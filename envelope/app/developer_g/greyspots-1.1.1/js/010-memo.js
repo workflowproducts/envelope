@@ -1,135 +1,7 @@
 //element.clientHeight < element.scrollHeight
 
 window.addEventListener('design-register-element', function () {
-    
-    registerDesignSnippet('<gs-memo>', '<gs-memo>', 'gs-memo column="${1:name}"></gs-memo>');
-    registerDesignSnippet('<gs-memo> With Label', '<gs-memo>', 'label for="${1:memo-insert-note}">${2:Notes}:</label>\n' +
-                                                               '<gs-memo id="${1:memo-insert-note}" column="${3:note}"></gs-memo>');
-    
     designRegisterElement('gs-memo', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-memo.html');
-    
-    window.designElementProperty_GSMEMO = function(selectedElement) {
-        addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'column', this.value);
-        });
-        
-        addProp('Value', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('value') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'value', this.value);
-        });
-        
-        addProp('Column In Querystring', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'qs', this.value, false);
-        });
-        
-        addProp('Rows', true, '<gs-number class="target" value="' + encodeHTML(selectedElement.getAttribute('rows') || '') + '" mini></gs-number>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'rows', this.value);
-        });
-        
-        addProp('Placeholder', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('placeholder') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'placeholder', this.value);
-        });
-        
-        //console.log(selectedElement.hasAttribute('mini'));
-        
-        addProp('Autoresize', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('autoresize')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'autoresize', (this.value === 'true'), true);
-        });
-        
-        addProp('Allow tab', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('allow-tab-char')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'allow-tab-char', (this.value === 'true'), true);
-        });
-        
-        addProp('Resize Handle', true, '<gs-checkbox class="target" value="' + (!selectedElement.hasAttribute('no-resize-handle')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-resize-handle', (this.value === 'true'), false);
-        });
-        
-        addProp('Mini', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('mini')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'mini', (this.value === 'true'), true);
-        });
-        
-        // TITLE attribute
-        addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
-        });
-        
-        // TABINDEX attribute
-        addProp('Tabindex', true, '<gs-number class="target" value="' + encodeHTML(selectedElement.getAttribute('tabindex') || '') + '" mini></gs-number>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'tabindex', this.value);
-        });
-        
-        addProp('Autocorrect', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocorrect') !== 'off') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'autocorrect', (this.value === 'false' ? 'off' : ''));
-        });
-        
-        addProp('Autocapitalize', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocapitalize') !== 'off') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'autocapitalize', (this.value === 'false' ? 'off' : ''));
-        });
-        
-        addProp('Autocomplete', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocomplete') !== 'off') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'autocomplete', (this.value === 'false' ? 'off' : ''));
-        });
-        
-        addProp('Spellcheck', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('spellcheck') !== 'false') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'spellcheck', (this.value === 'false' ? 'false' : ''));
-        });
-        
-        // SUSPEND-CREATED attribute
-        addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
-        });
-        
-        // SUSPEND-INSERTED attribute
-        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
-        });
-        
-        // visibility attributes
-        var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden'))                   { strVisibilityAttribute = 'hidden'; }
-        if (selectedElement.hasAttribute('hide-on-desktop'))  { strVisibilityAttribute = 'hide-on-desktop'; }
-        if (selectedElement.hasAttribute('hide-on-tablet'))   { strVisibilityAttribute = 'hide-on-tablet'; }
-        if (selectedElement.hasAttribute('hide-on-phone'))    { strVisibilityAttribute = 'hide-on-phone'; }
-        if (selectedElement.hasAttribute('show-on-desktop'))   { strVisibilityAttribute = 'show-on-desktop'; }
-        if (selectedElement.hasAttribute('show-on-tablet'))    { strVisibilityAttribute = 'show-on-tablet'; }
-        if (selectedElement.hasAttribute('show-on-phone'))     { strVisibilityAttribute = 'show-on-phone'; }
-        
-        addProp('Visibility', true, '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                                        '<option value="">Visible</option>' +
-                                        '<option value="hidden">Invisible</option>' +
-                                        '<option value="hide-on-desktop">Invisible at desktop size</option>' +
-                                        '<option value="hide-on-tablet">Invisible at tablet size</option>' +
-                                        '<option value="hide-on-phone">Invisible at phone size</option>' +
-                                        '<option value="show-on-desktop">Visible at desktop size</option>' +
-                                        '<option value="show-on-tablet">Visible at tablet size</option>' +
-                                        '<option value="show-on-phone">Visible at phone size</option>' +
-                                    '</gs-select>', function () {
-            selectedElement.removeAttribute('hidden');
-            selectedElement.removeAttribute('hide-on-desktop');
-            selectedElement.removeAttribute('hide-on-tablet');
-            selectedElement.removeAttribute('hide-on-phone');
-            selectedElement.removeAttribute('show-on-desktop');
-            selectedElement.removeAttribute('show-on-tablet');
-            selectedElement.removeAttribute('show-on-phone');
-            
-            if (this.value) {
-                selectedElement.setAttribute(this.value, '');
-            }
-            
-            return selectedElement;
-        });
-        
-        // DISABLED attribute
-        addProp('Disabled', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('disabled') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'disabled', this.value === 'true', true);
-        });
-        
-        addProp('Readonly', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('readonly') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'readonly', this.value === 'true', true);
-        });
-        
-        //addFlexContainerProps(selectedElement);
-        addFlexProps(selectedElement);
-    };
 });
 
 // trigger resize to text on window resize
@@ -145,9 +17,9 @@ window.addEventListener('resize', function () {
 
 
 if (!evt.touchDevice) {
-    window.gsMemo = {};
-    window.gsMemo.bolFirstMouseMoveWhileDown = true;
-    window.gsMemo.currentMouseTarget = null;
+    window.gsmemoNew = {};
+    window.gsmemoNew.bolFirstMouseMoveWhileDown = true;
+    window.gsmemoNew.currentMouseTarget = null;
     
     window.addEventListener('mousemove', function (event) {
         var mousePosition, intWhich;// = GS.mousePosition(event);
@@ -162,31 +34,31 @@ if (!evt.touchDevice) {
             mousePosition = GS.mousePosition(event);
             
             window.bolFirstMouseMoveWhileDown = false;
-            window.gsMemo.currentMouseTarget = document.elementFromPoint(mousePosition.x, mousePosition.y);
+            window.gsmemoNew.currentMouseTarget = document.elementFromPoint(mousePosition.x, mousePosition.y);
             
         } else if (intWhich !== undefined && intWhich === 0) {
             window.bolFirstMouseMoveWhileDown = true;
         }
         
-        if (window.gsMemo.currentMouseTarget &&
+        if (window.gsmemoNew.currentMouseTarget &&
             intWhich !== undefined && intWhich !== 0 &&
-            window.gsMemo.currentMouseTarget.nodeName === 'TEXTAREA' &&
-            window.gsMemo.currentMouseTarget.parentNode.nodeName === 'GS-MEMO' && //event.target === element.control &&
+            window.gsmemoNew.currentMouseTarget.nodeName === 'TEXTAREA' &&
+            window.gsmemoNew.currentMouseTarget.parentNode.nodeName === 'GS-MEMO' && //event.target === element.control &&
             window.bolFirstMouseMoveWhileDown === false &&
-                (window.gsMemo.currentMouseTarget.lastWidth !== window.gsMemo.currentMouseTarget.clientWidth ||
-                window.gsMemo.currentMouseTarget.lastHeight !== window.gsMemo.currentMouseTarget.clientHeight)) {// && //element.control === window.lastMouseDownElement) {
+                (window.gsmemoNew.currentMouseTarget.lastWidth !== window.gsmemoNew.currentMouseTarget.clientWidth ||
+                window.gsmemoNew.currentMouseTarget.lastHeight !== window.gsmemoNew.currentMouseTarget.clientHeight)) {// && //element.control === window.lastMouseDownElement) {
             
-            //GS.triggerEvent(window.gsMemo.currentMouseTarget.parentNode, 'size-changed');
+            //GS.triggerEvent(window.gsmemoNew.currentMouseTarget.parentNode, 'size-changed');
             
-            window.gsMemo.currentMouseTarget.style.margin = '';
-            window.gsMemo.currentMouseTarget.style.marginLeft = '';
-            window.gsMemo.currentMouseTarget.style.marginRight = '';
-            window.gsMemo.currentMouseTarget.style.marginTop = '';
-            window.gsMemo.currentMouseTarget.style.marginBottom = '';
-            window.gsMemo.currentMouseTarget.lastWidth  = window.gsMemo.currentMouseTarget.clientWidth;
-            window.gsMemo.currentMouseTarget.lastHeight = window.gsMemo.currentMouseTarget.clientHeight;
+            window.gsmemoNew.currentMouseTarget.style.margin = '';
+            window.gsmemoNew.currentMouseTarget.style.marginLeft = '';
+            window.gsmemoNew.currentMouseTarget.style.marginRight = '';
+            window.gsmemoNew.currentMouseTarget.style.marginTop = '';
+            window.gsmemoNew.currentMouseTarget.style.marginBottom = '';
+            window.gsmemoNew.currentMouseTarget.lastWidth  = window.gsmemoNew.currentMouseTarget.clientWidth;
+            window.gsmemoNew.currentMouseTarget.lastHeight = window.gsmemoNew.currentMouseTarget.clientHeight;
             
-            GS.triggerEvent(window.gsMemo.currentMouseTarget.parentNode, 'size-changed');
+            GS.triggerEvent(window.gsmemoNew.currentMouseTarget.parentNode, 'size-changed');
             
             //console.log('mousemove (' + new Date().getTime() + ')');
         }
@@ -221,14 +93,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // re-target focus event from control to element
     function focusFunction(event) {
-        GS.triggerEvent(event.target.parentNode, 'focus');
-        event.target.parentNode.classList.add('focus');
+        var element = event.target;
+        if (element.hasAttribute('defer-insert')) {
+            if (event.target.classList.contains('control')) {
+                element = element.parentNode.parentNode;
+            }
+            element.removeEventListener('focus', focusFunction);
+            element.classList.add('focus');
+            element.addControl();
+            if (element.control.value && element.control.value.length > 0) {
+                if (element.bolSelect) {
+                    element.control.setSelectionRange(0, element.control.value.length);
+                } else {
+                    element.control.setSelectionRange(element.control.value.length, element.control.value.length);
+                }
+            }
+            element.bolSelect = true;
+        } else {
+            GS.triggerEvent(event.target.parentNode, 'focus');
+            event.target.parentNode.classList.add('focus');
+        }
     }
 
     // re-target blur event from control to element
     function blurFunction(event) {
         GS.triggerEvent(event.target.parentNode, 'blur');
         event.target.parentNode.classList.remove('focus');
+        if (event.target.parentNode.hasAttribute('defer-insert')) {
+            event.target.parentNode.removeControl();
+        }
     }
 
     // mouseout, remove hover class
@@ -317,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             jsnAttr = arrAttr[i];
 
-            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.nodeValue || '');
+            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
 
             i += 1;
         }
@@ -413,42 +306,144 @@ document.addEventListener('DOMContentLoaded', function () {
     //
     function elementInserted(element) {
         //var strQSValue;
-
-        // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
-        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
-            // if this is the first time inserted has been run: continue
-            if (!element.inserted) {
-                element.inserted = true;
-                element.internal = {};
-                saveDefaultAttributes(element);
-
-                if (element.hasAttribute('tabindex')) {
-                    element.setAttribute('data-tabindex', element.getAttribute('tabindex'));
-                    element.removeAttribute('tabindex');
+        if (element.hasAttribute('defer-insert')) {
+            // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
+            if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+                // if this is the first time inserted has been run: continue
+                if (!element.inserted) {
+                    element.inserted = true;
+                    element.internal = {};
+                    saveDefaultAttributes(element);
+    
+                    if (!element.hasAttribute('tabindex')) {
+                        element.setAttribute('tabindex', '0');
+                    }
+                    element.bolSelect = true;
+                    
+                    var elementValue = (element.getAttribute('value') || '');
+                    if (elementValue) {
+                        element.innerHTML = '<span class="control" gs-dynamic>' + elementValue + '</span>';
+                        element.control = element.children[0];
+                        element.control.value = elementValue;
+                        element.syncGetters();
+                    } else if (element.hasAttribute('placeholder')) {
+                        element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
+                        element.control = false;
+                    } else {
+                        element.innerHTML = '<span class="control" gs-dynamic>' + elementValue + '</span>';
+                        element.control = element.children[0];
+                        element.control.value = elementValue;
+                        element.syncGetters();
+                    }
+                    element.style.height = ((element.getAttribute('rows') || 2) * 1.2) + 'em';
+                    // element.appendChild(multiLineTemplate.cloneNode(true));
+                    // if (element.hasAttribute('data-tabindex')) {
+                    //     xtag.query(element, '.control')[0].setAttribute('tabindex', element.getAttribute('data-tabindex'));
+                    // }
+                    // set a variable with the control element for convenience and speed
+                    //element.control = xtag.queryChildren(element, '.control')[0];
+                    //console.log(element.control);
+                    if (element.control) {
+                        element.control.lastWidth = element.control.clientWidth;
+                        element.control.lastHeight = element.control.clientHeight;
+                        element.syncView();
+                    }
+                    
+                    element.addEventListener('focus', focusFunction);
+                    if (evt.touchDevice) {
+                        element.addEventListener(evt.click, focusFunction);
+                        element.addEventListener(evt.mousedown, function (event) {
+                            //alert(event.touches[0].clientX);
+                            element.startX = event.touches[0].clientX;
+                            element.startY = event.touches[0].clientY;
+                            element.addEventListener('touchmove', function (event) {
+                                //alert(event.touches[0].clientX);
+                                element.lastX = event.touches[0].clientX;
+                                element.lastY = event.touches[0].clientY;
+                                
+                            });
+                        });
+                        element.addEventListener(evt.mouseup, function (event) {
+                            var element = event.target;
+                            //alert(element.outerHTML);
+                            //alert(element.startX + ' : ' + element.lastX + ' : ' + element.startY + ' : ' + element.lastY);
+                            if (element.lastX && element.lastY &&
+                                (parseInt(element.lastX, 10) > (parseInt(element.startX, 10) + 10) ||
+                                parseInt(element.lastX, 10) < (parseInt(element.startX, 10) - 10) ||
+                                parseInt(element.lastY, 10) > (parseInt(element.startY, 10) + 10) ||
+                                parseInt(element.lastY, 10) < (parseInt(element.startY, 10) - 10))
+                            ) {
+                            } else {
+                                focusFunction(event);
+                            }
+                            
+                            /*//if event.target is the control
+                            if (event.target.tagName === 'GS-TEXT') {
+                                var element = event.target;
+                                //alert(event.target.outerHTML);
+                                //focus it
+                                focusFunction(event);
+                                //if we focused it prevent click event from happening
+                                if (document.activeElement == element.control) {
+                                    event.stopImmediatePropagation();
+                                    event.stopPropagation();
+                                    event.preventDefault();
+                                }
+                                //else the click event happens trying again
+                            }*/
+                        });
+                    }
+                    if (element.getAttribute('qs')) {
+                        //strQSValue = GS.qryGetVal(GS.getQueryString(), element.getAttribute('qs'));
+                        //
+                        //if (strQSValue !== '' || !element.getAttribute('value')) {
+                        //    element.value = strQSValue;
+                        //}
+    
+                        createPushReplacePopHandler(element);
+                        window.addEventListener('pushstate',    function () { createPushReplacePopHandler(element); });
+                        window.addEventListener('replacestate', function () { createPushReplacePopHandler(element); });
+                        window.addEventListener('popstate',     function () { createPushReplacePopHandler(element); });
+                    }
                 }
-
-                element.appendChild(multiLineTemplate.cloneNode(true));
-                if (element.hasAttribute('data-tabindex')) {
-                    xtag.query(element, '.control')[0].setAttribute('tabindex', element.getAttribute('data-tabindex'));
-                }
-                // set a variable with the control element for convenience and speed
-                element.control = xtag.queryChildren(element, '.control')[0];
-
-                element.control.lastWidth = element.control.clientWidth;
-                element.control.lastHeight = element.control.clientHeight;
-                element.syncView();
-
-                if (element.getAttribute('qs')) {
-                    //strQSValue = GS.qryGetVal(GS.getQueryString(), element.getAttribute('qs'));
-                    //
-                    //if (strQSValue !== '' || !element.getAttribute('value')) {
-                    //    element.value = strQSValue;
-                    //}
-
-                    createPushReplacePopHandler(element);
-                    window.addEventListener('pushstate',    function () { createPushReplacePopHandler(element); });
-                    window.addEventListener('replacestate', function () { createPushReplacePopHandler(element); });
-                    window.addEventListener('popstate',     function () { createPushReplacePopHandler(element); });
+            }
+        } else {
+            // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
+            if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+                // if this is the first time inserted has been run: continue
+                if (!element.inserted) {
+                    element.inserted = true;
+                    element.internal = {};
+                    saveDefaultAttributes(element);
+    
+                    if (element.hasAttribute('tabindex')) {
+                        element.setAttribute('data-tabindex', element.getAttribute('tabindex'));
+                        element.removeAttribute('tabindex');
+                    }
+    
+                    element.appendChild(multiLineTemplate.cloneNode(true));
+                    if (element.hasAttribute('data-tabindex')) {
+                        xtag.query(element, '.control')[0].setAttribute('tabindex', element.getAttribute('data-tabindex'));
+                    }
+                    // set a variable with the control element for convenience and speed
+                    element.control = xtag.queryChildren(element, '.control')[0];
+    
+                    element.control.lastWidth = element.control.clientWidth;
+                    element.control.lastHeight = element.control.clientHeight;
+                    element.syncView();
+    
+                    if (element.getAttribute('qs')) {
+                        //strQSValue = GS.qryGetVal(GS.getQueryString(), element.getAttribute('qs'));
+                        //
+                        //if (strQSValue !== '' || !element.getAttribute('value')) {
+                        //    element.value = strQSValue;
+                        //}
+    
+                        createPushReplacePopHandler(element);
+                        window.addEventListener('pushstate',    function () { createPushReplacePopHandler(element); });
+                        window.addEventListener('replacestate', function () { createPushReplacePopHandler(element); });
+                        window.addEventListener('popstate',     function () { createPushReplacePopHandler(element); });
+                    }
                 }
             }
         }
@@ -501,33 +496,63 @@ document.addEventListener('DOMContentLoaded', function () {
             value: {
                 // get value straight from the input
                 get: function () {
-                    if (this.control) {
-                        return this.control.value;
+                    if (this.hasAttribute('defer-insert')) {
+                        if (this.control) {
+                            return this.control.value;
+                        } else {
+                            return '';
+                        }
                     } else {
-                        return this.innerHTML;
+                        if (this.control) {
+                            return this.control.value;
+                        } else {
+                            return this.innerHTML;
+                        }
                     }
                 },
                 
                 // set the value of the input and set the value attribute
                 set: function (strNewValue) {
-                    if (this.getAttribute('value') !== strNewValue) {
-                        this.setAttribute('value', strNewValue);
-                    }
-                    if (this.control) {
-                        this.control.value = strNewValue;
+                    if (this.hasAttribute('defer-insert')) {
+                        if (this.getAttribute('value') !== strNewValue) {
+                            this.setAttribute('value', strNewValue);
+                        }
+                        if (this.control.tagName === 'SPAN') {
+                            this.control.textContent = strNewValue;
+                            this.control.value = strNewValue;
+                            this.syncGetters();
+                        } else {
+                            this.control.value = strNewValue;
+                        }
                     } else {
-                        this.innerHTML = strNewValue;
+                        if (this.getAttribute('value') !== strNewValue) {
+                            this.setAttribute('value', strNewValue);
+                        }
+                        if (this.control) {
+                            this.control.value = strNewValue;
+                        } else {
+                            this.innerHTML = strNewValue;
+                        }
+                        this.syncView();
                     }
-                    this.syncView();
+                    
                 }
             },
             textValue: {
                 // get value straight from the input
                 get: function () {
-                    if (this.control) {
-                        return this.control.value;
+                    if (this.hasAttribute('defer-insert')) {
+                        if (this.control) {
+                            return this.control.value;
+                        } else {
+                            return '';
+                        }
                     } else {
-                        return this.innerHTML;
+                        if (this.control) {
+                            return this.control.value;
+                        } else {
+                            return this.innerHTML;
+                        }
                     }
                 },
                 
@@ -540,9 +565,110 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         methods: {
             focus: function () {
-                if (this.control) {
-                    this.control.focus();
+                if (this.hasAttribute('defer-insert')) {
+                    var element = this;
+                    element.bolSelect = false;
+                    focusFunction({ target: element });
+                } else {
+                    if (this.control) {
+                        this.control.focus();
+                    }
                 }
+                //GS.triggerEvent(element, 'focus');
+            },
+
+            removeControl: function () {
+                var element = this;
+                var elementHeight = element.control.clientHeight;
+                console.log(elementHeight);
+                var elementValue = element.control.value
+                if (element.control) {
+                    element.setAttribute('tabindex', element.control.getAttribute('tabindex'));
+                }
+                if (element.control.value) {
+                    element.innerHTML = '<span style="white-space: pre-wrap;" class="control" gs-dynamic></span>';
+                    element.control = element.children[0];
+                    element.control.textContent = elementValue;
+                    element.control.value = elementValue;
+                    element.syncGetters();
+                } else if (element.hasAttribute('placeholder')) {
+                    element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
+                } else {
+                    element.innerHTML = '<span style="white-space: pre-wrap;" class="control" gs-dynamic></span>';
+                    element.control = element.children[0];
+                    element.control.textContent = elementValue;
+                    element.control.value = elementValue;
+                    element.syncGetters();
+                }
+                element.style.height = elementHeight + 'px';
+            },
+
+            addControl: function () {
+                var element = this;
+                var arrPassThroughAttributes = [
+                    'placeholder', 'name', 'maxlength', 'autocorrect',
+                    'autocapitalize', 'autocomplete', 'autofocus', 'spellcheck',
+                    'readonly', 'disabled'
+                ];
+                var i;
+                var len;
+                var elementValue = element.textContent;
+                if (element.children[0].classList.contains('placeholder')) {
+                    elementValue = '';
+                }
+                // if the gs-text element has a tabindex: save the tabindex and remove the attribute
+                if (element.hasAttribute('tabindex')) {
+                    element.savedTabIndex = element.getAttribute('tabindex');
+                    element.removeAttribute('tabindex');
+                }
+                // add control input and save it to a variable for later use
+                element.innerHTML = '';
+                element.innerHTML = '<textarea class="control" gs-dynamic></textarea>';//'<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
+                element.control = element.children[0];
+
+                // bind event re-targeting functions
+                element.control.removeEventListener('change', changeFunction);
+                element.control.addEventListener('change', changeFunction);
+
+
+                element.control.removeEventListener('blur', blurFunction);
+                element.control.addEventListener('blur', blurFunction);
+
+                element.removeEventListener(evt.mouseout, mouseoutFunction);
+                element.addEventListener(evt.mouseout, mouseoutFunction);
+
+                element.removeEventListener(evt.mouseout, mouseoverFunction);
+                element.addEventListener(evt.mouseover, mouseoverFunction);
+                // copy passthrough attributes to control
+                i = 0;
+                len = arrPassThroughAttributes.length;
+                while (i < len) {
+                    if (element.hasAttribute(arrPassThroughAttributes[i])) {
+                        if (arrPassThroughAttributes[i] === 'disabled') {
+                            element.control.setAttribute(
+                                'readonly',
+                                element.getAttribute(arrPassThroughAttributes[i]) || ''
+                            );
+                        } else {
+                            element.control.setAttribute(
+                                arrPassThroughAttributes[i],
+                                element.getAttribute(arrPassThroughAttributes[i]) || ''
+                            );
+                        }
+                    }
+                    i += 1;
+                }
+                //console.log(elementValue);
+                element.control.value = elementValue;
+                element.value = elementValue;
+                // if we saved a tabindex: apply the tabindex to the control
+                if (element.savedTabIndex !== undefined && element.savedTabIndex !== null) {
+                    element.control.setAttribute('tabindex', element.savedTabIndex);
+                }
+                //element.syncView();
+                element.control.style.height = element.style.minHeight;
+                element.control.focus();
+                element.addEventListener('focus', focusFunction);
             },
             
             // sync control and resize to text
@@ -627,6 +753,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 // copy passthrough attributes to control
             },
             
+            syncGetters: function () {
+                if (this.control) {
+                    this.setAttribute('value', this.control.value);
+                }
+            },
+            
             // if element is multiline and autoresize is not turned off: resize the element to fit the content
             handleResizeToText: function () {
                 var element = this, intMinHeight;
@@ -641,6 +773,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             element.control.style.height = element.control.scrollHeight + 'px';
                         } else {
                             element.control.style.height = intMinHeight + 'px';
+                        }
+                        
+                        if (element.hasAttribute('defer-insert')) {
+                            element.style.height = element.control.style.height;
                         }
                     }
                     

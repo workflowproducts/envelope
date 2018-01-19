@@ -183,9 +183,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         if (element.numberOfSelections === 1
-                && arrSelectRecords.length > 0
-                && arrSelectRecords[0].children[0].hasAttribute('selected')
-                && !element.deleteButton.hasAttribute('disabled')) {
+            && arrSelectRecords.length > 0
+            && arrSelectRecords[0].children[0].hasAttribute('selected')
+            && !element.deleteButton.hasAttribute('disabled')) {
             
             // generate the information to send to the websocket
             arrPk = (element.getAttribute('pk') || '').split(/[\s]*,[\s]*/);
@@ -1856,7 +1856,7 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             jsnAttr = element.attributes[i];
 
-            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.nodeValue || '');
+            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
 
             i += 1;
         }
@@ -2145,6 +2145,55 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     element.dragAllowed = false;
                     element.selectionPreviousOrigin = element.dragOrigin;
+                }
+            });
+        } else {
+            element.dragAllowed = false;
+            element.numberOfSelections = 0;
+            
+            // on touchdown (event delagation style)
+            element.addEventListener('click', function (event) {
+                var target = GS.findParentElement(event.target, 'th,td'), originalTarget = event.target;
+                
+                // if target is a cell: begin selection
+                if (target && (target.nodeName === 'TH' || target.nodeName === 'TD')) {
+                    if (GS.findParentElement(target, 'div').classList.contains('header-container')) {
+                        target = xtag.query(element.scrollContainer, 'th, td')[target.cellIndex];
+                        originalTarget = target;
+                    }
+                    
+                    // if shift key is down and there is currently a selection to connect to
+                    element.dragOrigin = target;
+                    if (event.shiftKey && xtag.query(element, '[selected]').length > 0) {
+                        element.dragOrigin = element.selectionPreviousOrigin;
+                    }
+                    
+                    // deselect all cells
+                    element.selectedCells = [];
+                    element.savedSelection = [];
+                    element.numberOfSelections = 0;
+                    
+                    element.savedSelectionCopy = element.savedSelection.slice(0);
+                    element.dragAllowed = true;
+                    element.dragCurrentCell = target;
+                    element.numberOfSelections += 1;
+                    
+                    element.dragMode = 'select';
+                    if (target.hasAttribute('selected')) {
+                        element.dragMode = 'deselect';
+                    }
+                    
+                    // if the original target is a cell or if the dragOrigin isn't the target cell or
+                    //      if there are already selected cells: blur focused element and prevent default
+                    if (originalTarget.nodeName === 'TH' || originalTarget.nodeName === 'TD' ||
+                        element.dragOrigin !== target || element.selectedCells.length > 0) {
+                        element.lastFocusedControl = null;
+                        element.copyControl.focus();
+                        GS.triggerEvent(element.copyControl, 'focus');
+                        event.preventDefault();
+                    }
+                    
+                    selectHandler(element, element.dragOrigin, element.dragCurrentCell, element.dragMode);
                 }
             });
         }
@@ -2814,6 +2863,8 @@ document.addEventListener('DOMContentLoaded', function () {
                   , parentCell, parentRecord, parentTBody, jsnCursorPos, intCursorPosition, bolSelect
                   , bolFullSelection, bolCursorAtFirst, bolCursorAtTop, bolCursorAtLast, bolCursorAtBottom
                   , arrSelected, arrRecords, focusElement;
+                
+                //event.stopPropagation();
                 
                 // find out if we are in focus mode
                 // if we are in a cell control: we might be in focus mode (we need to check further)

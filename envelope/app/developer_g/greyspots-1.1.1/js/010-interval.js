@@ -186,6 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // #####################################################################################
 
     function handleChange(element) {
+        valueUpdateAttribute(element);
         element.close();
         if (element.lastChangeValue !== element.getAttribute('value')) {
             GS.triggerEvent(element, 'change');
@@ -242,7 +243,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function valueGetCurrentNumber(element) {
         var intValue = 0;
-
         if (element.internal.unit === 'minutes') {
             intValue += (element.internal.value.hours * 60);
             intValue += element.internal.value.minutes;
@@ -331,6 +331,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function valueUpdateDisplay(element) {
+        console.trace('Fired');
         if (element.control) {
             element.control.value = valueGetCurrentDisplay(element);
         } else {
@@ -508,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             jsnAttr = arrAttr[i];
 
-            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.nodeValue || '');
+            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
 
             i += 1;
         }
@@ -993,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (intKeyCode === 103) { strChar = '7'; }
                         if (intKeyCode === 104) { strChar = '8'; }
                         if (intKeyCode === 105) { strChar = '9'; }
-    
+                        //console.log(intKeyCode, strChar);
                         // select the section of the value that the cursor is in
                         if (intSection === 1) {
                             GS.setInputSelection(element.control, arrDelimiterIndexes[intSection - 1], arrDelimiterIndexes[intSection]);
@@ -1020,17 +1021,19 @@ document.addEventListener('DOMContentLoaded', function () {
                         //      no matter what is typed: stay in the same section
                         strSection = strValue.substring(jsnTextSelection.start, jsnTextSelection.end);
     
-                        strSection =
-                                strSection.substring(0, element.numberOfCharsTyped) +
-                                strChar +
-                                strSection.substring(element.numberOfCharsTyped + 1);
+                        //
+                        strSection = strSection + strChar;
+                        strSection = strSection.slice(1);
+                        // strSection =
+                        //         strSection.substring(0, element.numberOfCharsTyped) +
+                        //         strChar +
+                        //         strSection.substring(element.numberOfCharsTyped + 1);
     
                         strValue =
                                 strValue.substring(0, jsnTextSelection.start) +
                                 strSection +
                                 strValue.substring(jsnTextSelection.end);
-    
-                        //console.log(element.numberOfCharsTyped);
+                                
                         element.numberOfCharsTyped += 1;
     
                         if (element.numberOfCharsTyped === strSection.length) {
@@ -1047,14 +1050,16 @@ document.addEventListener('DOMContentLoaded', function () {
                             element.internal.value.seconds = parseInt(strSection, 10);
                         }
     
-                        //console.log(strValue, element.control.value, translateValueToNumber(element, strValue));
-    
+                        //console.log(element.control.value);
+                        
                         if (strValue !== element.control.value) {
                             //trinkleValueDown(element);
                             //displayValue(element);
-                            valueUpdateAttribute(element);
+                            element.control.value = strValue;//valueUpdateAttribute(element);
                             GS.setInputSelection(element.control, jsnTextSelection.start, jsnTextSelection.end);
                         }
+                        //console.log(element.control.value);
+                        //console.log(strValue, element.control.value);
                     } else if (intKeyCode === 13) {
                         element.numberOfCharsTyped = 0;
                         event.preventDefault();

@@ -3,7 +3,7 @@ window.addEventListener('design-register-element', function () {
 
     registerDesignSnippet('<gs-number>', '<gs-number>', 'gs-number column="${1:name}"></gs-number>');
     registerDesignSnippet('<gs-number> With Label', '<gs-number>', 'label for="${1:number-insert-qty}">${2:Quantity}:</label>\n' +
-                                                                   '<gs-number id="${1:number-insert-qty}" column="${3:qty}"></gs-number>');
+                                                                  '<gs-number id="${1:number-insert-qty}" column="${3:qty}"></gs-number>');
 
     designRegisterElement('gs-number', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-number.html');
 
@@ -148,15 +148,55 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // re-target focus event from control to element
+    // function focusFunction(event) {
+    //     GS.triggerEvent(event.target.parentNode, 'focus');
+    //     event.target.parentNode.classList.add('focus');
+    // }
     function focusFunction(event) {
-        GS.triggerEvent(event.target.parentNode, 'focus');
-        event.target.parentNode.classList.add('focus');
+        var element = event.target;
+        if (element.hasAttribute('defer-insert')) {
+            // if (element.hasAttribute('in-cell')) {
+            //     var cellElem = GS.findParentTag(element, "gs-cell");
+            //     var tableElem = GS.findParentTag(cellElem, "gs-table")
+            //     if (row === 'insert') {
+            //         row = tableElem.internalData.records.length;
+            //     } else {
+            //         row = parseInt(row, 10);
+            //     }
+            //     tableElem.internalSelection.ranges[0].start = {
+            //         "row": row,
+            //         "column": parseInt(cellElem.getAttribute('data-col-number'), 10)
+            //     };
+            //     tableElem.internalSelection.ranges[0].end = {
+            //         "row": row,
+            //         "column": parseInt(cellElem.getAttribute('data-col-number'), 10)
+            //     };
+            //     tableElem.render();
+            // }
+            element.removeEventListener('focus', focusFunction);
+            element.classList.add('focus');
+            element.addControl();
+            if (element.control.value && element.control.value.length > 0) {
+                if (element.bolSelect) {
+                    element.control.setSelectionRange(0, element.control.value.length);
+                } else {
+                    element.control.setSelectionRange(element.control.value.length, element.control.value.length);
+                }
+            }
+            element.bolSelect = true;
+        } else {
+            GS.triggerEvent(event.target.parentNode, 'focus');
+            event.target.parentNode.classList.add('focus');
+        }
     }
 
     // re-target blur event from control to element
     function blurFunction(event) {
         GS.triggerEvent(event.target.parentNode, 'blur');
         event.target.parentNode.classList.remove('focus');
+        if (event.target.parentNode.hasAttribute('defer-insert')) {
+            event.target.parentNode.removeControl();
+        }
     }
 
     // mouseout, remove hover class
@@ -195,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             jsnAttr = arrAttr[i];
 
-            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.nodeValue || '');
+            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
 
             i += 1;
         }
@@ -276,13 +316,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // sync control value and resize to text
     function syncView(element) {
         if (element.control) {
-            if (element.getAttribute('value') !== element.control.value) {
-                element.setAttribute('value', element.control.value);
-            }
-        } else {
-            if (element.getAttribute('value') !== element.innerHTML) {
-                element.setAttribute('value', element.innerHTML);
-            }
+            element.control.setAttribute('value', (element.getAttribute('value') || ''));
+        }
+    }
+    
+    function syncGetters(element) {
+        if (element.control) {
+            element.setAttribute('value', (element.control.value || ''));
+        } else if (element.getAttribute('value') !== element.innerHTML) {
+            element.setAttribute('value', element.innerHTML);
         }
     }
 
@@ -498,40 +540,91 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.internal = {};
                 saveDefaultAttributes(element);
 
-                if (element.hasAttribute('tabindex')) {
-                    element.setAttribute('data-tabindex', element.getAttribute('tabindex'));
-                    element.removeAttribute('tabindex');
-                }
-                if (element.hasAttribute('disabled')) {
-                    element.innerHTML = element.getAttribute('value') || element.getAttribute('placeholder');
+                if (element.hasAttribute('defer-insert')) {
+                    if (!element.hasAttribute('tabindex')) {
+                        element.setAttribute('tabindex', '0');
+                    }
+                    element.bolSelect = true;
+    
+                    if (element.getAttribute('value')) {
+                        element.innerHTML = element.getAttribute('value');
+                        syncGetters(element);
+                    } else if (element.hasAttribute('placeholder')) {
+                        element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
+                    }
+    
+                    element.addEventListener('focus', focusFunction);
+                    if (evt.touchDevice) {
+                        element.addEventListener(evt.click, focusFunction);
+                        element.addEventListener(evt.mousedown, function (event) {
+                            element.startX = event.touches[0].clientX;
+                            element.startY = event.touches[0].clientY;
+                            element.addEventListener('touchmove', function (event) {
+                                element.lastX = event.touches[0].clientX;
+                                element.lastY = event.touches[0].clientY;
+                                
+                            });
+                        });
+                        element.addEventListener(evt.mouseup, function (event) {
+                            var element = event.target;
+    
+                            if (element.lastX && element.lastY &&
+                                (parseInt(element.lastX, 10) > (parseInt(element.startX, 10) + 10) ||
+                                parseInt(element.lastX, 10) < (parseInt(element.startX, 10) - 10) ||
+                                parseInt(element.lastY, 10) > (parseInt(element.startY, 10) + 10) ||
+                                parseInt(element.lastY, 10) < (parseInt(element.startY, 10) - 10))
+                            ) {
+                            } else {
+                                focusFunction(event);
+                            }
+                        });
+                    }
+    
+                    if (element.getAttribute('qs')) {
+    
+                        createPushReplacePopHandler(element);
+                        window.addEventListener('pushstate',    function () { createPushReplacePopHandler(element); });
+                        window.addEventListener('replacestate', function () { createPushReplacePopHandler(element); });
+                        window.addEventListener('popstate',     function () { createPushReplacePopHandler(element); });
+                    }
+                    
+                    element.refresh();
                 } else {
-                    element.innerHTML = '';
-                    element.appendChild(singleLineTemplate.cloneNode(true));
-                    if (element.hasAttribute('data-tabindex')) {
-                        xtag.query(element, '.control')[0].setAttribute('tabindex', element.getAttribute('data-tabindex'));
+                    if (element.hasAttribute('tabindex')) {
+                        element.setAttribute('data-tabindex', element.getAttribute('tabindex'));
+                        element.removeAttribute('tabindex');
                     }
-                }
-
-                if (element.getAttribute('qs')) {
-                    //strQSValue = GS.qryGetVal(GS.getQueryString(), element.getAttribute('qs'));
-                    //
-                    //if (strQSValue !== '' || !element.getAttribute('value')) {
-                    //    element.value = strQSValue;
-                    //}
-
-                    createPushReplacePopHandler(element);
-                    window.addEventListener('pushstate',    function () { createPushReplacePopHandler(element); });
-                    window.addEventListener('replacestate', function () { createPushReplacePopHandler(element); });
-                    window.addEventListener('popstate',     function () { createPushReplacePopHandler(element); });
-                }
-
-                if (element.innerHTML === '') {
-                    element.appendChild(singleLineTemplate.cloneNode(true));
-                    if (element.hasAttribute('data-tabindex')) {
-                        xtag.query(element, '.control')[0].setAttribute('tabindex', element.getAttribute('data-tabindex'));
+                    if (element.hasAttribute('disabled')) {
+                        element.innerHTML = element.getAttribute('value') || element.getAttribute('placeholder');
+                    } else {
+                        element.innerHTML = '';
+                        element.appendChild(singleLineTemplate.cloneNode(true));
+                        if (element.hasAttribute('data-tabindex')) {
+                            xtag.query(element, '.control')[0].setAttribute('tabindex', element.getAttribute('data-tabindex'));
+                        }
                     }
+    
+                    if (element.getAttribute('qs')) {
+                        //strQSValue = GS.qryGetVal(GS.getQueryString(), element.getAttribute('qs'));
+                        //
+                        //if (strQSValue !== '' || !element.getAttribute('value')) {
+                        //    element.value = strQSValue;
+                        //}
+    
+                        createPushReplacePopHandler(element);
+                        window.addEventListener('pushstate',    function () { createPushReplacePopHandler(element); });
+                        window.addEventListener('replacestate', function () { createPushReplacePopHandler(element); });
+                        window.addEventListener('popstate',     function () { createPushReplacePopHandler(element); });
+                    }
+    
+                    if (element.innerHTML === '') {
+                        element.appendChild(singleLineTemplate.cloneNode(true));
+                        if (element.hasAttribute('data-tabindex')) {
+                            xtag.query(element, '.control')[0].setAttribute('tabindex', element.getAttribute('data-tabindex'));
+                        }
+                    }
+                    element.refresh();
                 }
-                element.refresh();
             }
         }
     }
@@ -559,21 +652,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
                     // attribute code
                     if (strAttrName === 'disabled') {
-                        if (this.hasAttribute('tabindex')) {
-                            this.setAttribute('data-tabindex', this.getAttribute('tabindex'));
-                            this.removeAttribute('tabindex');
-                        }
-                        if (this.hasAttribute('disabled')) {
-                            this.innerHTML = this.getAttribute('value') || this.getAttribute('placeholder');
-                        } else {
-                            this.innerHTML = '';
-                            this.appendChild(singleLineTemplate.cloneNode(true));
-                            if (this.hasAttribute('data-tabindex')) {
-                                xtag.query(this, '.control')[0].setAttribute('tabindex', this.getAttribute('data-tabindex'));
-                            }
-                        }
+                        // if (this.hasAttribute('tabindex')) {
+                        //     this.setAttribute('data-tabindex', this.getAttribute('tabindex'));
+                        //     this.removeAttribute('tabindex');
+                        // }
+                        // if (this.hasAttribute('disabled')) {
+                        //     this.innerHTML = this.getAttribute('value') || this.getAttribute('placeholder');
+                        // } else {
+                        //     this.innerHTML = '';
+                        //     this.appendChild(singleLineTemplate.cloneNode(true));
+                        //     if (this.hasAttribute('data-tabindex')) {
+                        //         xtag.query(this, '.control')[0].setAttribute('tabindex', this.getAttribute('data-tabindex'));
+                        //     }
+                        // }
 
-                        this.refresh();
+                        // this.refresh();
                     } else if (strAttrName === 'value' && newValue !== oldValue) {
                         this.value = newValue;
                     }
@@ -634,14 +727,100 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (selection) {
                         GS.setInputSelection(this.control, selection.start, selection.end);
                     }
+                    this.setAttribute('value', strNewValue);
+                    syncView(this);
                 }
             }
         },
         methods: {
             focus: function () {
-                this.control.focus();
+                var element = this;
+                element.bolSelect = false;
+                focusFunction({ target: element });
             },
-            
+
+            removeControl: function () {
+                var element = this;
+                if (element.control) {
+                    element.setAttribute('tabindex', element.control.getAttribute('tabindex'));
+                } else {
+                    element.setAttribute('tabindex', '0');
+                }
+                if (element.control.value) {
+                    element.innerHTML = element.control.value;
+                    syncGetters(element);
+                } else if (element.hasAttribute('placeholder')) {
+                    console.log('<span class="placeholder">' + element.getAttribute('placeholder') + '</span>');
+                    element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
+                } else {
+                    element.innerHTML = ''
+                }
+                element.control = false;
+            },
+
+            addControl: function () {
+                var element = this;
+                var arrPassThroughAttributes = [
+                    'placeholder', 'name', 'maxlength', 'autocorrect',
+                    'autocapitalize', 'autocomplete', 'autofocus', 'spellcheck',
+                    'readonly', 'disabled'
+                ];
+                var i;
+                var len;
+                // if the gs-text element has a tabindex: save the tabindex and remove the attribute
+                if (element.hasAttribute('tabindex')) {
+                    element.savedTabIndex = element.getAttribute('tabindex');
+                    element.removeAttribute('tabindex');
+                }
+
+                // add control input and save it to a variable for later use
+                element.innerHTML = '';
+                element.innerHTML = '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
+                element.control = element.children[0];
+
+                // bind event re-targeting functions
+                element.control.removeEventListener('change', changeFunction);
+                element.control.addEventListener('change', changeFunction);
+
+
+                element.control.removeEventListener('blur', blurFunction);
+                element.control.addEventListener('blur', blurFunction);
+
+                element.removeEventListener(evt.mouseout, mouseoutFunction);
+                element.addEventListener(evt.mouseout, mouseoutFunction);
+
+                element.removeEventListener(evt.mouseout, mouseoverFunction);
+                element.addEventListener(evt.mouseover, mouseoverFunction);
+
+                // copy passthrough attributes to control
+                i = 0;
+                len = arrPassThroughAttributes.length;
+                while (i < len) {
+                    if (element.hasAttribute(arrPassThroughAttributes[i])) {
+                        if (arrPassThroughAttributes[i] === 'disabled') {
+                            element.control.setAttribute(
+                                'readonly',
+                                element.getAttribute(arrPassThroughAttributes[i]) || ''
+                            );
+                        } else {
+                            element.control.setAttribute(
+                                arrPassThroughAttributes[i],
+                                element.getAttribute(arrPassThroughAttributes[i]) || ''
+                            );
+                        }
+                    }
+                    i += 1;
+                }
+
+                // if we saved a tabindex: apply the tabindex to the control
+                if (element.savedTabIndex !== undefined && element.savedTabIndex !== null) {
+                    element.control.setAttribute('tabindex', element.savedTabIndex);
+                }
+                syncView(element);
+                element.control.focus();
+                element.addEventListener('focus', focusFunction);
+            },
+
             refresh: function () {
                 var arrPassThroughAttributes, i, len;
                 
@@ -652,8 +831,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     this.control.removeEventListener('change', changeFunction);
                     this.control.addEventListener('change', changeFunction);
                     
-                    this.control.removeEventListener('focus', focusFunction);
-                    this.control.addEventListener('focus', focusFunction);
+                    this.removeEventListener('focus', focusFunction);
+                    this.addEventListener('focus', focusFunction);
                     
                     this.control.removeEventListener('blur', blurFunction);
                     this.control.addEventListener('blur', blurFunction);

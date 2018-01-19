@@ -1306,8 +1306,10 @@ pre code{
 
 html body *[disabled],
 *[disabled] {
+    /*
     opacity: 0.6;
     pointer-events: none;
+    */
     cursor: default;
     
     /*
@@ -1474,17 +1476,24 @@ hide-lrg (from lrg and larger)
 hide-large
 */
 
-
 gs-date input,
+gs-dt input,
+gs-dt .placeholder,
 gs-text input,
+gs-text .placeholder,
 gs-search input,
 gs-number input,
+gs-number .placeholder,
 gs-memo input,
+gs-memo-new input,
+gs-memo-new textarea,
 gs-combo input,
+gs-combo .placeholder,
 gs-time input,
 gs-select select,
 gs-interval input,
 gs-memo textarea {
+    display: inline-block;
     width: 100%;
     font-size: 1em;
     font-family: inherit;
@@ -1513,6 +1522,7 @@ gs-memo textarea {
     border-radius: 0;
 }
 
+gs-memo-new textarea, 
 gs-memo textarea {
     display: block;
     
@@ -1523,8 +1533,52 @@ gs-memo textarea {
     */
 }
 
+gs-memo-new {
+    overflow: auto;
+}
+
+/*show values as password dots*/
+gs-date[type="password"],
+gs-text[type="password"],
+gs-search[type="password"],
+gs-number[type="password"],
+gs-memo[type="password"],
+gs-combo[type="password"],
+gs-time[type="password"],
+gs-select select[type="password"],
+gs-interval[type="password"],
+gs-memo textarea[type="password"] {
+  -webkit-text-security: disc;
+}
+
+
+/*placeholder spans showed as password dots*/
+gs-dt .placeholder,
+gs-text .placeholder,
+gs-number .placeholder,
+gs-memo-new .placeholder,
+gs-combo .placeholder {
+    color: #8e8e8e;
+    -webkit-text-security: none;
+    pointer-events: none;
+}
+
+/*Prevent spans from breaking into multiple lines: not gs-memo*/
+gs-text,
+gs-number,
+gs-combo {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+gs-combo span {
+    height: 1em;
+    /*width: 100% !important;*/
+    display: inline-block;
+}
 
 gs-date,
+gs-dt,
 gs-text,
 gs-search,
 gs-number,
@@ -1533,7 +1587,7 @@ gs-combo,
 gs-time,
 gs-select,
 gs-interval,
-gs-memo,
+gs-memo-new,
 gs-checkbox,
 gs-datetime {
     position: relative;
@@ -1548,7 +1602,7 @@ gs-datetime {
     
     border-radius: 0;
     
-    min-height: 1em;
+    min-height: 1.2em;/*gs-text-new: 1.2em*/
     line-height: 1.2em;
     font-size: 1em;
     
@@ -1559,6 +1613,7 @@ gs-datetime {
 }
 
 gs-date.hover,
+gs-dt.hover,
 gs-text.hover,
 gs-search.hover,
 gs-number.hover,
@@ -1567,7 +1622,7 @@ gs-combo.hover,
 gs-time.hover,
 gs-select.hover,
 gs-interval.hover,
-gs-memo.hover,
+/*gs-memo-new.hover,*/
 gs-checkbox.hover,
 gs-datetime.hover {
     
@@ -1577,24 +1632,24 @@ gs-datetime.hover {
     transition: box-shadow 0.5s;
 }
 
-gs-date[disabled],
-gs-text[disabled],
-gs-search[disabled],
-gs-number[disabled],
-gs-memo[disabled],
-gs-combo[disabled],
-gs-time[disabled],
-gs-select[disabled],
-gs-interval[disabled],
-gs-memo[disabled],
-gs-checkbox[disabled],
-gs-datetime[disabled] {
-    pointer-events: auto;
-    
-    opacity: 0.6;
+gs-date[disabled], gs-date[disabled] .control,
+gs-dt[disabled], gs-dt[disabled] .control,
+gs-text[disabled], gs-text[disabled] .control,
+gs-search[disabled], gs-search[disabled] .control,
+gs-number[disabled], gs-number[disabled] .control,
+gs-memo[disabled], gs-memo[disabled] .control,
+gs-combo[disabled], gs-combo[disabled] .control,
+gs-time[disabled], gs-time[disabled] .control,
+gs-select[disabled], gs-select[disabled] .control,
+gs-interval[disabled], gs-interval[disabled] .control,
+gs-checkbox[disabled], gs-checkbox[disabled] .control,
+gs-datetime[disabled], gs-datetime[disabled] .control {
+    background: #D8D8D8 !important;
+    color: #000000 !important;
 }
 
 gs-date.focus,
+gs-dt.focus,
 gs-text.focus,
 gs-search.focus,
 gs-number.focus,
@@ -1603,7 +1658,7 @@ gs-combo.focus,
 gs-time.focus,
 gs-select.focus,
 gs-interval.focus,
-gs-memo.focus,
+/*gs-memo-new.focus,*/
 gs-checkbox.focus,
 gs-datetime.focus {
     
@@ -1615,6 +1670,7 @@ gs-datetime.focus {
 
 
 gs-date[mini],
+gs-dt[mini],
 gs-text[mini],
 gs-search[mini],
 gs-number[mini],
@@ -1623,7 +1679,7 @@ gs-combo[mini],
 gs-time[mini],
 gs-select[mini],
 gs-interval[mini],
-gs-memo[mini],
+/*gs-memo-new[mini],*/
 gs-checkbox[mini],
 gs-datetime[mini] {
     background-color: transparent;
@@ -1631,6 +1687,7 @@ gs-datetime[mini] {
 }
 
 gs-date[mini] input,
+gs-dt[mini] input,
 gs-text[mini] input,
 gs-search[mini] input,
 gs-number[mini] input,
@@ -1638,8 +1695,8 @@ gs-memo[mini] input,
 gs-combo[mini] input,
 gs-time[mini] input,
 gs-select[mini] select,
-gs-interval[mini] input,
-gs-memo[mini] textarea {
+gs-interval[mini] input/*,
+gs-memo-new[mini] textarea*/ {
     background-color: transparent;
     box-shadow: none !important;
 }
@@ -12673,6 +12730,23 @@ gs-datasheet > .root > .data-container > .data-flex-reset > .scroll-container {
     box-sizing: border-box;
 }
 
+gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > .scroll-container::-webkit-scrollbar {
+    -webkit-appearance: none;
+}
+
+gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > .scroll-container::-webkit-scrollbar:vertical {
+    width: 11px;
+}
+
+gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > .scroll-container::-webkit-scrollbar:horizontal {
+    height: 11px;
+}
+
+gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > .scroll-container::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    border: 2px solid white; /* should match background, can't be transparent */
+}
+
 gs-datasheet > .root > .data-container > .data-flex-reset > .insert-container {
     position: absolute;
     bottom: 0;
@@ -13120,6 +13194,22 @@ gs-date[readonly] .date-picker-button {
     border: 1px solid #000000;
 }
 
+
+.gs-date-date-picker-container .month-letter {
+    display: inline-block;
+    width: 8.3%;
+    
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+    
+    box-shadow: none;
+    margin: 0;
+    border-radius: 0;
+}
+
 .gs-date-date-picker-container .gs-date-date-picker .year-marker {
     border-bottom: 1px solid #000000;
     text-align: center;
@@ -13177,22 +13267,20 @@ gs-datetime .placeholder {
     color: #888888;
 }
 
-/********* DATETIME CALENDER DIALOG *********/
+/********* DATETIME CALENDAR DIALOG *********/
 
-gs-body.gs-datetime-calender-dialog {
+gs-body.gs-datetime-calendar-dialog {
     padding: 2em;
 }
 
-gs-body.gs-datetime-calender-dialog .adjust-section {
+gs-body.gs-datetime-calendar-dialog .adjust-section {
     width: 10.46em;
 }
-gs-body.gs-datetime-calender-dialog .date-section .centered,
-gs-body.gs-datetime-calender-dialog .time-section .centered {
+gs-body.gs-datetime-calendar-dialog .centered {
     margin: 0 auto;
 }
 
-gs-body.gs-datetime-calender-dialog .date-input,
-gs-body.gs-datetime-calender-dialog .time-input {
+gs-body.gs-datetime-calendar-dialog .date-input {
     position: relative;
     
     background-color: white;
@@ -13219,8 +13307,7 @@ gs-body.gs-datetime-calender-dialog .time-input {
     width: 6.9em;
 }
 
-gs-body.gs-datetime-calender-dialog .date-input input,
-gs-body.gs-datetime-calender-dialog .time-input input {
+gs-body.gs-datetime-calendar-dialog .date-input input {
     font-size: 1em;
     font-family: inherit;
     
@@ -13249,18 +13336,14 @@ gs-body.gs-datetime-calender-dialog .time-input input {
     
     width: 1.1em;
 }
-gs-body.gs-datetime-calender-dialog .time-input input.ampm {
-    width: 1.5em;
-}
-gs-body.gs-datetime-calender-dialog .date-input input.year {
+gs-body.gs-datetime-calendar-dialog .date-input input.year {
     width: 3em;
 }
-gs-body.gs-datetime-calender-dialog .date-input .divider,
-gs-body.gs-datetime-calender-dialog .time-input .divider {
+gs-body.gs-datetime-calendar-dialog .date-input .divider {
     width: 0.3em;
 }
 
-gs-body.gs-datetime-calender-dialog .adjust-container {
+gs-body.gs-datetime-calendar-dialog .adjust-container {
     position: relative;
     
     border: none;
@@ -13274,10 +13357,10 @@ gs-body.gs-datetime-calender-dialog .adjust-container {
     
     vertical-align: top;
 }
-gs-body.gs-datetime-calender-dialog .date-adjust,
-gs-body.gs-datetime-calender-dialog .date-today,
-gs-body.gs-datetime-calender-dialog .time-adjust,
-gs-body.gs-datetime-calender-dialog .time-now {
+gs-body.gs-datetime-calendar-dialog .date-adjust,
+gs-body.gs-datetime-calendar-dialog .date-today,
+gs-body.gs-datetime-calendar-dialog .time-adjust,
+gs-body.gs-datetime-calendar-dialog .time-now {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -13291,19 +13374,15 @@ gs-body.gs-datetime-calender-dialog .time-now {
     
     background: #FFFFFF;
 }
-gs-body.gs-datetime-calender-dialog .date-adjust:hover,
-gs-body.gs-datetime-calender-dialog .date-today:hover,
-gs-body.gs-datetime-calender-dialog .time-adjust:hover,
-gs-body.gs-datetime-calender-dialog .time-now:hover {
+gs-body.gs-datetime-calendar-dialog .date-adjust:hover,
+gs-body.gs-datetime-calendar-dialog .date-today:hover {
     filter: invert(10%);
 }
-gs-body.gs-datetime-calender-dialog .date-adjust,
-gs-body.gs-datetime-calender-dialog .time-adjust {
+gs-body.gs-datetime-calendar-dialog .date-adjust {
     height: 50%;
     line-height: 0.75em;
 }
-gs-body.gs-datetime-calender-dialog .date-today,
-gs-body.gs-datetime-calender-dialog .time-now {
+gs-body.gs-datetime-calendar-dialog .date-today {
     display: inline-block;
 
     line-height: 2em;
@@ -13311,7 +13390,7 @@ gs-body.gs-datetime-calender-dialog .time-now {
     width: 1em;
 }
 
-gs-body.gs-datetime-calender-dialog .date-section .calender {
+gs-body.gs-datetime-calendar-dialog .calendar {
     width: 21em;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -13320,7 +13399,7 @@ gs-body.gs-datetime-calender-dialog .date-section .calender {
     user-select: none;
 }
 
-gs-body.gs-datetime-calender-dialog .date-section .calender .day-letter {
+gs-body.gs-datetime-calendar-dialog .calendar .day-letter {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     -ms-box-sizing: border-box;
@@ -13339,7 +13418,22 @@ gs-body.gs-datetime-calender-dialog .date-section .calender .day-letter {
     background: #DDDDDD;
 }
 
-gs-body.gs-datetime-calender-dialog .date-section .calender .day {
+gs-body.gs-datetime-calendar-dialog .calendar .month-letter {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+    
+    display: inline-block;
+    padding: 0.3em;
+    line-height: 1.5em;
+    width: 1.75em;
+    height: 2.1em;
+    margin: 0;
+}
+
+gs-body.gs-datetime-calendar-dialog .calendar .day {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     -ms-box-sizing: border-box;
@@ -13357,122 +13451,16 @@ gs-body.gs-datetime-calender-dialog .date-section .calender .day {
     text-align: center;
     color: #000000;
 }
-gs-body.gs-datetime-calender-dialog .date-section .calender .day.grey {
+gs-body.gs-datetime-calendar-dialog .calendar .day.grey {
     background: #BBBBBB;
 }
-gs-body.gs-datetime-calender-dialog .date-section .calender .day.today {
+gs-body.gs-datetime-calendar-dialog .calendar .day.today {
     background: #F0F0FF;
 }
-gs-body.gs-datetime-calender-dialog .date-section .calender .day.selected {
+gs-body.gs-datetime-calendar-dialog .calendar .day.selected {
     background: #FFB000;
     color: #ffffff;
 }
-
-gs-body.gs-datetime-calender-dialog .time-section .clock-parent {
-    position: relative;
-    height: 19.2em;
-}
-
-gs-body.gs-datetime-calender-dialog .time-section .clock {
-    -webkit-border-radius: 50%;
-    -moz-border-radius: 50%;
-    -ms-border-radius: 50%;
-    -o-border-radius: 50%;
-    border-radius: 50%;
-    
-    width: 15em;
-    height: 15em;
-    border: 0.3em solid #000000;
-    
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-left: -7.8em;
-    margin-top: -7.8em;
-}
-gs-body.gs-datetime-calender-dialog .time-section .clock .marking {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    margin-top: -7.5em;
-    
-    height: 14.2em;
-    border-top: 0.8em solid #000000;
-    width: 0.2em;
-    margin-left: -0.1em;
-}
-gs-body.gs-datetime-calender-dialog .time-section .clock .marking.large {
-    height: 13.5em;
-    border-top: 1.5em solid #000000;
-}
-
-gs-body.gs-datetime-calender-dialog .time-section .clock .hour-hand,
-gs-body.gs-datetime-calender-dialog .time-section .clock .minute-hand,
-gs-body.gs-datetime-calender-dialog .time-section .clock .second-hand {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-top: -0.5em;
-}
-gs-body.gs-datetime-calender-dialog .time-section .clock .hour-hand {
-    -webkit-transform-origin: 0.2em 0.5em;
-    -moz-transform-origin: 0.2em 0.5em;
-    -ms-transform-origin: 0.2em 0.5em;
-    -o-transform-origin: 0.2em 0.5em;
-    transform-origin: 0.2em 0.5em;
-    
-    height: 4em;
-    margin-left: -0.2em;
-    border-left: 0.4em solid #000000;
-}
-gs-body.gs-datetime-calender-dialog .time-section .clock .minute-hand {
-    -webkit-transform-origin: 0.1em 0.5em;
-    -moz-transform-origin: 0.1em 0.5em;
-    -ms-transform-origin: 0.1em 0.5em;
-    -o-transform-origin: 0.1em 0.5em;
-    transform-origin: 0.1em 0.5em;
-    
-    height: 5.5em;
-    margin-left: -0.1em;
-    border-left: 0.2em solid #000000;
-}
-gs-body.gs-datetime-calender-dialog .time-section .clock .second-hand {
-    -webkit-transform-origin: 0.05em 0.5em;
-    -moz-transform-origin: 0.05em 0.5em;
-    -ms-transform-origin: 0.05em 0.5em;
-    -o-transform-origin: 0.05em 0.5em;
-    transform-origin: 0.05em 0.5em;
-    
-    height: 7em;
-    margin-left: -0.05em;
-    border-left: 0.1em solid #FF0000;
-}
-gs-body.gs-datetime-calender-dialog .time-section .clock .clock-hand-drag-handle {
-    -webkit-border-radius: 50%;
-    -moz-border-radius: 50%;
-    -ms-border-radius: 50%;
-    -o-border-radius: 50%;
-    border-radius: 50%;
-    
-    position: absolute;
-    bottom: 0;
-    
-    background: none;
-    
-    margin-bottom: -0.5em;
-    width: 1em;
-    height: 1em;
-}
-gs-body.gs-datetime-calender-dialog .time-section .clock .hour-hand .clock-hand-drag-handle {
-    margin-left: -0.7em;
-}
-gs-body.gs-datetime-calender-dialog .time-section .clock .minute-hand .clock-hand-drag-handle {
-    margin-left: -0.6em;
-}
-gs-body.gs-datetime-calender-dialog .time-section .clock .second-hand .clock-hand-drag-handle {
-    margin-left: -0.55em;
-}
-
 
 /********** DATETIME WHEEL DIALOG ***********/
 
@@ -13564,7 +13552,7 @@ gs-wheel .container {
 	position: relative;
 	top: 3.25em;
 	height: 1.5em;
-    width: 1.5em;
+    width: 1.75em;
 	line-height: 1.5em;
     display: inline-block;
     
@@ -13576,7 +13564,7 @@ gs-wheel .container {
 
 gs-wheel[values="y"] .container,
 gs-wheel[values="yyyy"] .container {
-	width: 3.25em;
+	width: 2.75em;
 }
 gs-wheel[values="ampm"] .container {
 	width: 2.25em;
@@ -13597,6 +13585,33 @@ gs-wheel .transparent.top {
 }
 gs-wheel .transparent.bottom {
 	bottom: 0;
+}
+
+gs-wheel .arrow-up,
+gs-wheel .arrow-down {
+	position: absolute;
+	left: 0;
+	width: 100%;
+	height: 1em;
+	background: #FFFFFF;
+    background: rgba(255, 255, 255, 0.75);
+	opacity: 0;
+    display: inline-block;
+    z-index: 1001;
+    text-align: center;
+    font-family: fontawesome;
+}
+
+gs-wheel .arrow-up {
+	top: 0;
+}
+gs-wheel .arrow-down {
+	bottom: 0;
+}
+
+gs-wheel:hover .arrow-up,
+gs-wheel:hover .arrow-down {
+	opacity: 1;
 }
 
 gs-wheel .wheel {
@@ -13745,6 +13760,47 @@ gs-dialog-overlay[no-background] {
     opacity: 1;
 }
 
+gs-dt, gs-dt .control {
+    text-align: right;
+}
+
+gs-dt {
+    position: relative;
+}
+gs-dt .dt-arrows {
+    background: #FFFFFF !important;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    padding: 0.25em;
+    min-height: 1.2em;
+    margin: 0;
+    
+    box-shadow: 0 0 0.1em 0 rgba(0,0,0,.2), 0 0 0.2em 0 rgba(0,0,0,.4);
+    
+    display: inline-block;
+    
+    z-index: 1000;
+    width: 14.25em;
+}
+
+@media only screen and (max-width: 768px) {
+    gs-dt .dt-arrows {
+        font-size: 1.5em;
+    }
+}
+
+gs-dt .dt-arrow {
+    display: inline-block;
+}
+
+gs-dt[readonly] {
+    box-shadow: 0 0 0 0 #000 inset;
+    opacity: 0.9;
+    border-color: #E6E6E6;
+    cursor: default;
+    padding: 0.2em;
+}
 
 @media print {
     gs-envelope {

@@ -101,6 +101,57 @@
                     </template>
                 </gs-doc-example>
                 
+                <div class="doc-example-description" id="encrypted-example">
+                    <span class="h3">Attribute <code>[encrypted="keyVariable"]</code>:</span>
+                    <p>When you have a database column that contains sensitive information use the <code>[encrypted]</code> attribute to encrypt the value. The column will be encrypted with AES using the global variable that matches the <code>[encrypted]</code> attribute. If the gs-text detects a bad password, it will emit a <code>password-error</code> event with the key variable in <code>event.keyVariable</code> and either 'bad' or 'no' in <code>event.reason</code> (). The password for this example is 'test'.</p>
+                </div>
+                <gs-doc-example>
+                    <template for="html" height="45">
+                        <gs-form id="test-form" src="gsdoc.tpeople_encrypt" where="id=2421">
+                            <template>
+                                <b>First Name (encrypted):</b>
+                                <gs-text encrypted="crypto_password" column="first_name"></gs-text>
+                                <b>Last Name (not encrypted):</b>
+                                <gs-text column="last_name"></gs-text>
+                            </template>
+                        </gs-form>
+                        <template id="no-password-dialog">
+                            <gs-page>
+                                <gs-header><center><h3>Enter Password</h3></center></gs-header>
+                                <gs-body padded>
+                                    Please enter the password:
+                                    <gs-text id="dialog-password-control"></gs-text>
+                                </gs-body>
+                                <gs-footer>
+                                    <gs-button dialogclose bg-primary listen-for-return>Ok</gs-button>
+                                </gs-footer>
+                            </gs-page>
+                        </template>
+                        <template id="bad-password-dialog">
+                            <gs-page>
+                                <gs-header><center><h3>Bad Password</h3></center></gs-header>
+                                <gs-body padded>
+                                    Please re-enter the password:
+                                    <gs-text id="dialog-password-control"></gs-text>
+                                </gs-body>
+                                <gs-footer>
+                                    <gs-button dialogclose bg-primary listen-for-return>Ok</gs-button>
+                                </gs-footer>
+                            </gs-page>
+                        </template>
+                    </template>
+                    <template for="js" height="15">
+                        var crypto_password;
+                        window.addEventListener('password-error', function (event) {
+                            var str_keyVariable = event.keyVariable;
+                            GS.openDialog(event.reason + '-password-dialog', '', function (event, strAnswer) {
+                                window[str_keyVariable] = document.getElementById('dialog-password-control').value;
+                                GS.triggerEvent(window, 'try-password', { keyVariable: str_keyVariable });
+                            });
+                        });
+                    </template>
+                </gs-doc-example>
+                
                 <div class="doc-example-description">
                     <span class="h3">Attribute <code>[qs=""]</code>:</span><br />
                     <p>The name <code>[qs]</code> stands for "querystring". The querystring is the part in the URL after the "?". The <code>[qs]</code> attribute has two formats, each with their own use.</p>
@@ -240,6 +291,18 @@
                         <li>autofocus</li>
                         <li>spellcheck</li>
                         <li>readonly</li>
+                    </ul>
+                </div>
+                
+                <div class="doc-example-description">
+                    <span class="h3">Utility Attributes:</span>
+                    <p>There are some utility attributes for CSS Flexbox, Visibility, Text Selection, and Text Insertion.<br />
+                    See the following links for details:</p>
+                    <ul>
+                        <li><a href="doc-attr-flex.html" target="_blank">CSS Flexbox</a></li>
+                        <li><a href="doc-attr-visibility.html" target="_blank">Visibility</a></li>
+                        <li><a href="doc-attr-text-selection.html" target="_blank">Text Selection</a></li>
+                        <li><a href="doc-attr-text-insertion.html" target="_blank">Text Insertion</a></li>
                     </ul>
                 </div>
             </div>

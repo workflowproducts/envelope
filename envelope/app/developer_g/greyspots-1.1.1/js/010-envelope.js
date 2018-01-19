@@ -22,10 +22,10 @@ window.addEventListener('design-register-element', function (event) {
         var intIdNumber = (Math.floor(Math.random() * 1000)) + (Math.floor(new Date().getTime() / (Math.random() * 100000)));
 
         addProp('Source', true,
-                '<gs-memo class="target" autoresize rows="1" value="' + encodeHTML(decodeURIComponent(selectedElement.getAttribute('src') ||
+                '<gs-memo class="target" autoresize rows="1" value="' + encodeHTML((selectedElement.getAttribute('src') ||
                                                                         selectedElement.getAttribute('source') || '')) + '" mini></gs-memo>',
                 function () {
-            return setOrRemoveTextAttribute(selectedElement, 'src', encodeURIComponent(this.value));
+            return setOrRemoveTextAttribute(selectedElement, 'src', (this.value));
         });
 
         addProp('Columns', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('cols') || '') + '" mini></gs-text>',
@@ -328,14 +328,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // get data and send it off to be templated
     function getData(element) {
         element.refreshing = true;
-        var strSrc     = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('src') || element.getAttribute('source') || ''))
+        var strSrc     = GS.templateWithQuerystring((element.getAttribute('src') || element.getAttribute('source') || ''))
           , srcParts   = strSrc[0] === '(' ? [strSrc, ''] : strSrc.split('.')
           , strSchema  = srcParts[0]
           , strObject  = srcParts[1]
-          , strWhere   = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('where') || ''))
-          , strOrd     = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('ord') || ''))
-          , strLimit   = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('limit') || ''))
-          , strOffset  = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('offset') || ''))
+          , strWhere   = GS.templateWithQuerystring((element.getAttribute('where') || ''))
+          , strOrd     = GS.templateWithQuerystring((element.getAttribute('ord') || ''))
+          , strLimit   = GS.templateWithQuerystring((element.getAttribute('limit') || ''))
+          , strOffset  = GS.templateWithQuerystring((element.getAttribute('offset') || ''))
           , response_i = 0, response_len = 0, arrTotalRecords = [], strWhereColumn
           , i, len;
 
@@ -367,6 +367,7 @@ document.addEventListener('DOMContentLoaded', function () {
         element.oldScrollTop = element.scrollContainerElement.scrollTop;
 
         addLoader(element, 'Loading...');
+        
         GS.requestCachingSelect(GS.envSocket, strSchema, strObject, '*'
                                  , strWhere, strOrd, strLimit, strOffset
                                  , function (data, error) {
@@ -530,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     function updateRecord(element, record, strColumn, newValue) {
-        var srcParts   = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('src') || element.getAttribute('source') || '')).split('.')
+        var srcParts   = GS.templateWithQuerystring((element.getAttribute('src') || element.getAttribute('source') || '')).split('.')
           , strSchema  = srcParts[0]
           , strObject  = srcParts[1]
           , strHashCols = ''
@@ -616,7 +617,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             removeLoader(element);
 
+            if (focusElement.hasAttribute('gs-dynamic') && focusElement.classList.contains('control')) {
+                focusElement = focusElement.parentNode;
+            }
             focusElementCell = getCellFromTarget(focusElement);
+            console.log(focusElement, focusElementCell);
 
             if (focusElementCell) {
                 focusElementTag = focusElement.nodeName.toLowerCase();
@@ -625,6 +630,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 focusElementRecordIndex = focusElementRecord.rowIndex;
                 focusElementCellIndex = focusElementCell.cellIndex;
                 focusElementIndex = xtag.query(focusElementRecord, focusElement.nodeName.toLowerCase()).indexOf(focusElement);
+                console.log(focusElementRecordIndex, focusElementCellIndex, focusElementIndex);
 
                 //console.log(focusElementRecord,
                 //            xtag.query(focusElementRecord, '*'),
@@ -687,11 +693,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     // refocus
                     if (focusElementCell) {
                         elementWalkResult = xtag.query(element.scrollContainerElement, 'tr')[focusElementRecordIndex];
+                        console.log(elementWalkResult);
 
                         if (elementWalkResult) {
                             elementWalkResult = xtag.query(elementWalkResult, focusElementTag)[focusElementIndex];
+                            console.log(elementWalkResult, focusElementTag, focusElementIndex);
 
                             if (elementWalkResult) {
+                                console.log('test');
                                 elementWalkResult.focus();
                             }
 
@@ -746,7 +755,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function deleteRecords(element, arrID, arrRecord) {
-        var srcParts   = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('src') || element.getAttribute('source') || '')).split('.')
+        var srcParts   = GS.templateWithQuerystring((element.getAttribute('src') || element.getAttribute('source') || '')).split('.')
           , strSchema  = srcParts[0]
           , strObject  = srcParts[1]
           , strHashCols = ''
@@ -853,7 +862,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function insertRecord(element, dialog, strInsertString) {
-        var srcParts   = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('src') || element.getAttribute('source') || '')).split('.')
+        var srcParts   = GS.templateWithQuerystring((element.getAttribute('src') || element.getAttribute('source') || '')).split('.')
           , strSchema  = srcParts[0]
           , strObject  = srcParts[1]
           , arrInsertKeys
@@ -1640,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             jsnAttr = element.attributes[i];
 
-            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.nodeValue || '');
+            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
 
             i += 1;
         }
@@ -1969,7 +1978,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
                             var strOrderBy = '', strRelWhere = '', strElemWhere, strWhereColumn, strUserOrderBy = '', strLimit, strOffset,
-                                strSource = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('src') || '')),
+                                strSource = GS.templateWithQuerystring((element.getAttribute('src') || '')),
                                 strCols = GS.templateWithQuerystring(element.getAttribute('cols') || ''), strElemOrderBy;
 
                             // if there is a column attribute on element element: combine the where attribute with a where generated by value
@@ -1985,9 +1994,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                 }
                             }
 
-                            strElemWhere = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('where') || ''));
-                            strLimit = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('limit') || ''));
-                            strOffset = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('offset') || ''));
+                            strElemWhere = GS.templateWithQuerystring((element.getAttribute('where') || ''));
+                            strLimit = GS.templateWithQuerystring((element.getAttribute('limit') || ''));
+                            strOffset = GS.templateWithQuerystring((element.getAttribute('offset') || ''));
 
                             // if the user has set an order by: use the user order bys
                             if (element.user_order_bys && element.user_order_bys.columns.length > 0) {
@@ -1996,7 +2005,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 }
                             }
 
-                            strElemOrderBy = GS.templateWithQuerystring(decodeURIComponent(element.getAttribute('ord') || ''));
+                            strElemOrderBy = GS.templateWithQuerystring((element.getAttribute('ord') || ''));
 
 
                             templateElement.innerHTML = ml(function () {/*

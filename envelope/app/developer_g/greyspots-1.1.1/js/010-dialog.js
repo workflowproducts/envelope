@@ -1417,7 +1417,7 @@ GS.closeDialog = function (dialog, strAnswer) {
 
                         if (dialogcloseElement && event.target.hasAttribute('dialogclose')) {
                             GS.findParentTag(event.target, 'gs-dialog')
-                                .destroy(dialogcloseElement.textContent, event);
+                                .destroy(event.target.getAttribute('dialogclose') || dialogcloseElement.textContent, event);
                         }
                     });
 

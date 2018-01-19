@@ -1,14 +1,21 @@
-
 gs-date input,
+gs-dt input,
+gs-dt .placeholder,
 gs-text input,
+gs-text .placeholder,
 gs-search input,
 gs-number input,
+gs-number .placeholder,
 gs-memo input,
+gs-memo-new input,
+gs-memo-new textarea,
 gs-combo input,
+gs-combo .placeholder,
 gs-time input,
 gs-select select,
 gs-interval input,
 gs-memo textarea {
+    display: inline-block;
     width: 100%;
     font-size: 1em;
     font-family: inherit;
@@ -37,6 +44,7 @@ gs-memo textarea {
     border-radius: 0;
 }
 
+gs-memo-new textarea, 
 gs-memo textarea {
     display: block;
     
@@ -47,8 +55,52 @@ gs-memo textarea {
     */
 }
 
+gs-memo-new {
+    overflow: auto;
+}
+
+/*show values as password dots*/
+gs-date[type="password"],
+gs-text[type="password"],
+gs-search[type="password"],
+gs-number[type="password"],
+gs-memo[type="password"],
+gs-combo[type="password"],
+gs-time[type="password"],
+gs-select select[type="password"],
+gs-interval[type="password"],
+gs-memo textarea[type="password"] {
+  -webkit-text-security: disc;
+}
+
+
+/*placeholder spans showed as password dots*/
+gs-dt .placeholder,
+gs-text .placeholder,
+gs-number .placeholder,
+gs-memo-new .placeholder,
+gs-combo .placeholder {
+    color: #8e8e8e;
+    -webkit-text-security: none;
+    pointer-events: none;
+}
+
+/*Prevent spans from breaking into multiple lines: not gs-memo*/
+gs-text,
+gs-number,
+gs-combo {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+gs-combo span {
+    height: 1em;
+    /*width: 100% !important;*/
+    display: inline-block;
+}
 
 gs-date,
+gs-dt,
 gs-text,
 gs-search,
 gs-number,
@@ -57,7 +109,7 @@ gs-combo,
 gs-time,
 gs-select,
 gs-interval,
-gs-memo,
+gs-memo-new,
 gs-checkbox,
 gs-datetime {
     position: relative;
@@ -72,7 +124,7 @@ gs-datetime {
     
     border-radius: 0;
     
-    min-height: 1em;
+    min-height: 1.2em;/*gs-text-new: 1.2em*/
     line-height: 1.2em;
     font-size: 1em;
     
@@ -83,6 +135,7 @@ gs-datetime {
 }
 
 gs-date.hover,
+gs-dt.hover,
 gs-text.hover,
 gs-search.hover,
 gs-number.hover,
@@ -91,7 +144,7 @@ gs-combo.hover,
 gs-time.hover,
 gs-select.hover,
 gs-interval.hover,
-gs-memo.hover,
+/*gs-memo-new.hover,*/
 gs-checkbox.hover,
 gs-datetime.hover {
     
@@ -101,24 +154,24 @@ gs-datetime.hover {
     transition: box-shadow 0.5s;
 }
 
-gs-date[disabled],
-gs-text[disabled],
-gs-search[disabled],
-gs-number[disabled],
-gs-memo[disabled],
-gs-combo[disabled],
-gs-time[disabled],
-gs-select[disabled],
-gs-interval[disabled],
-gs-memo[disabled],
-gs-checkbox[disabled],
-gs-datetime[disabled] {
-    pointer-events: auto;
-    
-    opacity: 0.6;
+gs-date[disabled], gs-date[disabled] .control,
+gs-dt[disabled], gs-dt[disabled] .control,
+gs-text[disabled], gs-text[disabled] .control,
+gs-search[disabled], gs-search[disabled] .control,
+gs-number[disabled], gs-number[disabled] .control,
+gs-memo[disabled], gs-memo[disabled] .control,
+gs-combo[disabled], gs-combo[disabled] .control,
+gs-time[disabled], gs-time[disabled] .control,
+gs-select[disabled], gs-select[disabled] .control,
+gs-interval[disabled], gs-interval[disabled] .control,
+gs-checkbox[disabled], gs-checkbox[disabled] .control,
+gs-datetime[disabled], gs-datetime[disabled] .control {
+    background: #D8D8D8 !important;
+    color: #000000 !important;
 }
 
 gs-date.focus,
+gs-dt.focus,
 gs-text.focus,
 gs-search.focus,
 gs-number.focus,
@@ -127,7 +180,7 @@ gs-combo.focus,
 gs-time.focus,
 gs-select.focus,
 gs-interval.focus,
-gs-memo.focus,
+/*gs-memo-new.focus,*/
 gs-checkbox.focus,
 gs-datetime.focus {
     
@@ -139,6 +192,7 @@ gs-datetime.focus {
 
 
 gs-date[mini],
+gs-dt[mini],
 gs-text[mini],
 gs-search[mini],
 gs-number[mini],
@@ -147,7 +201,7 @@ gs-combo[mini],
 gs-time[mini],
 gs-select[mini],
 gs-interval[mini],
-gs-memo[mini],
+/*gs-memo-new[mini],*/
 gs-checkbox[mini],
 gs-datetime[mini] {
     background-color: transparent;
@@ -155,6 +209,7 @@ gs-datetime[mini] {
 }
 
 gs-date[mini] input,
+gs-dt[mini] input,
 gs-text[mini] input,
 gs-search[mini] input,
 gs-number[mini] input,
@@ -162,8 +217,8 @@ gs-memo[mini] input,
 gs-combo[mini] input,
 gs-time[mini] input,
 gs-select[mini] select,
-gs-interval[mini] input,
-gs-memo[mini] textarea {
+gs-interval[mini] input/*,
+gs-memo-new[mini] textarea*/ {
     background-color: transparent;
     box-shadow: none !important;
 }

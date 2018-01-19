@@ -9,6 +9,7 @@
 //          ("POST-RENDER" refers to a section of functions that either depend
 //                  on the viewport being rendered OR use render functions)
 //      # TOP  (this just brings you back this index)
+//      # SNIPPET/DESIGN
 //      # ELEMENT CONFIG
 //      # GLOBAL <STYLE></STYLE> ELEMENT SETUP
 //      # SCROLLBAR WIDTH
@@ -111,6 +112,7 @@ attributes:
     scroll-past-bottom
         (allows you to scroll until only the bottom record is seen)
     scroll-to-bottom (scrolls all the way down on initial load)
+    no-insert-scroll (disables scrolling all the way down after insert)
     expand-to-content
 
     no-hudpaginate
@@ -133,8 +135,6 @@ attributes:
 
     default-record-height (pixels, defaults if not present)
     default-column-width (pixels, defaults if not present)
-    column-border-width (pixels, defaults if not present)
-    record-border-height (pixels, defaults if not present)
 
     socket (name of a property stored on the GS object, needs to be a socket)
 
@@ -330,12 +330,553 @@ select behavior:
     during load: enable element loader
 */
 
+// ############################################################################
+// ############################## SNIPPET/DESIGN ##############################
+// ############################################################################
 
+window.addEventListener('design-register-element', function (event) {
+    'use strict';
 
+    registerDesignSnippet(
+        '<gs-table>',
+        '<gs-table>',
+        ml(function () {/*gs-table
+    id="${1:tableid}"
+    src="test.rtime_copy_datasheet"
+    pk="id"
+    lock="change_stamp"
+    ord="id ASC"
+    focus-on-load
+    style="width: 100%; height: 100%;"
+>
+    <template for="top-hud">
+        <gs-button onclick="document.getElementById('${1:tableid}').deleteSelected()" inline no-focus icononly icon="times">&nbsp;</gs-button>
+        <gs-button onclick="document.getElementById('${1:tableid}').openInsertDialog()" inline no-focus icononly icon="plus">&nbsp;</gs-button>
+        <gs-button onclick="document.getElementById('${1:tableid}').refresh()" inline no-focus icononly icon="refresh">&nbsp;</gs-button>
+        <gs-button onclick="document.getElementById('${1:tableid}').openPrefs(this)" inline no-focus icononly icon="sliders">&nbsp;</gs-button>
+        <gs-button onclick="document.getElementById('${1:tableid}').toFullscreen(this)" inline no-focus icononly icon="expand">&nbsp;</gs-button>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <gs-button onclick="document.getElementById('${1:tableid}').sort('asc')" inline no-focus iconleft icon="sort-alpha-asc">Sort A to Z</gs-button>
+        <gs-button onclick="document.getElementById('${1:tableid}').sort('desc')" inline no-focus iconleft icon="sort-alpha-desc">Sort Z to A</gs-button>
+        <gs-button onclick="document.getElementById('${1:tableid}').sort('clear')" inline no-focus iconleft icon="trash">Clear Sort</gs-button>
+        <gs-button onclick="document.getElementById('${1:tableid}').clearFilter()" inline no-focus iconleft icon="trash">Clear Filter</gs-button>
+    </template>
+    <template for="bottom-hud">
+        <gs-button inline no-focus icononly onclick="document.getElementById('${1:tableid}').goToLine('first')" icon="step-backward">&nbsp;</gs-button>
+        <gs-button inline no-focus icononly onclick="document.getElementById('${1:tableid}').goToLine('previous')" icon="caret-left">&nbsp;</gs-button>
+        <gs-current-record inline for="${1:tableid}"></gs-current-record>
+        <gs-button inline no-focus icononly onclick="document.getElementById('${1:tableid}').goToLine('next')" icon="caret-right">&nbsp;</gs-button>
+        <gs-button inline no-focus icononly onclick="document.getElementById('${1:tableid}').goToLine('last')" icon="step-forward">&nbsp;</gs-button>
+        <gs-button inline no-focus icononly onclick="document.getElementById('${1:tableid}').goToLine('insert')" icon="plus"></gs-button>
+    </template>
+    <template for="header-record">
+        <gs-cell>${2}</gs-cell>
+    </template>
+    <template for="data-record">
+        <gs-cell header="${2}">${3}</gs-cell>
+    </template>
+    <template for="copy">
+        <gs-cell header="${2}">${3}</gs-cell>
+    </template>
+    <template for="insert-record">
+        <gs-cell header="${2}"><input column="${3}" /></gs-cell>
+    </template>
+</gs-table>*/})
+    );
 
+    designRegisterElement(
+        'gs-table',
+        '/env/app/developer_g/greyspots-' + GS.version() +
+                '/documentation/doc-elem-table.html'
+    );
 
+    window.designElementProperty_GSTABLE = function (selectedElement) {
+        addProp(
+            'Socket',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('socket') || '') + '" mini></gs-text>',
+            function () {
+            return setOrRemoveTextAttribute(
+                selectedElement,
+                'socket',
+                encodeURIComponent(this.value)
+            );
+        });
 
+        addProp(
+            'Source',
+            true,
+            '<gs-memo class="target" autoresize rows="1" value="' +
+                encodeHTML(
+                    decodeURIComponent(
+                        selectedElement.getAttribute('src') ||
+                        selectedElement.getAttribute('source') ||
+                        ''
+                    )
+                ) + '" mini></gs-memo>',
+            function () {
+            return setOrRemoveTextAttribute(
+                selectedElement,
+                'src',
+                encodeURIComponent(this.value)
+            );
+        });
 
+        addProp(
+            'Columns',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('columns') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'columns',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Where',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('where') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'where',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Session Filter',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('session-filter') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'session-filter',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Order By',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('ord') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'ord',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Limit',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('limit') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'limit',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Offset',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('offset') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'offset',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Column In Querystring',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'qs', this.valu
+                    , false
+                );
+            }
+        );
+
+        addProp(
+            'Parent&nbsp;Column',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'column',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Line Column',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('child-column') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'child-column',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Primary Keys',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('pk') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'pk',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Lock Columns',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('lock') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'lock',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Sequences',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('seq') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'seq',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Null String', true,
+            '<g-text class="target" value="' + encodeHTML(selectedElement.getAttribute('null-string') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'null-string',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Null Set String',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('null-set-string') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'null-set-string',
+                    this.value
+                );
+            }
+        );
+
+        addProp('No Record Selector', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-record-selector')) + '" mini></gs-checkbox>', function () {
+            this.removeAttribute('no-record-selector');
+            return setOrRemoveBooleanAttribute(
+                selectedElement,
+                'no-record-selector',
+                this.value === 'true',
+                true
+            );
+        });
+
+        addProp('No Resize Record', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-resize-record')) + '" mini></gs-checkbox>', function () {
+            this.removeAttribute('no-resize-record');
+            return setOrRemoveBooleanAttribute(
+                selectedElement,
+                'no-resize-record',
+                this.value === 'true',
+                true
+            );
+        });
+
+        addProp('No Resize Column', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-resize-column')) + '" mini></gs-checkbox>', function () {
+            this.removeAttribute('no-resize-column');
+            return setOrRemoveBooleanAttribute(
+                selectedElement,
+                'no-resize-column',
+                this.value === 'true',
+                true
+            );
+        });
+
+        addProp('No After Insert Scroll', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-insert-scroll')) + '" mini></gs-checkbox>', function () {
+            this.removeAttribute('no-insert-scroll');
+            return setOrRemoveBooleanAttribute(
+                selectedElement,
+                'no-insert-scroll',
+                this.value === 'true',
+                true
+            );
+        });
+
+        addProp(
+            'Default Record Height',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('default-record-height') || '') + '" mini></gs-text>', function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'default-record-height',
+                    this.value
+                );
+            }
+        );
+        addProp(
+            'Default Column Width',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('default-column-width') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'default-column-width',
+                    this.value
+                );
+            }
+        );
+
+        // TITLE attribute
+        addProp('Title',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'title',
+                    this.value
+                );
+            }
+        );
+        
+        addProp('Copy Header',
+            true,
+            '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-header') || '') + '" mini>' +
+                '<option value=""></option>' +
+                '<option value="never">Never</option>' +
+                '<option value="always">Always</option>' +
+                '<option value="selected">If Selected</option>' +
+            '</gs-select>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'copy-header',
+                    this.value
+                );
+            }
+        );
+        addProp('Copy Selectors',
+            true,
+            '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-selectors') || '') + '" mini>' +
+                '<option value=""></option>' +
+                '<option value="never">Never</option>' +
+                '<option value="always">Always</option>' +
+                '<option value="selected">If Selected</option>' +
+            '</gs-select>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'copy-selectors',
+                    this.value
+                );
+            }
+        );
+        addProp('Copy Quote Character',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'copy-',
+                    this.value
+                );
+            }
+        );
+        addProp('Copy Escape Character',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'copy-',
+                    this.value
+                );
+            }
+        );
+        addProp('Copy Quote When',
+            true,
+            '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-quote-when') || '') + '" mini>' +
+                '<option value=""></option>' +
+                '<option value="never">Never</option>' +
+                '<option value="strings">Strings</option>' +
+                '<option value="always">Always</option>' +
+                '<option value="delimiter-in-content">Delimiter in Content</option>' +
+            '</gs-select>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'copy-quote-when',
+                    this.value
+                );
+            }
+        );
+        addProp('Copy Record Delimiter',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'copy-',
+                    this.value
+                );
+            }
+        );
+        addProp('Copy Cell Delimiter',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'copy-',
+                    this.value
+                );
+            }
+        );
+        addProp('Copy Null Cell',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-') || '') + '" mini></gs-text>',
+            function () {
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'copy-',
+                    this.value
+                );
+            }
+        );
+
+        // visibility attributes
+        var strVisibilityAttribute = '';
+        if (selectedElement.hasAttribute('hidden'))         {strVisibilityAttribute = 'hidden';}
+        if (selectedElement.hasAttribute('hide-on-desktop')){strVisibilityAttribute = 'hide-on-desktop';}
+        if (selectedElement.hasAttribute('hide-on-tablet')) {strVisibilityAttribute = 'hide-on-tablet';}
+        if (selectedElement.hasAttribute('hide-on-phone'))  {strVisibilityAttribute = 'hide-on-phone';}
+        if (selectedElement.hasAttribute('show-on-desktop')){strVisibilityAttribute = 'show-on-desktop';}
+        if (selectedElement.hasAttribute('show-on-tablet')) {strVisibilityAttribute = 'show-on-tablet';}
+        if (selectedElement.hasAttribute('show-on-phone'))  {strVisibilityAttribute = 'show-on-phone';}
+
+        addProp(
+            'Visibility',
+            true,
+            '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
+                '<option value="">Visible</option>' +
+                '<option value="hidden">Invisible</option>' +
+                '<option value="hide-on-desktop">Invisible at desktop size</option>' +
+                '<option value="hide-on-tablet">Invisible at tablet size</option>' +
+                '<option value="hide-on-phone">Invisible at phone size</option>' +
+                '<option value="show-on-desktop">Visible at desktop size</option>' +
+                '<option value="show-on-tablet">Visible at tablet size</option>' +
+                '<option value="show-on-phone">Visible at phone size</option>' +
+            '</gs-select>',
+            function () {
+                selectedElement.removeAttribute('hidden');
+                selectedElement.removeAttribute('hide-on-desktop');
+                selectedElement.removeAttribute('hide-on-tablet');
+                selectedElement.removeAttribute('hide-on-phone');
+                selectedElement.removeAttribute('show-on-desktop');
+                selectedElement.removeAttribute('show-on-tablet');
+                selectedElement.removeAttribute('show-on-phone');
+
+                if (this.value) {
+                    selectedElement.setAttribute(this.value, '');
+                }
+
+                return selectedElement;
+            }
+        );
+
+        addProp(
+            'Refresh On Querystring Columns',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('refresh-on-querystring-values') || '') + '" mini></gs-text>',
+            function () {
+                this.removeAttribute('refresh-on-querystring-change');
+                return setOrRemoveTextAttribute(
+                    selectedElement,
+                    'refresh-on-querystring-values',
+                    this.value
+                );
+            }
+        );
+
+        addProp(
+            'Refresh On Querystring Change',
+            true,
+            '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('refresh-on-querystring-change')) + '" mini></gs-checkbox>',
+            function () {
+                this.removeAttribute('refresh-on-querystring-values');
+                return setOrRemoveBooleanAttribute(
+                    selectedElement,
+                    'refresh-on-querystring-change',
+                    this.value === 'true',
+                    true
+                );
+            }
+        );
+
+        // SUSPEND-INSERTED attribute
+        addProp(
+            'suspend-inserted',
+            true,
+            '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>',
+            function () {
+                return setOrRemoveBooleanAttribute(
+                    selectedElement,
+                    'suspend-inserted',
+                    this.value === 'true',
+                    true
+                );
+            }
+        );
+    };
+});
+
+window.addEventListener('load', function () {
+    var tables = document.getElementsByTagName('gs-table');
+    for (var i = 0, len = tables.length; i < len; i++) {
+        tables[i].render();
+    }
+});
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
@@ -1019,6 +1560,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         while (i < len) {
             if (arrColumnWidths[i] > 0) {
+                //no worky
+                // console.log(element.internalDisplay.columnWidths[i]);
+                // console.log((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width));
+                // if ((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width) > arrColumnWidths[i]) {
+                //     console.log(element.internalDisplay.columnWidths[i]);
+                //     console.log((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width));
+                //     element.internalDisplay.columnWidths[i] = (( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width);
+                // }
                 strCells += arrCell[i].outerHTML;
             }
             i += 1;
@@ -2461,7 +3010,8 @@ document.addEventListener('DOMContentLoaded', function () {
             "columnTypes": [],
             "insertRecord": {},
             "insertRecordRetainedColumns": [],
-            "bolFirstLoadFinished": false
+            "bolFirstLoadFinished": false,
+            "bolInserting": false
         };
 
         // we need to be able to make room for fixed objects when scrolling
@@ -2916,14 +3466,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     parseInt(arrColumnElements[i].style.width, 10) ||
                     intColumnWidth
                 );
-
                 // we need to be able to restore the column widths after the
                 //      user resizes them, so this array contains the column
                 //      widths and cannot be updated by column resizing
+                //console.log(arrColumnElements[i] && arrColumnElements[i].style.width);
                 element.internalDisplay.defaultColumnWidths.push(
                     parseInt(arrColumnElements[i].style.width, 10) ||
                     intColumnWidth
                 );
+                
+                
 
                 // if there is a width, remove it. we do this because the width
                 //      is added dynamically when the header is rendered. if
@@ -3260,7 +3812,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 headerRecordTemplate.content,
                 'gs-cell'
             );
-
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
@@ -3275,7 +3826,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.elems.testHeader.innerHTML = (
                     arrColumnElements[i].innerHTML
                 );
-
+                
                 intColumnWidth = (
                     //GS.getTextWidth(
                     //    element.elems.testHeader,
@@ -3287,7 +3838,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     // for some reason, a few pixels are missing
                     3
                 );
-
+                if (element.elems.testHeader.offsetWidth === 0) {
+                    //console.log(arrColumnElements[i].textContent);
+                    intColumnWidth = (
+                        7 + GS.getTextWidth(
+                            element.elems.testHeader,
+                            arrColumnElements[i].textContent,
+                            true // preserve whitespace
+                        ) + 7 +
+                        // for some reason, a few pixels are missing
+                        3
+                    );
+                    //console.log(intColumnWidth);
+                    element.elems.testHeader.style.width = intColumnWidth + 'px';
+                }
+                //console.log(element.elems.testHeader.offsetWidth + 3);
                 element.elems.testHeader.innerHTML = '';
 
                 //console.log(arrColumnElements[i].textContent);
@@ -4383,17 +4948,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var statusElement;
         var intOriginRecord;
 
-        // I don't know who put this here but it wasn't commented. If you put
-        //      this here: explain yourself. This is the HUD button status
-        //      updating function, this has nothing to do with selection.
-        //      I suppose this function is called after a selection so someone
-        //      thought they were being clever and decided that this was the
-        //      place to trigger such an event. But, I should remind you that
-        //      we have a selection render function that may have worked the
-        //      same but would have been more consistent and clear.
-        //  ~Michael
-        GS.triggerEvent(element, 'selection_change');
-
         // disable/enable hud sorting buttons
         sortASCButton = findHudElement(element, 'button-sort-asc');
         sortDESCButton = findHudElement(element, 'button-sort-desc');
@@ -4430,7 +4984,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function renderSelection(element) {//<br />
+    function renderSelection(element) {//<br />=
+        //console.trace('test');
         var bolHeaders;
         var bolSelectors;
         var bolInsert;
@@ -4480,6 +5035,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var arrSelectionCols;
         var pushValue;
 
+
+        // GS.triggerEvent(element, 'selection_change');
         //console.time('selection total');
 
         // first, we should gather some helper variables.
@@ -4535,10 +5092,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 col_i += 1;
             }
-
-            if (arrSelection[0][0] !== 'G') {
+            //console.log(arrSelection);
+            
+            if (arrSelection && arrSelection[0] && arrSelection[0][0] !== 'G') {
                 console.trace(arrSelection);
             }
+            
             //console.log(arrSelectionRows);
             //console.log(arrSelectionCols);
 
@@ -5215,7 +5774,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // we want the null string to be configurable, so we'll read the
         //      "null-string" attribute to get the null string
         strNullString = element.getAttribute('null-string');
-        //snapback
+
         // get visible range
         jsnRange = element.internalDisplay.currentRange;
         //intCellOriginLeft = jsnRange.originLeft;
@@ -5408,7 +5967,10 @@ document.addEventListener('DOMContentLoaded', function () {
         //      with a random token and storing the token-template relationship)
         //      them, we have to "show" them (by replacing the token with the
         //      original template strings) at this step
-        GS.templateShowSubTemplates(strHTML, element.internalTemplates.record);
+        strHTML = GS.templateShowSubTemplates(
+            strHTML,
+            element.internalTemplates.record
+        );
 
         //// we need to use the dimensions of the header, record selectors and
         ////      the insert record, so we'll stick them in these variables for
@@ -5472,7 +6034,10 @@ document.addEventListener('DOMContentLoaded', function () {
         //      with a random token and storing the token-template relationship)
         //      them, we have to "show" them (by replacing the token with the
         //      original template strings) at this step
-        GS.templateShowSubTemplates(strHTML, element.internalTemplates.record);
+        strHTML = GS.templateShowSubTemplates(
+            strHTML,
+            element.internalTemplates.record
+        );
 
         // if there's a insert record: build it and append to HTML
         if (strInsertTemplate) {
@@ -7562,7 +8127,7 @@ document.addEventListener('DOMContentLoaded', function () {
             );
 
             // save new HUD height to a variable for clarity
-            newTopHUDHeight = element.elems.topHudContainer.offsetHeight;
+            newTopHUDHeight = (element.elems.topHudContainer.offsetHeight);
 
             // update padding to make room for the hud
             element.elems.root.style.paddingTop = newTopHUDHeight + 'px';
@@ -7640,6 +8205,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function resizeColumnsToContent(element, arrColumnIndexes) {
+        //console.trace('resizeColumnsToContent', element, arrColumnIndexes);
         var i;
         var len;
         var elem_i;
@@ -7738,6 +8304,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         controlText,
                         true // preserve whitespace
                     );
+                    //console.log(controlText);
+                    //console.log(intTextWidth);
 
                     // there may be some padding between the scope element
                     //      and the cell element. so, we want to account for
@@ -7775,7 +8343,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // add padding to text width
                     intTextWidth += (intColumnWidth - intScopeElementWidth);
-
                     // add an arbituary amount to deal with small imperfections
                     intTextWidth += 10;
 
@@ -8044,6 +8611,7 @@ document.addEventListener('DOMContentLoaded', function () {
         GS.triggerEvent(element, 'after_select');
     }
     function dataINSERTcallback(element) {
+        element.internalData.bolInserting = false;
         // re-render scroll location because adding records changes scroll
         //      heights, and so that we can show the new data
         element.internalDisplay.fullRenderRequired = true;
@@ -8060,7 +8628,9 @@ document.addEventListener('DOMContentLoaded', function () {
         //         )
         //     )
         // );
-        element.goToLine('last');
+        if (!element.hasAttribute('no-insert-scroll')) {
+            element.goToLine('last');
+        }
 
         // re-render scroll location because we changed the scrollTop
         renderScrollLocation(element);
@@ -8924,7 +9494,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     rec_i += 1;
                 }
             }
-            console.log(jsnInsert.data.columns, jsnInsert.data.addin);
+            //console.log(jsnInsert.data.columns, jsnInsert.data.addin);
 
             // build up insert column list
             strInsertColumns = '';
@@ -10073,7 +10643,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         ? ""
                         : strTemp
                 );
-                console.log(strTemp, strRecordToHash);
+                //console.log(strTemp, strRecordToHash);
 
                 col_i += 1;
             }
@@ -11473,6 +12043,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     function dataINSERT(element, strMode, jsnInsert) {
+        element.internalData.bolInserting = true;
         if (element.hasAttribute("src")) {
             databaseWSINSERT(element, strMode, jsnInsert);
         } else {
@@ -11514,6 +12085,36 @@ document.addEventListener('DOMContentLoaded', function () {
 // #############################################################################
 // ####################### POST-RENDER UTILITY FUNCTIONS #######################
 // #############################################################################
+    function triggerRecordInsert(element) {
+        dataINSERT(element, 'single-record', {
+            "data": {
+                "values": (
+                    element
+                        .internalData
+                        .insertRecord
+                ),
+                "columns": (
+                    element
+                        .internalData
+                        .insertRecordRetainedColumns
+                ),
+                "addin": getInsertAddin(element)
+            },
+            "insertConfirmed": true
+        });
+
+        // we clear the retained values and columns here because
+        //      if the user decides to override the insert with
+        //      their own thing, we don't want to still be showing
+        //      the old values.
+        element.internalData.insertRecord = {};
+        element.internalData.insertRecordRetainedColumns = [];
+
+        // re-render so that the insert controls clear out in the DOM
+        element.internalDisplay.fullRenderRequired = true;
+        renderLocation(element);
+        //element.goToLine('last');
+    }
 
     // sometimes you need to know what records are selected, this function
     //      returns the selected record numbers
@@ -11601,6 +12202,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         '[data-col-number="' + column + '"]'
             )[0];
         }
+        //console.log(record, column);
 
         // if the cell was not found:
         //      warn
@@ -11649,7 +12251,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cellElement,
             'input, textarea, select, [tabindex]'
         )[0];
-
+        //console.log(focusElement, cellElement);
         // if a focus element was found: focus into it
         if (focusElement) {
             focusElement.focus();
@@ -11969,6 +12571,7 @@ document.addEventListener('DOMContentLoaded', function () {
         jsnRange = element.internalSelection.ranges[
             element.internalSelection.ranges.length - 1
         ];
+        //console.log(jsnRange);
 
         // if more than one selection: warn and move selection to endpoint of
         //      latest selection
@@ -12011,7 +12614,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     ' execution of "focusIntoSelectedCell".');
 
             focusHiddenControl(element);
-
             return;
         }
 
@@ -12339,13 +12941,19 @@ document.addEventListener('DOMContentLoaded', function () {
 // #############################################################################
 // ############################## PASTE FUNCTIONS ##############################
 // #############################################################################
-
     // when you paste for an insert, only some columns might be selected, this
     //      function takes the normalized paste data and trims out anything that
     //      would have been applied to an unseleted cell. after that, this
     //      function turns control over to the internal insert function
     function insertPasteString(element, arrPaste, intMaxPasteColumn) {
         var templateElement;
+        var search_div;
+        var enc_i
+        var enc_len;
+        var enc_elems;
+        var arr_encrypted_columns;
+        var bol_encrypt = false;
+        var encrypted_vars;
         var strSelection;
         var strOldRecord;
         var strNewRecord;
@@ -12408,6 +13016,38 @@ document.addEventListener('DOMContentLoaded', function () {
         // use the selected column list to filter the data of the paste
         i = 0;
         len = arrPaste.length;
+        search_div = document.createElement('div');
+        search_div.innerHTML = templateExtractVisibleCellRange(
+            element,
+            element.internalTemplates.insertRecord,
+            intStart,
+            (intEnd + 1)
+            // the plus one is because the template extract function
+            //      expects 0/1 to get the first column, not 0/0
+        );
+        if (search_div.innerHTML.indexOf('encrypted=') !== -1) {
+            if (xtag.query(search_div, 'gs-cell[encrypted]')) {
+                enc_elems = xtag.query(search_div, 'gs-cell[encrypted]');
+                enc_i = 0;
+                enc_len = enc_elems.length;
+                arr_encrypted_columns = [];
+                encrypted_vars = [];
+                while (enc_i < enc_len) {
+                    arr_encrypted_columns.push(
+                        enc_elems[enc_i].getAttribute('data-col-number')
+                    );
+                    encrypted_vars.push(
+                        enc_elems[enc_i].getAttribute('encrypted')
+                    );
+                    if (!window[encrypted_vars[enc_i]]) {
+                        console.error('the encrypted password variable is not filled, if a user pastes it will paste UNENCRYPTED DATA. Please ensure all your variables are full before allowing users to paste');
+                        return;
+                    }
+                    enc_i++;
+                }
+                bol_encrypt = true;
+            }
+        }
         while (i < len) {
             strOldRecord = arrPaste[i];
 
@@ -12443,7 +13083,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         // if this column is selected: add cell to paste record
                         if (strSelection[intPastedColumn + intStart] === 'F') {
-                            strNewRecord += strCell;
+                            // strNewRecord += strCell;
+                            if (bol_encrypt) {
+                                if (arr_encrypted_columns.indexOf(
+                                    (intPastedColumn + intStart).toString()
+                                ) !== -1) {
+                                    strNewRecord += CryptoJS.AES.encrypt(
+                                        strCell
+                                        , window[
+                                            encrypted_vars[
+                                                arr_encrypted_columns.indexOf(
+                                        (intPastedColumn + intStart).toString()
+                                                )
+                                            ]
+                                        ]
+                                    );
+                                } else {
+                                    strNewRecord += strCell;
+                                }
+                            } else {
+                                strNewRecord += strCell;
+                            }
+                            console.log(strCell);
+                            console.log(intPastedColumn + intStart);
 
                         // else, replace the current cell with NULL
                         } else {
@@ -12495,7 +13157,6 @@ document.addEventListener('DOMContentLoaded', function () {
             // the plus one is because the template extract function
             //      expects 0/1 to get the first column, not 0/0
         );
-
         arrColumnElements = xtag.query(
             templateElement.content,
             'gs-cell [column]'
@@ -12826,7 +13487,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //      insert or update paste functions
     function usePasteString(element, strUnnormalizedPasteString) {
         var elementMaker = document.createElement('template');
-
+        //console.log('paste', strUnnormalizedPasteString);
         var tableElement;
         var tbodyElement;
         var arrRecord;
@@ -12847,6 +13508,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // because pasting a large amount of data takes time, add a
         //      loader to let the user know we've started, just in case
         addLoader(element, 'paste-parse', 'Parsing Pasted Data...');
+
+        // sometimes there's a whole page that contains the table HTML inside it
+        //strUnnormalizedPasteString = 
+        if (strUnnormalizedPasteString.substring(0, 6) === '<HTML>') {
+            var extractorDiv = document.createElement('div');
+            extractorDiv.innerHTML = strUnnormalizedPasteString;
+            strUnnormalizedPasteString = xtag.query(extractorDiv, 'table')[0].outerHTML;
+        }
 
         // if no HTML or no valid HTML: build HTML using plain text
         if (
@@ -13024,7 +13693,7 @@ document.addEventListener('DOMContentLoaded', function () {
             //console.log('############### PLAIN TEXT ###############');
             //console.log('##########################################');
             //console.log('|' + pastePlain + '|');
-
+            //console.log(pasteHTML || pastePlain);
             // send paste string to be utilized
             usePasteString(
                 element,
@@ -13907,7 +14576,6 @@ document.addEventListener('DOMContentLoaded', function () {
             var blurEventFunction;
             var target = event.target;
             var parentCell;
-
             // when you put a control into a label, if you click on the label:
             //      it focuses the control. sometimes, people use a label
             //      element simply for the padding. we don't want this focus
@@ -13928,7 +14596,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // if no focusable control was moused on: focus
             //      hiddenFocusControl
             //console.log(document.activeElement);
-            //console.log(event.target);
+            //console.log(GS.isElementFocusable(target));
             if (!GS.isElementFocusable(target) && !evt.touchDevice) {
                 focusHiddenControl(element);
 
@@ -13972,8 +14640,34 @@ document.addEventListener('DOMContentLoaded', function () {
             if (parentCell && parentCell.nodeName === 'GS-CELL') {
                 // if the GS-CELL is not selected
                 if (!parentCell.hasAttribute('selected')) {
-                    // focus hidden control
-                    focusHiddenControl(element);
+                    // // focus hidden control
+                    // focusHiddenControl(element);
+                    // select the cell
+                    var parentTable = GS.findParentTag(active, 'gs-table');
+                    if (parentTable && parentTable.nodeName === 'GS-TABLE') {
+                        var cell_row = parentCell.getAttribute('data-row-number');
+                        var cell_col = parentCell.getAttribute('data-col-number');
+                        if (cell_row === 'insert') {
+                            cell_row = tableElem.internalData.records.length;
+                        } else {
+                            cell_row = parseInt(cell_row, 10);
+                        }
+                        var jsnRange = {
+                            "start": {
+                                "row": cell_row,
+                                "column": cell_col
+                            },
+                            "end": {
+                                "row": cell_row,
+                                "column": cell_col
+                            },
+                            "negator": false
+                        };
+                        parentTable.internalSelection.ranges = [jsnRange];
+                        renderSelection(parentTable);
+                        active = document.activeElement;
+                        active.focus
+                    }
                 }
             }
         };
@@ -14139,7 +14833,6 @@ document.addEventListener('DOMContentLoaded', function () {
             var topPlay = 10;
             element.internalEvents.scrollDragMoveFunction = function (event) {
                 var jsnMousePos;
-
                 if (event.which === 0 && !evt.touchDevice) {
                     event.preventDefault();
                     event.stopPropagation();
@@ -14780,6 +15473,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 //console.log(!cell.hasAttribute('selected'));
 
                 if (
+                    cell &&
                     // if we found a cell
                     cell.nodeName === 'GS-CELL' &&
                     // and we're not resizing a cell or record right now
@@ -14916,18 +15610,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!event.shiftKey && !event.metaKey && !event.ctrlKey) {
                         // clear all the old ranges and add the new range
                         element.internalSelection.ranges = [newRange];
-
+                        // GS.triggerEvent(element, 'selection_change');
                         // because our new selection is the first in the list,
                         //      the current selection index is 0
                         intCurrentSelectionIndex = 0;
                     } else {
+                        //console.log('OVER HERE');
                         // if the shift key is down (and the previous selection
                         //      was not negator selection), we need override the
                         //      previous selection's endpoint, so we'll just set
                         //      the intCurrentSelectionIndex to the index of the
                         //      latest selection
                         if (event.shiftKey) {
-                            //console.log('OVER HERE');
                             intCurrentSelectionIndex = (
                                 element.internalSelection.ranges.length - 1
                             );
@@ -15003,6 +15697,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // we re-render the selection because it has just been
                     //      changed
+                    GS.triggerEvent(element, 'selection_change');
+                    console.log('changed');
                     renderSelection(element);
 
                     //console.log(element.internalSelection.ranges);
@@ -15191,6 +15887,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         currentRange.end.column !== intOldEndColumn
                     ) {
                         renderSelection(element);
+                        GS.triggerEvent(element, 'selection_change');
+                        //console.log('changed');
                     }
                 }
             };
@@ -18411,7 +19109,8 @@ document.addEventListener('DOMContentLoaded', function () {
         );
         element.elems.dataViewport.removeEventListener(
             'change',
-            element.internalEvents.insertRecordValueRetain
+            element.internalEvents.insertRecordValueRetain,
+            true
         );
         element.elems.dataViewport.removeEventListener(
             'keyup',
@@ -18430,34 +19129,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 parentCell.classList.contains('table-insert') &&
                 keyCode === 13
             ) {
-                dataINSERT(element, 'single-record', {
-                    "data": {
-                        "values": (
-                            element
-                                .internalData
-                                .insertRecord
-                        ),
-                        "columns": (
-                            element
-                                .internalData
-                                .insertRecordRetainedColumns
-                        ),
-                        "addin": getInsertAddin(element)
-                    },
-                    "insertConfirmed": true
-                });
-
-                // we clear the retained values and columns here because
-                //      if the user decides to override the insert with
-                //      their own thing, we don't want to still be showing
-                //      the old values.
-                element.internalData.insertRecord = {};
-                element.internalData.insertRecordRetainedColumns = [];
-
-                // re-render so that the insert controls clear out in the DOM
-                element.internalDisplay.fullRenderRequired = true;
-                renderLocation(element);
-                //element.goToLine('last');
+                triggerRecordInsert(element);
             }
         };
 
@@ -18476,7 +19148,11 @@ document.addEventListener('DOMContentLoaded', function () {
             var parentCell = GS.findParentTag(target, 'gs-cell');
             var parentColumn = GS.findParentElement(target, '[column]');
             var strColumn = parentColumn.getAttribute('column');
-            var strValue = target.value;
+            // this was commented out because it was grabbing the value
+            // of the input wich means that for encrypted texts the
+            // insert value was unencrypted. replacement below
+            // var strValue = target.value;
+            var strValue = parentColumn.value;
 
             // we only want to retain the values of insert cells, so only do so
             //      if the parent cell has the insert cell class and has a
@@ -18531,7 +19207,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         element.elems.dataViewport.addEventListener(
             'change',
-            element.internalEvents.insertRecordValueRetain
+            element.internalEvents.insertRecordValueRetain,
+            true
         );
         element.elems.dataViewport.addEventListener(
             'keyup',
@@ -19256,7 +19933,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     //      hiddenFocusControl so that we can always listen for
                     //      keypresses
                     focusHiddenControl(element);
-
                     // sometimes we want to move the selected endpoint to the
                     //      top of the viewport, if that's what we want, send
                     //      the 'top' mode into the scrollSelectionIntoView
@@ -21089,20 +21765,26 @@ document.addEventListener('DOMContentLoaded', function () {
             'refresh': function () {
                 dataSELECT(this);
             },
+            'triggerRecordInsert': function () {
+                triggerRecordInsert(this);
+            },
             'selectData': function () {
                 dataSELECT(this);
             },
-            'insertData': function (jsnInsert) {
-                dataINSERT(this, jsnInsert);
+            'insertData': function (strMode, jsnInsert) {
+                dataINSERT(this, strMode, jsnInsert);
             },
-            'updateData': function (jsnUpdate) {
-                dataUPDATE(this, jsnUpdate);
+            'updateData': function (strMode, jsnUpdate) {
+                dataUPDATE(this, strMode, jsnUpdate);
             },
             'deleteData': function (jsnDeleteData) {
                 dataDELETE(this, jsnDeleteData);
             },
             'render': function () {
-                renderScrollDimensions(this);
+                if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
+                    renderScrollDimensions(this);
+                    renderHUD(this);
+                }
             },
             'toggleFullContainer': function (container, target) {
                 var element = this;
@@ -21346,6 +22028,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 // empty selection array
                 element.internalSelection.ranges = [];
 
+                // re-render selection
+                renderSelection(element);
+            },
+            'renderSelection': function () {
+                var element = this;
                 // re-render selection
                 renderSelection(element);
             },

@@ -2,11 +2,6 @@
 
 window.addEventListener('design-register-element', function () {
 
-    registerDesignSnippet('<gs-text>', '<gs-text>', 'gs-text column="${1:name}"></gs-text>');
-    registerDesignSnippet('<gs-text> With Label', '<gs-text>',
-            'label for="${1:text-insert-last_name}">${2:Last Name}:</label>\n' +
-            '<gs-text id="${1:text-insert-last_name}" column="${3:last_name}"></gs-text>');
-
     designRegisterElement('gs-text', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-text.html');
 
     window.designElementProperty_GSTEXT = function (selectedElement) {
@@ -26,10 +21,16 @@ window.addEventListener('design-register-element', function () {
             return setOrRemoveTextAttribute(selectedElement, 'placeholder', this.value);
         });
 
-        //console.log(selectedElement.hasAttribute('mini'));
-
         addProp('Mini', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('mini')) + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'mini', (this.value === 'true'), true);
+        });
+        
+        // addProp('Encrypted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('encrypted')) + '" mini></gs-checkbox>', function () {
+        //     return setOrRemoveBooleanAttribute(selectedElement, 'encrypted', (this.value === 'true'), true);
+        // });
+        
+        addProp('Encrypted', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('encrypted') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'encrypted', this.value);
         });
 
         // TITLE attribute
@@ -132,6 +133,15 @@ window.addEventListener('design-register-element', function () {
     };
 });
 
+window.addEventListener('try-password', function (event) {
+    var elemsToRetry = xtag.query(document, 'gs-text[encrypted="' + event.keyVariable + '"]');
+    var i = 0, len = elemsToRetry.length;
+    while (i < len) {
+        elemsToRetry[i].syncView();
+        i++;
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
@@ -140,24 +150,68 @@ document.addEventListener('DOMContentLoaded', function () {
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
-
         event.target.parentNode.syncGetters();//iphone sometimes doesn't do a key like with time wheels
 
         GS.triggerEvent(event.target.parentNode, 'change');
 
         return false;
     }
+    
+    function keydownFunction(event) {
+        var element = event.target;
+        if (element.classList.contains('control')) {
+            element = GS.findParentTag(element, 'gs-text');
+        }
+        element.syncGetters();
+        if (!element.hasAttribute('defer-insert')) {
+            element.value = element.getAttribute('value');
+        } else {
+            element.value = CryptoJS.AES.encrypt(element.control.value, (window[element.getAttribute('encrypted')] || ''));
+        }
+    }
 
-    // re-target focus event from control to element
     function focusFunction(event) {
-        GS.triggerEvent(event.target.parentNode, 'focus');
-        event.target.parentNode.classList.add('focus');
+        var element = event.target;
+        if (element.classList.contains('focus')) {
+            return;
+        }
+        if (element.hasAttribute('defer-insert')) {
+            if (event.target.classList.contains('control')) {
+                element = element.parentNode.parentNode;
+            }
+            element.removeEventListener('focus', focusFunction);
+            element.classList.add('focus');
+            element.addControl();
+            if (element.control.value && element.control.value.length > 0) {
+                if (element.bolSelect) {
+                    element.control.setSelectionRange(0, element.control.value.length);
+                } else {
+                    element.control.setSelectionRange(element.control.value.length, element.control.value.length);
+                }
+            }
+            element.bolSelect = true;
+        } else {
+            element = element.parentNode;
+            GS.triggerEvent(event.target.parentNode, 'focus');
+            event.target.parentNode.classList.add('focus');
+        }
+        if (element.hasAttribute('encrypted') && element.control) {
+            element.control.addEventListener('keydown', keydownFunction);
+        }
     }
 
     // re-target blur event from control to element
     function blurFunction(event) {
+        console.trace('blur');
+        var element = event.target.parentNode;
         GS.triggerEvent(event.target.parentNode, 'blur');
         event.target.parentNode.classList.remove('focus');
+        if (event.target.parentNode.hasAttribute('defer-insert')) {
+            event.target.parentNode.removeControl();
+        }
+        if (element.hasAttribute('encrypted')) {
+            event.target.removeEventListener('keydown', keydownFunction);
+        }
     }
 
     // mouseout, remove hover class
@@ -172,13 +226,6 @@ document.addEventListener('DOMContentLoaded', function () {
         event.target.parentNode.classList.add('hover');
     }
 
-    //function createPushReplacePopHandler(element) {
-    //    var strQueryString = GS.getQueryString(), strQSCol = element.getAttribute('qs');
-
-    //    if (GS.qryGetKeys(strQueryString).indexOf(strQSCol) > -1) {
-    //        element.value = GS.qryGetVal(strQueryString, strQSCol);
-    //    }
-    //}
     function saveDefaultAttributes(element) {
         var i;
         var len;
@@ -195,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             jsnAttr = arrAttr[i];
 
-            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.nodeValue || '');
+            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
 
             i += 1;
         }
@@ -289,48 +336,139 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function elementInserted(element) {
-        // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
-        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
-            // if this is the first time inserted has been run: continue
-            if (!element.inserted) {
-                element.inserted = true;
-                element.internal = {};
-                saveDefaultAttributes(element);
+        if (element.hasAttribute('encrypted') && !window[element.getAttribute('encrypted')] && !window['getting' + element.getAttribute('encrypted')]) {
+            window['getting' + element.getAttribute('encrypted')] = true;
+            GS.triggerEvent(element, 'password-error', {'reason': 'no', 'keyVariable': element.getAttribute('encrypted')});
+        }
+        if (element.hasAttribute('defer-insert')) {
+            // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
+            if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+                // if this is the first time inserted has been run: continue
+                if (!element.inserted) {
+                    element.inserted = true;
+                    element.internal = {};
+                    saveDefaultAttributes(element);
+    
+                    if (!element.hasAttribute('tabindex')) {
+                        element.setAttribute('tabindex', '0');
+                    }
+                    element.bolSelect = true;
 
-                //var strQSValue;
-
-                // handle control
-                element.handleContents();
-
-                // fill control
-                element.syncView();
-
-                // bind/handle query string
-                if (element.getAttribute('qs')) {
-                    //strQSValue = GS.qryGetVal(GS.getQueryString(), element.getAttribute('qs'));
-
-                    //if (strQSValue !== '' || !element.getAttribute('value')) {
-                    //    element.value = strQSValue;
-                    //}
-                    createPushReplacePopHandler(element);
-                    window.addEventListener('pushstate', function () {
+                    if (element.getAttribute('value')) {
+                        if (element.hasAttribute('encrypted') && window[element.getAttribute('encrypted')]) {
+                            element.innerHTML = CryptoJS.AES.decrypt(element.getAttribute('value'), (window[element.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                            element.syncGetters();
+                        } else {
+                            element.innerHTML = element.getAttribute('value');
+                            element.syncGetters();
+                        }
+                    } else if (element.hasAttribute('placeholder')) {
+                        element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
+                    }
+    
+                    element.addEventListener('focus', focusFunction);
+                    if (evt.touchDevice) {
+                        element.addEventListener(evt.click, focusFunction);
+                        element.addEventListener(evt.mousedown, function (event) {
+                            //alert(event.touches[0].clientX);
+                            element.startX = event.touches[0].clientX;
+                            element.startY = event.touches[0].clientY;
+                            element.addEventListener('touchmove', function (event) {
+                                //alert(event.touches[0].clientX);
+                                element.lastX = event.touches[0].clientX;
+                                element.lastY = event.touches[0].clientY;
+                                
+                            });
+                        });
+                        element.addEventListener(evt.mouseup, function (event) {
+                            var element = event.target;
+                            //alert(element.outerHTML);
+                            //alert(element.startX + ' : ' + element.lastX + ' : ' + element.startY + ' : ' + element.lastY);
+                            if (element.lastX && element.lastY &&
+                                (parseInt(element.lastX, 10) > (parseInt(element.startX, 10) + 10) ||
+                                parseInt(element.lastX, 10) < (parseInt(element.startX, 10) - 10) ||
+                                parseInt(element.lastY, 10) > (parseInt(element.startY, 10) + 10) ||
+                                parseInt(element.lastY, 10) < (parseInt(element.startY, 10) - 10))
+                            ) {
+                            } else {
+                                focusFunction(event);
+                            }
+                            
+                            /*//if event.target is the control
+                            if (event.target.tagName === 'GS-TEXT') {
+                                var element = event.target;
+                                //alert(event.target.outerHTML);
+                                //focus it
+                                focusFunction(event);
+                                //if we focused it prevent click event from happening
+                                if (document.activeElement == element.control) {
+                                    event.stopImmediatePropagation();
+                                    event.stopPropagation();
+                                    event.preventDefault();
+                                }
+                                //else the click event happens trying again
+                            }*/
+                        });
+                    }
+                    // bind/handle query string
+                    if (element.getAttribute('qs')) {
                         createPushReplacePopHandler(element);
-                    });
-                    window.addEventListener('replacestate', function () {
-                        createPushReplacePopHandler(element);
-                    });
-                    window.addEventListener('popstate', function () {
-                        createPushReplacePopHandler(element);
-                    });
+                        window.addEventListener('pushstate', function () {
+                            createPushReplacePopHandler(element);
+                        });
+                        window.addEventListener('replacestate', function () {
+                            createPushReplacePopHandler(element);
+                        });
+                        window.addEventListener('popstate', function () {
+                            createPushReplacePopHandler(element);
+                        });
+                    }
                 }
-
-                // if this element is empty when it is inserted: initalize
-                if (element.innerHTML.trim() === '') {
+            }
+        } else {
+            // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
+            if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+                // if this is the first time inserted has been run: continue
+                if (!element.inserted) {
+                    element.inserted = true;
+                    element.internal = {};
+                    saveDefaultAttributes(element);
+    
+                    //var strQSValue;
+    
                     // handle control
                     element.handleContents();
-
+    
                     // fill control
                     element.syncView();
+    
+                    // bind/handle query string
+                    if (element.getAttribute('qs')) {
+                        //strQSValue = GS.qryGetVal(GS.getQueryString(), element.getAttribute('qs'));
+    
+                        //if (strQSValue !== '' || !element.getAttribute('value')) {
+                        //    element.value = strQSValue;
+                        //}
+                        createPushReplacePopHandler(element);
+                        window.addEventListener('pushstate', function () {
+                            createPushReplacePopHandler(element);
+                        });
+                        window.addEventListener('replacestate', function () {
+                            createPushReplacePopHandler(element);
+                        });
+                        window.addEventListener('popstate', function () {
+                            createPushReplacePopHandler(element);
+                        });
+                    }
+    
+                    // if this element is empty when it is inserted: initalize
+                    if (element.innerHTML.trim() === '') {
+                        // handle control
+                        element.handleContents();
+    
+                        // fill control
+                        element.syncView();
+                    }
                 }
             }
         }
@@ -348,36 +486,72 @@ document.addEventListener('DOMContentLoaded', function () {
 
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 var element = this;
-                // if "suspend-created" has been removed: run created and inserted code
-                if (strAttrName === 'suspend-created' && newValue === null) {
-                    elementCreated(element);
-                    elementInserted(element);
-
-                // if "suspend-inserted" has been removed: run inserted code
-                } else if (strAttrName === 'suspend-inserted' && newValue === null) {
-                    elementInserted(element);
-
-                } else if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
-                    var currentValue;
-
-                    if (strAttrName === 'disabled' || strAttrName === 'readonly') {
-                        // handle control
-                        element.handleContents();
-
-                        // fill control
-                        element.syncView();
-
-                    } else if (strAttrName === 'value' && element.initalized) {
-                        //if (element.hasAttribute('disabled')) {
-                        //    currentValue = element.innerHTML;
-                        //} else {
-                            currentValue = element.control.value;
-                        //}
-
-                        // if there is a difference between the new value in the
-                        //      attribute and the valued in the front end: refresh the front end
-                        if (newValue !== currentValue) {
+                if (element.hasAttribute('defer-insert')) {
+                    if (element.control) {
+                        // if "suspend-created" has been removed: run created and inserted code
+                        if (strAttrName === 'suspend-created' && newValue === null) {
+                            elementCreated(element);
+                            elementInserted(element);
+    
+                        // if "suspend-inserted" has been removed: run inserted code
+                        } else if (strAttrName === 'suspend-inserted' && newValue === null) {
+                            elementInserted(element);
+    
+                        } else if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+                            var currentValue;
+    
+                            if (strAttrName === 'disabled' || strAttrName === 'readonly') {
+                            } else if (strAttrName === 'value' && element.initalized) {
+                                if (element.hasAttribute('encrypted')) {
+                                    currentValue = CryptoJS.AES.encrypt(element.control.value, (window[element.getAttribute('encrypted')] || ''));
+                                } else {
+                                    currentValue = element.control.value;
+                                }
+    
+                                // if there is a difference between the new value in the
+                                //      attribute and the valued in the front end: refresh the front end
+                                if (newValue !== currentValue) {
+                                    element.syncView();
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // if "suspend-created" has been removed: run created and inserted code
+                    if (strAttrName === 'suspend-created' && newValue === null) {
+                        elementCreated(element);
+                        elementInserted(element);
+    
+                    // if "suspend-inserted" has been removed: run inserted code
+                    } else if (strAttrName === 'suspend-inserted' && newValue === null) {
+                        elementInserted(element);
+    
+                    } else if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+                        var currentValue;
+    
+                        if (strAttrName === 'disabled' || strAttrName === 'readonly') {
+                            // handle control
+                            element.handleContents();
+    
+                            // fill control
                             element.syncView();
+    
+                        } else if (strAttrName === 'value' && element.initalized) {
+                            //if (element.hasAttribute('disabled')) {
+                            //    currentValue = element.innerHTML;
+                            //} else {
+                                if (element.hasAttribute('encrypted')) {
+                                    currentValue = CryptoJS.AES.encrypt(element.control.value, (window[element.getAttribute('encrypted')] || ''));
+                                } else {
+                                    currentValue = element.control.value;
+                                }
+                            //}
+    
+                            // if there is a difference between the new value in the
+                            //      attribute and the valued in the front end: refresh the front end
+                            if (newValue !== currentValue) {
+                                element.syncView();
+                            }
                         }
                     }
                 }
@@ -388,12 +562,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'keydown': function (event) {
                 var element = this;
                 if (!element.hasAttribute('readonly') && !element.hasAttribute('disabled')) {
-                    //if (element.hasAttribute('disabled') && event.keyCode !== 9) {
-                    //    event.preventDefault();
-                    //    event.stopPropagation();
-                    //} else {
                         element.syncGetters();
-                    //}
                 }
             },
             'keyup': function () {
@@ -407,20 +576,50 @@ document.addEventListener('DOMContentLoaded', function () {
             value: {
                 // get value straight from the input
                 get: function () {
-                    return this.getAttribute('value');
+                    var element = this;
+                    if (this.hasAttribute('defer-insert')) {
+			            if (this.hasAttribute('encrypted')) {            
+                            // return CryptoJS.AES.decrypt(this.getAttribute('value'), (window[element.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                            return this.getAttribute('value');
+                        } else {
+                            return this.getAttribute('value');
+                        }
+                    } else {
+                        return this.getAttribute('value');
+                    }
                 },
 
                 // set the value of the input and set the value attribute
                 set: function (strNewValue) {
-                    this.setAttribute('value', strNewValue);
+                    if (this.hasAttribute('defer-insert')) {
+                        if (this.hasAttribute('encrypted')) {
+                            if (CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) === '') {
+                                this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
+                            } else {
+                                this.setAttribute('value', strNewValue);
+                            }
+                        } else {
+                            this.setAttribute('value', strNewValue);
+                            this.syncView();
+                        }
+                    } else {
+                        this.setAttribute('value', strNewValue);
+                    }
                 }
             }
         },
         methods: {
             focus: function () {
                 var element = this;
-                if (element.control) {
-                    element.control.focus();
+                if (element.hasAttribute('defer-insert')) {
+                    element.bolSelect = false;
+                    focusFunction({ target: element });
+                    //GS.triggerEvent(element, 'focus');
+                } else {
+                    var element = this;
+                    if (element.control) {
+                        element.control.focus();
+                    }
                 }
             },
 
@@ -494,18 +693,174 @@ document.addEventListener('DOMContentLoaded', function () {
                 // }
             },
 
+            removeControl: function () {
+                var element = this;
+                if (element.control) {
+                    element.setAttribute('tabindex', element.control.getAttribute('tabindex'));
+                }
+                if (element.control.value) {
+                    if (element.hasAttribute('encrypted')) {
+                        if (element.hasAttribute('defer-insert')) {
+                            element.innerHTML = element.control.value;
+                        } else {
+                            element.innerHTML = element.control.value;
+                            element.syncGetters();
+                        }
+                    } else {
+                        element.innerHTML = element.control.value;
+                        element.syncGetters();
+                    }
+                } else if (element.hasAttribute('placeholder')) {
+                    element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
+                } else {
+                    element.innerHTML = ''
+                }
+                element.control = false;
+            },
+
+            addControl: function () {
+                var element = this;
+                var arrPassThroughAttributes = [
+                    'placeholder', 'name', 'maxlength', 'autocorrect',
+                    'autocapitalize', 'autocomplete', 'autofocus', 'spellcheck',
+                    'readonly', 'disabled'
+                ];
+                var i;
+                var len;
+                var elementValue = element.innerHTML;
+                var elementWidth = element.offsetWidth;
+                if (element.children.length > 0) {
+                    elementValue = '';
+                }
+                // if the gs-text element has a tabindex: save the tabindex and remove the attribute
+                if (element.hasAttribute('tabindex')) {
+                    element.savedTabIndex = element.getAttribute('tabindex');
+                    element.removeAttribute('tabindex');
+                }
+                // add control input and save it to a variable for later use
+                element.innerHTML = '';
+                element.innerHTML = '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
+                element.control = element.children[0];
+
+                // bind event re-targeting functions
+                element.control.removeEventListener('change', changeFunction);
+                element.control.addEventListener('change', changeFunction);
+
+
+                element.control.removeEventListener('blur', blurFunction);
+
+                element.removeEventListener(evt.mouseout, mouseoutFunction);
+                element.addEventListener(evt.mouseout, mouseoutFunction);
+
+                element.removeEventListener(evt.mouseout, mouseoverFunction);
+                element.addEventListener(evt.mouseover, mouseoverFunction);
+                // copy passthrough attributes to control
+                i = 0;
+                len = arrPassThroughAttributes.length;
+                while (i < len) {
+                    if (element.hasAttribute(arrPassThroughAttributes[i])) {
+                        if (arrPassThroughAttributes[i] === 'disabled') {
+                            element.control.setAttribute(
+                                'readonly',
+                                element.getAttribute(arrPassThroughAttributes[i]) || ''
+                            );
+                        } else {
+                            element.control.setAttribute(
+                                arrPassThroughAttributes[i],
+                                element.getAttribute(arrPassThroughAttributes[i]) || ''
+                            );
+                        }
+                    }
+                    i += 1;
+                }
+
+                element.control.value = elementValue;
+                element.value = elementValue;
+                // if we saved a tabindex: apply the tabindex to the control
+                if (element.savedTabIndex !== undefined && element.savedTabIndex !== null) {
+                    element.control.setAttribute('tabindex', element.savedTabIndex);
+                }
+
+                element.syncView();
+                element.control.focus();
+                element.addEventListener('focus', focusFunction);
+                element.control.addEventListener('blur', blurFunction);
+            },
+
             syncView: function () {
                 var element = this;
-                //if (element.hasAttribute('disabled')) {
-                //    element.textContent = element.getAttribute('value') || element.getAttribute('placeholder');
-                //} else {
-                    element.control.value = element.getAttribute('value') || '';
-                //}
-                element.initalized = true;
+                if (element.hasAttribute('defer-insert')) {
+                    if (element.control) {
+                        if (element.hasAttribute('encrypted')) {
+                            var bytes = CryptoJS.AES.decrypt(element.getAttribute('value'), (window[element.getAttribute('encrypted')] || ''));
+                            var plaintext = bytes.toString(CryptoJS.enc.Utf8) || '';
+                            if (window[element.getAttribute('encrypted')] && plaintext == '' && element.control.value) {
+                                GS.triggerEvent(element, 'password-error', {'reason': 'bad', 'keyVariable': element.getAttribute('encrypted')});
+                            }
+                            element.control.value = plaintext || '';
+                        } else {
+                            element.control.value = element.getAttribute('value');
+                        }
+                    } else {
+                        if (element.value) {
+                            if (element.hasAttribute('encrypted')) {
+                                var bytes = CryptoJS.AES.decrypt(element.value, (window[element.getAttribute('encrypted')] || ''));
+                                var plaintext = bytes.toString(CryptoJS.enc.Utf8) || '';
+                                if (window[element.getAttribute('encrypted')] && plaintext == '' && element.control.value) {
+                                    GS.triggerEvent(element, 'password-error', {'reason': 'bad', 'keyVariable': element.getAttribute('encrypted')});
+                                }
+                                element.innerHTML = plaintext;
+                            } else {
+                                element.innerHTML = element.value;
+                            }
+                        } else if (element.hasAttribute('placeholder')) {
+                            element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
+                        }
+                    }
+                    element.initalized = true;
+                } else {
+                    var element = this;
+                    //if (element.hasAttribute('disabled')) {
+                    //    element.textContent = element.getAttribute('value') || element.getAttribute('placeholder');
+                    //} else {
+                        if (element.hasAttribute('encrypted')) {
+                            if (!window[element.getAttribute('encrypted')] || !element.getAttribute('value')) {
+                                
+                            } else {
+                                var bytes = CryptoJS.AES.decrypt(element.getAttribute('value'), (window[element.getAttribute('encrypted')] || ''));
+                                var plaintext = bytes.toString(CryptoJS.enc.Utf8) || '';
+                            if (window[element.getAttribute('encrypted')] && plaintext == '' && element.control.value) {
+                                    GS.triggerEvent(element, 'password-error', {'reason': 'bad', 'keyVariable': element.getAttribute('encrypted')});
+                                }
+                            }
+                            element.control.value = plaintext || '';
+                        } else {
+                            element.control.value = element.getAttribute('value') || '';
+                        }
+                    //}
+                    element.initalized = true;
+                }
+                
             },
 
             syncGetters: function () {
-                this.setAttribute('value', this.control.value);
+                var element = this;
+                if (element.hasAttribute('defer-insert')) {
+                    if (element.control) {
+                        if (element.hasAttribute('encrypted')) {
+                            element.control.setAttribute('value', CryptoJS.AES.encrypt(element.value, (window[element.getAttribute('encrypted')] || '')));
+                        } else {
+                            element.setAttribute('value', element.control.value);
+                        }
+                    }
+                } else {
+                    if (element.hasAttribute('encrypted')) {
+                        element.setAttribute('value', CryptoJS.AES.encrypt(element.control.value, (window[element.getAttribute('encrypted')] || '')));
+                    } else {
+                        element.setAttribute('value', element.control.value);
+                    }
+                }
+                
             }
         }
     });

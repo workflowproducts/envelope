@@ -27,8 +27,7 @@
                 <gs-page>
                     <gs-header><center><h3>There was an error!</h3></center></gs-header>
                     <gs-body padded>
-                        <pre style="white-space: pre-wrap;">
-    There has been an error with the Database connection.{{ADDIN}}</pre>
+                        <pre style="white-space: pre-wrap;">There has been an error with the Database connection.{{ADDIN}}</pre>
                     </gs-body>
                     <gs-footer>
                         <gs-grid gutter reflow-at="420">
@@ -320,6 +319,7 @@
         }
 
         var socket = new WebSocket(strURL);
+        socket.stayClosed = false;
         if (socketname) {
             GS.websockets[socketname] = socket;
         }
@@ -488,7 +488,7 @@
             console.log('SOCKET CLOSING', socket.stayClosed, socket.bolError, event);
 
             // error closure dialog
-            if (socket.bolError && arrWaitingCalls.length > 0) {
+            if (socket.stayClosed && socket.bolError && arrWaitingCalls.length > 0) {
                 // abnormal closure
                 if (event.code === 1006) {
                     webSocketConnectionErrorDialog(socket, 'The connection to the database has been closed. We cannot display the reasons for this closure because the browser does not give us access to those details, please check the server logs for the error details.');
@@ -500,6 +500,7 @@
                 // type error
                 } else if (event.code === 1003) {
                     webSocketConnectionErrorDialog(socket, 'The connection to the database has been closed. Either the server or the browser has closed the connection because of it was sent a data type it could not understand.');
+
                 } else {
                     webSocketConnectionErrorDialog(socket, 'The connection to the database has been closed. The cause of this is unknown.');
                 }
@@ -508,13 +509,16 @@
             if (!socket.stayClosed) {
                 setTimeout(function() {
                     console.log('ATTEMPTING SOCKET RE-OPEN', socket);
-                    GS.triggerEvent(window, 'socket-reconnect');
-                    if (socketname) {
-                        GS.closeSocket(GS.websockets[socketname]);
-                        GS.websockets[socketname] = GS.openSocket('env', GS.websockets[socketname].GSSessionID, GS.websockets[socketname].notifications);
-                    } else {
-                        GS.closeSocket(GS.envSocket);
-                        GS.envSocket = GS.openSocket('env', GS.envSocket.GSSessionID, GS.envSocket.notifications);
+                    var event = GS.triggerEvent(window, 'socket-reconnect');
+                    if (! event.defaultPrevented) {
+                        if (socketname) {
+                            GS.closeSocket(GS.websockets[socketname]);
+                            GS.websockets[socketname] = GS.openSocket('env', GS.websockets[socketname].GSSessionID, GS.websockets[socketname].notifications);
+
+                        } else {
+                            GS.closeSocket(GS.envSocket);
+                            GS.envSocket = GS.openSocket('env', GS.envSocket.GSSessionID, GS.envSocket.notifications);
+                        }
                     }
                 }, 1000);
             } else {
@@ -1335,3 +1339,30 @@ GS.decodeFromTabDelimited = function (strValue, nullValue) {
     //               .replace(/\\t/g, '\t')
     //               .replace(/\\N/g, 'NULL');
 };
+
+var reconnectNumber = 0;
+var reconnectCheckTimer;
+window.addEventListener('socket-connect', function (event) {
+    "use strict";
+    var intCurrConnectNumber = reconnectNumber;
+
+    if (reconnectCheckTimer) {
+        clearTimeout(reconnectCheckTimer);
+        reconnectCheckTimer = null;
+    }
+
+    // if we can remain connected for 5 seconds: reset countdown
+    reconnectCheckTimer = setTimeout(function () {
+        if (intCurrConnectNumber === reconnectNumber) {
+            reconnectNumber = 0;
+        }
+    }, 5000);
+});
+window.addEventListener('socket-reconnect', function (event) {
+    "use strict";
+    reconnectNumber -= 1;
+
+    if (reconnectNumber <= -6) {
+        window.location = '/' + (window.location.toString().match(/postage|env/g)[0]) + '/auth?action=logout&error=Connection%20timed%20out';
+    }
+});

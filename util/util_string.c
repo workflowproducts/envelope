@@ -612,6 +612,8 @@ char *contenttype(char *str_filename) {
                 strncmp(str_ptr_fileextension, "woff", 5) == 0 ? "application/x-font-woff" :
                 strncmp(str_ptr_fileextension, "eot", 4) == 0 ? "application/vnd.ms-fontobject" :
                 strncmp(str_ptr_fileextension, "ttf", 4) == 0 ? "application/font-sfnt" :
+                strncmp(str_ptr_fileextension, "xls", 4) == 0 ? "application/vnd.ms-excel" :
+                strncmp(str_ptr_fileextension, "xlsx", 4) == 0 ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" :
                 "text/plain";
 // clang-format on
 error:

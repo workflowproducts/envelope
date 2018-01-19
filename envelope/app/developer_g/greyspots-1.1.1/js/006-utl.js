@@ -748,6 +748,7 @@ GS.getTextWidth = function (scope, strText, bolWhitePreserve) {
     divElement.style.border        = '0';
     divElement.style.whiteSpace    = (bolWhitePreserve ? 'pre' : '');
     divElement.textContent         = strText;
+    //console.log(strText);
     
     scope.appendChild(divElement);
     

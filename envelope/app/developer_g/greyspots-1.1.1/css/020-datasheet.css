@@ -90,6 +90,23 @@ gs-datasheet > .root > .data-container > .data-flex-reset > .scroll-container {
     box-sizing: border-box;
 }
 
+gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > .scroll-container::-webkit-scrollbar {
+    -webkit-appearance: none;
+}
+
+gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > .scroll-container::-webkit-scrollbar:vertical {
+    width: 11px;
+}
+
+gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > .scroll-container::-webkit-scrollbar:horizontal {
+    height: 11px;
+}
+
+gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > .scroll-container::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    border: 2px solid white; /* should match background, can't be transparent */
+}
+
 gs-datasheet > .root > .data-container > .data-flex-reset > .insert-container {
     position: absolute;
     bottom: 0;

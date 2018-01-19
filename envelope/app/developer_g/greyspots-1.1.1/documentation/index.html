@@ -59,6 +59,32 @@ GRANT SELECT, UPDATE, USAGE ON TABLE gsdoc.global_seq TO postgres;
 GRANT USAGE ON TABLE gsdoc.global_seq TO normal_g;
 
 
+-- ####### gsdoc.rpeople_encrypt; #######
+CREATE TABLE gsdoc.rpeople_encrypt (
+  id integer NOT NULL DEFAULT nextval(('gsdoc.global_seq'::text)::regclass),
+  first_name text NOT NULL,
+  last_name text,
+  birth_date timestamp with time zone,
+  change_login name DEFAULT "current_user"(),
+  change_stamp timestamp with time zone DEFAULT date_trunc('second'::text, ('now'::text)::timestamp with time zone),
+  create_stamp timestamp with time zone DEFAULT date_trunc('second'::text, ('now'::text)::timestamp with time zone),
+  birth_time time without time zone,
+  CONSTRAINT rpeople_encrypt_pk PRIMARY KEY (id)
+) WITH (
+  OIDS=FALSE
+);
+
+ALTER TABLE gsdoc.rpeople_encrypt OWNER TO postgres;
+GRANT SELECT,UPDATE,INSERT,DELETE,TRUNCATE,REFERENCES,TRIGGER ON TABLE gsdoc.rpeople_encrypt TO postgres;
+
+-- ####### ds_trg_rpeople_encrypt ON gsdoc.rpeople_encrypt; #######
+CREATE TRIGGER ds_trg_rpeople_encrypt
+   BEFORE INSERT OR UPDATE
+   ON gsdoc.rpeople_encrypt
+   FOR EACH ROW
+   EXECUTE PROCEDURE gsdoc.default_stamp_fn();
+
+
 -- ####### gsdoc.rpeople; #######
 CREATE TABLE gsdoc.rpeople(
   id integer NOT NULL DEFAULT nextval(('gsdoc.global_seq'::text)::regclass),
@@ -111,6 +137,53 @@ CREATE TRIGGER ds_trg_rpeople_line
    ON gsdoc.rpeople_line
    FOR EACH ROW
    EXECUTE PROCEDURE gsdoc.default_stamp_fn();
+
+
+-- ####### gsdoc.tpeople_encrypt; #######
+CREATE OR REPLACE VIEW gsdoc.tpeople_encrypt AS
+SELECT rpeople_encrypt.id
+	, rpeople_encrypt.first_name
+	, rpeople_encrypt.last_name
+	, rpeople_encrypt.birth_date
+	, rpeople_encrypt.birth_time
+	, date_part('year'::text, age(rpeople_encrypt.birth_date)) AS age
+	, rpeople_encrypt.change_stamp
+	FROM gsdoc.rpeople_encrypt;
+
+ALTER TABLE gsdoc.tpeople_encrypt OWNER TO postgres;
+
+GRANT SELECT, UPDATE, INSERT, DELETE, TRUNCATE, REFERENCES, TRIGGER ON TABLE gsdoc.tpeople_encrypt TO postgres;
+GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE gsdoc.tpeople_encrypt TO normal_g;
+-- ####### rpeople_encrypt_delete ON gsdoc.tpeople_encrypt; #######
+CREATE OR REPLACE RULE rpeople_encrypt_delete AS
+	ON DELETE
+	TO gsdoc.tpeople_encrypt
+	DO INSTEAD
+	DELETE FROM gsdoc.rpeople_encrypt
+	WHERE old.id = rpeople_encrypt.id;
+
+-- ####### rpeople_encrypt_insert ON gsdoc.tpeople_encrypt; #######
+CREATE OR REPLACE RULE rpeople_encrypt_insert AS
+	ON
+	INSERT
+	TO gsdoc.tpeople_encrypt
+	DO INSTEAD
+
+	INSERT INTO gsdoc.rpeople_encrypt (first_name, last_name, birth_date, birth_time)
+	VALUES (new.first_name, new.last_name, new.birth_date, new.birth_time);
+
+-- ####### rpeople_encrypt_update ON gsdoc.tpeople_encrypt; #######
+CREATE OR REPLACE RULE rpeople_encrypt_update AS
+	ON UPDATE
+	TO gsdoc.tpeople_encrypt
+	DO INSTEAD
+	UPDATE gsdoc.rpeople_encrypt
+	SET first_name = new.first_name
+		, last_name = new.last_name
+		, birth_date = new.birth_date
+		, birth_time = new.birth_time
+	WHERE old.id = rpeople_encrypt.id;
+
 
 
 -- ####### gsdoc.tpeople; #######
@@ -212,6 +285,21 @@ INSERT INTO gsdoc.rpeople
            now() - (trunc(random() * 10000 + 1) || ' day')::interval AS birth_date,
            now()::time - (trunc(random() * 43200 + 1) || ' seconds')::interval AS birth_time
      FROM (SELECT generate_series(1,100) AS series_maker,
+            ARRAY['Apple', 'Mango', 'Kiwi', 'Pineapple',
+                  'Grapefruit', 'Plum', 'Coconut', 'Fig',
+                  'Lemon', 'Grapes', 'Raspberries', 'Blackberries',
+                  'Blueberries', 'Strawberries', 'Cranberries', 'Orange',
+                  'Banana', 'Lime', 'Pear'] AS arr_names) em;
+                  
+-- generate 100 random people
+INSERT INTO gsdoc.rpeople_encrypt
+    SELECT nextval(('gsdoc.global_seq'::text)::regclass) AS id,
+           arr_enc_names[trunc(random() * 19 + 1)] AS first_name,
+           arr_names[trunc(random() * 19 + 1)] AS last_name,
+           now() - (trunc(random() * 10000 + 1) || ' day')::interval AS birth_date,
+           now()::time - (trunc(random() * 43200 + 1) || ' seconds')::interval AS birth_time
+     FROM (SELECT generate_series(1,100) AS series_maker,
+            ARRAY['U2FsdGVkX19WxjdFSRl4JrEWOcsFEJdRW0XW7fiRmX4=', 'U2FsdGVkX1+rIOC8PEKo6yWmK61Dn8XslVaA1BaKkAE=', 'U2FsdGVkX19eBUPKv3A8IlO08OMSU7sYCoyfj/FqCAw=', 'U2FsdGVkX19uBXysNpc04iZmDwBYLIWrxHoik2Im6TY=', 'U2FsdGVkX1+wlDbKQhEVtozeqMEPyieSU4ThkxA3xhU=', 'U2FsdGVkX1+V7xHyVvEtmgha5yc+vbeqMR8u9yr9i9Q=', 'U2FsdGVkX1/DKkP+Y3S3YJJGYPTuDKTLP/LsqGHXd5Y=', 'U2FsdGVkX19cYv0JXx406TJFrlqoc4NBeR17EGXWW+8=', 'U2FsdGVkX19Eh4lYoxcdKwMTWTn4kP67GeQ6AxsIqyY=', 'U2FsdGVkX19ruP2MkPjKT3Wb+YuUUfUJvTeawaOdN8s=', 'U2FsdGVkX1/FvFRvs5Z5GYnavgefnig8lpOZmFCqPCY=', 'U2FsdGVkX19YeVTa0St2vJweT6syXLXo/xeuPskKjEk=', 'U2FsdGVkX1/FrQf4RaxSLQ/ndbEGUm+zJhT68mXi80A=', 'U2FsdGVkX19tOvfUlf9zH4XgOs3Ubk/lLczQKPvr/h8=', 'U2FsdGVkX1+dQ4aVZTZgeT5S36qNFa5o9byaYckpseE=', 'U2FsdGVkX1/MGjj2MFqGA7nbpk46Jbf4LhDzr/SpGz8=', 'U2FsdGVkX1+4tKB6xmEpcUucKbVhf7T2gfCUGTZU+Ok=', 'U2FsdGVkX1/CEKbFwf0Y8nGJD84lzHSUcO3z7/6jrQM=', 'U2FsdGVkX18z6e8happBGiw0f3mIyNKRYCPX+WXof8E=', 'U2FsdGVkX18zhGeMPEzbaDl8JAXN7AKMLsF40Sf40nQ='] AS arr_enc_names,
             ARRAY['Apple', 'Mango', 'Kiwi', 'Pineapple',
                   'Grapefruit', 'Plum', 'Coconut', 'Fig',
                   'Lemon', 'Grapes', 'Raspberries', 'Blackberries',
@@ -613,13 +701,13 @@ GRANT ALL ON FUNCTION gsdoc.action_ajax_test_timeout(text) TO normal_g;
         </gs-page>*/
     }).replace(/\{\{SQL\}\}/gi, strPostgreSQL);
 
-    function copyStringToClipboard (string) {
-        function handler (event){
+    function copyStringToClipboard(string) {
+        function handler(event) {
             event.clipboardData.setData('text/plain', string);
             event.preventDefault();
             document.removeEventListener('copy', handler, true);
         }
-    
+
         document.addEventListener('copy', handler, true);
         document.execCommand('copy');
     }
@@ -666,12 +754,13 @@ GRANT ALL ON FUNCTION gsdoc.action_ajax_test_timeout(text) TO normal_g;
                 </gs-block>
                 <gs-block>
                     <center><h3>Control</h3></center>
+                    <gs-button href="doc-elem-ace.html">Ace</gs-button>
                     <gs-button href="doc-elem-buttons-toggle.html">Buttons And Toggle</gs-button>
                     <gs-button href="doc-elem-dialog-button.html">Dialog Button</gs-button>
                     <gs-button href="doc-elem-checkbox.html">Checkbox</gs-button>
                     <gs-button href="doc-elem-combo.html">Combo</gs-button>
-                    <gs-button href="doc-elem-datetime.html">Datetime</gs-button>
-                    <gs-button href="doc-elem-date.html">Date</gs-button>
+                    <!--<gs-button href="doc-elem-datetime.html">Datetime</gs-button>-->
+                    <gs-button href="doc-elem-dt.html">Datetime</gs-button>
                     <gs-button href="doc-elem-interval.html">Interval</gs-button>
                     <gs-button href="doc-elem-listbox.html">Listbox</gs-button>
                     <gs-button href="doc-elem-memo.html">Memo</gs-button>
@@ -690,6 +779,7 @@ GRANT ALL ON FUNCTION gsdoc.action_ajax_test_timeout(text) TO normal_g;
                     <gs-button href="doc-elem-form.html">Form</gs-button>
                     <gs-button href="doc-elem-insert.html">Insert</gs-button>
                     <gs-button href="doc-elem-datasheet.html">Datasheet</gs-button>
+                    <gs-button href="doc-elem-table.html">Table</gs-button>
                 </gs-block>
             </gs-grid>
             

@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             jsnAttr = element.attributes[i];
 
-            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.nodeValue || '');
+            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
 
             i += 1;
         }
@@ -454,6 +454,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
         
+        // month-letter click event
+        datePickerContainer.addEventListener('click', function (event) {
+            if (event.target.classList.contains('month-letter')) {
+                dteDate.setMonth(event.target.getAttribute('month'));
+                closeDatePicker(element);
+                openDatePicker(element, dteDate);
+            }
+        });
+        
         // date click events
         dateClickHandler = function () {
             var dteNewDate = new Date(this.getAttribute('data-date'));
@@ -489,7 +498,19 @@ document.addEventListener('DOMContentLoaded', function () {
         looperDate = new Date(originDate);
         looperDate.setDate(1);
         
-        strHTML =   '<div class="month-marker" flex-horizontal gs-dynamic>' +
+        strHTML =   '<gs-button class="month-letter" month="0">J</gs-button>' +
+                    '<gs-button class="month-letter" month="1">F</gs-button>' +
+                    '<gs-button class="month-letter" month="2">M</gs-button>' +
+                    '<gs-button class="month-letter" month="3">A</gs-button>' +
+                    '<gs-button class="month-letter" month="4">M</gs-button>' +
+                    '<gs-button class="month-letter" month="5">J</gs-button>' +
+                    '<gs-button class="month-letter" month="6">J</gs-button>' +
+                    '<gs-button class="month-letter" month="7">A</gs-button>' +
+                    '<gs-button class="month-letter" month="8">S</gs-button>' +
+                    '<gs-button class="month-letter" month="9">O</gs-button>' +
+                    '<gs-button class="month-letter" month="10">N</gs-button>' +
+                    '<gs-button class="month-letter" month="11">D</gs-button>' +
+                    '<div class="month-marker" flex-horizontal gs-dynamic>' +
                         '<gs-button class="prev-month" inline icononly icon="arrow-left" gs-dynamic>Prev</gs-button>' +
                         '<span flex gs-dynamic>' + arrMonths[originDate.getMonth()] + '</span>' +
                         '<gs-button class="next-month" inline icononly icon="arrow-right" gs-dynamic>Next</gs-button>' +
@@ -884,24 +905,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     window.addEventListener('popstate',     function () { pushReplacePopHandler(element); });
                 }
                 
-                //if (element.hasAttribute('disabled')) {
-                //    element.innerHTML = element.getAttribute('value') || element.getAttribute('placeholder') || '';
-                //} else {
-                if (!element.hasAttribute('disabled')) {
-                    element.innerHTML = '';
-                    element.appendChild(singleLineTemplate.cloneNode(true));
-                    if (element.oldTabIndex) {
-                        xtag.query(element, '.control')[0].setAttribute('tabindex', element.oldTabIndex);
-                    }
+                element.innerHTML = '';
+                element.appendChild(singleLineTemplate.cloneNode(true));
+                if (element.oldTabIndex) {
+                    xtag.query(element, '.control')[0].setAttribute('tabindex', element.oldTabIndex);
                 }
-                //}
-                
-                //if (element.innerHTML === '') {
-                //    element.appendChild(singleLineTemplate.cloneNode(true));
-                //    if (element.oldTabIndex) {
-                //        xtag.query(element, '.control')[0].setAttribute('tabindex', element.oldTabIndex);
-                //    }
-                //}
                 
                 element.refresh();
             }
@@ -993,6 +1001,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         this.refresh();
                     } else if (strAttrName === 'value') {
+                        //console.log(newValue);
                         this.value = newValue;
                     }
                 }
@@ -1709,6 +1718,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     var tempSelection = this.control ? GS.getInputSelection(this.control) : null;
                     
                     if (this.control) {
+                        console.log(newValue);
                         if (newValue && typeof newValue === 'object') {
                             this.control.value = newValue.toLocaleDateString();
                         } else {
@@ -1719,14 +1729,17 @@ document.addEventListener('DOMContentLoaded', function () {
                            GS.setInputSelection(this.control, tempSelection.start, tempSelection.end);
                         }
                         
-                    } else if (this.hasAttribute('disabled')) {                        
+                    } else if (this.hasAttribute('disabled')) {
                         if (newValue && typeof newValue === 'object') {
+                            console.log(newValue, getFormatString(this), formatDate(newValue, getFormatString(this)));
                             this.innerHTML = formatDate(newValue, getFormatString(this));
                         } else {
+                            console.log(newValue);
                             this.innerHTML = newValue || '';
                         }
                         
                     } else {
+                        console.log(newValue);
                         this.setAttribute('value', newValue);
                     }
                     
