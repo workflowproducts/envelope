@@ -305,8 +305,8 @@ error:
 		bol_error_state = false;
 		errno = 0;
 
-	} else if (int_request_len == 0) {
-		SERROR_NORESPONSE("int_request_len == 0?");//" disconnecting");
+	} else if (int_request_len == 0 && errno != 0) {
+		SERROR_NORESPONSE("int_request_len == 0, errno = %d", errno);//" disconnecting");
 		SFREE(str_global_error);
 
 		ev_io_stop(EV_A, w);
