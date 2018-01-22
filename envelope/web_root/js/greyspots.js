@@ -15288,7 +15288,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 this.editor.setValue(CryptoJS.AES.decrypt(newValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) || this.getAttribute('placeholder'), this.editor.session.doc.positionToIndex(this.editor.selection.getCursor()));
                             }
                         } else {
-                            this.editor.setValue(newValue, this.editor.session.doc.positionToIndex(this.editor.selection.getCursor()));
+                            // this.editor.setValue(newValue, this.editor.session.doc.positionToIndex(this.editor.selection.getCursor()));
                         }
                     }
                 }
@@ -15322,7 +15322,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     }
                     if (this.editor) {
-                        this.editor.setValue(strNewValue, this.editor.session.doc.positionToIndex(this.editor.selection.getCursor()));
+                        if (this.hasAttribute('encrypted')) {
+                            this.editor.setValue(strNewValue, this.editor.session.doc.positionToIndex(this.editor.selection.getCursor()));
+                        } else {
+                            this.editor.setValue(strNewValue, -1);
+                        }
                         this.syncView();
                     }
                 }

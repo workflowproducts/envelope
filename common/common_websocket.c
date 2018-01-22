@@ -298,9 +298,13 @@ error:
 		bol_error_state = false;
 		errno = 0;
 
-/*
-	// Nunzio commented on 2018-01-11
-	// This broke the file editor through vpn
+	} else if (errno == EAGAIN) {
+		SERROR_NORESPONSE("Reached EAGAIN, waiting for more data");
+		SERROR_NORESPONSE("should never get to EAGAIN with libev");
+		SFREE(str_global_error);
+		bol_error_state = false;
+		errno = 0;
+
 	} else if (int_request_len == 0) {
 		SERROR_NORESPONSE("int_request_len == 0?");//" disconnecting");
 		SFREE(str_global_error);
@@ -312,13 +316,6 @@ error:
 		WS_freeFrame(frame);
 
 		SERROR_CLIENT_CLOSE_NORESPONSE(client);
-		bol_error_state = false;
-		errno = 0;
-*/
-	} else if (errno == EAGAIN) {
-		SERROR_NORESPONSE("Reached EAGAIN, waiting for more data");
-		SERROR_NORESPONSE("should never get to EAGAIN with libev");
-		SFREE(str_global_error);
 		bol_error_state = false;
 		errno = 0;
 	}
