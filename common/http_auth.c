@@ -1208,7 +1208,7 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 		);
 		SFREE(str_temp);
 	} else if (str_global_login_group != NULL && strncmp(str_rolgroup, "FALSE", 5) == 0) {
-		size_t int_content_length = 83 + strlen(str_global_login_group);
+		size_t int_content_length = 76 + strlen(str_global_login_group) + strlen(SUN_PROGRAM_WORD_NAME);
 		// 255 chars should be enough
 		SFINISH_SALLOC(str_content_length, 255 + 1);
 		snprintf(str_content_length, 255, "%zu", int_content_length);

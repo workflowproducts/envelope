@@ -191,9 +191,9 @@ void ws_select_step1(struct sock_ev_client_request *client_request) {
 
 	SDEBUG("client_select->str_sql: %s", client_select->str_sql);
 	SFINISH_CHECK(query_is_safe(client_select->str_sql), "SQL Injection detected");
-
+	
 	SFINISH_CHECK(DB_get_column_types_for_query(
-					  global_loop, client_request->parent->conn, client_select->str_sql, client_request, ws_select_step4),
+						global_loop, client_request->parent->conn, client_select->str_sql, client_request, ws_select_step4),
 		"DB_get_column_types_for_query failed");
 
 	/*

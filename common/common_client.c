@@ -1369,7 +1369,6 @@ void client_request_queue_cb(EV_P, ev_check *w, int revents) {
 			case POSTAGE_REQ_BEGIN:
 			case POSTAGE_REQ_COMMIT:
 			case POSTAGE_REQ_ROLLBACK:
-				SDEBUG("ROLLBACK OK 1");
 				client->bol_request_in_progress = true;
 				client_request->arr_response = DArray_create(sizeof(char *), 1);
 				if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
@@ -1397,6 +1396,7 @@ void client_request_queue_cb(EV_P, ev_check *w, int revents) {
 						));
 		  			//clang-format on
 				}
+				SINFO("%s", str_query);
 
 				SFINISH_CHECK(
 					DB_exec(EV_A, client_request->parent->conn, client_request, str_query, client_cmd_cb), "DB_exec failed");
@@ -1697,7 +1697,7 @@ finish:
 		_str_response = DB_get_diagnostic(client_request->parent->conn, res);
 		SFINISH_SNFCAT(str_response, &int_response_len,
 			":\n", (size_t)2,
-			_str_response, _int_response_len);
+			_str_response, strlen(_str_response));
 		SFREE(_str_response);
 	} else if (res == NULL && client_request->parent->conn->str_response != NULL) {
 		SFINISH_SNFCAT(str_response, &int_response_len,

@@ -276,7 +276,7 @@ void sunlogf_root(
 #ifdef _WIN32
 		FILE *fp = NULL;
 		int old_errno = errno;
-		if (strcmp(str_global_logfile, "stderr") != 0 || str_global_logfile == NULL) {
+		if (str_global_logfile != NULL && strcmp(str_global_logfile, "stderr") != 0) {
 			fp = fopen(str_global_logfile, "a");
 		}
 		if (fp != NULL) {
