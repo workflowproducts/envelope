@@ -23,6 +23,7 @@ struct sock_ev_client_select {
 	char *str_offset;
 	DArray *darr_column_types;
 	DArray *darr_column_names;
+	DB_result *saved_res;
 
 	//variable lengths
 	size_t int_statement_name_len;

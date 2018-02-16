@@ -221,34 +221,63 @@ void ws_update_step1(struct sock_ev_client_request *client_request) {
 					".", (size_t)1,
 					str_col_name, int_col_name_len);
 			}
+			SDEBUG("client_update->int_pk_join_clause_len: %d", client_update->int_pk_join_clause_len);
+			SDEBUG("strlen(client_update->str_pk_where_clause): %d", strlen(client_update->str_pk_where_clause));
+			SDEBUG("str_col_name: %d", int_col_name_len);
+			SDEBUG("strlen(str_col_name): %d", strlen(str_col_name));
 			if (client_update->str_identity_column_name == NULL) {
 				SFINISH_SNCAT(client_update->str_identity_column_name, &int_identity_column_name_len,
 					str_col_name, int_col_name_len);
 			}
 			int_x++;
 		} else if (strncmp(str_pk_header, "set", 3) == 0) {
+			SDEBUG("client_update->str_identity_column_name: %s", client_update->str_identity_column_name);
+			SDEBUG("str_col_name: %s", str_col_name);
+			SDEBUG("int_col_name_len: %d", int_col_name_len);
+			SDEBUG("int_identity_column_name_len: %d", int_identity_column_name_len);
 			if (client_update->str_identity_column_name != NULL && int_col_name_len == int_identity_column_name_len &&
 				strncmp(client_update->str_identity_column_name, str_col_name, int_identity_column_name_len) == 0) {
-				SFINISH_SNFCAT(client_update->str_pk_return_join_clause, &client_update->int_pk_return_join_clause_len,
-					client_update->str_temp_table_name, client_update->int_temp_table_name_len,
-					".", (size_t)1,
-					str_temp, strlen(str_temp),
-					" IS NOT DISTINCT FROM ", (size_t)22,
-					client_update->str_real_table_name, client_update->int_real_table_name_len,
-					".", (size_t)1,
-					str_col_name, int_col_name_len);
-				SFINISH_SNFCAT(client_update->str_pk_return_where_clause, &client_update->int_pk_return_where_clause_len,
-					client_update->str_real_table_name, client_update->int_real_table_name_len,
-					".", (size_t)1,
-					str_col_name, int_col_name_len,
-					" = ANY(array(SELECT ", (size_t)20,
-					client_update->str_temp_table_name, client_update->int_temp_table_name_len,
-					".", (size_t)1,
-					str_temp, strlen(str_temp),
-					" FROM ", (size_t)6,
-					client_update->str_temp_table_name, client_update->int_temp_table_name_len,
-					"))", (size_t)2);
+				SDEBUG("true");
+				if (DB_connection_driver(client_request->parent->conn) == DB_DRIVER_POSTGRES) {
+					SFINISH_SNFCAT(client_update->str_pk_return_join_clause, &client_update->int_pk_return_join_clause_len,
+						client_update->str_temp_table_name, client_update->int_temp_table_name_len,
+						".", (size_t)1,
+						str_temp, strlen(str_temp),
+						" IS NOT DISTINCT FROM ", (size_t)22,
+						client_update->str_real_table_name, client_update->int_real_table_name_len,
+						".", (size_t)1,
+						str_col_name, int_col_name_len);
+					SFINISH_SNFCAT(client_update->str_pk_return_where_clause, &client_update->int_pk_return_where_clause_len,
+						client_update->str_real_table_name, client_update->int_real_table_name_len,
+						".", (size_t)1,
+						str_col_name, int_col_name_len,
+						" = ANY(array(SELECT ", (size_t)20,
+						client_update->str_temp_table_name, client_update->int_temp_table_name_len,
+						".", (size_t)1,
+						str_temp, strlen(str_temp),
+						" FROM ", (size_t)6,
+						client_update->str_temp_table_name, client_update->int_temp_table_name_len,
+						"))", (size_t)2);
+				} else {
+					SFINISH_SNFCAT(client_update->str_pk_return_join_clause, &client_update->int_pk_return_join_clause_len,
+						client_update->str_temp_table_name, client_update->int_temp_table_name_len,
+						".", (size_t)1,
+						str_temp, strlen(str_temp),
+						" = ", (size_t)3,
+						client_update->str_real_table_name, client_update->int_real_table_name_len,
+						".", (size_t)1,
+						str_col_name, int_col_name_len);
+					SFINISH_SNFCAT(client_update->str_pk_return_where_clause, &client_update->int_pk_return_where_clause_len,
+						client_update->str_temp_table_name, client_update->int_temp_table_name_len,
+						".", (size_t)1,
+						str_temp, strlen(str_temp),
+						" = ", (size_t)3,
+						client_update->str_real_table_name, client_update->int_real_table_name_len,
+						".", (size_t)1,
+						str_col_name, int_col_name_len);
+				}
 			}
+			SDEBUG("client_update->str_pk_return_where_clause: %s", client_update->str_pk_return_where_clause);
 
 			SFINISH_SNFCAT(client_update->str_set_col_list, &client_update->int_set_col_list_len,
 				int_y == 0 ? "" : ", ", (size_t)(int_y == 0 ? 0 : 2),
@@ -826,8 +855,6 @@ bool ws_update_step6(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(res->status == DB_RES_COMMAND_OK, "DB_exec failed");
 
 	DB_free_result(res);
-// Start copying into temp table
-#ifdef POSTAGE_INTERFACE_LIBPQ
 	if (client_update->str_pk_return_where_clause != NULL) {
 		SFREE(client_update->str_pk_where_clause);
 		client_update->str_pk_where_clause = client_update->str_pk_return_where_clause;
@@ -841,6 +868,8 @@ bool ws_update_step6(EV_P, void *cb_data, DB_result *res) {
 		client_update->int_pk_join_clause_len = client_update->int_pk_return_join_clause_len;
 	}
 
+// Start copying into temp table
+#ifdef POSTAGE_INTERFACE_LIBPQ
 	SFINISH_SNCAT(str_sql, &int_sql_len,
 		"COPY (SELECT ", (size_t)13,
 		client_update->str_return_columns, client_update->int_return_columns_len,
@@ -875,9 +904,15 @@ bool ws_update_step6(EV_P, void *cb_data, DB_result *res) {
 		" ON ", (size_t)4,
 		client_update->str_pk_join_clause, client_update->int_pk_join_clause_len,
 		" WHERE ", (size_t)7,
-		client_update->str_pk_where_clause, client_update->int_pk_where_clause_len,
-		";", (size_t)1
+		client_update->str_pk_where_clause, client_update->int_pk_where_clause_len
 	);
+
+	if (client_update->str_return_order_by != NULL) {
+		SFINISH_SNFCAT(str_sql, &int_sql_len,
+			" ORDER BY ", (size_t)10,
+			client_update->str_return_order_by, client_update->int_return_order_by_len
+		);
+	}
 #endif
 
 	SDEBUG("str_sql: %s", str_sql);

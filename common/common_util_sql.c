@@ -98,6 +98,7 @@ error:
 	return NULL;
 }
 
+
 char *get_return_columns(char *_str_query, size_t int_query_len, char *str_table_name, size_t int_table_name_len, size_t *ptr_int_return_columns_len) {
 	char *str_temp = NULL;
 	char *str_temp1 = NULL;
@@ -248,7 +249,7 @@ char *get_return_escaped_columns(DB_driver driver, char *_str_query, size_t int_
 			SERROR_SNCAT(str_return_columns, ptr_int_return_columns_len,
 				"replace(replace(replace(replace(CAST(COALESCE(CAST(\"", (size_t)52,
 				str_temp, int_temp_len,
-				"\" AS nvarchar(MAX)), CAST('\\N' AS nvarchar(MAX))) AS nvarchar(MAX)), '\\', '\\\\'), '\t', '\\t'), CHAR(10), '\\n'), CHAR(13), '\\r') + CAST(CHAR(10) AS nvarchar(MAX))", (size_t)162);
+				"\" AS nvarchar(MAX)), CAST('\\N' AS nvarchar(MAX))) AS nvarchar(MAX)), '\\', '\\\\'), '\t', '\\t'), CHAR(10), '\\n'), CHAR(13), '\\r') + CAST(CHAR(10) AS nvarchar(MAX))", (size_t)159);
 		}
 		SFREE(str_temp);
 	} else {
@@ -323,8 +324,8 @@ char *get_hash_where(DB_driver driver, char *str_columns, size_t int_columns_len
 
 	} else {
 		str_temp_start = "_hash = LOWER(CONVERT(nvarchar(MAX), HashBytes('MD5', replace(replace(replace(replace(CAST(COALESCE(CAST(\"";
-		str_temp_in_between = "\" AS nvarchar(MAX)), CAST('' AS nvarchar(MAX)) AS nvarchar(MAX)), '\\', '\\\\'), '\t', '\\t'), CHAR(10), '\\n'), CHAR(13), '\\r') + CAST(CHAR(10) AS nvarchar(MAX)) + CAST('\t' AS nvarchar(MAX)) + replace(replace(replace(replace(CAST(COALESCE(CAST(\"";
-		str_temp_end = "\" AS nvarchar(MAX)), CAST('' AS nvarchar(MAX)), 2)) AS nvarchar(MAX)), '\\', '\\\\'), '\t', '\\t'), CHAR(10), '\\n'), CHAR(13), '\\r') + CAST(CHAR(10) AS nvarchar(MAX))";
+		str_temp_in_between = "\" AS nvarchar(MAX)), CAST('' AS nvarchar(MAX))) AS nvarchar(MAX)), '\\', '\\\\'), '\t', '\\t'), CHAR(10), '\\n'), CHAR(13), '\\r') + CAST(CHAR(10) AS nvarchar(MAX)) + CAST('\t' AS nvarchar(MAX)) + replace(replace(replace(replace(CAST(COALESCE(CAST(\"";
+		str_temp_end = "\" AS nvarchar(MAX)), CAST('' AS nvarchar(MAX))) AS nvarchar(MAX)), '\\', '\\\\'), '\t', '\\t'), CHAR(10), '\\n'), CHAR(13), '\\r') + CAST(CHAR(10) AS nvarchar(MAX)))))";
 	}
 
 	SERROR_BREPLACE(str_hash_where_temp, ptr_int_hash_where_len, "\t", str_temp_in_between, "g");
@@ -354,6 +355,8 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 	size_t int_response_len = 0;
 	SFINISH_SNCAT(str_response, &int_len, arg_str_response, int_len);
 	SFREE(str_global_error);
+
+	SDEBUG("client_request->parent->conn->copy_check: %p", client_request->parent->conn->copy_check);
 
 	if (client_request->bol_cancel_return == true) {
 		if (bol_last) {
@@ -417,10 +420,12 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 
 			// If copy_check is null, that means we are on the last message of the request
 			if (client_request->parent->conn->copy_check != NULL && close_client_if_needed(client_request->parent, (ev_watcher *)&client_request->parent->conn->copy_check->check, EV_CHECK)) {
+				SDEBUG("client_request->parent->conn->copy_check: %p", client_request->parent->conn->copy_check);
+				SDEBUG("client_request->parent->conn: %p", client_request->parent->conn);
+				SDEBUG("client_request->parent->cur_request: %p", client_request->parent->cur_request);
 				ev_check_stop(EV_A, &client_request->parent->conn->copy_check->check);
 				client_request->parent->client_paused_request->bol_free_watcher = true;
 				client_request->parent->client_paused_request->bol_increment_watcher = true;
-				SDEBUG("client_request->parent->cur_request: %p", client_request->parent->cur_request);
 				decrement_idle(EV_A);
 				SFREE(str_response);
 				return false;
@@ -672,7 +677,7 @@ bool permissions_check(EV_P, DB_conn *conn, char *str_path, void *cb_data, reada
 
 	if (strncmp(ptr_path, "role/", 5) == 0 || strncmp(ptr_path, "role", 5) == 0) {
 		if (strlen(ptr_path) > 5) {
-			return ddl_readable(EV_A, conn, ptr_path + 4, false, cb_data, readable_cb);
+			return ddl_readable(EV_A, conn, ptr_path + 4 + (strncmp(ptr_path, "role/download", 13) == 0 ? 9 : 0), false, cb_data, readable_cb);
 		} else {
 			return readable_cb(EV_A, cb_data, true);
 		}
@@ -680,7 +685,7 @@ bool permissions_check(EV_P, DB_conn *conn, char *str_path, void *cb_data, reada
 		return ddl_readable(EV_A, conn, "developer_g", false, cb_data, readable_cb);
 	} else if (strncmp(ptr_path, "app/", 4) == 0 || strncmp(ptr_path, "app", 4) == 0) {
 		if (strlen(ptr_path) > 4) {
-			return ddl_readable(EV_A, conn, ptr_path + 3, false, cb_data, readable_cb);
+			return ddl_readable(EV_A, conn, ptr_path + 3 + (strncmp(ptr_path, "app/download", 12) == 0 ? 9 : 0), false, cb_data, readable_cb);
 		} else {
 			return readable_cb(EV_A, cb_data, true);
 		}
@@ -699,7 +704,7 @@ bool permissions_write_check(EV_P, DB_conn *conn, char *str_path, void *cb_data,
 
 	if (strncmp(ptr_path, "role/", 5) == 0 || strncmp(ptr_path, "role", 5) == 0) {
 		if (strlen(ptr_path) > 5) {
-			return ddl_readable(EV_A, conn, ptr_path + 4, true, cb_data, readable_cb);
+			return ddl_readable(EV_A, conn, ptr_path + 4 + (strncmp(ptr_path, "role/download", 13) == 0 ? 9 : 0), true, cb_data, readable_cb);
 		} else {
 			return readable_cb(EV_A, cb_data, true);
 		}
@@ -707,7 +712,7 @@ bool permissions_write_check(EV_P, DB_conn *conn, char *str_path, void *cb_data,
 		return ddl_readable(EV_A, conn, "developer_g", false, cb_data, readable_cb);
 	} else if (strncmp(ptr_path, "app/", 4) == 0 || strncmp(ptr_path, "app", 4) == 0) {
 		if (strlen(ptr_path) > 4) {
-			return ddl_readable(EV_A, conn, ptr_path + 3, false, cb_data, readable_cb);
+			return ddl_readable(EV_A, conn, ptr_path + 3 + (strncmp(ptr_path, "app/download", 12) == 0 ? 9 : 0), false, cb_data, readable_cb);
 		} else {
 			return readable_cb(EV_A, cb_data, true);
 		}

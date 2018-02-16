@@ -1,3 +1,4 @@
+#define UTIL_DEBUG
 #include "ws_delete.h"
 
 void ws_delete_step1(struct sock_ev_client_request *client_request) {
@@ -109,7 +110,9 @@ void ws_delete_step1(struct sock_ev_client_request *client_request) {
 		"", (size_t)0);
 #endif
 
-	while (ptr_pk_header < ptr_pk_header_end) {
+	while (ptr_pk_header < ptr_pk_header_end || ptr_name_header < ptr_name_header_end) {
+		SFINISH_CHECK(ptr_pk_header < ptr_pk_header_end, "Extra column name");
+		SFINISH_CHECK(ptr_name_header < ptr_name_header_end, "Extra column purpose");
 		// name
 		int_length = strncspn(ptr_name_header, (size_t)(ptr_name_header_end - ptr_name_header), "\t\012", (size_t)2);
 		SFINISH_SALLOC(str_col_name, int_length + 1);
@@ -422,6 +425,8 @@ bool ws_delete_step2(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(res != NULL, "DB_exec failed");
 	SFINISH_CHECK(res->status == DB_RES_COMMAND_OK, "DB_exec failed");
 
+	int_len_content = client_request->frame->int_length - (size_t)(client_delete->ptr_query - client_request->frame->str_message);
+
 	DB_free_result(res);
 // Start copying into temp table
 #ifdef POSTAGE_INTERFACE_LIBPQ
@@ -439,12 +444,12 @@ bool ws_delete_step2(EV_P, void *cb_data, DB_result *res) {
 		client_delete->str_insert_parameter_markers, client_delete->int_insert_parameter_markers_len,
 		")", (size_t)1);
 	SDEBUG("str_sql: %s", str_sql);
+	SFINISH_CHECK(int_len_content > 0, "No Data.");
 #endif
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 
 	SDEBUG("client_delete->ptr_query: %s", client_delete->ptr_query);
-	int_len_content = client_request->frame->int_length - (size_t)(client_delete->ptr_query - client_request->frame->str_message);
 	SFINISH_CHECK(DB_copy_in(EV_A, client_request->parent->conn, client_request, client_delete->ptr_query, int_len_content,
 					  str_sql, ws_delete_step4),
 		"DB_copy_in failed");

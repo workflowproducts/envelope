@@ -194,7 +194,7 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 		} else {
 			if (bstrstr(client_insert->str_column_names, client_insert->int_column_names_len, str_col_name, int_col_name_len) == NULL) {
 				int_j += 1;
-				SFINISH_CHECK(int_j == 1, "Only one PK column allowed to not have an unspecified value");
+				SFINISH_CHECK(int_j == 1, "Only one PK column allowed to have an unspecified value");
 				if (DB_connection_driver(client_request->parent->conn) == DB_DRIVER_POSTGRES) {
 					SFINISH_SNFCAT(client_insert->str_pk_where_clause, &client_insert->int_pk_where_clause_len,
 						int_i > 0 ? " AND " : "", int_i > 0 ? 5 : 0,
@@ -234,6 +234,7 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 		SFREE(str_col_name);
 	}
 
+	SDEBUG("client_insert->str_identity_column_name : %s", client_insert->str_identity_column_name);
 	SDEBUG("client_insert->str_pk_join_clause : %s", client_insert->str_pk_join_clause);
 	SDEBUG("client_insert->str_pk_where_clause: %s", client_insert->str_pk_where_clause);
 
@@ -991,8 +992,17 @@ bool ws_insert_step7(EV_P, void *cb_data, DB_result *res) {
 		client_insert->str_return_escaped_columns, client_insert->int_return_escaped_columns_len,
 		" FROM ", (size_t)6,
 		client_insert->str_temp_table_name, client_insert->int_temp_table_name_len,
-		"_2;", (size_t)3);
+		"_2", (size_t)2);
+		if (client_insert->str_return_order_by != NULL) {
+			SFINISH_SNFCAT(str_sql, &int_sql_len,
+				" ORDER BY ", (size_t)10,
+				client_insert->str_return_order_by, client_insert->int_return_order_by_len
+			);
+		}
 #endif
+	SDEBUG("client_insert->str_return_escaped_columns: >%s<", client_insert->str_return_escaped_columns);
+	SDEBUG("strlen(client_insert->str_return_escaped_columns): >%d<", strlen(client_insert->str_return_escaped_columns));
+	SDEBUG("client_insert->int_return_escaped_columns_len: >%d<", client_insert->int_return_escaped_columns_len);
 	SDEBUG("str_sql: >%s<", str_sql);
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");

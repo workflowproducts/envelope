@@ -345,7 +345,7 @@ var $ = {
                         $.runTest(key, intCurrent + 1);
                         i = -1;
                     } else {
-						console.log(arrStrExpectedOutput[k].length, arrStrExpectedOutput[k]);
+						console.log(arrStrExpectedOutput[k].replace(/\{\{test_random\}\}/g, $.test_random).replace(/\{\{test_random1\}\}/g, $.tests[key].test_random).length, arrStrExpectedOutput[k].replace(/\{\{test_random\}\}/g, $.test_random).replace(/\{\{test_random1\}\}/g, $.tests[key].test_random));
 						console.log(arrStrActualOutput[j].length, arrStrActualOutput[j]);
                         $.changeStatus(key, intCurrent, 'running', 'fail', 0, JSON.stringify(arrStrActualOutput));
                         document.getElementById('actual-output-' + key).value = JSON.stringify(arrStrActualOutput);
