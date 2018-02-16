@@ -270,6 +270,7 @@ GS.isElementFocusable = function (element) {
                 GS.findParentTag(element, 'gs-text') ||
                 GS.findParentTag(element, 'gs-combo') ||
                 GS.findParentTag(element, 'gs-number') ||
+                GS.findParentTag(element, 'gs-dt') ||
                 (element.hasAttribute('tabindex') && element.getAttribute('tabindex') !== '-1') ||
                 (element.focus &&
                     element.focus.toString().indexOf('[native code]') === -1 &&

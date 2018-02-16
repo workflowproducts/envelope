@@ -9,6 +9,7 @@ gs-button > a[gs-dynamic] {
     bottom: 0;
     right: 0;
     z-index: 1; /* to get in front of ::after */
+    text-indent: -9000px;
     user-select: text;
     -o-user-select: text;
     -ms-user-select: text;
@@ -63,7 +64,8 @@ gs-dialog-button {
     
     
     background-color: white;
-    color: #5474E6;
+    /*color: #5474E6;*/
+    color: #2828b9;
     
     padding: 0.25em;
     border: none;
@@ -80,6 +82,9 @@ gs-dialog-button {
     line-height: 1.2em;
     min-height: 1em;
     font-size: 1em;
+    
+    font-weight: 900;
+    
 }
 
 gs-option {
@@ -147,7 +152,8 @@ gs-option.blue,
 gs-dialog-button.blue {
     /*background-color: #E9EFF7;*/
     /*border-color: #3B99BE;*/
-    color: #3B99BE;
+    /*color: #3B99BE;*/
+    color: #1266AB;
 }
 
 /* #################################################################################### */
@@ -448,9 +454,9 @@ gs-delete-button[bg-primary],
 gs-option[bg-primary],
 gs-dialog-button[bg-primary] {
     color: #fff;
-    background-color: #337ab7 !important;
+    background-color: #2828b9 !important;
     
-    border-color: #7EB1DC;
+    border-color: #4848C1; /*7EB1DC*/
     
     /*border-color: #094C83;*/
 }
@@ -469,9 +475,9 @@ gs-delete-button[bg-success],
 gs-option[bg-success],
 gs-dialog-button[bg-success] {
     color: #fff;
-    background-color: #5cb85c !important;
+    background-color: #246424 !important;
     
-    border-color: #BAE8BA;
+    border-color: #3C7C3C; /*BAE8BA*/
     
     /*border-color: #1B7C1B;*/
 }
@@ -490,9 +496,9 @@ gs-delete-button[bg-info],
 gs-option[bg-info],
 gs-dialog-button[bg-info] {
     color: #fff;
-    background-color: #5bc0de !important;
+    background-color: #005f7d !important;
     
-    border-color: #BAEAF8;
+    border-color: #00749A;
     
     /*border-color: #1993B6;*/
 }
@@ -511,9 +517,9 @@ gs-delete-button[bg-warning],
 gs-option[bg-warning],
 gs-dialog-button[bg-warning] {
     color: #fff;
-    background-color: #f0ad4e;
+    background-color: #605918;
     
-    border-color: #FFD8A0;
+    border-color: #7E772F; /*#FFD8A0*/
     
     /*border-color: #AD6D11;*/
 }
@@ -532,9 +538,9 @@ gs-delete-button[bg-danger],
 gs-option[bg-danger],
 gs-dialog-button[bg-danger] {
     color: #fff;
-    background-color: #d9534f !important;
+    background-color: #b30500 !important;
     
-    border-color: #FFADAB;
+    border-color: #DB130E;
     
     /*border-color: #961512;*/
 }

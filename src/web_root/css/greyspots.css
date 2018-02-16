@@ -608,7 +608,7 @@ p {
 /* Mark Text */
 .mark, mark {
     padding: 0.2em;
-    background-color: #FCF8E3;
+    background-color: #605918;
 }
 mark {
     color: #000;
@@ -691,27 +691,27 @@ hr {}
 }
 
 [txt-primary]{
-	color:#337ab7
+	color:#2828b9
 }
 
 a[txt-primary]:focus,a[txt-primary]:hover{
-	color:#286090
+	color:#151599
 }
 
 [txt-success]{
-	color:#3c763d
+	color:#246424
 }
 
 a[txt-success]:focus,a[txt-success]:hover{
-	color:#2b542c
+	color:#114C11
 }
 
 [txt-info]{
-	color:#31708f
+	color:#005f7d
 }
 
 a[txt-info]:focus,a[txt-info]:hover{
-	color:#245269
+	color:#004A62
 }
 
 [txt-warning]{
@@ -733,43 +733,43 @@ a[txt-danger]:focus,a[txt-danger]:hover{
 /* Background Colors */
 [bg-primary]{
 	color:#fff;
-	background-color:#337ab7
+	background-color:#2828b9
 }
 
 a[bg-primary]:focus,a[bg-primary]:hover{
-	background-color:#286090
+	background-color:#151599
 }
 
 [bg-success]{
-	background-color:#dff0d8
+	background-color:#246424
 }
 
 a[bg-success]:focus,a[bg-success]:hover{
-	background-color:#c1e2b3
+	background-color:#114C11
 }
 
 [bg-info]{
-	background-color:#d9edf7
+	background-color:#005f7d
 }
 
 a[bg-info]:focus,a[bg-info]:hover{
-	background-color:#afd9ee
+	background-color:#004A62
 }
 
 [bg-warning]{
-	background-color:#fcf8e3
+	background-color:#605918
 }
 
 a[bg-warning]:focus,a[bg-warning]:hover{
-	background-color:#f7ecb5
+	background-color:#403A07
 }
 
 [bg-danger]{
-	background-color:#f2dede
+	background-color:#b30500
 }
 
 a[bg-danger]:focus,a[bg-danger]:hover{
-	background-color:#e4b9b9
+	background-color:#910400
 }
 
 /* Abbreviations */
@@ -1312,9 +1312,9 @@ html body *[disabled],
     */
     cursor: default;
     
-    /*
-    background-color: #D5D5D5;
-    color: #444444;
+    
+    background-color: #D8D8D8;
+    /*color: #444444;
     */
 }
 
@@ -1803,12 +1803,12 @@ table tr[bg-primary],
 table td[bg-primary],
 table th[bg-primary] {
 	color:#fff !important;
-	background-color:#337ab7 !important;
+	background-color:#2828b9 /*337ab7*/ !important;
 }
 
 table a[bg-primary]:focus,
 table a[bg-primary]:hover {
-	background-color:#286090 !important;
+	background-color:#151599 /*286090*/ !important;
 }
 
 table thead[bg-success],
@@ -1816,12 +1816,12 @@ table tbody[bg-success],
 table tr[bg-success],
 table td[bg-success],
 table th[bg-success] {
-	background-color:#dff0d8 !important;
+	background-color:#246424 !important;
 }
 
 table a[bg-success]:focus,
 table a[bg-success]:hover {
-	background-color:#c1e2b3 !important;
+	background-color:#114C11 !important;
 }
 
 table thead[bg-info],
@@ -1829,12 +1829,12 @@ table tbody[bg-info],
 table tr[bg-info],
 table td[bg-info],
 table th[bg-info] {
-	background-color:#d9edf7 !important;
+	background-color:#005f7d !important;
 }
 
 table a[bg-info]:focus,
 table a[bg-info]:hover {
-	background-color:#afd9ee !important;
+	background-color:#004A62 !important;
 }
 
 table thead[bg-warning],
@@ -1842,12 +1842,12 @@ table tbody[bg-warning],
 table tr[bg-warning],
 table td[bg-warning],
 table th[bg-warning] {
-	background-color:#fcf8e3 !important;
+	background-color:#605918 !important;
 }
 
 table a[bg-warning]:focus,
 table a[bg-warning]:hover {
-	background-color:#f7ecb5 !important;
+	background-color:#403A07 !important;
 }
 
 table thead[bg-danger],
@@ -1855,12 +1855,12 @@ table tbody[bg-danger],
 table tr[bg-danger],
 table td[bg-danger],
 table th[bg-danger] {
-	background-color:#f2dede !important;
+	background-color:#b30500 !important;
 }
 
 table a[bg-danger]:focus,
 table a[bg-danger]:hover {
-	background-color:#e4b9b9 !important;
+	background-color:#910400 !important;
 }
 
 
@@ -1900,6 +1900,7 @@ gs-button > a[gs-dynamic] {
     bottom: 0;
     right: 0;
     z-index: 1; /* to get in front of ::after */
+    text-indent: -9000px;
     user-select: text;
     -o-user-select: text;
     -ms-user-select: text;
@@ -1954,7 +1955,8 @@ gs-dialog-button {
     
     
     background-color: white;
-    color: #5474E6;
+    /*color: #5474E6;*/
+    color: #2828b9;
     
     padding: 0.25em;
     border: none;
@@ -1971,6 +1973,9 @@ gs-dialog-button {
     line-height: 1.2em;
     min-height: 1em;
     font-size: 1em;
+    
+    font-weight: 900;
+    
 }
 
 gs-option {
@@ -2038,7 +2043,8 @@ gs-option.blue,
 gs-dialog-button.blue {
     /*background-color: #E9EFF7;*/
     /*border-color: #3B99BE;*/
-    color: #3B99BE;
+    /*color: #3B99BE;*/
+    color: #1266AB;
 }
 
 /* #################################################################################### */
@@ -2339,9 +2345,9 @@ gs-delete-button[bg-primary],
 gs-option[bg-primary],
 gs-dialog-button[bg-primary] {
     color: #fff;
-    background-color: #337ab7 !important;
+    background-color: #2828b9 !important;
     
-    border-color: #7EB1DC;
+    border-color: #4848C1; /*7EB1DC*/
     
     /*border-color: #094C83;*/
 }
@@ -2360,9 +2366,9 @@ gs-delete-button[bg-success],
 gs-option[bg-success],
 gs-dialog-button[bg-success] {
     color: #fff;
-    background-color: #5cb85c !important;
+    background-color: #246424 !important;
     
-    border-color: #BAE8BA;
+    border-color: #3C7C3C; /*BAE8BA*/
     
     /*border-color: #1B7C1B;*/
 }
@@ -2381,9 +2387,9 @@ gs-delete-button[bg-info],
 gs-option[bg-info],
 gs-dialog-button[bg-info] {
     color: #fff;
-    background-color: #5bc0de !important;
+    background-color: #005f7d !important;
     
-    border-color: #BAEAF8;
+    border-color: #00749A;
     
     /*border-color: #1993B6;*/
 }
@@ -2402,9 +2408,9 @@ gs-delete-button[bg-warning],
 gs-option[bg-warning],
 gs-dialog-button[bg-warning] {
     color: #fff;
-    background-color: #f0ad4e;
+    background-color: #605918;
     
-    border-color: #FFD8A0;
+    border-color: #7E772F; /*#FFD8A0*/
     
     /*border-color: #AD6D11;*/
 }
@@ -2423,9 +2429,9 @@ gs-delete-button[bg-danger],
 gs-option[bg-danger],
 gs-dialog-button[bg-danger] {
     color: #fff;
-    background-color: #d9534f !important;
+    background-color: #b30500 !important;
     
-    border-color: #FFADAB;
+    border-color: #DB130E;
     
     /*border-color: #961512;*/
 }
@@ -13280,7 +13286,8 @@ gs-body.gs-datetime-calendar-dialog .centered {
     margin: 0 auto;
 }
 
-gs-body.gs-datetime-calendar-dialog .date-input {
+gs-body.gs-datetime-calendar-dialog .date-input,
+gs-body.gs-datetime-calendar-dialog .time-input {
     position: relative;
     
     background-color: white;
@@ -13307,7 +13314,8 @@ gs-body.gs-datetime-calendar-dialog .date-input {
     width: 6.9em;
 }
 
-gs-body.gs-datetime-calendar-dialog .date-input input {
+gs-body.gs-datetime-calendar-dialog .date-input input,
+gs-body.gs-datetime-calendar-dialog .time-input input {
     font-size: 1em;
     font-family: inherit;
     
@@ -13336,10 +13344,14 @@ gs-body.gs-datetime-calendar-dialog .date-input input {
     
     width: 1.1em;
 }
+gs-body.gs-datetime-calendar-dialog .time-input input.ampm {
+    width: 1.5em;
+}
 gs-body.gs-datetime-calendar-dialog .date-input input.year {
     width: 3em;
 }
-gs-body.gs-datetime-calendar-dialog .date-input .divider {
+gs-body.gs-datetime-calendar-dialog .date-input .divider,
+gs-body.gs-datetime-calendar-dialog .time-input .divider {
     width: 0.3em;
 }
 
@@ -13375,7 +13387,9 @@ gs-body.gs-datetime-calendar-dialog .time-now {
     background: #FFFFFF;
 }
 gs-body.gs-datetime-calendar-dialog .date-adjust:hover,
-gs-body.gs-datetime-calendar-dialog .date-today:hover {
+gs-body.gs-datetime-calendar-dialog .date-today:hover,
+gs-body.gs-datetime-calendar-dialog .time-adjust:hover,
+gs-body.gs-datetime-calendar-dialog .time-now:hover {
     filter: invert(10%);
 }
 gs-body.gs-datetime-calendar-dialog .date-adjust {
@@ -13461,6 +13475,112 @@ gs-body.gs-datetime-calendar-dialog .calendar .day.selected {
     background: #FFB000;
     color: #ffffff;
 }
+
+gs-body.gs-datetime-calendar-dialog .time-section .clock-parent {
+    position: relative;
+    height: 19.2em;
+}
+
+gs-body.gs-datetime-calendar-dialog .time-section .clock {
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    -ms-border-radius: 50%;
+    -o-border-radius: 50%;
+    border-radius: 50%;
+    
+    width: 15em;
+    height: 15em;
+    border: 0.3em solid #000000;
+    
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -7.8em;
+    margin-top: -7.8em;
+}
+gs-body.gs-datetime-calendar-dialog .time-section .clock .marking {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-top: -7.5em;
+    
+    height: 14.2em;
+    border-top: 0.8em solid #000000;
+    width: 0.2em;
+    margin-left: -0.1em;
+}
+gs-body.gs-datetime-calendar-dialog .time-section .clock .marking.large {
+    height: 13.5em;
+    border-top: 1.5em solid #000000;
+}
+
+gs-body.gs-datetime-calendar-dialog .time-section .clock .hour-hand,
+gs-body.gs-datetime-calendar-dialog .time-section .clock .minute-hand,
+gs-body.gs-datetime-calendar-dialog .time-section .clock .second-hand {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -0.5em;
+}
+gs-body.gs-datetime-calendar-dialog .time-section .clock .hour-hand {
+    -webkit-transform-origin: 0.2em 0.5em;
+    -moz-transform-origin: 0.2em 0.5em;
+    -ms-transform-origin: 0.2em 0.5em;
+    -o-transform-origin: 0.2em 0.5em;
+    transform-origin: 0.2em 0.5em;
+    
+    height: 4em;
+    margin-left: -0.2em;
+    border-left: 0.4em solid #000000;
+}
+gs-body.gs-datetime-calendar-dialog .time-section .clock .minute-hand {
+    -webkit-transform-origin: 0.1em 0.5em;
+    -moz-transform-origin: 0.1em 0.5em;
+    -ms-transform-origin: 0.1em 0.5em;
+    -o-transform-origin: 0.1em 0.5em;
+    transform-origin: 0.1em 0.5em;
+    
+    height: 5.5em;
+    margin-left: -0.1em;
+    border-left: 0.2em solid #000000;
+}
+gs-body.gs-datetime-calendar-dialog .time-section .clock .second-hand {
+    -webkit-transform-origin: 0.05em 0.5em;
+    -moz-transform-origin: 0.05em 0.5em;
+    -ms-transform-origin: 0.05em 0.5em;
+    -o-transform-origin: 0.05em 0.5em;
+    transform-origin: 0.05em 0.5em;
+    
+    height: 7em;
+    margin-left: -0.05em;
+    border-left: 0.1em solid #FF0000;
+}
+gs-body.gs-datetime-calendar-dialog .time-section .clock .clock-hand-drag-handle {
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    -ms-border-radius: 50%;
+    -o-border-radius: 50%;
+    border-radius: 50%;
+    
+    position: absolute;
+    bottom: 0;
+    
+    background: none;
+    
+    margin-bottom: -0.5em;
+    width: 1em;
+    height: 1em;
+}
+gs-body.gs-datetime-calendar-dialog .time-section .clock .hour-hand .clock-hand-drag-handle {
+    margin-left: -0.7em;
+}
+gs-body.gs-datetime-calendar-dialog .time-section .clock .minute-hand .clock-hand-drag-handle {
+    margin-left: -0.6em;
+}
+gs-body.gs-datetime-calendar-dialog .time-section .clock .second-hand .clock-hand-drag-handle {
+    margin-left: -0.55em;
+}
+
 
 /********** DATETIME WHEEL DIALOG ***********/
 
@@ -13780,8 +13900,8 @@ gs-dt .dt-arrows {
     
     display: inline-block;
     
-    z-index: 1000;
-    width: 14.25em;
+    z-index: 2000;
+    width: 8.75em;
 }
 
 @media only screen and (max-width: 768px) {
@@ -13801,6 +13921,7 @@ gs-dt[readonly] {
     cursor: default;
     padding: 0.2em;
 }
+
 
 @media print {
     gs-envelope {

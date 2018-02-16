@@ -1090,10 +1090,15 @@ window.addEventListener('design-register-element', function () {
         // 90 degrees  (iconrotateright)
         // 180 degrees (iconrotatedown)
         // 270 degrees (iconrotateleft)
-               if (selectedElement.hasAttribute('iconrotateright')) { strIconRotation = 'iconrotateright';
-        } else if (selectedElement.hasAttribute('iconrotatedown'))  { strIconRotation = 'iconrotatedown';
-        } else if (selectedElement.hasAttribute('iconrotateleft'))  { strIconRotation = 'iconrotateleft';
-        } else { strIconRotation = ''; }
+        if (selectedElement.hasAttribute('iconrotateright')) {
+            strIconRotation = 'iconrotateright';
+        } else if (selectedElement.hasAttribute('iconrotatedown')) {
+            strIconRotation = 'iconrotatedown';
+        } else if (selectedElement.hasAttribute('iconrotateleft')) {
+            strIconRotation = 'iconrotateleft';
+        } else {
+            strIconRotation = '';
+        }
         
         addProp('Icon&nbsp;Rotation', true, '<gs-select class="target" value="' + strIconRotation + '" mini>' +
                                             '   <option value="">None</option>' +
@@ -1383,6 +1388,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (element.anchorElement) {
             element.removeChild(element.anchorElement);
         }
+        
+        var strInner = element.innerText;
+        
         if (strLink) {
             element.anchorElement = document.createElement('a');
             element.anchorElement.setAttribute('gs-dynamic', '');
@@ -1397,8 +1405,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.anchorElement.setAttribute('download', element.getAttribute('download'));
             }
             
-            element.appendChild(element.anchorElement);
+            element.anchorElement.innerText = strInner;
             
+            element.appendChild(element.anchorElement);
         }
     }
     

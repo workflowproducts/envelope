@@ -225,10 +225,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function datetimeOpenCalendarDialog(element) {
         'use strict';
-        var i, len, pickerHTML, dialogHTML, dialogTemplate = document.createElement('template');
+        var i, len, dateHTML, timeHTML, pickerHTML, dialogHTML, dialogTemplate = document.createElement('template');
         var dteToday = new Date(), dteValue = element.dteValue || new Date(dteToday);
 
-        pickerHTML = ml(function () {/*
+        dateHTML = ml(function () {/*
             <div class="adjust-section date-adjust-section centered">
                 <div class="date-today">&#xf017;</div>
                 <div class="date-input">
@@ -263,26 +263,69 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>
         */});
+        
+        timeHTML = ml(function () {/*
+            <div class="time-section">
+                <div class="adjust-section time-adjust-section centered">
+                    <div class="time-now">&#xf017;</div>
+                    <div class="time-input">
+                        <input class="hour" />
+                        <span class="divider">:</span>
+                        <input class="minute" />
+                        <span class="divider">:</span>
+                        <input class="second" />
+                        <span class="divider"> </span>
+                        <input class="ampm" />
+                    </div>
+                    <div class="adjust-container">
+                        <div class="time-adjust up">&#xf077;</div><div class="time-adjust down">&#xf078;</div>
+                    </div>
+                </div>
+                <div class="clock-parent">
+                    <div class="clock"></div>
+                </div>
+            </div>
+        */});
+
+        if (element.hasDate && element.hasTime) {
+            pickerHTML = ml(function () {/*
+                <gs-grid widths="1,1">
+                    <gs-block>
+                        {{DATEHTML}}
+                    </gs-block>
+                    <gs-block>
+                        {{TIMEHTML}}
+                    </gs-block>
+                </gs-grid>
+            */}).replace('{{DATEHTML}}', dateHTML).replace('{{TIMEHTML}}', timeHTML);
+
+        } else if (element.hasDate) {
+            pickerHTML = dateHTML;
+
+        } else if (element.hasTime) {
+            pickerHTML = timeHTML;
+
+        }
 
         dialogHTML = ml(function () {/*
-            <gs-page>
-                <gs-body class="gs-datetime-calendar-dialog">
-                    {{PICKERHTML}}
-                    <gs-grid widths="1,1">
-                        <gs-block>
-                            <gs-button dialogclose>Cancel</gs-button>
-                        </gs-block>
-                        <gs-block>
-                            <gs-button dialogclose bg-primary>Done</gs-button>
-                        </gs-block>
-                    </gs-grid>
-                </gs-body>
-            </gs-page>
+            <gs-body class="gs-datetime-calendar-dialog">
+                {{PICKERHTML}}
+                <gs-grid widths="1,1">
+                    <gs-block>
+                        <gs-button dialogclose>Cancel</gs-button>
+                    </gs-block>
+                    <gs-block>
+                        <gs-button dialogclose bg-primary>Done</gs-button>
+                    </gs-block>
+                </gs-grid>
+            </gs-body>
         */}).replace('{{PICKERHTML}}', pickerHTML);
         dialogTemplate.innerHTML = dialogHTML;
         dialogTemplate.setAttribute('no-background', '');
         dialogTemplate.setAttribute('data-overlay-close', '');
-        dialogTemplate.setAttribute('data-max-width', '25em');
+        if (!element.hasTime) {
+            dialogTemplate.setAttribute('data-max-width', '25em');
+        }
         GS.openDialogToElement(element, dialogTemplate, 'down', function () {
             var dteStart = new Date(dteValue);
 
@@ -498,6 +541,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
+            console.log(element.hasTime);
             if (element.hasTime) {
                 var clock = xtag.query(document, 'gs-dialog .clock')[0];
                 var timeAdjustSection = xtag.query(document, 'gs-dialog .time-adjust-section')[0];
