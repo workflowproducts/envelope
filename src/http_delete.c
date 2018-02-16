@@ -1,5 +1,3 @@
-#ifdef ENVELOPE
-
 #include "http_delete.h"
 
 void http_delete_step1(struct sock_ev_client *client) {
@@ -18,7 +16,7 @@ void http_delete_step1(struct sock_ev_client *client) {
 	size_t int_data_len = 0;
 
 	client->cur_request =
-		create_request(client, NULL, NULL, NULL, NULL, sizeof(struct sock_ev_client_delete), POSTAGE_REQ_DELETE, ws_delete_free);
+		create_request(client, NULL, NULL, NULL, NULL, sizeof(struct sock_ev_client_delete), ENVELOPE_REQ_DELETE, ws_delete_free);
 	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");
 	client_delete = (struct sock_ev_client_delete *)(client->cur_request->client_request_data);
 
@@ -296,5 +294,3 @@ finish:
 	}
 	return true;
 }
-
-#endif

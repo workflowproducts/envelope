@@ -1,6 +1,6 @@
 #include "http_export.h"
 
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 
 void http_export_step1(struct sock_ev_client *client) {
 	SDEFINE_VAR_ALL(str_temp1, str_sql, str_query, str_attr_name, str_attr_value);
@@ -109,7 +109,7 @@ void http_export_step1(struct sock_ev_client *client) {
 
 	SDEBUG("str_sql: %s", str_sql);
 
-	client_request = create_request(client, NULL, NULL, NULL, NULL, 0, POSTAGE_REQ_STANDARD, NULL);
+	client_request = create_request(client, NULL, NULL, NULL, NULL, 0, ENVELOPE_REQ_STANDARD, NULL);
 	client->cur_request = client_request;
 	SFINISH_CHECK(client_request != NULL, "Could not create request data!");
 

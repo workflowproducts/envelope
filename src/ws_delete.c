@@ -101,7 +101,7 @@ void ws_delete_step1(struct sock_ev_client_request *client_request) {
 		"", (size_t)0);
 	SFINISH_SNCAT(str_temp_col_list, &int_temp_col_list_len,
 		"", (size_t)0);
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	SFINISH_SNCAT(client_delete->str_insert_column_names, &client_delete->int_insert_column_names_len,
 		str_col_name, int_col_name_len,
 		"", (size_t)0);
@@ -159,7 +159,7 @@ void ws_delete_step1(struct sock_ev_client_request *client_request) {
 					client_delete->str_temp_table_name, client_delete->int_temp_table_name_len,
 					"_hash", (size_t)5);
 			}
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 			SFINISH_SNFCAT(client_delete->str_insert_column_names, &client_delete->int_insert_column_names_len,
 				client_delete->str_temp_table_name, client_delete->int_temp_table_name_len,
 				"_hash", (size_t)5,
@@ -176,7 +176,7 @@ void ws_delete_step1(struct sock_ev_client_request *client_request) {
 				str_col_name, int_col_name_len,
 				" AS ", (size_t)4,
 				str_temp, strlen(str_temp));
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 			SFINISH_SNFCAT(
 				client_delete->str_insert_column_names, &client_delete->int_insert_column_names_len,
 				str_temp, strlen(str_temp),
@@ -257,7 +257,7 @@ void ws_delete_step1(struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(
 			DB_exec(global_loop, client_request->parent->conn, client_request, str_sql, ws_delete_step2), "DB_exec failed");
 	} else {
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 		if (client_delete->str_identity_column_name != NULL) {
 			SFINISH_SNCAT(str_sql, &int_sql_len,
 				"IF OBJECT_ID('tempdb..", (size_t)22,
@@ -336,7 +336,7 @@ finish:
 	}
 	SFREE_ALL();
 }
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 bool ws_delete_step15_sql_server(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_delete *client_delete = (struct sock_ev_client_delete *)(client_request->client_request_data);
@@ -428,7 +428,7 @@ bool ws_delete_step2(EV_P, void *cb_data, DB_result *res) {
 
 	DB_free_result(res);
 // Start copying into temp table
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	SFINISH_SNCAT(str_sql, &int_sql_len,
 		"COPY ", (size_t)5,
 		client_delete->str_temp_table_name, client_delete->int_temp_table_name_len,
@@ -832,7 +832,7 @@ void ws_delete_free(struct sock_ev_client_request_data *client_request_data) {
 	SFREE(client_delete->str_hash_where_clause);
 	SFREE(client_delete->str_real_table_name);
 	SFREE(client_delete->str_temp_table_name);
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	SFREE(client_delete->str_insert_column_names);
 	SFREE(client_delete->str_insert_parameter_markers);
 #endif

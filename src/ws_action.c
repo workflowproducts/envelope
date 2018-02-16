@@ -76,7 +76,7 @@ void ws_action_step1(struct sock_ev_client_request *client_request) {
 		);
 	}
 
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	SFINISH_SNCAT(
 		str_sql, &int_sql_len,
 		"COPY (SELECT ", (size_t)13,

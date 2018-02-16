@@ -45,7 +45,7 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 	SDEBUG("client_request->ptr_query: %s", client_request->ptr_query);
 	SFINISH_ERROR_CHECK(client_insert->str_return_columns != NULL, "Failed to get return columns from query");
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	client_insert->str_return_escaped_columns = get_return_escaped_columns(
 		DB_connection_driver(client_request->parent->conn),
 		client_request->ptr_query, (size_t)(client_request->frame->int_length - (size_t)(client_request->ptr_query - client_request->frame->str_message)),
@@ -127,7 +127,7 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 		"\"", (size_t)1);
 	SFREE(str_temp);
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 
 	SFINISH_SNCAT(client_insert->str_insert_column_names, &client_insert->int_insert_column_names_len,
 		"", (size_t)0);
@@ -238,7 +238,7 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 	SDEBUG("client_insert->str_pk_join_clause : %s", client_insert->str_pk_join_clause);
 	SDEBUG("client_insert->str_pk_where_clause: %s", client_insert->str_pk_where_clause);
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	while (ptr_column_names < ptr_end_column_names) {
 		SDEBUG("ptr_column_names                           : %s", ptr_column_names);
 		int_col_name_len = strncspn(ptr_column_names, (size_t)(ptr_end_column_names - ptr_column_names), "\t\012", (size_t)2);
@@ -294,7 +294,7 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 		SFINISH_CHECK(DB_exec(global_loop, client_request->parent->conn, client_request, str_sql, ws_insert_step2), "DB_exec failed");
 	} else {
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 		if (client_insert->str_identity_column_name != NULL) {
 			SFINISH_SNCAT(str_sql, &int_sql_len,
 				"IF OBJECT_ID('tempdb..", (size_t)22,
@@ -365,7 +365,7 @@ finish:
 	}
 	SFREE_ALL();
 }
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 bool ws_insert_step15_sql_server(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client_request->client_request_data);
@@ -453,7 +453,7 @@ bool ws_insert_step2(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(res->status == DB_RES_COMMAND_OK, "DB_exec failed");
 
 // Start copying into the first temp table
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	SFINISH_SNCAT(str_sql, &int_sql_len,
 		"COPY ", (size_t)5,
 		client_insert->str_temp_table_name, client_insert->int_temp_table_name_len,
@@ -554,7 +554,7 @@ bool ws_insert_step4(EV_P, void *cb_data, DB_result *res) {
 
 		SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 		SFINISH_CHECK(DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_insert_step5), "DB_exec failed");
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	} else {
 		if (client_insert->str_identity_column_name != NULL) {
 			SFINISH_SNCAT(str_sql, &int_sql_len,
@@ -635,7 +635,7 @@ finish:
 	return bol_ret;
 }
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 bool ws_insert_step45_sql_server(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client_request->client_request_data);
@@ -967,7 +967,7 @@ bool ws_insert_step7(EV_P, void *cb_data, DB_result *res) {
 
 	DB_free_result(res);
 
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	SFINISH_SNCAT(str_sql, &int_sql_len,
 		"COPY (SELECT ", (size_t)13,
 		client_insert->str_return_columns, client_insert->int_return_columns_len,
@@ -1060,7 +1060,7 @@ void ws_insert_free(struct sock_ev_client_request_data *client_request_data) {
 		client_insert->darr_insert_queries = NULL;
 	}
 	SFREE(client_insert->str_return_columns);
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	SFREE(client_insert->str_return_escaped_columns);
 	SFREE(client_insert->str_insert_column_names);
 	SFREE(client_insert->str_insert_parameter_markers);

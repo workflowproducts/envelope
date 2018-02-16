@@ -1,6 +1,5 @@
 #include "ws_file.h"
 
-#ifdef ENVELOPE
 static const char *str_date_format = "%Y-%m-%d %H:%M:%S";
 
 struct custom_check_callback {
@@ -56,7 +55,7 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 	*(ptr_query - 1) = 0;
 
 	if (strcmp(str_request_type, "LIST") == 0) {
-		client_file->file_type = POSTAGE_FILE_LIST;
+		client_file->file_type = ENVELOPE_FILE_LIST;
 
 		client_file->str_input_path = ptr_query;
 		/*
@@ -99,7 +98,7 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 		}
 
 	} else if (strcmp(str_request_type, "READ") == 0) {
-		client_file->file_type = POSTAGE_FILE_READ;
+		client_file->file_type = ENVELOPE_FILE_READ;
 		client_file->str_input_path = ptr_query;
 		ptr_query = strstr(client_file->str_input_path, "\012");
 		if (ptr_query != NULL) {
@@ -127,7 +126,7 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 			"permissions_check() failed");
 
 	} else if (strcmp(str_request_type, "WRITE") == 0) {
-		client_file->file_type = POSTAGE_FILE_WRITE;
+		client_file->file_type = ENVELOPE_FILE_WRITE;
 		SNOTICE("FILE WRITE");
 		client_file->ptr_content = strstr(ptr_query, "\012") + 1;
 		SFINISH_SNCAT(
@@ -164,8 +163,8 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 			"permissions_check() failed");
 
 	} else if (strcmp(str_request_type, "MOVE") == 0 || strcmp(str_request_type, "COPY") == 0) {
-		client_file->file_type = strcmp(str_request_type, "MOVE") == 0 ? POSTAGE_FILE_MOVE : POSTAGE_FILE_COPY;
-		SNOTICE("FILE %s", client_file->file_type == POSTAGE_FILE_MOVE ? "MOVE" : "COPY");
+		client_file->file_type = strcmp(str_request_type, "MOVE") == 0 ? ENVELOPE_FILE_MOVE : ENVELOPE_FILE_COPY;
+		SNOTICE("FILE %s", client_file->file_type == ENVELOPE_FILE_MOVE ? "MOVE" : "COPY");
 		str_temp = ptr_query;
 		ptr_query = strstr(str_temp, "\t");
 		SFINISH_CHECK(ptr_query != NULL, "Invalid Request");
@@ -215,7 +214,7 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(access(client_file->str_path_to, F_OK) == -1, "File exists");
 		errno = 0;
 
-		if (client_file->file_type == POSTAGE_FILE_MOVE) {
+		if (client_file->file_type == ENVELOPE_FILE_MOVE) {
 			SDEBUG("client_file->str_path: %s", client_file->str_path);
 			SFINISH_CHECK(permissions_check(global_loop, client_request->parent->conn, client_file->str_input_path,
 							  client_request, ws_file_move_step2),
@@ -228,7 +227,7 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 		}
 
 	} else if (strcmp(str_request_type, "DELETE") == 0) {
-		client_file->file_type = POSTAGE_FILE_DELETE;
+		client_file->file_type = ENVELOPE_FILE_DELETE;
 		SNOTICE("FILE DELETE");
 		SDEBUG("ptr_query: %s", ptr_query);
 		str_temp = ptr_query;
@@ -256,8 +255,8 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 
 	} else if (strcmp(str_request_type, "CREATE_FOLDER") == 0 || strcmp(str_request_type, "CREATE_FILE") == 0) {
 		client_file->file_type =
-			strcmp(str_request_type, "CREATE_FOLDER") == 0 ? POSTAGE_FILE_CREATE_FOLDER : POSTAGE_FILE_CREATE_FILE;
-		SNOTICE("FILE %s", client_file->file_type == POSTAGE_FILE_CREATE_FOLDER ? "CREATE_FOLDER" : "CREATE_FILE");
+			strcmp(str_request_type, "CREATE_FOLDER") == 0 ? ENVELOPE_FILE_CREATE_FOLDER : ENVELOPE_FILE_CREATE_FILE;
+		SNOTICE("FILE %s", client_file->file_type == ENVELOPE_FILE_CREATE_FOLDER ? "CREATE_FOLDER" : "CREATE_FILE");
 		SDEBUG("ptr_query: %s", ptr_query);
 		str_temp = ptr_query;
 		ptr_query = strstr(str_temp, "\012");
@@ -279,7 +278,7 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 			client_file->str_partial_path);
 
 		SDEBUG("client_file->str_path: %s", client_file->str_path);
-		if (client_file->file_type == POSTAGE_FILE_CREATE_FOLDER) {
+		if (client_file->file_type == ENVELOPE_FILE_CREATE_FOLDER) {
 			SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path,
 							  client_request, ws_file_create_step2),
 				"permissions_write_check() failed");
@@ -296,7 +295,7 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 		}
 
 	} else if (strcmp(str_request_type, "SEARCH") == 0) {
-		client_file->file_type = POSTAGE_FILE_SEARCH;
+		client_file->file_type = ENVELOPE_FILE_SEARCH;
 		SNOTICE("FILE SEARCH");
 		SDEBUG("ptr_query: %s", ptr_query);
 		str_temp = ptr_query;
@@ -936,7 +935,7 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 	SFINISH_CHECK(bol_group, "You don't have the necessary permissions for this folder.");
 
 #ifdef _WIN32
-	if (client_file->file_type == POSTAGE_FILE_WRITE) {
+	if (client_file->file_type == ENVELOPE_FILE_WRITE) {
 		SetLastError(0);
 		client_file->h_file =
 			CreateFileA(client_file->str_path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -986,7 +985,7 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 #else
 	SFINISH_SALLOC(statdata, sizeof(struct stat));
 	int int_status = stat(client_file->str_path, statdata);
-	if (client_file->file_type == POSTAGE_FILE_WRITE) {
+	if (client_file->file_type == ENVELOPE_FILE_WRITE) {
 		if (int_status == 0 && client_file->str_change_stamp != NULL && strncmp(client_file->str_change_stamp, "0", 2) != 0) {
 			SFINISH_SALLOC(str_change_stamp, 101);
 			struct tm *tm_change_stamp = localtime(&(statdata->st_mtime));
@@ -1014,7 +1013,7 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 				SFINISH("Someone updated this file before you.");
 			}
 		}
-	} else if (client_file->file_type == POSTAGE_FILE_CREATE_FILE) {
+	} else if (client_file->file_type == ENVELOPE_FILE_CREATE_FILE) {
 		SFINISH_CHECK(int_status != 0, "File already exists.");
 	}
 #endif
@@ -1024,7 +1023,7 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 	client_file->h_file = CreateFileA(client_file->str_path, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (client_file->h_file == INVALID_HANDLE_VALUE) {
 		int int_err = GetLastError();
-		if (int_err == 0x50 && client_file->file_type == POSTAGE_FILE_WRITE) {
+		if (int_err == 0x50 && client_file->file_type == ENVELOPE_FILE_WRITE) {
 			// CreateFileA return "File exists" if you give it CREATE_NEW and it finds
 			// the file already there
 			// In this case, we need to truncate the existing file
@@ -1412,7 +1411,7 @@ bool ws_file_move_step3(EV_P, void *cb_data, bool bol_group) {
 
 	SFINISH_CHECK(bol_group, "You don't have the necessary permissions for this folder.");
 
-	if (client_file->file_type == POSTAGE_FILE_MOVE) {
+	if (client_file->file_type == ENVELOPE_FILE_MOVE) {
 		SFINISH_CHECK(
 			rename(client_file->str_path, client_file->str_path_to) == 0, "rename failed (%d): %s", errno, strerror(errno));
 
@@ -2662,4 +2661,3 @@ void ws_file_free(struct sock_ev_client_request_data *client_request_data) {
 	}
 	SFREE(client_file->str_line);
 }
-#endif

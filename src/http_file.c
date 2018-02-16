@@ -14,9 +14,7 @@ void http_file_step1(struct sock_ev_client *client) {
 	struct sock_ev_client_copy_check *client_copy_check = NULL;
 	struct sock_ev_client_http_file *client_http_file = NULL;
 	SDEFINE_VAR_ALL(str_temp, str_temp1, str_uri_temp, str_canonical_start, str_uri_for_permission_check);
-#ifdef ENVELOPE
 	size_t int_uri_for_permission_check_len = 0;
-#endif
 
 	SFINISH_SALLOC(client_http_file, sizeof(struct sock_ev_client_http_file));
 	client_http_file->parent = client;
@@ -49,73 +47,15 @@ void http_file_step1(struct sock_ev_client *client) {
 	}
 
 	client_http_file->bol_download = false;
-#ifdef ENVELOPE
 	client_http_file->str_uri_part = client_http_file->str_uri;
 	client_http_file->int_uri_part_len = client_http_file->int_uri_len;
 	client_http_file->int_uri_len = 0;
 	client_http_file->str_uri = NULL;
-#else
-	if (isdigit(client_http_file->str_uri[9])) {
-		str_uri_temp = client_http_file->str_uri;
-		str_temp = strchr(str_uri_temp + 9, '/');
-		SFINISH_CHECK(str_temp != NULL, "strchr failed");
-		SFINISH_SNCAT(
-			client_http_file->str_uri, &client_http_file->int_uri_len,
-			"/postage/app", (size_t)12,
-			str_temp, client_http_file->int_uri_len - (size_t)(str_temp - str_uri_temp)
-		);
-		SFREE(str_uri_temp);
-	}
-
-	if (strncmp(client_http_file->str_uri, "/postage/app/download", 21) == 0) {
-		SFINISH_SNCAT(
-			client_http_file->str_uri_part, &client_http_file->int_uri_part_len,
-			client->str_connname_folder, client->int_connname_folder_len,
-			"/", (size_t)1,
-			client->str_username, client->int_username_len,
-			// we need to go past "/postage/app/download"
-			client_http_file->str_uri + 21, client_http_file->int_uri_len - 21
-		);
-		SFREE(client_http_file->str_uri);
-
-		client_http_file->bol_download = true;
-	} else {
-		client_http_file->str_uri_part = client_http_file->str_uri;
-		client_http_file->int_uri_part_len = client_http_file->int_uri_len;
-		client_http_file->int_uri_len = 0;
-		client_http_file->str_uri = NULL;
-
-		// empty url, default to index.html in directories
-		str_temp = canonical(str_global_web_root, client_http_file->str_uri_part, "read_dir");
-		if (strlen(client_http_file->str_uri_part) <= 1 || str_temp != NULL) {
-			if (*(client_http_file->str_uri_part + strlen(client_http_file->str_uri_part) - 1) == '/') {
-				SFINISH_SNFCAT(client_http_file->str_uri_part, &client_http_file->int_uri_part_len, "index.html", (size_t)10);
-			} else {
-				SFINISH_SNFCAT(client_http_file->str_uri_part, &client_http_file->int_uri_part_len, "/index.html", (size_t)10);
-			}
-		}
-		SFREE(str_global_error);
-		SFREE(str_temp);
-	}
-#endif
 
 	str_temp = uri_to_cstr(client_http_file->str_uri_part, &client_http_file->int_uri_part_len);
 	SFREE(client_http_file->str_uri_part);
 	client_http_file->str_uri_part = str_temp;
 	str_temp = NULL;
-
-#ifdef ENVELOPE
-#else
-	if (client_http_file->bol_download) {
-		str_temp1 = client_http_file->str_uri_part;
-		SFINISH_CHECK((client_http_file->str_uri_part = snuri(str_temp1, client_http_file->int_uri_part_len, &client_http_file->int_uri_part_len)) != NULL, "snuri failed");
-		SFREE(str_temp1);
-
-		SFINISH_CHECK(client_http_file->str_uri = canonical(str_global_sql_root, client_http_file->str_uri_part, "valid_path"),
-			"canonical failed");
-	} else {
-#endif
-#ifdef ENVELOPE
 
 	str_uri_temp = client_http_file->str_uri_part;
 	SDEBUG("str_uri_temp: %s", str_uri_temp);
@@ -205,24 +145,14 @@ void http_file_step1(struct sock_ev_client *client) {
 	client_http_file->str_uri = canonical(str_canonical_start, client_http_file->str_uri_part, "valid_path");
 	SFINISH_CHECK(client_http_file->str_uri != NULL, "Bad file path");
 	SFREE(str_canonical_start);
-#else
-		client_http_file->str_uri = canonical(str_global_web_root, client_http_file->str_uri_part, "valid_path");
-		SFINISH_CHECK(client_http_file->str_uri != NULL, "Bad file path");
-#endif
-#ifdef ENVELOPE
-#else
-	}
-#endif
 	SDEBUG("client_http_file->str_uri: %s", client_http_file->str_uri);
 
-#ifdef ENVELOPE
 	if (bol_permission_check == true) {
 		SINFO("client_http_file->str_uri_part: %s", client_http_file->str_uri_part);
 		SFINISH_CHECK(permissions_check(global_loop, client_http_file->parent->conn, str_uri_for_permission_check,
 			client_http_file, http_file_step15_envelope),
 			"permissions_check() failed");
 	} else {
-#endif
 #ifdef _WIN32
 		SetLastError(0);
 		client_http_file->h_file =
@@ -277,9 +207,7 @@ void http_file_step1(struct sock_ev_client *client) {
 		increment_idle(global_loop);
 		ev_check_init(&client_copy_check->check, http_file_step2);
 		ev_check_start(global_loop, &client_copy_check->check);
-#ifdef ENVELOPE
 	}
-#endif
 	bol_error_state = false;
 finish:
 #ifdef _WIN32
@@ -319,7 +247,6 @@ finish:
 	}
 }
 
-#ifdef ENVELOPE
 bool http_file_step15_envelope(EV_P, void *cb_data, bool bol_group) {
 	  // SDEBUG("http_file_step3");
 	struct sock_ev_client_copy_check *client_copy_check = NULL;
@@ -426,7 +353,6 @@ finish:
 	}
 	return true;
 }
-#endif
 
 void http_file_step2(EV_P, ev_check *w, int revents) {
 	if (revents != 0) {

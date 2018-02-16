@@ -24,18 +24,6 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 	str_uri = str_uri_path(client->str_request, client->int_request_len, &int_uri_len);
 	SFINISH_CHECK(str_uri, "str_uri_path failed");
 
-#ifdef ENVELOPE
-#else
-	if (isdigit(str_uri[9])) {
-		char *str_temp = strchr(str_uri + 9, '/');
-		SFINISH_CHECK(str_temp != NULL, "strchr failed");
-		str_uri_temp = str_uri;
-		SFINISH_SNCAT(str_uri, &int_uri_len,
-			"/postage/app", (size_t)12,
-			str_temp, strlen(str_temp));
-		SFREE(str_uri_temp);
-	}
-#endif
 	ptr_end_uri = strchr(str_uri, '?');
 	if (ptr_end_uri != NULL) {
 		*ptr_end_uri = '\0';
@@ -49,20 +37,8 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 
 	SDEBUG("str_uri: %s", str_uri);
 
-#ifdef ENVELOPE
 	if (strncmp(str_uri, "/env/upload", 12) == 0) {
-#else
-	if (strncmp(str_uri, "/postage/app/upload", 22) == 0) {
-#endif
 		http_upload_step1(client);
-#ifdef ENVELOPE
-#else
-#ifdef POSTAGE_INTERFACE_LIBPQ
-	} else if (strncmp(str_uri, "/postage/app/export", 22) == 0) {
-		http_export_step1(client);
-#endif
-#endif
-#ifdef ENVELOPE
 	} else if (strncmp(str_uri, "/env/action_ev", 15) == 0) {
 		http_ev_step1(client);
 	} else if (strncmp(str_uri, "/env/action_select", 19) == 0) {
@@ -74,11 +50,6 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 	} else if (strncmp(str_uri, "/env/action_delete", 19) == 0) {
 		http_delete_step1(client);
 	} else if (strncmp(str_uri, "/env/action_info", 17) == 0) {
-#else
-	} else if (strncmp(str_uri, "/postage/app/action_ev", 23) == 0) {
-		http_ev_step1(client);
-	} else if (strncmp(str_uri, "/postage/app/action_info", 25) == 0) {
-#endif
 		if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
 			SFINISH_SNCAT(str_sql, &int_sql_len,
 				"SELECT version() "
@@ -127,7 +98,6 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 
 		SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, http_client_info_cb), "DB_exec failed");
 
-#ifdef ENVELOPE
 	} else if (strstr(str_uri, "accept_") != NULL || strstr(str_uri, "acceptnc_") != NULL) {
 		char *ptr_dot = strstr(str_uri, ".");
 		if (
@@ -162,7 +132,6 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 		} else {
 			http_file_step1(client);
 		}
-#endif
 	} else {
 		SDEBUG("http_file_step1");
 		http_file_step1(client);
@@ -199,27 +168,12 @@ void http_main(struct sock_ev_client *client) {
 	SDEBUG("http_main %p", client);
 	client->bol_request_in_progress = true;
 	SDEFINE_VAR_ALL(str_uri, str_conninfo);
-#ifdef ENVELOPE
-#else
-	SDEFINE_VAR_MORE(str_full_uri);
-	size_t int_full_uri_len = 0;
-	char *str_uri_temp = NULL;
-#endif
 	char *str_response = NULL;
 	char *ptr_end_uri = NULL;
 	size_t int_uri_len = 0;
-#ifdef ENVELOPE
-#else
-	size_t int_response_len = 0;
-#endif
 	// get path
 	str_uri = str_uri_path(client->str_request, client->int_request_len, &int_uri_len);
 	SFINISH_CHECK(str_uri, "str_uri_path failed");
-
-#ifdef ENVELOPE
-#else
-	SFINISH_SNCAT(str_full_uri, &int_full_uri_len, str_uri, int_uri_len);
-#endif
 
 	ptr_end_uri = strchr(str_uri, '?');
 	if (ptr_end_uri != NULL) {
@@ -237,7 +191,6 @@ void http_main(struct sock_ev_client *client) {
 	SDEBUG("#################################################################################################");
 
 	SDEBUG("str_uri: %s", str_uri);
-#ifdef ENVELOPE
 	if (strncmp(str_uri, "/env/auth", 10) == 0 || strncmp(str_uri, "/env/auth/", 11) == 0) {
 		SDEBUG("str_uri: %s", str_uri);
 
@@ -258,54 +211,6 @@ void http_main(struct sock_ev_client *client) {
 	} else {
 		http_file_step1(client);
 	}
-#else
-	if (strncmp(str_uri, "/postage/", 9) != 0) {
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"HTTP/1.1 303 See Other\015\012Connection: close\015\012Location: /postage", (size_t)61,
-			str_full_uri, int_full_uri_len,
-			"\015\012\015\012", (size_t)4);
-	} else if (strncmp(str_uri, "/postage/auth", 14) == 0) {
-		SDEBUG("str_uri: %s", str_uri);
-
-		struct sock_ev_client_auth *client_auth;
-		SFINISH_SALLOC(client_auth, sizeof(struct sock_ev_client_auth));
-		SDEBUG("client_auth: %p", client_auth);
-		client_auth->parent = client;
-
-		http_auth(client_auth);
-	} else if (strncmp(str_uri, "/postage/", 9) == 0 && isdigit(str_uri[9])) {
-		if (isdigit(str_uri[9])) {
-			str_uri_temp = str_uri;
-			char *str_temp = strchr(str_uri_temp + 9, '/');
-			SFINISH_CHECK(str_temp != NULL, "strchr failed");
-			SFINISH_SNCAT(str_uri, &int_uri_len,
-				"/postage/app", (size_t)12,
-				str_temp, strlen(str_temp));
-			SFREE(str_uri_temp);
-		}
-
-		SDEBUG("str_uri: %s", str_uri);
-
-		//don't check the database connection for file requests (except download)
-		if (strncmp(str_uri, "/postage/app/upload", 22) == 0 ||
-		#ifdef POSTAGE_INTERFACE_LIBPQ
-			strncmp(str_uri, "/postage/app/export", 22) == 0 ||
-		#endif
-			strncmp(str_uri, "/postage/app/action_ev", 23) == 0 ||
-			strncmp(str_uri, "/postage/app/action_info", 25) == 0 ||
-			strncmp(str_uri, "/postage/app/download/", 22) == 0) {
-			// set_cnxn does its own error handling
-			if ((client->conn = set_cnxn(client, http_main_cnxn_cb)) == NULL) {
-				SFINISH_CLIENT_CLOSE(client);
-			}
-			// DEBUG("str_conninfo: %s", str_conninfo);
-		} else {
-			http_file_step1(client);
-		}
-	} else {
-		http_file_step1(client);
-	}
-#endif
 	SDEBUG("str_response: %s", str_response);
 
 finish:

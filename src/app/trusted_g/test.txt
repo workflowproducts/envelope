@@ -1,4 +1,0 @@
-This is a test of the search. (test line #1)
-This is a test of the bran muffin. (test line #2)
-This is a test of the tv. (test line #3)
-This is a test of the envelope. (test line #4)

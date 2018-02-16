@@ -18,21 +18,16 @@
 #include "ws_insert.h"
 #include "ws_select.h"
 #include "ws_update.h"
-#ifdef ENVELOPE
 #include "ws_action.h"
 #include "ws_file.h"
-#else
-#include "../postage/ws_raw.h"
-#include "../postage/ws_tab.h"
-#endif
 #include "common_auth.h"
 #include "common_server.h"
 #include "common_websocket.h"
 
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 /*
 This function will:
-1. get the notices from the client struct (see postage_client.c around line 15)
+1. get the notices from the client struct (see common_client.c around line 15)
 and send them to the client
 2. ask libpq for notify messages and send them to the client
 */

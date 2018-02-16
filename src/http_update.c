@@ -13,7 +13,7 @@ void http_update_step1(struct sock_ev_client *client) {
 	size_t int_temp = 0;
 
 	client->cur_request =
-		create_request(client, NULL, NULL, NULL, NULL, sizeof(struct sock_ev_client_update), POSTAGE_REQ_UPDATE, ws_update_free);
+		create_request(client, NULL, NULL, NULL, NULL, sizeof(struct sock_ev_client_update), ENVELOPE_REQ_UPDATE, ws_update_free);
 	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");
 	client_update = (struct sock_ev_client_update *)(client->cur_request->client_request_data);
 

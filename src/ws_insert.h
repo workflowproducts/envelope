@@ -15,7 +15,7 @@ struct sock_ev_client_insert {
 	char *str_pk_join_clause;
 	char *str_pk_where_clause;
 	char *str_column_names;
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	char *str_return_escaped_columns;
 	char *str_insert_column_names;
 	char *str_insert_parameter_markers;
@@ -74,7 +74,7 @@ This function will:
 */
 void ws_insert_step1(struct sock_ev_client_request *client_request);
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 /*
 This function will drop the identity column we make
 */
@@ -95,7 +95,7 @@ allows us to see the effect of defaults, rules and triggers)
 */
 bool ws_insert_step4(EV_P, void *cb_data, DB_result *res);
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 /*
 This function will drop the identity column we make
 */

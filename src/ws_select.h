@@ -10,7 +10,7 @@ struct sock_ev_client_select {
 
 	char *str_real_table_name;
 	char *str_return_columns;
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	char *str_return_escaped_columns;
 	char *str_sql_escaped_return;
 #endif

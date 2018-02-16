@@ -1,5 +1,3 @@
-#ifdef ENVELOPE
-
 #include "http_select.h"
 
 void http_insert_step1(struct sock_ev_client *client) {
@@ -18,7 +16,7 @@ void http_insert_step1(struct sock_ev_client *client) {
 	size_t int_response_len = 0;
 
 	client->cur_request =
-		create_request(client, NULL, NULL, NULL, NULL, sizeof(struct sock_ev_client_insert), POSTAGE_REQ_INSERT, ws_insert_free);
+		create_request(client, NULL, NULL, NULL, NULL, sizeof(struct sock_ev_client_insert), ENVELOPE_REQ_INSERT, ws_insert_free);
 	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");
 	client_insert = (struct sock_ev_client_insert *)(client->cur_request->client_request_data);
 
@@ -620,5 +618,3 @@ finish:
 	SFREE_ALL();
 	return true;
 }
-
-#endif

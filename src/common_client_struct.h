@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include <ev.h>
 
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 typedef bool (*sock_ev_client_query_callback_function)(EV_P, PGresult *, ExecStatusType, struct sock_ev_client_request *);
 #else
 typedef bool (*sock_ev_client_query_callback_function)(EV_P, void *, int, struct sock_ev_client_request *);
@@ -133,9 +133,7 @@ struct sock_ev_client {
 	bool bol_handshake;
 	bool bol_connected;
 
-#ifdef ENVELOPE
 	bool bol_public;
-#endif
 
 	bool bol_upload;
 	char *str_boundary;
@@ -175,24 +173,20 @@ struct sock_ev_client {
 };
 
 enum {
-	POSTAGE_REQ_SELECT = 0,
-	POSTAGE_REQ_INSERT = 1,
-	POSTAGE_REQ_UPDATE = 2,
-	POSTAGE_REQ_DELETE = 3,
-	POSTAGE_REQ_BEGIN = 4,
-	POSTAGE_REQ_COMMIT = 5,
-	POSTAGE_REQ_ROLLBACK = 6,
-	POSTAGE_REQ_RAW = 7,
-#ifdef ENVELOPE
-	POSTAGE_REQ_FILE = 8,
-#else
-	POSTAGE_REQ_TAB = 8,
-#endif
-	POSTAGE_REQ_INFO = 9,
-	POSTAGE_REQ_ACTION = 10,
-	POSTAGE_REQ_ACCEPT = 11,
-	POSTAGE_REQ_AUTH = 12,
-	POSTAGE_REQ_STANDARD = 13
+	ENVELOPE_REQ_SELECT = 0,
+	ENVELOPE_REQ_INSERT = 1,
+	ENVELOPE_REQ_UPDATE = 2,
+	ENVELOPE_REQ_DELETE = 3,
+	ENVELOPE_REQ_BEGIN = 4,
+	ENVELOPE_REQ_COMMIT = 5,
+	ENVELOPE_REQ_ROLLBACK = 6,
+	ENVELOPE_REQ_RAW = 7,
+	ENVELOPE_REQ_FILE = 8,
+	ENVELOPE_REQ_INFO = 9,
+	ENVELOPE_REQ_ACTION = 10,
+	ENVELOPE_REQ_ACCEPT = 11,
+	ENVELOPE_REQ_AUTH = 12,
+	ENVELOPE_REQ_STANDARD = 13
 };
 
 

@@ -54,7 +54,7 @@ error:
 	SERROR_NORESPONSE("notice_processor failed");
 	bol_error_state = false;
 }
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 void _send_notices(struct sock_ev_client *client) {
 	char str_temp[101] = {0};
 	char *str_temp2 = NULL;
@@ -337,14 +337,8 @@ void client_cb(EV_P, ev_io *w, int revents) {
 	size_t int_response_len = 0;
 	size_t int_uri_length = 0;
 	size_t int_cookie_name_len = 0;
-#ifdef ENVELOPE
-#else
-	size_t int_conn_index_len = 0;
-#endif
 
-#ifdef _WIN32
 	char *str_temp = NULL;
-#endif
 	SDEFINE_VAR_ALL(str_response, str_conninfo, str_query);
 	SDEFINE_VAR_MORE(str_session_id, str_client_cookie, str_session_client_cookie);
 	SDEFINE_VAR_MORE(str_ip_address, str_upper_request, str_conn_index, str_uri_temp);
@@ -523,20 +517,8 @@ void client_cb(EV_P, ev_io *w, int revents) {
 			if (bstrstr(str_upper_request, client->int_request_len, "SEC-WEBSOCKET-KEY", strlen("SEC-WEBSOCKET-KEY")) != NULL) {
 				str_uri_temp = str_uri_path(client->str_request, client->int_request_len, &int_uri_length);
 				SERROR_CHECK(str_uri_temp != NULL, "str_uri_path failed");
-#ifdef ENVELOPE
 				SERROR_SNCAT(client->str_cookie_name, &int_cookie_name_len,
 					"envelope", (size_t)8);
-#else
-				char *ptr_slash = strchr(str_uri_temp + 9, '/');
-				if (ptr_slash != NULL) {
-					*ptr_slash = 0;
-					SERROR_SNCAT(str_conn_index, &int_conn_index_len,
-						str_uri_temp + 9, strlen(str_uri_temp + 9));
-					SERROR_SNCAT(client->str_cookie_name, &int_cookie_name_len,
-						"postage_", (size_t)8,
-						str_conn_index, strlen(str_conn_index));
-				}
-#endif
 
 				SDEBUG("websocket request");
 				size_t int_query_length = 0, int_session_id_length = 0;
@@ -677,24 +659,8 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				}
 
 			} else {
-#ifdef ENVELOPE
 				SERROR_SNCAT(client->str_cookie_name, &int_cookie_name_len,
 					"envelope", (size_t)8);
-#else
-				str_uri_temp = str_uri_path(client->str_request, client->int_request_len, &int_uri_length);
-				SERROR_CHECK(str_uri_temp != NULL, "str_uri_path failed");
-				if (int_uri_length > 8) {
-					char *ptr_slash = strchr(str_uri_temp + 9, '/');
-					if (ptr_slash != NULL) {
-						*ptr_slash = 0;
-						SERROR_SNCAT(str_conn_index, &int_conn_index_len,
-							str_uri_temp + 9, strlen(str_uri_temp + 9));
-						SERROR_SNCAT(client->str_cookie_name, &int_cookie_name_len,
-							"postage_", (size_t)8,
-							str_conn_index, strlen(str_conn_index));
-					}
-				}
-#endif
 				SDEBUG("http request");
 				ev_io_stop(EV_A, &client->io);
 				SBFREE_PWORD(str_upper_request, client->int_request_len);
@@ -756,7 +722,7 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 	size_t int_transaction_id_len = 0;
 	size_t int_first_word_len = 0;
 
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	PGcancel *cancel_request = NULL;
 #endif
 	struct sock_ev_client_copy_check *client_copy_check = NULL;
@@ -890,83 +856,65 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 
 		if (strcmp(str_first_word, "SELECT") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				sizeof(struct sock_ev_client_select), POSTAGE_REQ_SELECT, ws_select_free);
+				sizeof(struct sock_ev_client_select), ENVELOPE_REQ_SELECT, ws_select_free);
 
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 		} else if (strcmp(str_first_word, "INSERT") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				sizeof(struct sock_ev_client_insert), POSTAGE_REQ_INSERT, ws_insert_free);
+				sizeof(struct sock_ev_client_insert), ENVELOPE_REQ_INSERT, ws_insert_free);
 
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 		} else if (strcmp(str_first_word, "UPDATE") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				sizeof(struct sock_ev_client_update), POSTAGE_REQ_UPDATE, ws_update_free);
+				sizeof(struct sock_ev_client_update), ENVELOPE_REQ_UPDATE, ws_update_free);
 
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 		} else if (strcmp(str_first_word, "DELETE") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				sizeof(struct sock_ev_client_delete), POSTAGE_REQ_DELETE, ws_delete_free);
+				sizeof(struct sock_ev_client_delete), ENVELOPE_REQ_DELETE, ws_delete_free);
 
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 		} else if (strcmp(str_first_word, "BEGIN") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				0, POSTAGE_REQ_BEGIN, NULL);
+				0, ENVELOPE_REQ_BEGIN, NULL);
 
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 		} else if (strcmp(str_first_word, "COMMIT") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				0, POSTAGE_REQ_COMMIT, NULL);
+				0, ENVELOPE_REQ_COMMIT, NULL);
 
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
 		} else if (strcmp(str_first_word, "ROLLBACK") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				0, POSTAGE_REQ_ROLLBACK, NULL);
+				0, ENVELOPE_REQ_ROLLBACK, NULL);
 
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
-#ifdef ENVELOPE
-#else
-		} else if (strcmp(str_first_word, "RAW") == 0) {
-			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				sizeof(struct sock_ev_client_raw), POSTAGE_REQ_RAW, ws_raw_free);
-
-			SERROR_CHECK(client_request != NULL, "create_request failed!");
-#endif
-#ifdef ENVELOPE
 		} else if (strcmp(str_first_word, "FILE") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				sizeof(struct sock_ev_client_file), POSTAGE_REQ_FILE, ws_file_free);
+				sizeof(struct sock_ev_client_file), ENVELOPE_REQ_FILE, ws_file_free);
 
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
-#else
-		} else if (strcmp(str_first_word, "TAB") == 0) {
-			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				sizeof(struct sock_ev_client_tab), POSTAGE_REQ_TAB, ws_tab_free);
-
-			SERROR_CHECK(client_request != NULL, "create_request failed!");
-#endif
 
 		} else if (strcmp(str_first_word, "INFO") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				0, POSTAGE_REQ_INFO, NULL);
+				0, ENVELOPE_REQ_INFO, NULL);
 
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
 
-#ifdef ENVELOPE
 		} else if (strcmp(str_first_word, "ACTION") == 0) {
 			client_request = create_request(client, frame, str_message_id, str_transaction_id, ptr_query,
-				0, POSTAGE_REQ_ACTION, NULL);
+				0, ENVELOPE_REQ_ACTION, NULL);
 
 			SERROR_CHECK(client_request != NULL, "create_request failed!");
-#endif
 
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 		} else if (strcmp(str_first_word, "CANCEL") == 0) {
 			int int_ret_val = 0;
 			SINFO("==============================================CANCEL==============================================");
@@ -1018,51 +966,6 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 				}
 
 			}
-#ifdef ENVELOPE
-#else
-			else if (client->cur_request != NULL) {
-				SINFO("cur_request branch");
-				struct sock_ev_client_request *client_request = client->cur_request;
-
-				if (client_request->int_req_type == POSTAGE_REQ_RAW && client_request->client_request_data != NULL) {
-					struct sock_ev_client_raw *client_raw = (struct sock_ev_client_raw *)client_request->client_request_data;
-
-					if (client_raw->copy_check != NULL) {
-						char str_temp[101] = { 0 };
-						client_request->int_response_id += 1;
-						snprintf(str_temp, 100, "%zd", client_request->int_response_id);
-
-						char *_str_response = "TRANSACTION COMPLETED";
-						if (client_request->str_transaction_id != NULL) {
-							SERROR_SNCAT(client_request->str_current_response, &client_request->int_current_response_length,
-								"messageid = ", (size_t)12,
-								client_request->str_message_id, client_request->int_message_id_len,
-								"\012responsenumber = ", (size_t)18,
-								str_temp, strlen(str_temp),
-								"\012transactionid = ", (size_t)17,
-								client_request->str_transaction_id, client_request->int_transaction_id_len,
-								"\012", (size_t)1,
-								_str_response, strlen(_str_response));
-						} else {
-							SERROR_SNCAT(client_request->str_current_response, &client_request->int_current_response_length,
-								"messageid = ", (size_t)12,
-								client_request->str_message_id, client_request->int_message_id_len,
-								"\012responsenumber = ", (size_t)18,
-								str_temp, strlen(str_temp),
-								"\012", (size_t)1,
-								_str_response, strlen(_str_response));
-						}
-
-						int int_status = PQsendQuery(client_request->parent->cnxn, "ROLLBACK");
-						if (int_status != 1) {
-							SERROR_NORESPONSE("Query failed: %s", PQerrorMessage(client_request->parent->cnxn));
-						} else {
-							query_callback(EV_A, client_request, ws_raw_step3);
-						}
-					}
-				}
-			}
-#endif
 
 			WS_freeFrame(frame);
 			SFREE(str_message_id);
@@ -1341,49 +1244,49 @@ void client_request_queue_cb(EV_P, ev_check *w, int revents) {
 		decrement_idle(EV_A);
 
 		switch (client_request->int_req_type) {
-			case POSTAGE_REQ_SELECT:
+			case ENVELOPE_REQ_SELECT:
 				client->bol_request_in_progress = true;
 				ws_select_step1(client_request);
 				break;
-			case POSTAGE_REQ_INSERT:
+			case ENVELOPE_REQ_INSERT:
 				client->bol_request_in_progress = true;
 				ws_insert_step1(client_request);
 				break;
-			case POSTAGE_REQ_UPDATE:
+			case ENVELOPE_REQ_UPDATE:
 				client->bol_request_in_progress = true;
 				ws_update_step1(client_request);
 				break;
-			case POSTAGE_REQ_DELETE:
+			case ENVELOPE_REQ_DELETE:
 				client->bol_request_in_progress = true;
 				ws_delete_step1(client_request);
 				break;
-			case POSTAGE_REQ_BEGIN:
-			case POSTAGE_REQ_COMMIT:
-			case POSTAGE_REQ_ROLLBACK:
+			case ENVELOPE_REQ_BEGIN:
+			case ENVELOPE_REQ_COMMIT:
+			case ENVELOPE_REQ_ROLLBACK:
 				client->bol_request_in_progress = true;
 				client_request->arr_response = DArray_create(sizeof(char *), 1);
 				if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
 					//clang-format off
 					SFINISH_SNCAT(str_query, &int_query_len,
-						client_request->int_req_type == POSTAGE_REQ_BEGIN ? "BEGIN;" :
-						client_request->int_req_type == POSTAGE_REQ_COMMIT ? "COMMIT;" :
-						client_request->int_req_type == POSTAGE_REQ_ROLLBACK ? "ROLLBACK;" : "",
+						client_request->int_req_type == ENVELOPE_REQ_BEGIN ? "BEGIN;" :
+						client_request->int_req_type == ENVELOPE_REQ_COMMIT ? "COMMIT;" :
+						client_request->int_req_type == ENVELOPE_REQ_ROLLBACK ? "ROLLBACK;" : "",
 						strlen(
-							client_request->int_req_type == POSTAGE_REQ_BEGIN ? "BEGIN;" :
-							client_request->int_req_type == POSTAGE_REQ_COMMIT ? "COMMIT;" :
-							client_request->int_req_type == POSTAGE_REQ_ROLLBACK ? "ROLLBACK;" : ""
+							client_request->int_req_type == ENVELOPE_REQ_BEGIN ? "BEGIN;" :
+							client_request->int_req_type == ENVELOPE_REQ_COMMIT ? "COMMIT;" :
+							client_request->int_req_type == ENVELOPE_REQ_ROLLBACK ? "ROLLBACK;" : ""
 						));
 					//clang-format on
 				} else {
 					//clang-format off
 					SFINISH_SNCAT(str_query, &int_query_len,
-						client_request->int_req_type == POSTAGE_REQ_BEGIN ? "BEGIN TRANSACTION;" :
-						client_request->int_req_type == POSTAGE_REQ_COMMIT ? "COMMIT TRANSACTION;" :
-						client_request->int_req_type == POSTAGE_REQ_ROLLBACK ? "ROLLBACK TRANSACTION;" : "",
+						client_request->int_req_type == ENVELOPE_REQ_BEGIN ? "BEGIN TRANSACTION;" :
+						client_request->int_req_type == ENVELOPE_REQ_COMMIT ? "COMMIT TRANSACTION;" :
+						client_request->int_req_type == ENVELOPE_REQ_ROLLBACK ? "ROLLBACK TRANSACTION;" : "",
 						strlen(
-							client_request->int_req_type == POSTAGE_REQ_BEGIN ? "BEGIN TRANSACTION;" :
-							client_request->int_req_type == POSTAGE_REQ_COMMIT ? "COMMIT TRANSACTION;" :
-							client_request->int_req_type == POSTAGE_REQ_ROLLBACK ? "ROLLBACK TRANSACTION;" : ""
+							client_request->int_req_type == ENVELOPE_REQ_BEGIN ? "BEGIN TRANSACTION;" :
+							client_request->int_req_type == ENVELOPE_REQ_COMMIT ? "COMMIT TRANSACTION;" :
+							client_request->int_req_type == ENVELOPE_REQ_ROLLBACK ? "ROLLBACK TRANSACTION;" : ""
 						));
 		  			//clang-format on
 				}
@@ -1395,26 +1298,15 @@ void client_request_queue_cb(EV_P, ev_check *w, int revents) {
 				SFREE(str_query);
 
 				break;
-#ifdef ENVELOPE
-			case POSTAGE_REQ_FILE:
+			case ENVELOPE_REQ_FILE:
 				client->bol_request_in_progress = true;
 				ws_file_step1(client_request);
 				break;
-			case POSTAGE_REQ_ACTION:
+			case ENVELOPE_REQ_ACTION:
 				client->bol_request_in_progress = true;
 				ws_action_step1(client_request);
 				break;
-#else
-			case POSTAGE_REQ_TAB:
-				client->bol_request_in_progress = true;
-				ws_tab_step1(client_request);
-				break;
-			case POSTAGE_REQ_RAW:
-				client->bol_request_in_progress = true;
-				ws_raw_step1(client_request);
-				break;
-#endif
-			case POSTAGE_REQ_INFO:
+			case ENVELOPE_REQ_INFO:
 				client->bol_request_in_progress = true;
 				client_request->arr_response = DArray_create(sizeof(char *), 1);
 
@@ -1503,7 +1395,7 @@ void cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 	} else {
 		client->bol_connected = true;
 
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 		PQsetNoticeProcessor(client->cnxn, notice_processor, client);
 		SERROR_SALLOC(client->notify_watcher, sizeof(struct sock_ev_client_notify_watcher));
 		ev_io_init(&client->notify_watcher->io, client_notify_cb, GET_CLIENT_PQ_SOCKET(client), EV_READ);
@@ -1921,7 +1813,7 @@ error:
 	return false;
 }
 
-#if defined(ENVELOPE) && defined(POSTAGE_INTERFACE_LIBPQ)
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 void client_close_cancel_query_cb(EV_P, ev_io *w, int revents);
 bool client_close_close_cnxn_cb(EV_P, void *cb_data, DB_result *res);
 #endif
@@ -1957,7 +1849,7 @@ void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 			SDEBUG("`client->client_timeout_prepare` == %p", client->client_timeout_prepare);
 		}
 
-#if defined(ENVELOPE) && defined(POSTAGE_INTERFACE_LIBPQ)
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 		if (client->bol_public == false && bol_global_set_user == true) {
 			char *err = DB_cancel_query(client->conn);
 			if (err == NULL) {
@@ -1972,7 +1864,7 @@ void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 		SDEBUG("BEFORE client_close_immediate(%p)", client);
 		client_close_immediate(client);
 		SDEBUG("AFTER  client_close_immediate(%p)", client);
-#if defined(ENVELOPE) && defined(POSTAGE_INTERFACE_LIBPQ)
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 		}
 #endif
 	}
@@ -1980,7 +1872,7 @@ void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 }
 
 
-#if defined(ENVELOPE) && defined(POSTAGE_INTERFACE_LIBPQ)
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 void client_close_cancel_query_cb(EV_P, ev_io *w, int revents) {
 	if (revents != 0) {
 	} // get rid of unused parameter warning

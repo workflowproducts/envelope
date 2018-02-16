@@ -12,7 +12,7 @@ void http_select_step1(struct sock_ev_client *client) {
 	size_t int_response_len = 0;
 
 	client->cur_request =
-		create_request(client, NULL, NULL, NULL, NULL, sizeof(struct sock_ev_client_select), POSTAGE_REQ_SELECT, ws_select_free);
+		create_request(client, NULL, NULL, NULL, NULL, sizeof(struct sock_ev_client_select), ENVELOPE_REQ_SELECT, ws_select_free);
 	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");
 	client_select = (struct sock_ev_client_select *)(client->cur_request->client_request_data);
 	client->cur_request->parent = client;

@@ -11,17 +11,12 @@ bool bol_global_local_only = false;
 
 bool bol_global_super_only = false;
 
-#ifdef ENVELOPE
 size_t int_global_login_timeout = 3600;
-#else
-size_t int_global_login_timeout = 0;
-#endif
 size_t int_global_custom_connection_number = 0;
 uint64_t int_global_session_id = 0;
 
 DArray *darr_global_connection = NULL;
 
-#ifdef ENVELOPE
 char *str_global_public_username = NULL;
 char *str_global_public_password = NULL;
 bool bol_global_set_user = false;
@@ -30,10 +25,6 @@ bool bol_global_allow_origin = false;
 
 char *str_global_app_path = NULL;
 char *str_global_role_path = NULL;
-#else
-bool bol_global_allow_custom_connections = false;
-char *str_global_sql_root = NULL;
-#endif
 
 // size_t int_global_cookie_timeout = 86400;
 char cwd[1024];
@@ -42,7 +33,7 @@ char cwd[1024];
 const char *VERSION =
 #include "../VERSION"
 	;
-char *POSTAGE_PREFIX = NULL;
+char *ENVELOPE_PREFIX = NULL;
 #endif
 
 // clang-format off
@@ -53,7 +44,7 @@ char *POSTAGE_PREFIX = NULL;
 // str_global_app_path					app_path						y							app-path
 // str_global_role_path					role_path						z							role-path
 // str_global_web_root					web_root						r							web-root
-// str_global_port						postage_port OR envelope_port	p							postage-port OR envelope-port
+// str_global_port						envelope_port					p							envelope-port
 // bol_global_local_only				NULL							x							local-only
 // bol_global_super_only				super_only						s							super-only
 // bol_global_allow_custom_connections	allow_custom_connections		n							allow-custom-connections
@@ -88,7 +79,6 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 			SFREE(str_global_login_group);
 		}
 
-#ifdef ENVELOPE
 	} else if (SMATCH("", "app_path")) {
 		SFREE(str_global_app_path);
 		SERROR_SNCAT(str_global_app_path, &int_len,
@@ -112,7 +102,6 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 	} else if (SMATCH("", "allow_origin")) {
 		bol_global_allow_origin = *str_value == 'T' || *str_value == 't';
 
-#endif
 	} else if (SMATCH("", "mode")) {
 #ifdef ENVELOPE_ODBC
 		SFREE(str_global_mode);
@@ -143,12 +132,6 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 		SERROR_SNCAT(str_global_log_level, &int_len,
 			str_value, strlen(str_value));
 
-#ifdef ENVELOPE
-#else
-	} else if (SMATCH("", "allow_custom_connections")) {
-		bol_global_allow_custom_connections = *str_value == 'T' || *str_value == 't';
-#endif
-
 	} else if (SMATCH("", "login_timeout")) {
 		SINFO("str_value: %s", str_value);
 		int_global_login_timeout = (size_t)strtol(str_value, NULL, 10);
@@ -170,29 +153,15 @@ error:
 
 bool exists_connection_info(char *str_connection_name) {
 	struct struct_connection *temp_connection = NULL;
-#ifdef ENVELOPE
 	if (str_connection_name != NULL) {
 	} // get rid of unused parameter warning
 
 	temp_connection = DArray_get(darr_global_connection, 0);
 	return temp_connection != NULL;
-#else
-	size_t i, int_length, int_connection_name_len = strlen(str_connection_name);
-
-	for (i = 0, int_length = DArray_count(darr_global_connection); i < int_length; i++) {
-		temp_connection = DArray_get(darr_global_connection, i);
-		if (strncmp(temp_connection->str_connection_name, str_connection_name, int_connection_name_len + 1) == 0) {
-			return true;
-		}
-	}
-
-	return false;
-#endif
 }
 
 char *get_connection_info(char *str_connection_name, size_t *int_connection_index) {
 	struct struct_connection *temp_connection = NULL;
-#ifdef ENVELOPE
 	if (str_connection_name != NULL) {
 	} // get rid of unused parameter warning
 
@@ -201,46 +170,15 @@ char *get_connection_info(char *str_connection_name, size_t *int_connection_inde
 
 	temp_connection = DArray_get(darr_global_connection, 0);
 	return temp_connection != NULL ? temp_connection->str_connection_info : NULL;
-#else
-	size_t i, int_length, int_connection_name_len = strlen(str_connection_name);
-
-	for (i = 0, int_length = DArray_count(darr_global_connection); i < int_length; i++) {
-		temp_connection = DArray_get(darr_global_connection, i);
-		if (strncmp(temp_connection->str_connection_name, str_connection_name, int_connection_name_len + 1) == 0) {
-			if (int_connection_index != NULL) {
-				*int_connection_index = i;
-			}
-			return temp_connection->str_connection_info;
-		}
-	}
-
-	if (int_connection_index != NULL) {
-		*int_connection_index = 0;
-	}
-	return NULL;
-#endif
 }
 
 char *get_connection_database(char *str_connection_name) {
 	struct struct_connection *temp_connection = NULL;
-#ifdef ENVELOPE
 	if (str_connection_name != NULL) {
 	} // get rid of unused parameter warning
 
 	temp_connection = DArray_get(darr_global_connection, 0);
 	return temp_connection != NULL ? temp_connection->str_connection_database : NULL;
-#else
-	size_t i, int_length, int_connection_name_len = strlen(str_connection_name);
-
-	for (i = 0, int_length = DArray_count(darr_global_connection); i < int_length; i++) {
-		temp_connection = DArray_get(darr_global_connection, i);
-		if (strncmp(temp_connection->str_connection_name, str_connection_name, int_connection_name_len + 1) == 0) {
-			return temp_connection->str_connection_database;
-		}
-	}
-
-	return NULL;
-#endif
 }
 
 bool parse_connection_file() {
@@ -254,12 +192,6 @@ bool parse_connection_file() {
 	size_t int_line_length = 0;
 	ssize_t int_ftell = 0;
 	size_t int_length = 0;
-#ifdef ENVELOPE
-#else
-	size_t int_param_len = 0;
-	size_t int_equals_len = 0;
-	size_t int_temp1_len = 0;
-#endif
 	size_t int_i = 0;
 	size_t int_len = 0;
 	size_t int_chunk_len = 0;
@@ -335,48 +267,8 @@ bool parse_connection_file() {
 					if (isspace(*ptr_temp)) {
 // Do nothing
 
-// Else, we check if it is user or password and
-// remove those (postage only) and keep the others
-#ifdef ENVELOPE
 					} else if (strncmp(ptr_temp, "user", 4) == 0) {
 						bol_global_set_user = true;
-#else
-					} else if (strncmp(ptr_temp, "user", 4) == 0 || strncmp(ptr_temp, "password", 8) == 0 ||
-							   strncmp(ptr_temp, "dbname", 6) == 0) {
-						int_param_len = strcspn(ptr_temp, "=");
-						int_equals_len = int_param_len;
-						do {
-							int_param_len += 1;
-						} while (isspace(ptr_temp[int_param_len]));
-						if (ptr_temp[int_param_len] == '\'') {
-							int_param_len += 1;
-							do {
-								int_param_len += 1;
-							} while (ptr_temp[int_param_len] != '\'' || (ptr_temp[int_param_len - 1] == '\\' && ptr_temp[int_param_len - 2] != '\\'));
-							int_param_len += 1;
-						} else {
-							int_param_len += strcspn(ptr_temp + int_param_len, " ");
-						}
-
-						SDEBUG("ptr_temp: %s, ptr_temp + int_equals_len + 1: %s", ptr_temp, ptr_temp + int_equals_len + 1);
-						if (strncmp(ptr_temp, "dbname", 6) == 0) {
-							SERROR_SALLOC(temp_connection->str_connection_database, int_param_len - int_equals_len);
-							memcpy(temp_connection->str_connection_database, ptr_temp + int_equals_len + 1,
-								int_param_len - (int_equals_len + 1));
-							temp_connection->str_connection_database[int_param_len - (int_equals_len + 1)] = '\0';
-
-							SDEBUG("str_connection_database: %s", temp_connection->str_connection_database);
-						}
-
-						SERROR_SNCAT(str_temp1, &int_temp1_len,
-							ptr_temp + int_param_len, strlen(ptr_temp + int_param_len));
-						memcpy(ptr_temp, str_temp1, (int_line_length - int_i) - int_param_len);
-						SFREE(str_temp1);
-						memset(ptr_temp + ((int_line_length - int_i) - int_param_len), 0, int_param_len);
-
-						int_i += int_param_len;
-
-#endif
 					} else {
 						int_chunk_len = strcspn(ptr_temp, "=");
 						do {
@@ -452,46 +344,45 @@ bool parse_options(int argc, char *const *argv) {
 
 #ifdef _WIN32
 #ifdef _WIN64
-	SERROR_SNCAT(POSTAGE_PREFIX, &int_prefix_len,
+	SERROR_SNCAT(ENVELOPE_PREFIX, &int_prefix_len,
 		"\\Program Files\\Workflow Products", (size_t)32);
 #else
 	BOOL bolWow64 = FALSE;
 	if (IsWow64Process(GetCurrentProcess(), &bolWow64) != FALSE && bolWow64 != FALSE) {
-		SERROR_SNCAT(POSTAGE_PREFIX, &int_prefix_len,
+		SERROR_SNCAT(ENVELOPE_PREFIX, &int_prefix_len,
 			"\\Program Files (x86)\\Workflow Products", (size_t)38);
 	} else {
-		SERROR_SNCAT(POSTAGE_PREFIX, &int_prefix_len,
+		SERROR_SNCAT(ENVELOPE_PREFIX, &int_prefix_len,
 			"\\Program Files\\Workflow Products", (size_t)32);
 	}
 #endif
 #else
-	int_prefix_len = strlen(POSTAGE_PREFIX);
+	int_prefix_len = strlen(ENVELOPE_PREFIX);
 #endif
 
 #ifdef _WIN32
 	SERROR_SNCAT(
 		str_global_config_file, &int_global_len,
-		POSTAGE_PREFIX, int_prefix_len,
+		ENVELOPE_PREFIX, int_prefix_len,
 		"\\" SUN_PROGRAM_WORD_NAME "\\config\\" SUN_PROGRAM_LOWER_NAME ".conf",
 			strlen("\\" SUN_PROGRAM_WORD_NAME "\\config\\" SUN_PROGRAM_LOWER_NAME ".conf"));
 	SERROR_SNCAT(
 		str_global_connection_file, &int_global_len,
-		POSTAGE_PREFIX, int_prefix_len,
+		ENVELOPE_PREFIX, int_prefix_len,
 		"\\" SUN_PROGRAM_WORD_NAME "\\config\\" SUN_PROGRAM_LOWER_NAME "-connections.conf",
 			strlen("\\" SUN_PROGRAM_WORD_NAME "\\config\\" SUN_PROGRAM_LOWER_NAME "-connections.conf"));
 #else
 	SERROR_SNCAT(
 		str_global_config_file, &int_global_len,
-		POSTAGE_PREFIX, int_prefix_len,
+		ENVELOPE_PREFIX, int_prefix_len,
 		"/etc/" SUN_PROGRAM_LOWER_NAME "/" SUN_PROGRAM_LOWER_NAME ".conf",
 			strlen("/etc/" SUN_PROGRAM_LOWER_NAME "/" SUN_PROGRAM_LOWER_NAME ".conf"));
 	SERROR_SNCAT(
 		str_global_connection_file, &int_global_len,
-		POSTAGE_PREFIX, int_prefix_len,
+		ENVELOPE_PREFIX, int_prefix_len,
 		"/etc/" SUN_PROGRAM_LOWER_NAME "/" SUN_PROGRAM_LOWER_NAME "-connections.conf",
 			strlen("/etc/" SUN_PROGRAM_LOWER_NAME "/" SUN_PROGRAM_LOWER_NAME "-connections.conf"));
 #endif
-#ifdef ENVELOPE
 	SERROR_SNCAT(str_global_public_username, &int_global_len,
 		"", (size_t)0);
 	SERROR_SNCAT(str_global_public_password, &int_global_len,
@@ -502,10 +393,6 @@ bool parse_options(int argc, char *const *argv) {
 
 	SERROR_SNCAT(str_global_login_group, &int_global_len,
 		"envelope_g", (size_t)10);
-#else
-	SERROR_SNCAT(str_global_port, &int_global_len,
-		"8080", (size_t)4);
-#endif
 
 	// options descriptor
 	// clang-format off
@@ -515,15 +402,11 @@ bool parse_options(int argc, char *const *argv) {
 		{"config-file",						required_argument,		NULL,	'c'},
 		{"connection-file",					required_argument,		NULL,	'd'},
 		{"login-group",						required_argument,		NULL,	'g'},
-#ifdef ENVELOPE
 		{"app-path",						required_argument,		NULL,	'y'},
 		{"role-path",						required_argument,		NULL,	'z'},
 		{"public-username",					required_argument,		NULL,	'u'},
 		{"public-password",					required_argument,		NULL,	'w'},
 		{"allow-origin",					required_argument,		NULL,	'i'},
-#else
-		{"allow-custom-connections",		required_argument,		NULL,	'n'},
-#endif
 		{"local-only",						required_argument,		NULL,	'x'},
 		{"web-root",						required_argument,		NULL,	'r'},
 		{"data-root",						required_argument,		NULL,	'a'},
@@ -538,11 +421,7 @@ bool parse_options(int argc, char *const *argv) {
 	};
 // clang-format on
 
-#ifdef ENVELOPE
 	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:i:x:r:p:j:k:s:t:l:o:", longopts, NULL)) != -1) {
-#else
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:n:x:r:p:j:k:s:t:l:o:", longopts, NULL)) != -1) {
-#endif
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -566,11 +445,7 @@ bool parse_options(int argc, char *const *argv) {
 	char *str_config_empty = "";
 	ini_parse(str_global_config_file, handler, &str_config_empty);
 
-#ifdef ENVELOPE
 	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:i:x:r:p:j:k:s:t:l:o:", longopts, NULL)) != -1) {
-#else
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:n:x:r:p:j:k:s:t:l:o:", longopts, NULL)) != -1) {
-#endif
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -589,7 +464,6 @@ bool parse_options(int argc, char *const *argv) {
 			SERROR_SNCAT(str_global_login_group, &int_global_len,
 				optarg, strlen(optarg));
 
-#ifdef ENVELOPE
 		} else if (ch == 'y') {
 			SFREE(str_global_app_path);
 			SERROR_SNCAT(str_global_app_path, &int_global_len,
@@ -612,11 +486,6 @@ bool parse_options(int argc, char *const *argv) {
 
 		} else if (ch == 'i') {
 			bol_global_allow_origin = *optarg == 'T' || *optarg == 't';
-#else
-		} else if (ch == 'n') {
-			bol_global_allow_custom_connections = *optarg == 'T' || *optarg == 't';
-
-#endif
 		} else if (ch == 'x') {
 			bol_global_local_only = *optarg == 'T' || *optarg == 't';
 
@@ -662,16 +531,15 @@ bool parse_options(int argc, char *const *argv) {
 
 	char *str_temp = NULL;
 
-#ifdef ENVELOPE
 	if (str_global_app_path == NULL) {
 #ifdef _WIN32
 		SERROR_SNCAT(str_global_app_path, &int_global_len,
-			POSTAGE_PREFIX, int_prefix_len,
+			ENVELOPE_PREFIX, int_prefix_len,
 			"\\" SUN_PROGRAM_WORD_NAME "\\app",
 				strlen("\\" SUN_PROGRAM_WORD_NAME "\\app"));
 #else
 		SERROR_SNCAT(str_global_app_path, &int_global_len,
-			POSTAGE_PREFIX, int_prefix_len,
+			ENVELOPE_PREFIX, int_prefix_len,
 			"/etc/" SUN_PROGRAM_LOWER_NAME "/app",
 				strlen("/etc/" SUN_PROGRAM_LOWER_NAME "/app"));
 #endif //_WIN32
@@ -680,27 +548,26 @@ bool parse_options(int argc, char *const *argv) {
 	if (str_global_role_path == NULL) {
 #ifdef _WIN32
 		SERROR_SNCAT(str_global_role_path, &int_global_len,
-			POSTAGE_PREFIX, int_prefix_len,
+			ENVELOPE_PREFIX, int_prefix_len,
 			"\\" SUN_PROGRAM_WORD_NAME "\\role",
 				strlen("\\" SUN_PROGRAM_WORD_NAME "\\role"));
 #else
 		SERROR_SNCAT(str_global_role_path, &int_global_len,
-			POSTAGE_PREFIX, int_prefix_len,
+			ENVELOPE_PREFIX, int_prefix_len,
 			"/etc/" SUN_PROGRAM_LOWER_NAME "/role",
 				strlen("/etc/" SUN_PROGRAM_LOWER_NAME "/role"));
 #endif //_WIN32
 	}
-#endif // ENVELOPE
 
 	if (str_global_web_root == NULL) {
 #ifdef _WIN32
 		SERROR_SNCAT(str_global_web_root, &int_global_len,
-			POSTAGE_PREFIX, int_prefix_len,
+			ENVELOPE_PREFIX, int_prefix_len,
 			"\\" SUN_PROGRAM_WORD_NAME "\\web_root",
 				strlen("\\" SUN_PROGRAM_WORD_NAME "\\web_root"));
 #else
 		SERROR_SNCAT(str_global_web_root, &int_global_len,
-			POSTAGE_PREFIX, int_prefix_len,
+			ENVELOPE_PREFIX, int_prefix_len,
 			"/etc/" SUN_PROGRAM_LOWER_NAME "/web_root",
 				strlen("/etc/" SUN_PROGRAM_LOWER_NAME "/web_root"));
 #endif //_WIN32
@@ -737,44 +604,6 @@ bool parse_options(int argc, char *const *argv) {
 #endif
 	}
 
-#ifdef ENVELOPE
-#else
-	// If the directory exists this function will error if given "create_dir"
-	//	 but if the directory exists, we don't want the error
-	//	 so we just ignore it
-	str_temp = canonical("", str_global_data_root, "read_dir");
-	if (str_temp == NULL) {
-		str_temp = canonical("", str_global_data_root, "create_dir");
-	}
-	SFREE(str_temp);
-
-	str_temp = canonical("", str_global_data_root, "read_dir");
-	SERROR_CHECK(str_temp != NULL, "canonical failed!");
-	SFREE(str_temp);
-
-	SDEBUG("str_global_sql_root: %s", str_global_sql_root);
-	if (str_global_sql_root == NULL) {
-		size_t int_global_sql_root_len = strlen(str_global_data_root);
-		SERROR_SNCAT(str_global_sql_root, &int_global_len,
-			str_global_data_root, int_global_sql_root_len,
-			str_global_data_root[int_global_sql_root_len - 1] == '/' ? "sql" : "/sql", str_global_data_root[int_global_sql_root_len - 1] == '/' ? 3 : 4
-		);
-	}
-	SDEBUG("str_global_sql_root: %s", str_global_sql_root);
-
-	str_temp = canonical("", str_global_sql_root, "read_dir");
-	if (str_temp == NULL) {
-		str_temp = canonical("", str_global_sql_root, "create_dir");
-	}
-	SFREE(str_temp);
-	str_temp = canonical("", str_global_sql_root, "read_dir");
-	SERROR_CHECK(str_temp != NULL, "canonical failed!");
-	SFREE(str_global_sql_root);
-	str_global_sql_root = str_temp;
-	str_temp = NULL;
-	bol_error_state = false;
-#endif
-
 	// This is because if there is a symoblic link, we want the resolved path
 	SFREE(str_global_data_root);
 	str_global_data_root = str_temp;
@@ -792,7 +621,6 @@ bool parse_options(int argc, char *const *argv) {
 	}
 	SDEBUG("str_global_web_root: %s", str_global_web_root);
 
-#ifdef ENVELOPE
 	if (str_global_app_path[0] != '/' && str_global_app_path[0] != '\\' && str_global_app_path[1] != ':') {
 		SERROR_SNCAT(str_temp, &int_temp_len,
 			cwd, strlen(cwd),
@@ -815,12 +643,11 @@ bool parse_options(int argc, char *const *argv) {
 		str_global_role_path = canonical("", str_temp, "valid_path");
 		SFREE(str_temp);
 	}
-#endif // ENVELOPE
 
 #ifdef _WIN32
 	if (str_global_logfile == NULL) {
 		SERROR_SNCAT(str_global_logfile, &int_global_logfile_len,
-			POSTAGE_PREFIX, int_prefix_len,
+			ENVELOPE_PREFIX, int_prefix_len,
 			"\\" SUN_PROGRAM_WORD_NAME "\\log\\" SUN_PROGRAM_WORD_NAME ".log",
 				strlen("\\" SUN_PROGRAM_WORD_NAME "\\log\\" SUN_PROGRAM_WORD_NAME ".log"));
 	}
@@ -862,12 +689,8 @@ void usage() {
 	printf("\t[-c <config-file>				  \t| --config-file=<config-file>]\012");
 	printf("\t[-d <connection-file>			  \t| --connection-file=<connection-file>]\012");
 	printf("\t[-g <login-group>				  \t| --login-group=<login-group>]\012");
-#ifdef ENVELOPE
 	printf("\t[-y <app-path>					 \t| --app-path=<app-path>]\012");
 	printf("\t[-z <role-path>					\t| --role-path=<role-path>]\012");
-#else
-	printf("\t[-n <allow-custom-connections>	\t| --allow-custom-connections=<allow-custom-connections>]\012");
-#endif
 	printf("\t[-r <web-root>					 \t| --web-root=<web-root>]\012");
 	printf("\t[-p <" SUN_PROGRAM_LOWER_NAME "-port>\t| --" SUN_PROGRAM_LOWER_NAME "-port=<" SUN_PROGRAM_LOWER_NAME "-port>]\012");
 	printf("\t[-j <tls-cert>					 \t| --tls-cert=<tls-cert>]\012");

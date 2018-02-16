@@ -47,7 +47,7 @@ void ws_update_step1(struct sock_ev_client_request *client_request) {
 	);
 	SFINISH_ERROR_CHECK(client_update->str_return_columns != NULL, "Failed to get return columns from query");
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	client_update->str_return_escaped_columns = get_return_escaped_columns(
 		DB_connection_driver(client_request->parent->conn),
 		client_request->ptr_query, (size_t)(client_request->frame->int_length - (size_t)(client_request->ptr_query - client_request->frame->str_message)),
@@ -132,7 +132,7 @@ void ws_update_step1(struct sock_ev_client_request *client_request) {
 		"", (size_t)0);
 	SFINISH_SNCAT(client_update->str_set_col_list, &client_update->int_set_col_list_len,
 		"", (size_t)0);
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	SFINISH_SNCAT(client_update->str_insert_column_names, &client_update->int_insert_column_names_len,
 		"", (size_t)0);
 	SFINISH_SNCAT(client_update->str_insert_parameter_markers, &client_update->int_insert_parameter_markers_len,
@@ -310,7 +310,7 @@ void ws_update_step1(struct sock_ev_client_request *client_request) {
 					"_hash", (size_t)5);
 			}
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 			SFINISH_SNFCAT(client_update->str_insert_column_names, &client_update->int_insert_column_names_len,
 				client_update->str_temp_table_name, client_update->int_temp_table_name_len,
 				"_hash", (size_t)5,
@@ -326,7 +326,7 @@ void ws_update_step1(struct sock_ev_client_request *client_request) {
 				" AS ", (size_t)4,
 				str_temp, int_temp_len);
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 			SFINISH_SNFCAT(client_update->str_insert_column_names, &client_update->int_insert_column_names_len,
 				str_temp, int_temp_len,
 				ptr_pk_header < ptr_pk_header_end ? ", " : "", (size_t)(ptr_pk_header < ptr_pk_header_end ? 2 : 0));
@@ -372,7 +372,7 @@ void ws_update_step1(struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(
 			DB_exec(global_loop, client_request->parent->conn, client_request, str_sql, ws_update_step2), "DB_exec failed");
 	} else {
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 		SDEBUG("client_update->str_insert_column_names: %p", client_update->str_insert_column_names);
 		SDEBUG("client_update->str_insert_column_names: %s", client_update->str_insert_column_names);
 		if (client_update->str_identity_column_name != NULL) {
@@ -455,7 +455,7 @@ finish:
 	}
 	SFREE_ALL();
 }
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 bool ws_update_step15_sql_server(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_update *client_update = (struct sock_ev_client_update *)(client_request->client_request_data);
@@ -544,7 +544,7 @@ bool ws_update_step2(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(res->status == DB_RES_COMMAND_OK, "DB_exec failed");
 
 	// Start copying into temp table
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	SFINISH_SNCAT(str_sql, &int_sql_len,
 		"COPY ", (size_t)5,
 		client_update->str_temp_table_name, client_update->int_temp_table_name_len,
@@ -869,7 +869,7 @@ bool ws_update_step6(EV_P, void *cb_data, DB_result *res) {
 	}
 
 // Start copying into temp table
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	SFINISH_SNCAT(str_sql, &int_sql_len,
 		"COPY (SELECT ", (size_t)13,
 		client_update->str_return_columns, client_update->int_return_columns_len,
@@ -966,7 +966,7 @@ finish:
 void ws_update_free(struct sock_ev_client_request_data *client_request_data) {
 	struct sock_ev_client_update *client_update = (struct sock_ev_client_update *)client_request_data;
 	SFREE(client_update->str_return_columns);
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	SFREE(client_update->str_return_escaped_columns);
 	SFREE(client_update->str_insert_column_names);
 	SFREE(client_update->str_insert_parameter_markers);
