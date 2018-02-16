@@ -1,0 +1,520 @@
+LOG:  database system was shut down at 2018-02-16 12:47:28 EST
+LOG:  MultiXact member wraparound protections are now enabled
+LOG:  database system is ready to accept connections
+LOG:  autovacuum launcher started
+FATAL:  password authentication failed for user "doesntexist"
+DETAIL:  Role "doesntexist" does not exist.
+	Connection matched pg_hba.conf line 86: "host    all             all             127.0.0.1/32            md5"
+FATAL:  password authentication failed for user "test"test"
+DETAIL:  Role "test"test" does not exist.
+	Connection matched pg_hba.conf line 86: "host    all             all             127.0.0.1/32            md5"
+FATAL:  password authentication failed for user "test"tes't2"
+DETAIL:  Role "test"tes't2" does not exist.
+	Connection matched pg_hba.conf line 86: "host    all             all             127.0.0.1/32            md5"
+FATAL:  password authentication failed for user "test"test3"
+DETAIL:  Role "test"test3" does not exist.
+	Connection matched pg_hba.conf line 86: "host    all             all             127.0.0.1/32            md5"
+FATAL:  password authentication failed for user "postgres"
+DETAIL:  Password does not match for user "postgres".
+	Connection matched pg_hba.conf line 86: "host    all             all             127.0.0.1/32            md5"
+FATAL:  password authentication failed for user "postgres"
+DETAIL:  Password does not match for user "postgres".
+	Connection matched pg_hba.conf line 86: "host    all             all             127.0.0.1/32            md5"
+FATAL:  password authentication failed for user "test!@#$%^&*()|<>?,./:+-/*=ƒ©˙∆test"
+DETAIL:  Role "test!@#$%^&*()|<>?,./:+-/*=ƒ©˙∆test" does not exist.
+	Connection matched pg_hba.conf line 86: "host    all             all             127.0.0.1/32            md5"
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  column rtesting_table.test_full does not exist at character 61
+STATEMENT:  SELECT "rtesting_table"."id", "rtesting_table"."test_name", "rtesting_table"."test_full"
+	   FROM "rtesting_table"
+	ORDER BY id DESC
+	
+ERROR:  zero-length delimited identifier at or near """" at character 18
+STATEMENT:  SELECT *
+	   FROM ""
+	ORDER BY 1 ASC
+	LIMIT 10
+	
+ERROR:  relation "id" does not exist
+STATEMENT:  INSERT INTO temp_insert_2 ("id", "test_name")
+	SELECT "rtesting_table"."id", "rtesting_table"."test_name"
+	       FROM "rtesting_table"       WHERE "rtesting_table"."id" = currval('id'::name::regclass);
+	
+	
+ERROR:  zero-length delimited identifier at or near """" at character 25
+STATEMENT:  SELECT "rtesting_table".""
+	   FROM "rtesting_table"
+	ORDER BY 1 ASC
+	LIMIT 10
+	
+ERROR:  cannot insert into view "ttesting_view"
+DETAIL:  Views that do not select from a single table or view are not automatically updatable.
+HINT:  To enable inserting into the view, provide an INSTEAD OF INSERT trigger or an unconditional ON INSERT DO INSTEAD rule.
+STATEMENT:  INSERT INTO "ttesting_view" ("id","test_name")
+	SELECT "id","test_name"
+	       FROM temp_insert
+	       LIMIT 1
+	       OFFSET 0;
+	
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  zero-length delimited identifier at or near """" at character 25
+STATEMENT:  SELECT "rtesting_table".""
+	   FROM "rtesting_table"
+	ORDER BY 1 ASC
+	LIMIT 10
+	
+ERROR:  zero-length delimited identifier at or near """" at character 25
+STATEMENT:  SELECT "rtesting_table".""
+	   FROM "rtesting_table"
+	ORDER BY 1 ASC
+	LIMIT 10
+	
+ERROR:  column rtesting_table.tes_name does not exist at character 37
+HINT:  Perhaps you meant to reference the column "rtesting_table.test_name".
+STATEMENT:  COPY (SELECT "rtesting_table"."id", "rtesting_table"."tes_name" FROM "rtesting_table" LEFT JOIN temp_update ON temp_update."pk_id" IS NOT DISTINCT FROM "rtesting_table"."id" WHERE "rtesting_table"."id" = ANY(array(SELECT temp_update."pk_id" FROM temp_update))) TO STDOUT;
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  zero-length delimited identifier at or near """" at character 78
+STATEMENT:  CREATE TEMP TABLE temp_insert ON COMMIT DROP AS
+	SELECT "id","test_name" FROM "" LIMIT 0;
+ERROR:  cannot update view "ttesting_view"
+DETAIL:  Views that do not select from a single table or view are not automatically updatable.
+HINT:  To enable updating the view, provide an INSTEAD OF UPDATE trigger or an unconditional ON UPDATE DO INSTEAD rule.
+STATEMENT:  UPDATE "ttesting_view" SET "test_name" = temp_update."set_test_name" FROM temp_update WHERE temp_update."pk_id" IS NOT DISTINCT FROM "ttesting_view"."id" AND "ttesting_view"."id" = ANY(array(SELECT temp_update."pk_id" FROM temp_update));
+ERROR:  cannot delete from view "ttesting_view"
+DETAIL:  Views that do not select from a single table or view are not automatically updatable.
+HINT:  To enable deleting from the view, provide an INSTEAD OF DELETE trigger or an unconditional ON DELETE DO INSTEAD rule.
+STATEMENT:  DELETE FROM "ttesting_view" USING temp_delete WHERE temp_delete."pk_id" IS NOT DISTINCT FROM "ttesting_view"."id";
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  zero-length delimited identifier at or near """" at character 75
+STATEMENT:  CREATE TEMP TABLE temp_insert_2 ON COMMIT DROP AS
+	SELECT "rtesting_table"."" FROM "rtesting_table" LIMIT 0;
+ERROR:  relation "ttest@XXX.tpaste" does not exist at character 77
+STATEMENT:  CREATE TEMP TABLE temp_delete ON COMMIT DROP AS SELECT "id" AS "pk_id" FROM "ttest@XXX"."tpaste" LIMIT 0;
+ERROR:  relation "public.tpaste@XXX" does not exist at character 77
+STATEMENT:  CREATE TEMP TABLE temp_delete ON COMMIT DROP AS SELECT "id" AS "pk_id" FROM "public"."tpaste@XXX" LIMIT 0;
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  column "tes" does not exist at character 219
+STATEMENT:  SELECT count(*), sum(CASE WHEN temp_delete_hash = MD5(replace(replace(replace(replace(COALESCE("id"::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r') || '	' || replace(replace(replace(replace(COALESCE("tes"::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r')) THEN 1 ELSE 0 END) FROM temp_delete INNER JOIN "public"."rtesting_table" ON temp_delete."pk_id" IS NOT DISTINCT FROM "public"."rtesting_table"."id";
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  zero-length delimited identifier at or near """" at character 219
+STATEMENT:  SELECT count(*), sum(CASE WHEN temp_delete_hash = MD5(replace(replace(replace(replace(COALESCE("id"::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r') || '	' || replace(replace(replace(replace(COALESCE(""::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r') || '	' || replace(replace(replace(replace(COALESCE("test_name"::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r')) THEN 1 ELSE 0 END) FROM temp_delete INNER JOIN "public"."rtesting_table" ON temp_delete."pk_id" IS NOT DISTINCT FROM "public"."rtesting_table"."id";
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  extra data after last expected column
+CONTEXT:  COPY temp_update, line 1: "1741332	test	test"
+STATEMENT:  COPY temp_update FROM STDIN;
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  missing data for column "set_id"
+CONTEXT:  COPY temp_update, line 1: "1741332	test"
+STATEMENT:  COPY temp_update FROM STDIN;
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  column "iπd" does not exist at character 56
+HINT:  Perhaps you meant to reference the column "rtesting_table.id".
+STATEMENT:  CREATE TEMP TABLE temp_insert ON COMMIT DROP AS
+	SELECT "iπd","test_name" FROM "rtesting_table" LIMIT 0;
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  column "2741331" does not exist at character 56
+STATEMENT:  CREATE TEMP TABLE temp_delete ON COMMIT DROP AS SELECT "2741331" AS "pk_2741331", ''::text AS temp_delete_hash FROM "public"."rtesting_table" LIMIT 0;
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  column "iπd" does not exist at character 56
+HINT:  Perhaps you meant to reference the column "rtesting_table.id".
+STATEMENT:  CREATE TEMP TABLE temp_insert ON COMMIT DROP AS
+	SELECT "iπd","test_name" FROM "rtesting_table" LIMIT 0;
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  column rtesting_table.testset does not exist at character 67
+HINT:  Perhaps you meant to reference the column "rtesting_table.test@test".
+STATEMENT:  COPY (SELECT "rtesting_table"."id", "rtesting_table"."test_name", "rtesting_table"."testset" FROM "rtesting_table" LEFT JOIN temp_update ON temp_update."pk_id" IS NOT DISTINCT FROM "rtesting_table"."id" WHERE "rtesting_table"."id" = ANY(array(SELECT temp_update."pk_id" FROM temp_update))) TO STDOUT;
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  column "testset" does not exist at character 105
+HINT:  Perhaps you meant to reference the column "rtesting_table.test@test".
+STATEMENT:  CREATE TEMP TABLE temp_update ON COMMIT DROP AS SELECT "id" AS "pk_id", "test_name" AS "set_test_name", "testset" AS "set_testset" FROM "rtesting_table" LIMIT 0;
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  invalid input syntax for integer: "test"
+CONTEXT:  COPY temp_update, line 2, column pk_id: "test"
+STATEMENT:  COPY temp_update FROM STDIN;
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  invalid input syntax for integer: "test"
+CONTEXT:  COPY temp_update, line 2, column pk_id: "test"
+STATEMENT:  COPY temp_update FROM STDIN;
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  cannot delete from view "ttesting_view"
+DETAIL:  Views that do not select from a single table or view are not automatically updatable.
+HINT:  To enable deleting from the view, provide an INSTEAD OF DELETE trigger or an unconditional ON DELETE DO INSTEAD rule.
+STATEMENT:  DELETE FROM "ttesting_view" USING temp_delete WHERE temp_delete."pk_id" IS NOT DISTINCT FROM "ttesting_view"."id";
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  relation "ttest@XXX.tpaste" does not exist at character 77
+STATEMENT:  CREATE TEMP TABLE temp_delete ON COMMIT DROP AS SELECT "id" AS "pk_id" FROM "ttest@XXX"."tpaste" LIMIT 0;
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  relation "public.tpaste@XXX" does not exist at character 77
+STATEMENT:  CREATE TEMP TABLE temp_delete ON COMMIT DROP AS SELECT "id" AS "pk_id" FROM "public"."tpaste@XXX" LIMIT 0;
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  column "tes" does not exist at character 219
+STATEMENT:  SELECT count(*), sum(CASE WHEN temp_delete_hash = MD5(replace(replace(replace(replace(COALESCE("id"::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r') || '	' || replace(replace(replace(replace(COALESCE("tes"::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r')) THEN 1 ELSE 0 END) FROM temp_delete INNER JOIN "public"."rtesting_table" ON temp_delete."pk_id" IS NOT DISTINCT FROM "public"."rtesting_table"."id";
+ERROR:  zero-length delimited identifier at or near """" at character 219
+STATEMENT:  SELECT count(*), sum(CASE WHEN temp_delete_hash = MD5(replace(replace(replace(replace(COALESCE("id"::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r') || '	' || replace(replace(replace(replace(COALESCE(""::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r') || '	' || replace(replace(replace(replace(COALESCE("test_name"::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r')) THEN 1 ELSE 0 END) FROM temp_delete INNER JOIN "public"."rtesting_table" ON temp_delete."pk_id" IS NOT DISTINCT FROM "public"."rtesting_table"."id";
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  column "2741331" does not exist at character 56
+STATEMENT:  CREATE TEMP TABLE temp_delete ON COMMIT DROP AS SELECT "2741331" AS "pk_2741331", ''::text AS temp_delete_hash FROM "public"."rtesting_table" LIMIT 0;
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  cannot delete from view "ttesting_view"
+DETAIL:  Views that do not select from a single table or view are not automatically updatable.
+HINT:  To enable deleting from the view, provide an INSTEAD OF DELETE trigger or an unconditional ON DELETE DO INSTEAD rule.
+STATEMENT:  DELETE FROM "ttesting_view" USING temp_delete WHERE temp_delete."pk_id" IS NOT DISTINCT FROM "ttesting_view"."id";
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  relation "ttest@XXX.tpaste" does not exist at character 77
+STATEMENT:  CREATE TEMP TABLE temp_delete ON COMMIT DROP AS SELECT "id" AS "pk_id" FROM "ttest@XXX"."tpaste" LIMIT 0;
+ERROR:  relation "public.tpaste@XXX" does not exist at character 77
+STATEMENT:  CREATE TEMP TABLE temp_delete ON COMMIT DROP AS SELECT "id" AS "pk_id" FROM "public"."tpaste@XXX" LIMIT 0;
+ERROR:  function public.actionnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.actionnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  column "tes" does not exist at character 219
+STATEMENT:  SELECT count(*), sum(CASE WHEN temp_delete_hash = MD5(replace(replace(replace(replace(COALESCE("id"::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r') || '	' || replace(replace(replace(replace(COALESCE("tes"::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r')) THEN 1 ELSE 0 END) FROM temp_delete INNER JOIN "public"."rtesting_table" ON temp_delete."pk_id" IS NOT DISTINCT FROM "public"."rtesting_table"."id";
+ERROR:  zero-length delimited identifier at or near """" at character 219
+STATEMENT:  SELECT count(*), sum(CASE WHEN temp_delete_hash = MD5(replace(replace(replace(replace(COALESCE("id"::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r') || '	' || replace(replace(replace(replace(COALESCE(""::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r') || '	' || replace(replace(replace(replace(COALESCE("test_name"::text, ''), '\', '\\'), '	', '\t'), chr(10), '\n'), chr(13), '\r')) THEN 1 ELSE 0 END) FROM temp_delete INNER JOIN "public"."rtesting_table" ON temp_delete."pk_id" IS NOT DISTINCT FROM "public"."rtesting_table"."id";
+ERROR:  function public.accept_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.accept_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.acceptnc_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.acceptnc_testing1('testingnitset');
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+ERROR:  function public.action_testing1(unknown) does not exist at character 8
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  SELECT public.action_testing1('testingnitset');
+ERROR:  column "2741331" does not exist at character 56
+STATEMENT:  CREATE TEMP TABLE temp_delete ON COMMIT DROP AS SELECT "2741331" AS "pk_2741331", ''::text AS temp_delete_hash FROM "public"."rtesting_table" LIMIT 0;
+ERROR:  function public.action_testing1(unknown) does not exist at character 14
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+STATEMENT:  COPY (SELECT "public"."action_testing1"('testingnitset')) TO STDOUT;
+FATAL:  remaining connection slots are reserved for non-replication superuser connections
+LOG:  received fast shutdown request
+LOG:  aborting any active transactions
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+FATAL:  terminating connection due to administrator command
+LOG:  autovacuum launcher shutting down
+LOG:  shutting down
+LOG:  database system is shut down

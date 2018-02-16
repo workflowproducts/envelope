@@ -1,44 +1,44 @@
 .PHONY: test test-ssl lldb lldb-ssl gdb gdb-ssl valgrind valgrind-ssl destroy check
 
 all:
-	@$(MAKE) --no-print-directory -C envelope all
+	@$(MAKE) --no-print-directory -C src all
 
 test-common:
-	@$(MAKE) --no-print-directory -C envelope test-common
+	@$(MAKE) --no-print-directory -C src test-common
 
 test:
-	@$(MAKE) --no-print-directory -C envelope test
+	@$(MAKE) --no-print-directory -C src test
 
 test-ssl:
-	@$(MAKE) --no-print-directory -C envelope test-ssl
+	@$(MAKE) --no-print-directory -C src test-ssl
 
 lldb:
-	@$(MAKE) --no-print-directory -C envelope lldb
+	@$(MAKE) --no-print-directory -C src lldb
 
 lldb-ssl:
-	@$(MAKE) --no-print-directory -C envelope lldb-ssl
+	@$(MAKE) --no-print-directory -C src lldb-ssl
 
 gdb:
-	@$(MAKE) --no-print-directory -C envelope gdb
+	@$(MAKE) --no-print-directory -C src gdb
 
 gdb-ssl:
-	@$(MAKE) --no-print-directory -C envelope gdb-ssl
+	@$(MAKE) --no-print-directory -C src gdb-ssl
 
 valgrind:
-	@$(MAKE) --no-print-directory -C envelope valgrind
+	@$(MAKE) --no-print-directory -C src valgrind
 
 valgrind-ssl:
-	@$(MAKE) --no-print-directory -C envelope valgrind-ssl
+	@$(MAKE) --no-print-directory -C src valgrind-ssl
 
 install:
-	@$(MAKE) --no-print-directory -C envelope install
+	@$(MAKE) --no-print-directory -C src install
 
 uninstall:
-	@$(MAKE) --no-print-directory -C envelope uninstall
+	@$(MAKE) --no-print-directory -C src uninstall
 
 destroy:
-	@$(MAKE) --no-print-directory -C envelope destroy
+	@$(MAKE) --no-print-directory -C src destroy
 
 clean:
-	@$(MAKE) --no-print-directory -C envelope clean
+	@$(MAKE) --no-print-directory -C src clean
 

@@ -5,10 +5,10 @@
 #include <winsock2.h>
 #endif
 
-#include "../util/util_darray.h"
-#include "../util/util_idle.h"
-#include "../util/util_salloc.h"
-#include "../util/util_string.h"
+#include "../src/util_darray.h"
+#include "../src/util_idle.h"
+#include "../src/util_salloc.h"
+#include "../src/util_string.h"
 #include <ev.h>
 #include <libpq-fe.h>
 #include <stdbool.h>

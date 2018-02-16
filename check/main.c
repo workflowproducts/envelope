@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "util/util_string.h"
+#include "util_string.h"
 
 int main(int argc, char *const *argv) {
 	char *str_return = NULL;
