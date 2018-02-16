@@ -68,7 +68,7 @@ void _WS_readFrame(EV_P, struct sock_ev_client *client, void (*cb)(EV_P, WSFrame
 	ev_io_stop(EV_A, &client->io);
 
 	Queue_send(client->que_message, client_message);
-	ev_io_init(&client_message->io, WS_readFrame_step2, client->int_sock, EV_READ);
+	ev_io_init(&client_message->io, WS_readFrame_step2, client->int_ev_sock, EV_READ);
 	ev_io_start(EV_A, &client_message->io);
 	//SDEBUG("client->str_request: %s", client->str_request);
 
@@ -260,6 +260,10 @@ void WS_readFrame_step2(EV_P, ev_io *w, int revents) {
 
 error:
 	SFREE(buf);
+	SDEBUG("frame->parent: %p", frame->parent);
+	SDEBUG("client_message->int_ioctl_count: %d", client_message->int_ioctl_count);
+	SDEBUG("int_request_len: %d", int_request_len);
+	SDEBUG("errno: %d", errno);
 
 	if (int_request_len < 0 && errno != EAGAIN) {
 		SERROR_NORESPONSE("disconnect");
@@ -282,7 +286,7 @@ error:
 		bol_error_state = false;
 		errno = 0;
 
-	} else if (int_request_len == 0 && errno != 0) {
+	} else if (int_request_len == 0 && (errno != 0 || client_message->int_ioctl_count > 100)) {
 		SERROR_NORESPONSE("int_request_len == 0, errno = %d", errno);//" disconnecting");
 		SFREE(str_global_error);
 
@@ -363,7 +367,7 @@ bool WS_sendFrame(EV_P, struct sock_ev_client *client, bool bol_fin, int8_t int_
 	str_response = NULL;
 
 	Queue_send(client->que_message, client_message);
-	ev_io_init(&client_message->io, WS_sendFrame_step2, client->int_sock, EV_WRITE);
+	ev_io_init(&client_message->io, WS_sendFrame_step2, client->int_ev_sock, EV_WRITE);
 	ev_io_start(EV_A, &client_message->io);
 	SDEBUG("waiting for writable on client %p", client);
 

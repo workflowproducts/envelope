@@ -234,7 +234,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 
 	client_copy_check->int_response_len = (ssize_t)int_response_len;
 
-	ev_io_init(&client_copy_io->io, http_ev_step2, client->int_sock, EV_WRITE);
+	ev_io_init(&client_copy_io->io, http_ev_step2, client->int_ev_sock, EV_WRITE);
 	ev_io_start(global_loop, &client_copy_io->io);
 
 	bol_error_state = false;

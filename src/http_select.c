@@ -560,7 +560,7 @@ void http_select_step4(EV_P, ev_check *w, int revents) {
 
 		ev_check_stop(EV_A, w);
 		decrement_idle(EV_A);
-		ev_io_init(&client_copy_io->io, http_select_step5, client_request->parent->int_sock, EV_WRITE);
+		ev_io_init(&client_copy_io->io, http_select_step5, client_request->parent->int_ev_sock, EV_WRITE);
 		ev_io_start(EV_A, &client_copy_io->io);
 
 		client_copy_io->client_copy_check = client_copy_check;

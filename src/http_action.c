@@ -161,7 +161,7 @@ bool http_action_step2(EV_P, void *cb_data, DB_result *res) {
 
 	client_copy_io->client_copy_check = client_copy_check;
 
-	ev_io_init(&client_copy_io->io, http_action_step3, client->int_sock, EV_WRITE);
+	ev_io_init(&client_copy_io->io, http_action_step3, client->int_ev_sock, EV_WRITE);
 	ev_io_start(EV_A, &client_copy_io->io);
 
 	bol_error_state = false;

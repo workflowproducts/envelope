@@ -20,10 +20,7 @@ struct sock_ev_client_query_callback_watcher {
 
 #define cnxn conn->conn
 
-#ifdef _WIN32
-#undef close
-#define close _close
-#else
+#ifndef _WIN32
 #ifndef SOCKET
 #define UNDEF_SOCKET
 #define SOCKET int
@@ -147,6 +144,7 @@ struct sock_ev_client {
 	char *str_request;
 	char *str_response;
 
+	int int_ev_sock;
 	SOCKET int_sock;
 	struct sock_ev_serv *server;
 

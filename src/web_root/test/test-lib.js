@@ -162,6 +162,7 @@ var $ = {
                     data = data.replace(/\.\.\\\.\.\\/gi, '../');
                     data = data.replace(/\\(?![rnt])/gi, '/');
 					data = data.replace(' (0x0000274D/10061)', '');
+                    data = data.replace(/\.\.\/src\//gi, '');
                 }
 
                 if (strExpectedOutput === data && intStatusCode === ajax.status) {
@@ -305,9 +306,10 @@ var $ = {
 					data = data.replace(/\\test/g, '/test');
 	                data = data.replace(/\/\//g, '\\\\');
 	                data = data.replace('CreateFile failed: 0x50 (The file exists.\r\n)', 'File already exists.');
-                    data = data.replace(/\.\.\/src\/app/gi, '/home/super/Repos/envelope/envelope/app');
-                    data = data.replace(/\.\.\/src\/role/gi, '/home/super/Repos/envelope/envelope/role');
-                    data = data.replace(/\.\.\/src\/web_root/gi, '/home/super/Repos/envelope/envelope/web_root');
+                    data = data.replace(/\.\.\/src\/app/gi, '/home/super/Repos/envelope/src/app');
+                    data = data.replace(/\.\.\/src\/role/gi, '/home/super/Repos/envelope/src/role');
+                    data = data.replace(/\.\.\/src\/web_root/gi, '/home/super/Repos/envelope/src/web_root');
+                    data = data.replace(/\.\.\/src\//gi, '');
                     data = data.replace('C:', '');
 				}
                 arrStrActualOutput.push(data.replace(/transactionid = .*\n/gim, ''));

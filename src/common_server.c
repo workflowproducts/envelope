@@ -91,7 +91,13 @@ void server_cb(EV_P, ev_io *w, int revents) {
 
 		setnonblock(client->int_sock);
 
-		ev_io_init(&client->io, client_cb, client->int_sock, EV_READ);
+#ifdef _WIN32
+		client->int_ev_sock = _open_osfhandle(int_client_sock, 0);
+		SERROR_CHECK(client->int_ev_sock != -1, "_open_osfhandle failed");
+#else
+		client->int_ev_sock = int_client_sock;
+#endif
+		ev_io_init(&client->io, client_cb, client->int_ev_sock, EV_READ);
 		ev_io_start(EV_A, &client->io);
 		client = NULL;
 	}
