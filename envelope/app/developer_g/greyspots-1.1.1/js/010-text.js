@@ -202,7 +202,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // re-target blur event from control to element
     function blurFunction(event) {
-        console.trace('blur');
         var element = event.target.parentNode;
         GS.triggerEvent(event.target.parentNode, 'blur');
         event.target.parentNode.classList.remove('focus');

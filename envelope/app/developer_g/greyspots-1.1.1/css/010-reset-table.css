@@ -59,12 +59,12 @@ table tr[bg-primary],
 table td[bg-primary],
 table th[bg-primary] {
 	color:#fff !important;
-	background-color:#337ab7 !important;
+	background-color:#2828b9 /*337ab7*/ !important;
 }
 
 table a[bg-primary]:focus,
 table a[bg-primary]:hover {
-	background-color:#286090 !important;
+	background-color:#151599 /*286090*/ !important;
 }
 
 table thead[bg-success],
@@ -72,12 +72,12 @@ table tbody[bg-success],
 table tr[bg-success],
 table td[bg-success],
 table th[bg-success] {
-	background-color:#dff0d8 !important;
+	background-color:#246424 !important;
 }
 
 table a[bg-success]:focus,
 table a[bg-success]:hover {
-	background-color:#c1e2b3 !important;
+	background-color:#114C11 !important;
 }
 
 table thead[bg-info],
@@ -85,12 +85,12 @@ table tbody[bg-info],
 table tr[bg-info],
 table td[bg-info],
 table th[bg-info] {
-	background-color:#d9edf7 !important;
+	background-color:#005f7d !important;
 }
 
 table a[bg-info]:focus,
 table a[bg-info]:hover {
-	background-color:#afd9ee !important;
+	background-color:#004A62 !important;
 }
 
 table thead[bg-warning],
@@ -98,12 +98,12 @@ table tbody[bg-warning],
 table tr[bg-warning],
 table td[bg-warning],
 table th[bg-warning] {
-	background-color:#fcf8e3 !important;
+	background-color:#605918 !important;
 }
 
 table a[bg-warning]:focus,
 table a[bg-warning]:hover {
-	background-color:#f7ecb5 !important;
+	background-color:#403A07 !important;
 }
 
 table thead[bg-danger],
@@ -111,12 +111,12 @@ table tbody[bg-danger],
 table tr[bg-danger],
 table td[bg-danger],
 table th[bg-danger] {
-	background-color:#f2dede !important;
+	background-color:#b30500 !important;
 }
 
 table a[bg-danger]:focus,
 table a[bg-danger]:hover {
-	background-color:#e4b9b9 !important;
+	background-color:#910400 !important;
 }
 
 

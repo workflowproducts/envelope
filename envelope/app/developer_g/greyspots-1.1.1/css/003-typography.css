@@ -110,7 +110,7 @@ p {
 /* Mark Text */
 .mark, mark {
     padding: 0.2em;
-    background-color: #FCF8E3;
+    background-color: #605918;
 }
 mark {
     color: #000;
@@ -193,27 +193,27 @@ hr {}
 }
 
 [txt-primary]{
-	color:#337ab7
+	color:#2828b9
 }
 
 a[txt-primary]:focus,a[txt-primary]:hover{
-	color:#286090
+	color:#151599
 }
 
 [txt-success]{
-	color:#3c763d
+	color:#246424
 }
 
 a[txt-success]:focus,a[txt-success]:hover{
-	color:#2b542c
+	color:#114C11
 }
 
 [txt-info]{
-	color:#31708f
+	color:#005f7d
 }
 
 a[txt-info]:focus,a[txt-info]:hover{
-	color:#245269
+	color:#004A62
 }
 
 [txt-warning]{
@@ -235,43 +235,43 @@ a[txt-danger]:focus,a[txt-danger]:hover{
 /* Background Colors */
 [bg-primary]{
 	color:#fff;
-	background-color:#337ab7
+	background-color:#2828b9
 }
 
 a[bg-primary]:focus,a[bg-primary]:hover{
-	background-color:#286090
+	background-color:#151599
 }
 
 [bg-success]{
-	background-color:#dff0d8
+	background-color:#246424
 }
 
 a[bg-success]:focus,a[bg-success]:hover{
-	background-color:#c1e2b3
+	background-color:#114C11
 }
 
 [bg-info]{
-	background-color:#d9edf7
+	background-color:#005f7d
 }
 
 a[bg-info]:focus,a[bg-info]:hover{
-	background-color:#afd9ee
+	background-color:#004A62
 }
 
 [bg-warning]{
-	background-color:#fcf8e3
+	background-color:#605918
 }
 
 a[bg-warning]:focus,a[bg-warning]:hover{
-	background-color:#f7ecb5
+	background-color:#403A07
 }
 
 [bg-danger]{
-	background-color:#f2dede
+	background-color:#b30500
 }
 
 a[bg-danger]:focus,a[bg-danger]:hover{
-	background-color:#e4b9b9
+	background-color:#910400
 }
 
 /* Abbreviations */

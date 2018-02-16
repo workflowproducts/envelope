@@ -3311,7 +3311,7 @@ window.addEventListener('design-register-element', function () {
 
     registerDesignSnippet('Document Start', 'Document Start',
             '<!DOCTYPE html>\n' +
-            '<html>\n' +
+            '<html lang="en">\n' +
             '    <head>\n' +
             '        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />\n' +
             '        <meta name="apple-mobile-web-app-capable" content="yes" />\n' +
@@ -4113,6 +4113,7 @@ GS.isElementFocusable = function (element) {
                 GS.findParentTag(element, 'gs-text') ||
                 GS.findParentTag(element, 'gs-combo') ||
                 GS.findParentTag(element, 'gs-number') ||
+                GS.findParentTag(element, 'gs-dt') ||
                 (element.hasAttribute('tabindex') && element.getAttribute('tabindex') !== '-1') ||
                 (element.focus &&
                     element.focus.toString().indexOf('[native code]') === -1 &&
@@ -16507,10 +16508,15 @@ window.addEventListener('design-register-element', function () {
         // 90 degrees  (iconrotateright)
         // 180 degrees (iconrotatedown)
         // 270 degrees (iconrotateleft)
-               if (selectedElement.hasAttribute('iconrotateright')) { strIconRotation = 'iconrotateright';
-        } else if (selectedElement.hasAttribute('iconrotatedown'))  { strIconRotation = 'iconrotatedown';
-        } else if (selectedElement.hasAttribute('iconrotateleft'))  { strIconRotation = 'iconrotateleft';
-        } else { strIconRotation = ''; }
+        if (selectedElement.hasAttribute('iconrotateright')) {
+            strIconRotation = 'iconrotateright';
+        } else if (selectedElement.hasAttribute('iconrotatedown')) {
+            strIconRotation = 'iconrotatedown';
+        } else if (selectedElement.hasAttribute('iconrotateleft')) {
+            strIconRotation = 'iconrotateleft';
+        } else {
+            strIconRotation = '';
+        }
         
         addProp('Icon&nbsp;Rotation', true, '<gs-select class="target" value="' + strIconRotation + '" mini>' +
                                             '   <option value="">None</option>' +
@@ -16800,6 +16806,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (element.anchorElement) {
             element.removeChild(element.anchorElement);
         }
+        
+        var strInner = element.innerText;
+        
         if (strLink) {
             element.anchorElement = document.createElement('a');
             element.anchorElement.setAttribute('gs-dynamic', '');
@@ -16814,8 +16823,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.anchorElement.setAttribute('download', element.getAttribute('download'));
             }
             
-            element.appendChild(element.anchorElement);
+            element.anchorElement.innerText = strInner;
             
+            element.appendChild(element.anchorElement);
         }
     }
     
@@ -25555,10 +25565,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function datetimeOpenCalendarDialog(element) {
         'use strict';
-        var i, len, pickerHTML, dialogHTML, dialogTemplate = document.createElement('template');
+        var i, len, dateHTML, timeHTML, pickerHTML, dialogHTML, dialogTemplate = document.createElement('template');
         var dteToday = new Date(), dteValue = element.dteValue || new Date(dteToday);
 
-        pickerHTML = ml(function () {/*
+        dateHTML = ml(function () {/*
             <div class="adjust-section date-adjust-section centered">
                 <div class="date-today">&#xf017;</div>
                 <div class="date-input">
@@ -25593,26 +25603,69 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>
         */});
+        
+        timeHTML = ml(function () {/*
+            <div class="time-section">
+                <div class="adjust-section time-adjust-section centered">
+                    <div class="time-now">&#xf017;</div>
+                    <div class="time-input">
+                        <input class="hour" />
+                        <span class="divider">:</span>
+                        <input class="minute" />
+                        <span class="divider">:</span>
+                        <input class="second" />
+                        <span class="divider"> </span>
+                        <input class="ampm" />
+                    </div>
+                    <div class="adjust-container">
+                        <div class="time-adjust up">&#xf077;</div><div class="time-adjust down">&#xf078;</div>
+                    </div>
+                </div>
+                <div class="clock-parent">
+                    <div class="clock"></div>
+                </div>
+            </div>
+        */});
+
+        if (element.hasDate && element.hasTime) {
+            pickerHTML = ml(function () {/*
+                <gs-grid widths="1,1">
+                    <gs-block>
+                        {{DATEHTML}}
+                    </gs-block>
+                    <gs-block>
+                        {{TIMEHTML}}
+                    </gs-block>
+                </gs-grid>
+            */}).replace('{{DATEHTML}}', dateHTML).replace('{{TIMEHTML}}', timeHTML);
+
+        } else if (element.hasDate) {
+            pickerHTML = dateHTML;
+
+        } else if (element.hasTime) {
+            pickerHTML = timeHTML;
+
+        }
 
         dialogHTML = ml(function () {/*
-            <gs-page>
-                <gs-body class="gs-datetime-calendar-dialog">
-                    {{PICKERHTML}}
-                    <gs-grid widths="1,1">
-                        <gs-block>
-                            <gs-button dialogclose>Cancel</gs-button>
-                        </gs-block>
-                        <gs-block>
-                            <gs-button dialogclose bg-primary>Done</gs-button>
-                        </gs-block>
-                    </gs-grid>
-                </gs-body>
-            </gs-page>
+            <gs-body class="gs-datetime-calendar-dialog">
+                {{PICKERHTML}}
+                <gs-grid widths="1,1">
+                    <gs-block>
+                        <gs-button dialogclose>Cancel</gs-button>
+                    </gs-block>
+                    <gs-block>
+                        <gs-button dialogclose bg-primary>Done</gs-button>
+                    </gs-block>
+                </gs-grid>
+            </gs-body>
         */}).replace('{{PICKERHTML}}', pickerHTML);
         dialogTemplate.innerHTML = dialogHTML;
         dialogTemplate.setAttribute('no-background', '');
         dialogTemplate.setAttribute('data-overlay-close', '');
-        dialogTemplate.setAttribute('data-max-width', '25em');
+        if (!element.hasTime) {
+            dialogTemplate.setAttribute('data-max-width', '25em');
+        }
         GS.openDialogToElement(element, dialogTemplate, 'down', function () {
             var dteStart = new Date(dteValue);
 
@@ -25828,6 +25881,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
+            console.log(element.hasTime);
             if (element.hasTime) {
                 var clock = xtag.query(document, 'gs-dialog .clock')[0];
                 var timeAdjustSection = xtag.query(document, 'gs-dialog .time-adjust-section')[0];
@@ -29765,6 +29819,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (event.target.tagName.toUpperCase() === 'SPAN') {
             var currentFormat = event.target.getAttribute('format');
             event.preventDefault();
+            event.stopPropagation();
             element.focus();
 
             var strValue = element.value;
@@ -29869,9 +29924,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // re-target blur event from control to element
     function blurFunction(event) {
+        //console.trace(event);
         if (!event.target.parentNode.bolArrowEvent) {
-            GS.triggerEvent(event.target.parentNode, 'blur');
-            if (event.target.parentNode.internal.lastChangeValue !== event.target.parentNode.value || !document.queryCommandSupported('insertText') || !document.queryCommandEnabled('insertText')) {
+            GS.triggerEvent(event.target.parentNode, 'blur'); //  || !document.queryCommandSupported('insertText') || !document.queryCommandEnabled('insertText')
+            if (event.target.parentNode.internal.lastChangeValue !== event.target.parentNode.value) {
                 event.target.parentNode.internal.lastChangeValue = event.target.parentNode.value;
                 GS.triggerEvent(event.target.parentNode, 'change');
             }
@@ -30254,12 +30310,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.innerHTML = '';
                 if (!(element.hasAttribute('disabled') || element.hasAttribute('readonly'))) {
                     element.innerHTML =
-                        '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />' +
+                        '<input class="control needsclick" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />' +
                         '<div class="dt-arrows">' +
-                        '<gs-button no-focus icononly icon="arrow-left" class="dt-arrow dt-arrow-left"></gs-button>' +
+                        //'<gs-button no-focus icononly icon="arrow-left" class="dt-arrow dt-arrow-left"></gs-button>' +
                         '<gs-button no-focus icononly icon="arrow-up" class="dt-arrow dt-arrow-up"></gs-button>' +
                         '<gs-button no-focus icononly icon="arrow-down" class="dt-arrow dt-arrow-down"></gs-button>' +
-                        '<gs-button no-focus icononly icon="arrow-right" class="dt-arrow dt-arrow-right"></gs-button>' +
+                        //'<gs-button no-focus icononly icon="arrow-right" class="dt-arrow dt-arrow-right"></gs-button>' +
                         '<gs-button no-focus icononly icon="undo" class="dt-arrow dt-reset"></gs-button>' +
                         '</div>';
                     element.control = element.children[0];
@@ -30267,13 +30323,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     var arrows = element.children[1];
                     arrows.addEventListener(evt.mousedown, function (event) {
+                        event.stopPropagation();
                         event.preventDefault();
                     });
                     arrows.children[0].addEventListener(evt.mousedown, arrowMousedownFunction);
                     arrows.children[1].addEventListener(evt.mousedown, arrowMousedownFunction);
-                    arrows.children[2].addEventListener(evt.mousedown, arrowMousedownFunction);
-                    arrows.children[3].addEventListener(evt.mousedown, arrowMousedownFunction);
-                    arrows.children[4].addEventListener(evt.mousedown, function (event) {
+                    arrows.children[2].addEventListener(evt.mousedown, function (event) {
                         event.preventDefault();
                         element.control.focus();
                         insertText(elementValue);
@@ -47355,13 +47410,14 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             if (arrColumnWidths[i] > 0) {
                 //no worky
-                // console.log(element.internalDisplay.columnWidths[i]);
-                // console.log((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width));
+                //console.log(element.internalDisplay.columnWidths[i]);
+                //console.log((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width));
                 // if ((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width) > arrColumnWidths[i]) {
-                //     console.log(element.internalDisplay.columnWidths[i]);
-                //     console.log((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width));
+                //     //console.log(element.internalDisplay.columnWidths[i]);
+                //     //console.log((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width));
                 //     element.internalDisplay.columnWidths[i] = (( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width);
                 // }
+                // console.log(arrCell, i, arrCell[i]);
                 strCells += arrCell[i].outerHTML;
             }
             i += 1;
@@ -60389,7 +60445,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // if no focusable control was moused on: focus
             //      hiddenFocusControl
-            //console.log(document.activeElement);
+            //console.log(document.activeElement, target, target.parentNode, parentCell, GS.findParentTag(target, 'gs-dt'));
             //console.log(GS.isElementFocusable(target));
             if (!GS.isElementFocusable(target) && !evt.touchDevice) {
                 focusHiddenControl(element);
@@ -61491,9 +61547,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // we re-render the selection because it has just been
                     //      changed
+                    renderSelection(element);
                     GS.triggerEvent(element, 'selection_change');
                     console.log('changed');
-                    renderSelection(element);
 
                     //console.log(element.internalSelection.ranges);
 
@@ -64938,6 +64994,12 @@ document.addEventListener('DOMContentLoaded', function () {
         //      when we re-template the insert record on scroll, we can get
         //      the values back
         element.internalEvents.insertRecordValueRetain = function (event) {
+            console.log(event);
+            if (event.type === 'keyup' && event.keyCode == 13) {
+                console.log('exit');
+                return;
+                console.log(event.type);
+            }
             var target = event.target;
             var parentCell = GS.findParentTag(target, 'gs-cell');
             var parentColumn = GS.findParentElement(target, '[column]');
@@ -64947,7 +65009,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // insert value was unencrypted. replacement below
             // var strValue = target.value;
             var strValue = parentColumn.value;
-
+            //console.log(strValue, parentCell);
             // we only want to retain the values of insert cells, so only do so
             //      if the parent cell has the insert cell class and has a
             //      [column=""] defined
@@ -64998,12 +65060,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         };
-
-        element.elems.dataViewport.addEventListener(
-            'change',
-            element.internalEvents.insertRecordValueRetain,
-            true
-        );
+        // this was getting run every time you inserted causing it
+        // to save the last edited value
+        // element.elems.dataViewport.addEventListener(
+        //     'change',
+        //     element.internalEvents.insertRecordValueRetain,
+        //     true
+        // );
         element.elems.dataViewport.addEventListener(
             'keyup',
             element.internalEvents.insertRecordValueRetain
@@ -68284,7 +68347,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // re-target blur event from control to element
     function blurFunction(event) {
-        console.trace('blur');
         var element = event.target.parentNode;
         GS.triggerEvent(event.target.parentNode, 'blur');
         event.target.parentNode.classList.remove('focus');

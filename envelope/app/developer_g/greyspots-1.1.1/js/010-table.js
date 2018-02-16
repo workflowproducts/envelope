@@ -1561,13 +1561,14 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             if (arrColumnWidths[i] > 0) {
                 //no worky
-                // console.log(element.internalDisplay.columnWidths[i]);
-                // console.log((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width));
+                //console.log(element.internalDisplay.columnWidths[i]);
+                //console.log((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width));
                 // if ((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width) > arrColumnWidths[i]) {
-                //     console.log(element.internalDisplay.columnWidths[i]);
-                //     console.log((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width));
+                //     //console.log(element.internalDisplay.columnWidths[i]);
+                //     //console.log((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width));
                 //     element.internalDisplay.columnWidths[i] = (( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width);
                 // }
+                // console.log(arrCell, i, arrCell[i]);
                 strCells += arrCell[i].outerHTML;
             }
             i += 1;
@@ -14595,7 +14596,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // if no focusable control was moused on: focus
             //      hiddenFocusControl
-            //console.log(document.activeElement);
+            //console.log(document.activeElement, target, target.parentNode, parentCell, GS.findParentTag(target, 'gs-dt'));
             //console.log(GS.isElementFocusable(target));
             if (!GS.isElementFocusable(target) && !evt.touchDevice) {
                 focusHiddenControl(element);
@@ -15697,9 +15698,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // we re-render the selection because it has just been
                     //      changed
+                    renderSelection(element);
                     GS.triggerEvent(element, 'selection_change');
                     console.log('changed');
-                    renderSelection(element);
 
                     //console.log(element.internalSelection.ranges);
 
@@ -19144,6 +19145,12 @@ document.addEventListener('DOMContentLoaded', function () {
         //      when we re-template the insert record on scroll, we can get
         //      the values back
         element.internalEvents.insertRecordValueRetain = function (event) {
+            console.log(event);
+            if (event.type === 'keyup' && event.keyCode == 13) {
+                console.log('exit');
+                return;
+                console.log(event.type);
+            }
             var target = event.target;
             var parentCell = GS.findParentTag(target, 'gs-cell');
             var parentColumn = GS.findParentElement(target, '[column]');
@@ -19153,7 +19160,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // insert value was unencrypted. replacement below
             // var strValue = target.value;
             var strValue = parentColumn.value;
-
+            //console.log(strValue, parentCell);
             // we only want to retain the values of insert cells, so only do so
             //      if the parent cell has the insert cell class and has a
             //      [column=""] defined
@@ -19204,12 +19211,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         };
-
-        element.elems.dataViewport.addEventListener(
-            'change',
-            element.internalEvents.insertRecordValueRetain,
-            true
-        );
+        // this was getting run every time you inserted causing it
+        // to save the last edited value
+        // element.elems.dataViewport.addEventListener(
+        //     'change',
+        //     element.internalEvents.insertRecordValueRetain,
+        //     true
+        // );
         element.elems.dataViewport.addEventListener(
             'keyup',
             element.internalEvents.insertRecordValueRetain

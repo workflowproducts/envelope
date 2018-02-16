@@ -9,7 +9,7 @@ window.addEventListener('design-register-element', function () {
 
     registerDesignSnippet('Document Start', 'Document Start',
             '<!DOCTYPE html>\n' +
-            '<html>\n' +
+            '<html lang="en">\n' +
             '    <head>\n' +
             '        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />\n' +
             '        <meta name="apple-mobile-web-app-capable" content="yes" />\n' +
