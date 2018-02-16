@@ -2,7 +2,7 @@
 /* #################### DOCUMENT STYLE/SIZING ##################### */
 /* ################################################################ */
 
-/* make <html> fill viewport with no margin or padding and use a monospace font (menlo if its availible) */
+/* make <html lang="en"> fill viewport with no margin or padding and use a monospace font (menlo if its availible) */
 html {
     width: 100%;
     height: 100%;
@@ -13,7 +13,7 @@ html {
     font-family: Verdana, Arial, Tahoma; /* menlo, monospace */
 }
 
-/* make <body> fill <html> with no margin or padding and use an off-white for the background color */
+/* make <body> fill <html lang="en"> with no margin or padding and use an off-white for the background color */
 body {
     width: 100%;
     height: 100%;

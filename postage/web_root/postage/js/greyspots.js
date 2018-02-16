@@ -3307,12 +3307,12 @@ window.addEventListener('design-register-element', function () {
 
     registerDesignSnippet('Document Start', 'Document Start',
             '<!DOCTYPE html>\n' +
-            '<html>\n' +
+            '<html lang="en">\n' +
             '    <head>\n' +
             '        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />\n' +
             '        <meta name="apple-mobile-web-app-capable" content="yes" />\n' +
             '        <meta name="apple-mobile-web-app-status-bar-style" content="black" />\n' +
-            '        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, minimal-ui" />\n' +
+            '        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />\n' +
             '        <!-- Make this page use standard caching procedure when used as an iframe -->\n' +
             '        <meta http-equiv="Cache-control" content="no-store, must-revalidate" />\n' +
             '        \n' +
