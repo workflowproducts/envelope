@@ -47,16 +47,7 @@ envelope/web_root
 !envelope/web_root/test.txt
 !envelope/web_root/test/*
 
-/postage/postage
-/postage/check
-/postage/data_test
-/postage/default_config/postage.conf
-/postage/Makefile
-/postage/postgres.pid
-/postage/output.txt
-
 envelope.1
-postage.1
 
 Makefile
 *.opendb
@@ -74,23 +65,9 @@ Makefile
 *.Plo
 *.lo
 .deps
-/postage_gui_mac/build/
-/postage_installer_mac/Postage/
-/postage_installer_mac/Postage*.pkg
 
 /dependencies/libev/CVS/Template
 *.core
-
-visualstudio/postage/PostageGUI/bin/Release/PostageGUI.exe.config
-visualstudio/postage/PostageGUI/obj/Release/App.g.cs
-visualstudio/postage/PostageGUI/obj/Release/MainWindow.baml
-visualstudio/postage/PostageGUI/obj/Release/MainWindow.g.cs
-visualstudio/postage/PostageGUI/obj/Release/PostageGUI.Properties.Resources.resources
-visualstudio/postage/PostageGUI/obj/Release/PostageGUI.csproj.FileListAbsolute.txt
-visualstudio/postage/PostageGUI/obj/Release/PostageGUI.csproj.GenerateResource.Cache
-visualstudio/postage/PostageGUI/obj/Release/PostageGUI.g.resources
-visualstudio/postage/PostageGUI/obj/Release/PostageGUI_MarkupCompile.cache
-visualstudio/postage/PostageGUI/obj/Release/PostageGUI_MarkupCompile.lref
 
 apps/nc/.libs/nc
 apps/nc/nc
@@ -140,10 +117,6 @@ openssl.pc
 /dependencies/libressl/ssl/libssl.la
 /dependencies/libressl/tls/libtls.la
 
-Postage.app
-PostageMac.dmg
-postage_installer_mac/old
-postage_gui_mac/old
 /db_framework_odbc
 README.md
 /envelope_installer_win
@@ -153,9 +126,6 @@ README.md
 /visualstudio/envelope_ss
 /visualstudio/Debug
 /visualstudio/x64
-/visualstudio/postage/Debug
-/visualstudio/postage/x64
-/visualstudio/postage/bin
 /RELEASE_NOTES.txt
 /dependencies/libressl/apps/nc/netcat.c.orig
 /dependencies/libressl/autom4te.cache/output.0
