@@ -4,14 +4,14 @@
 
 There are a couple of dependencies but we're currently including the Windows libraries in the repo. You shouldn't have to install anything to run Envelope on your system.
 
-####DOWNLOADING ENVELOPE
+#### DOWNLOADING ENVELOPE
 
 https://github.com/workflowproducts/envelope/releases
 
 
-####NOTICE: INSTALLING ENVELOPE SERVER ON *NIX SYSTEMS IS EXPLAINED IN THE DOCUMENT: INSTALL.md
+#### NOTICE: INSTALLING ENVELOPE SERVER ON *NIX SYSTEMS IS EXPLAINED IN THE DOCUMENT: INSTALL.md
 
-####BUILDING ENVELOPE
+#### BUILDING ENVELOPE
 
 Download the source code from here: https://github.com/workflowproducts/envelope/releases
 
@@ -20,7 +20,7 @@ Compile it and copy the release binary to `C:\Program Files (x86)\Workflow Produ
 Copy all library files from `visualstudio\lib\x86\` to `C:\Program Files (x86)\Workflow Products\Envelope\bin\`
 Copy `src/config` to `C:\Program Files (x86)\Workflow Products\Envelope\config\`
 
-####RUNNING ENVELOPE
+#### RUNNING ENVELOPE
 
 To run Envelope:
 ```
@@ -31,7 +31,7 @@ Long Version:
 "C:\Program Files (x86)\Workflow Products\Envelope\bin\envelope.exe" -c "C:\Program Files (x86)\Workflow Products\Envelope\config\envelope.conf" -d "C:\Program Files (x86)\Workflow Products\Envelope\envelope-connections.conf"
 ```
 
-####CONFIGURING ENVELOPE
+#### CONFIGURING ENVELOPE
 
 Before running Envelope for the first time you may want to configure some options. All the options are explained in the Postage man file:
 
@@ -47,7 +47,7 @@ C:\Program Files (x86)\Workflow Products\Envelope\envelope-connections.conf
 There are examples in the provided envelope-connections.conf file and further info is available in the man file.
 
 
-####UNINSTALLING ENVELOPE
+#### UNINSTALLING ENVELOPE
 
 Uninstall Envelope by deleting the folder
 ```
