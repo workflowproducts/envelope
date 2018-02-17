@@ -5,11 +5,9 @@ See the document "What_is_Envelope.pdf" for a quick overview.
 
 Envelope is a product of Workflow Products, LLC. This is the free PostgreSQL version. 
 
-If you'd like to try Postage please go to ["Releases"](https://github.com/workflowproducts/postage/releases) and download the appropriate package for your OS. The names of these packages start with "Postage", not "Source Code". The team has spent a ridiculous amount of time ensuring you have an easy, convenient installer for your OS. Please use it. Compiling Postage from source will only give you the server version and all first time users should try the desktop version first. 
-
 Since Envelope websites run in a browser, we don't recommend you use envelope with a non-UTF8 PostgreSQL database.
 
-Currently we release twice a month. To download Envelope for install purposes, please go to ["Releases"](https://github.com/workflowproducts/postage/releases)
+Currently we release twice a month. To download Envelope for install purposes, please go to ["Releases"](https://github.com/workflowproducts/envelope/releases)
 
 ## Dependencies
 

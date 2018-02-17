@@ -1,12 +1,12 @@
-##INSTRUCTIONS FOR INSTALLING POSTAGE BEHIND NGINX
+##INSTRUCTIONS FOR INSTALLING ENVELOPE BEHIND NGINX
 
-In the typical case, you'll want to install Postage behind a firewall, then VPN or tunnel to the server and use your browser to access Postage through the tunnel. You can do all that without setting Postage up behind a web server.
+In the typical case, you'll want to install Envelope behind a firewall, then VPN or tunnel to the server and use your browser to access Envelope through the tunnel. You can do all that without setting Envelope up behind a web server.
 
-But there may be a case where you want to make an instance of Postage accessible through a web server. In that case these instructions may appeal to you.
+But there may be a case where you want to make an instance of Envelope accessible through a web server. In that case these instructions may appeal to you.
 
-The general idea is for the web browser to communicate with the web server under SSL or TLS. Then pass the unencrypted request to the Postage server. This way you can publish more than one secure website on the default TLS port 443. This prevents you from needing to specify a port when connecting to Postage and simplifies firewall setup for multiple Postage servers behind one web server. This configuration is called a reverse proxy.
+The general idea is for the web browser to communicate with the web server under SSL or TLS. Then pass the unencrypted request to the Envelope server. This way you can publish more than one secure website on the default TLS port 443. This prevents you from needing to specify a port when connecting to Envelope and simplifies firewall setup for multiple Envelope servers behind one web server. This configuration is called a reverse proxy.
 
-If your web server is NOT on the same server as the Postage server then using a reverse proxy can offload the TLS overhead to the web server but now you have the problem of the web server talking to the Postage server in the clear. Usually, this is NOT what you want. You'll need to set up a secure tunnel from the web server to the Postage server or protect the traffic from your web server to Postage. 
+If your web server is NOT on the same server as the Envelope server then using a reverse proxy can offload the TLS overhead to the web server but now you have the problem of the web server talking to the Envelope server in the clear. Usually, this is NOT what you want. You'll need to set up a secure tunnel from the web server to the Envelope server or protect the traffic from your web server to Envelope. 
 
 ####Here is a sample NGINX configuration:
 
