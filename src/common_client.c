@@ -455,6 +455,14 @@ void client_cb(EV_P, ev_io *w, int revents) {
 			if (str_ip_address != NULL && int_ip_address_len < (INET_ADDRSTRLEN - 1)) {
 				SINFO("str_ip_address: %s", str_ip_address);
 				memcpy(client->str_client_ip, str_ip_address, int_ip_address_len);
+
+				// IIS adds the client port to the X-Forwarded-For header
+				// we need to remove it because of the client_last_activity checks later on
+				char *ptr_temp = bstrstr(client->str_client_ip, int_ip_address_len, ":", 1);
+				if (ptr_temp != NULL) {
+					*ptr_temp = 0;
+					int_ip_address_len = ptr_temp - client->str_client_ip;
+				}
 				SFREE(str_ip_address);
 			} else {
 				bol_error_state = false;

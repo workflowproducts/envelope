@@ -70,12 +70,18 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 		// Make sure we have the last close time
 		if (client->int_last_activity_i == -1) {
 			// If we don't, then find it
+			SDEBUG("client->str_client_ip = %s", client->str_client_ip);
+			SDEBUG("str_cookie_encrypted  = %s", str_cookie_encrypted);
 			for (int_i = 0, int_len = (ssize_t)DArray_end(client->server->arr_client_last_activity); int_i < int_len; int_i += 1) {
 				struct sock_ev_client_last_activity *client_last_activity =
 					(struct sock_ev_client_last_activity *)DArray_get(client->server->arr_client_last_activity, (size_t)int_i);
 				// The two things that need to be the same, are the ip and the cookie
 				// (these are stored by the auth?action=login
 				// request handler)
+				if (client_last_activity != NULL) {
+					SDEBUG("client_last_activity->str_client_ip = %s", client_last_activity->str_client_ip);
+					SDEBUG("client_last_activity->str_cookie    = %s", client_last_activity->str_cookie);
+				}
 				if (client_last_activity != NULL &&
 					strncmp(client_last_activity->str_client_ip, client->str_client_ip, INET_ADDRSTRLEN) == 0 &&
 					strncmp(client_last_activity->str_cookie, str_cookie_encrypted, int_cookie_len) == 0) {
