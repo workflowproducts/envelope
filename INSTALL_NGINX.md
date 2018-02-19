@@ -31,3 +31,4 @@ server {
 }
 ````
 
+Make sure to change the `server_name`, `ssl_certificate`, `ssl_certificate_key`, and `proxy_pass` directives to suit your setup.
