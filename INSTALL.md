@@ -19,7 +19,7 @@ Or if you choose LibreSSL, make sure its `openssl` is first in the $PATH (On Ope
 
 *\* Apple does not include a good enough version of OpenSSL. We officially support the `brew` versions of OpenSSL. If installing OpenSSL from source (untested) make sure to install static libraries.*
 
-####DOWNLOADING ENVELOPE
+#### Downloading Envelope
 
 https://github.com/workflowproducts/envelope/releases
 
