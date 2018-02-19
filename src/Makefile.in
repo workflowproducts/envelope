@@ -18,7 +18,7 @@ CFLAGS = -O3 -g \
 LDFLAGS = @LDFLAGS@
 CPPFLAGS = @CPPFLAGS@ \
 	-I../db_framework_pq -I../ -I../common -I../dependencies/tre/include -I../dependencies/libev \
-	-DVERSION=$(VERSION) -DPOSTAGE_PREFIX=\"@prefix@\" -DPOSTAGE_INTERFACE_LIBPQ -DENVELOPE -DTRE_VERSION=\"0.8.0\"
+	-DVERSION=$(VERSION) -DENVELOPE_PREFIX=\"@prefix@\" -DENVELOPE_INTERFACE_LIBPQ -DENVELOPE -DTRE_VERSION=\"0.8.0\"
 V=0
 
 db_framework_pq_SOURCES = $(wildcard ../db_framework_pq/*.c)

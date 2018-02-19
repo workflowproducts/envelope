@@ -1,6 +1,6 @@
 # Attention Contributors!!
 
-At this time, Postage is under an Apache license. The Apache license seems to have been written in such a way that you don't need to obtain contributor license agreements, but then, Apache makes you sign them anyway. Therefore, please pay special attention to the following section "Contributor License Agreements".
+At this time, Envelope is under an Apache license. The Apache license seems to have been written in such a way that you don't need to obtain contributor license agreements, but then, Apache makes you sign them anyway. Therefore, please pay special attention to the following section "Contributor License Agreements".
 
 # Contributor License Agreements
 
@@ -18,7 +18,7 @@ NOTE: At this time, only original source code from individuals that have signed 
 
 ####With GDB:
 
-    gdb postage POSTAGEPID
+    gdb envelope ENVELOPEPID
     break ev_run
     continue
 
@@ -26,7 +26,7 @@ Then keep on running:
 
 	n
 
-Until you get to EV_INVOKE_PENDING(), then run:
+Until you get to `EV_INVOKE_PENDING()`, then run:
 
 	si
 
@@ -34,7 +34,7 @@ Until you find out what watcher is invoked. Once you know what watcher is the pr
 
 ####With LLDB:
 
-    lldb postage --attach-pid=POSTAGEPID
+    lldb envelope --attach-pid=ENVELOPEPID
     breakpoint set --name ev_run
 	continue
 
@@ -42,7 +42,7 @@ Then keep on running:
 
 	thread step-over
 
-Until you get to EV_INVOKE_PENDING(), then run:
+Until you get to `EV_INVOKE_PENDING()`, then run:
 
 	thread step-inst
 
@@ -50,11 +50,11 @@ Until you find out what watcher is invoked. Once you know what watcher is the pr
 
 ####DEBUGGING
 
-Using GDB to debug general things (this has the effect of make test, just using gdb (look at Makefile.in for details)):
+Using GDB to debug general things (this has the effect of make test, just using gdb (look at src/Makefile.in for details)):
 
     make all gdb
 
-Using valgrind (this has the effect of make test, just using valgrind with some options (look at Makefile.in for details)):
+Using valgrind (this has the effect of make test, just using valgrind with some options (look at src/Makefile.in for details)):
 
     make all valgrind
 

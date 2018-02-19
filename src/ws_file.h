@@ -13,16 +13,16 @@
 #endif
 
 typedef enum {
-	POSTAGE_FILE_LIST = 0,
-	POSTAGE_FILE_READ,
-	POSTAGE_FILE_WRITE,
-	POSTAGE_FILE_MOVE,
-	POSTAGE_FILE_COPY,
-	POSTAGE_FILE_DELETE,
-	POSTAGE_FILE_CREATE_FILE,
-	POSTAGE_FILE_CREATE_FOLDER,
-	POSTAGE_FILE_SEARCH
-} POSTAGE_FILE_TYPES;
+	ENVELOPE_FILE_LIST = 0,
+	ENVELOPE_FILE_READ,
+	ENVELOPE_FILE_WRITE,
+	ENVELOPE_FILE_MOVE,
+	ENVELOPE_FILE_COPY,
+	ENVELOPE_FILE_DELETE,
+	ENVELOPE_FILE_CREATE_FILE,
+	ENVELOPE_FILE_CREATE_FOLDER,
+	ENVELOPE_FILE_SEARCH
+} ENVELOPE_FILE_TYPES;
 struct sock_ev_client_file {
 	struct sock_ev_client_request_data self;
 
@@ -43,7 +43,7 @@ struct sock_ev_client_file {
 	bool bol_case_insensitive;
 	bool bol_recursive;
 	bool bol_regex;
-	POSTAGE_FILE_TYPES file_type;
+	ENVELOPE_FILE_TYPES file_type;
 #ifdef _WIN32
 	HANDLE h_file;
 #else

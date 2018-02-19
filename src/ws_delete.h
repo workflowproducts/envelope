@@ -15,7 +15,7 @@ struct sock_ev_client_delete {
 	char *str_real_table_name;
 	char *str_temp_table_name;
 	char *str_sql;
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	char *str_insert_column_names;
 	char *str_insert_parameter_markers;
 #endif
@@ -55,7 +55,7 @@ This function will:
 */
 void ws_delete_step1(struct sock_ev_client_request *client_request);
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 /*
 This function will drop the identity column we make
 */

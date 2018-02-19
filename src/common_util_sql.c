@@ -200,7 +200,7 @@ error:
 	return NULL;
 }
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 char *get_return_escaped_columns(DB_driver driver, char *_str_query, size_t int_query_len, size_t *ptr_int_return_columns_len) {
 	char *str_temp = NULL;
 	char *str_temp1 = NULL;
@@ -367,11 +367,11 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 			client_request->str_current_response = NULL;
 			client_request->int_current_response_length = 0;
 
-			if (client_request->int_req_type == POSTAGE_REQ_INSERT) {
+			if (client_request->int_req_type == ENVELOPE_REQ_INSERT) {
 				ws_insert_free(client_request->client_request_data);
-			} else if (client_request->int_req_type == POSTAGE_REQ_UPDATE) {
+			} else if (client_request->int_req_type == ENVELOPE_REQ_UPDATE) {
 				ws_update_free(client_request->client_request_data);
-			} else if (client_request->int_req_type == POSTAGE_REQ_SELECT) {
+			} else if (client_request->int_req_type == ENVELOPE_REQ_SELECT) {
 				ws_select_free(client_request->client_request_data);
 			}
 		}
@@ -462,11 +462,11 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 				client_request->str_current_response = NULL;
 				client_request->int_current_response_length = 0;
 
-				if (client_request->int_req_type == POSTAGE_REQ_INSERT) {
+				if (client_request->int_req_type == ENVELOPE_REQ_INSERT) {
 					ws_insert_free(client_request->client_request_data);
-				} else if (client_request->int_req_type == POSTAGE_REQ_UPDATE) {
+				} else if (client_request->int_req_type == ENVELOPE_REQ_UPDATE) {
 					ws_update_free(client_request->client_request_data);
-				} else if (client_request->int_req_type == POSTAGE_REQ_SELECT) {
+				} else if (client_request->int_req_type == ENVELOPE_REQ_SELECT) {
 					ws_select_free(client_request->client_request_data);
 				}
 			}
@@ -521,11 +521,11 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 			client_request->str_current_response = NULL;
 			client_request->int_current_response_length = 0;
 
-			if (client_request->int_req_type == POSTAGE_REQ_INSERT) {
+			if (client_request->int_req_type == ENVELOPE_REQ_INSERT) {
 				ws_insert_free(client_request->client_request_data);
-			} else if (client_request->int_req_type == POSTAGE_REQ_UPDATE) {
+			} else if (client_request->int_req_type == ENVELOPE_REQ_UPDATE) {
 				ws_update_free(client_request->client_request_data);
-			} else if (client_request->int_req_type == POSTAGE_REQ_SELECT) {
+			} else if (client_request->int_req_type == ENVELOPE_REQ_SELECT) {
 				ws_select_free(client_request->client_request_data);
 			}
 		}
@@ -557,11 +557,11 @@ finish:
 		DArray_push(client_request->arr_response, str_response);
 		str_response = NULL;
 
-		if (client_request->int_req_type == POSTAGE_REQ_INSERT) {
+		if (client_request->int_req_type == ENVELOPE_REQ_INSERT) {
 			ws_insert_free(client_request->client_request_data);
-		} else if (client_request->int_req_type == POSTAGE_REQ_UPDATE) {
+		} else if (client_request->int_req_type == ENVELOPE_REQ_UPDATE) {
 			ws_update_free(client_request->client_request_data);
-		} else if (client_request->int_req_type == POSTAGE_REQ_SELECT) {
+		} else if (client_request->int_req_type == ENVELOPE_REQ_SELECT) {
 			ws_select_free(client_request->client_request_data);
 		}
 		return false;
@@ -668,7 +668,6 @@ finish:
 	return true;
 }
 
-#ifdef ENVELOPE
 bool permissions_check(EV_P, DB_conn *conn, char *str_path, void *cb_data, readable_cb_t readable_cb) {
 	char *ptr_path = str_path;
 	if (*ptr_path == '/') {
@@ -784,7 +783,6 @@ error:
 	SFREE(str_return);
 	return NULL;
 }
-#endif // ENVELOPE
 
 static bool ddl_readable_done(EV_P, void *cb_data, DB_result *res);
 bool ddl_readable(EV_P, DB_conn *conn, char *str_path, bool bol_writeable, void *cb_data, readable_cb_t readable_cb) {

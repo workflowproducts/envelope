@@ -93,7 +93,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 	SFINISH_SALLOC(client_copy_check, sizeof(struct sock_ev_client_copy_check));
 	client_copy_io->client_copy_check = client_copy_check;
 
-	client->cur_request = create_request(client, NULL, NULL, NULL, NULL, 0, POSTAGE_REQ_STANDARD, NULL);
+	client->cur_request = create_request(client, NULL, NULL, NULL, NULL, 0, ENVELOPE_REQ_STANDARD, NULL);
 	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");
 	client_copy_check->client_request = client->cur_request;
 
@@ -370,7 +370,6 @@ char *cb_to_name(void *cb) {
 		: (cb == ws_delete_step4) ? "ws_delete_step4"
 		: (cb == ws_delete_step5) ? "ws_delete_step5"
 		: (cb == ws_delete_step6) ? "ws_delete_step6"
-#ifdef ENVELOPE
 		: (cb == ws_file_list_step2) ? "ws_file_list_step2"
 		: (cb == ws_file_read_step2) ? "ws_file_read_step2"
 		: (cb == ws_file_read_step3) ? "ws_file_read_step3"
@@ -388,7 +387,7 @@ char *cb_to_name(void *cb) {
 		: (cb == ws_file_create_step2) ? "ws_file_create_step2"
 		: (cb == ws_file_search_step2) ? "ws_file_search_step2"
 		: (cb == ws_file_search_step3) ? "ws_file_search_step3"
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 		: (cb == ws_insert_step15_sql_server) ? "ws_insert_step15_sql_server"
 		: (cb == ws_update_step15_sql_server) ? "ws_update_step15_sql_server"
 		: (cb == ws_delete_step15_sql_server) ? "ws_delete_step15_sql_server"
@@ -421,20 +420,6 @@ char *cb_to_name(void *cb) {
 		: (cb == canonical_recurse_directory) ? "canonical_recurse_directory"
 		: (cb == permissions_check) ? "permissions_check"
 		: (cb == permissions_write_check) ? "permissions_write_check"
-#else
-		: (cb == ws_raw_step2) ? "ws_raw_step2"
-		: (cb == ws_raw_step3) ? "ws_raw_step3"
-		: (cb == _raw_tuples_callback) ? "_raw_tuples_callback"
-		: (cb == _raw_tuples_check_callback) ? "_raw_tuples_check_callback"
-		: (cb == ws_tab_list_step2) ? "ws_tab_list_step2"
-		: (cb == ws_tab_read_step2) ? "ws_tab_read_step2"
-		: (cb == ws_tab_read_step3) ? "ws_tab_read_step3"
-		: (cb == ws_tab_read_step4) ? "ws_tab_read_step4"
-		: (cb == ws_tab_write_step2) ? "ws_tab_write_step2"
-		: (cb == ws_tab_write_step3) ? "ws_tab_write_step3"
-		: (cb == ws_tab_write_step4) ? "ws_tab_write_step4"
-		: (cb == ws_tab_move_step2) ? "ws_tab_move_step2"
-#endif
 		: (cb == ws_select_step4) ? "ws_select_step4"
 		: (cb == ws_update_step2) ? "ws_update_step2"
 		: (cb == ws_update_step4) ? "ws_update_step4"

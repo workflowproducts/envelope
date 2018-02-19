@@ -23,7 +23,7 @@ This function takes a SELECT/INSERT/UPDATE request and returns the return column
 */
 char *get_return_columns(char *_str_query, size_t int_query_len, char *str_table_name, size_t int_table_name_len, size_t *ptr_int_return_columns_len);
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 /*
 This function takes a SELECT/INSERT/UPDATE request and returns the return columns in a format that concatinates and escapes them
 */
@@ -53,12 +53,10 @@ typedef struct {
 	readable_cb_t readable_cb;
 } DB_readable_poll;
 
-#ifdef ENVELOPE
 bool permissions_check(EV_P, DB_conn *conn, char *str_path, void *cb_data, readable_cb_t readable_cb);
 bool permissions_write_check(EV_P, DB_conn *conn, char *str_path, void *cb_data, readable_cb_t readable_cb);
 char *canonical_strip_start(char *str_path);
 char *canonical_full_start(char *str_path);
-#endif // ENVELOPE
 
 /* Determine the group permissions of a user */
 bool ddl_readable(EV_P, DB_conn *conn, char *str_path, bool bol_writeable, void *cb_data, readable_cb_t readable_cb);

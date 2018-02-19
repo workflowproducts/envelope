@@ -220,7 +220,9 @@ void WS_readFrame_step2(EV_P, ev_io *w, int revents) {
 	buf[int_request_len] = 0;
 	// Copy to the heap
 	memcpy(frame->str_message + client_message->int_position, buf, (size_t)int_request_len);
+	SDEBUG("client_message->int_position: %d", client_message->int_position);
 	client_message->int_position = client_message->int_position + (uint64_t)int_request_len;
+	SDEBUG("client_message->int_position: %d", client_message->int_position);
 
 	if (client_message->int_position == frame->int_length) {
 		if (frame->bol_mask) {

@@ -18,20 +18,18 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#ifdef ENVELOPE
 #include "http_accept.h"
 #include "http_action.h"
 #include "http_delete.h"
 #include "http_insert.h"
 #include "http_select.h"
 #include "http_update.h"
-#endif
 #include "http_upload.h"
 
 /*
 This function does three things:
 1. parse request
-2. authenticate if in /postage or /download
-3. delegate work to http_auth/http_export/http_file/http_upload
+2. authenticate if in /env
+3. delegate work to http_auth/http_export/http_file/http_upload/etc
 */
 void http_main(struct sock_ev_client *client);

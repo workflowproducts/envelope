@@ -41,7 +41,7 @@ void ws_select_step1(struct sock_ev_client_request *client_request) {
 	);
 	SFINISH_ERROR_CHECK(client_select->str_return_columns != NULL, "Failed to get return columns from query");
 
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 #else
 	client_select->str_return_escaped_columns = get_return_escaped_columns(
 		DB_connection_driver(client_request->parent->conn),
@@ -128,7 +128,7 @@ void ws_select_step1(struct sock_ev_client_request *client_request) {
 			bstr_toupper(str_attr_name, int_attr_name_len);
 			if (strncmp(str_attr_name, "WHERE", 6) == 0 || strncmp(str_attr_name, "ORDER BY", 9) == 0 ||
 				strncmp(str_attr_name, "LIMIT", 6) == 0 || strncmp(str_attr_name, "OFFSET", 7) == 0) {
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 				SFINISH_SNFCAT(client_select->str_sql, &client_select->int_sql_len,
 					str_attr_name, int_attr_name_len,
 					" ", (size_t)1,
@@ -249,7 +249,7 @@ bool ws_select_step4(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_select *client_select = (struct sock_ev_client_select *)(client_request->client_request_data);
 	SDEFINE_VAR_ALL(str_temp, str_temp1, str_oid_type, str_int_mod, str_sql, str_inner_top, str_col);
 
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 #else
 	char *ptr_col = NULL;
 	size_t int_inner_top_len = 0;
@@ -276,7 +276,7 @@ bool ws_select_step4(EV_P, void *cb_data, DB_result *res) {
 	arr_row_values = DB_get_row_values(res);
 	arr_row_lengths = DB_get_row_lengths(res);
 
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 #else
 	if (DB_connection_driver(client_request->parent->conn) != DB_DRIVER_POSTGRES) {
 		SFREE(client_select->str_return_escaped_columns)
@@ -428,7 +428,7 @@ bool ws_select_step4(EV_P, void *cb_data, DB_result *res) {
 	str_response = NULL;
 
 // Use the sql we generated earlier to copy all of the data to stdout
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	SFINISH_SNCAT(str_sql, &int_sql_len,
 		"COPY (", (size_t)6,
 		client_select->str_sql, client_select->int_sql_len,
@@ -498,7 +498,7 @@ void ws_select_free(struct sock_ev_client_request_data *client_request_data) {
 	struct sock_ev_client_select *client_select = (struct sock_ev_client_select *)client_request_data;
 	SFREE(client_select->str_real_table_name);
 	SFREE(client_select->str_return_columns);
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	SFREE(client_select->str_return_escaped_columns);
 	SFREE(client_select->str_sql_escaped_return);
 #endif

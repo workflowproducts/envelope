@@ -98,10 +98,6 @@ The following options can be specified on the command line or in the configurati
        `String;` no defaults
        This option tells `envelope` than public actions should use these credentials, if they are unset, then public actions are disabled.
 
-`-x` or `--local-only=`
-       `Boolean;` defaults to false  
-       This tells Postage whether or not to set the listening socket to local addresses only.
-
 ## SETTING UP A CONNECTION TO A POSTGRESQL SERVER
 
 Envelope requires at least one PostgreSQL server be listed in the envelope-connections.conf file. This version of Envelope doesn't allow you to specify a server from the command line. Enter only one PostgreSQL server per line. For envelope, only the first server is used.

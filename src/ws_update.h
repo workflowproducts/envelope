@@ -11,7 +11,7 @@ struct sock_ev_client_update {
 	char *ptr_query;
 
 	char *str_return_columns;
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 	char *str_return_escaped_columns;
 	size_t int_return_escaped_columns_len;
 	char *str_insert_column_names;
@@ -89,7 +89,7 @@ and pk)
 */
 void ws_update_step1(struct sock_ev_client_request *client_request);
 
-#ifndef POSTAGE_INTERFACE_LIBPQ
+#ifndef ENVELOPE_INTERFACE_LIBPQ
 /*
 This function will drop the identity column we make
 */

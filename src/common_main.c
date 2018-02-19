@@ -78,22 +78,18 @@ void program_exit() {
 		SFREE(str_global_config_file);
 		SFREE(str_global_connection_file);
 		SFREE(str_global_login_group);
-#ifdef ENVELOPE
 		SFREE(str_global_public_username);
 		SFREE(str_global_public_password);
 		SFREE(str_global_app_path);
 		SFREE(str_global_role_path);
 		SFREE(str_global_public_username);
 		SFREE(str_global_public_password);
-#else
-		SFREE(str_global_sql_root);
-#endif
 		SFREE(str_global_web_root);
 		SFREE(str_global_data_root);
 		SFREE(str_global_log_level);
 #ifdef _WIN32
 
-		SFREE(POSTAGE_PREFIX);
+		SFREE(ENVELOPE_PREFIX);
 #endif
 
 		for (int_i = 0, int_len = DArray_end(darr_global_connection); int_i < int_len; int_i += 1) {

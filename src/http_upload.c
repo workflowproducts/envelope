@@ -28,7 +28,6 @@ void http_upload_step1(struct sock_ev_client *client) {
 	client_upload->ptr_content = client_upload->sun_current_upload->str_file_content;
 	SDEBUG("upload contents: %s", client_upload->ptr_content);
 
-#ifdef ENVELOPE
 	SFINISH_SNCAT(client_upload->str_file_name, &client_upload->int_file_name_len,
 		client_upload->sun_current_upload->str_name, strlen(client_upload->sun_current_upload->str_name));
 
@@ -50,19 +49,6 @@ void http_upload_step1(struct sock_ev_client *client) {
 	SFINISH_CHECK(permissions_write_check(global_loop, client->conn, str_temp, client_upload, http_upload_step2),
 		"permissions_write_check() failed");
 	SFREE(str_temp);
-#else
-	SFINISH_SNCAT(client_upload->str_canonical_start, &client_upload->int_canonical_start_len,
-		str_global_sql_root, strlen(str_global_sql_root));
-	SFINISH_SNCAT(client_upload->str_file_name, &client_upload->int_file_name_len,
-		client->str_connname_folder, strlen(client->str_connname_folder),
-		"/", (size_t)1,
-		client->str_username, strlen(client->str_username),
-		client_upload->sun_current_upload->str_name, client_upload->sun_current_upload->int_name_len);
-
-	http_upload_step2(global_loop, client_upload, true);
-#endif
-
-	// check for permissions
 
 finish:
 	bol_error_state = false;

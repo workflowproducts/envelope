@@ -67,18 +67,13 @@ http_auth_login_step15 (only in envelope) will set the session user
 
 http_auth_login_step2 will initiate a query to:
 1. check if they are a super user
-2. check if they are a member of the "login_group" group (see postage(1) or envelope(1) for
-details)
+2. check if they are a member of the "login_group" group (see envelope(1) for details)
 
 http_auth_login_step3 will:
 1. check these results against your configurations
-2. create all of the needed directories for sql scripts (if they aren't already
-there)
-3. finally, it will tell the browser what url to go to
+2. tell the browser what url to go to
 */
-#ifdef ENVELOPE
 void http_auth_login_step15(EV_P, void *cb_data, DB_conn *conn);
-#endif
 void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn);
 bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res);
 

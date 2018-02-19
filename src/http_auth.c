@@ -24,15 +24,8 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 	size_t int_uri_new_password_len = 0;
 	size_t int_uri_expiration_len = 0;
 
-#ifdef ENVELOPE
-#else
-	char *ptr_conn = NULL;
-	char *ptr_conn_end = NULL;
-	size_t int_referer_len = 0;
-#endif
-
 	struct sock_ev_client_request *client_request =
-		create_request(client_auth->parent, NULL, NULL, NULL, NULL, 0, POSTAGE_REQ_AUTH, NULL);
+		create_request(client_auth->parent, NULL, NULL, NULL, NULL, 0, ENVELOPE_REQ_AUTH, NULL);
 	SFINISH_CHECK(client_request != NULL, "Could not create request data!");
 	client_request->client_request_data = (struct sock_ev_client_request_data *)client_auth;
 	client_auth->self.free = http_auth_free;
@@ -87,26 +80,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		SFINISH_CHECK(
 			bstrstr(client_auth->str_password, client_auth->int_password_length, ";", 1) == NULL, "no semi-colons allowed");
 
-#ifdef ENVELOPE
 		SFINISH_SNCAT(client_auth->str_connname, &client_auth->int_conn_length, "", (size_t)0);
-#else
-		client_auth->str_connname = getpar(str_form_data, "connname", int_query_length, &client_auth->int_connname_length);
-		SFINISH_CHECK(client_auth->str_connname != NULL, "no connection name");
-
-		client_auth->str_conn = getpar(str_form_data, "conn", int_query_length, &client_auth->int_conn_length);
-		if (client_auth->str_conn != NULL && client_auth->int_conn_length == 0) {
-			SFREE(client_auth->str_conn);
-		} else {
-			SFINISH_SNCAT(client_auth->parent->str_conn, &client_auth->int_conn_length, client_auth->str_conn, client_auth->int_conn_length);
-		}
-
-		if (bol_global_allow_custom_connections == false) {
-			SFINISH_CHECK(client_auth->parent->str_conn == NULL, "Cannot specify a custom connection string with current "
-																 "configuration,"
-																 "if you wish to do this, change allow_custom_connections "
-																 "to true and restart " SUN_PROGRAM_LOWER_NAME "");
-		}
-#endif
 		// cookie expiration
 		str_expires = str_expire_two_day();
 		SFINISH_CHECK(str_expires != NULL, "str_expire_two_day failed");
@@ -131,16 +105,6 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 			"&sessionid=", (size_t)11,
 			str_session_id, strlen(str_session_id)
 		);
-
-#ifdef ENVELOPE
-#else
-		if (client_auth->str_conn == NULL) {
-			char *str_temp = get_connection_database(client_auth->str_connname);
-			size_t int_temp = str_temp ? strlen(str_temp) : 0;
-			SFINISH_SNCAT(client_auth->str_database, &int_temp, str_temp, int_temp);
-			SFINISH_SNFCAT(str_cookie_decrypted, &int_cookie_len, "&dbname=", (size_t)8, client_auth->str_database, int_temp);
-		}
-#endif
 
 		// COOKIE TIMEOUT INIT
 		SFINISH_SALLOC(str_uri_timeout, 50);
@@ -170,7 +134,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		} else {
 			char *str_temp = get_connection_info(client_auth->str_connname, &client_auth->int_connection_index);
 			size_t int_temp = strlen(str_temp);
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 			if (client_auth->str_database != NULL) {
 				SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp, " dbname=", (size_t)8, client_auth->str_database, strlen(client_auth->str_database));
 			} else {
@@ -189,7 +153,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		SDEBUG("client_auth->parent: %p", client_auth->parent);
 		SDEBUG("str_conn: %s", str_conn);
 
-#if defined(ENVELOPE) && defined(POSTAGE_INTERFACE_LIBPQ)
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 		SDEBUG("bol_global_set_user: %s", bol_global_set_user ? "true" : "false");
 		if (bol_global_set_user) {
 			// The only difference here is the callback and no user/pw
@@ -203,7 +167,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 			client_auth->int_user_length, client_auth->str_password, client_auth->int_password_length, "",
 			http_auth_login_step2)) != NULL,
 			"DB_connect failed");
-#if defined(ENVELOPE) && defined(POSTAGE_INTERFACE_LIBPQ)
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 		}
 #endif
 
@@ -222,26 +186,8 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		SFINISH_CHECK(client_auth->str_old_check_password != NULL, "getpar failed");
 
 		SDEBUG("client_auth->parent->str_request: %s", client_auth->parent->str_request);
-#ifdef ENVELOPE
 		size_t int_temp = 0;
 		SFINISH_SNCAT(str_cookie_name, &int_temp, "envelope", (size_t)8);
-#else
-		str_referer = request_header(client_auth->parent->str_request, client_auth->parent->int_request_len, "referer", &int_referer_len);
-		SFINISH_CHECK(str_referer != NULL, "No Referer header");
-		SDEBUG("str_referer: %s", str_referer);
-		ptr_conn = bstrstr(str_referer, int_referer_len, "/postage/", (size_t)9);
-		SDEBUG("ptr_conn: %s", ptr_conn);
-		SFINISH_CHECK(ptr_conn != NULL, "Invalid Referer header");
-		ptr_conn += strlen("/postage/");
-		SDEBUG("ptr_conn: %s", ptr_conn);
-		ptr_conn_end = bstrstr(ptr_conn, int_referer_len - (size_t)(ptr_conn - str_referer), "/", (size_t)1);
-		SFINISH_CHECK(ptr_conn_end != NULL, "Invalid Referer header");
-		*ptr_conn_end = 0;
-		SDEBUG("ptr_conn: %s", ptr_conn);
-
-		size_t int_temp = 0;
-		SFINISH_SNCAT(str_cookie_name, &int_temp, "postage_", (size_t)8, ptr_conn, strlen(ptr_conn));
-#endif
 
 		SFREE_PWORD(str_form_data);
 		client_auth->str_cookie_encrypted = str_cookie(client_auth->parent->str_request, client_auth->parent->int_request_len, str_cookie_name, &client_auth->int_cookie_encrypted_len);
@@ -253,27 +199,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		client_auth->str_password = getpar(str_cookie_decrypted, "password", int_cookie_len, &client_auth->int_password_length);
 		str_expiration = getpar(str_cookie_decrypted, "expiration", int_cookie_len, &int_expiration_len);
 
-#ifdef ENVELOPE
 		SFINISH_SNCAT(client_auth->str_connname, &client_auth->int_conn_length, "", (size_t)0);
-#else
-		client_auth->str_database = getpar(str_cookie_decrypted, "dbname", int_cookie_len, &client_auth->int_dbname_length);
-		client_auth->str_connname = getpar(str_cookie_decrypted, "connname", int_cookie_len, &client_auth->int_connname_length);
-		SFINISH_CHECK(client_auth->str_connname != NULL, "no connection name");
-
-		client_auth->str_conn = getpar(str_cookie_decrypted, "conn", int_cookie_len, &client_auth->int_conn_length);
-		if (client_auth->str_conn != NULL && client_auth->int_conn_length == 0) {
-			SFREE(client_auth->str_conn);
-		} else {
-			SFINISH_SNCAT(client_auth->parent->str_conn, &client_auth->int_conn_length, client_auth->str_conn, client_auth->int_conn_length);
-		}
-
-		if (bol_global_allow_custom_connections == false) {
-			SFINISH_CHECK(client_auth->parent->str_conn == NULL, "Cannot specify a custom connection string with current "
-																 "configuration,"
-																 "if you wish to do this, change allow_custom_connections "
-																 "to true and restart " SUN_PROGRAM_LOWER_NAME "");
-		}
-#endif
 		SFREE_PWORD(str_cookie_decrypted);
 
 		str_uri_new_password = snuri(client_auth->str_new_password, client_auth->int_new_password_length, &int_uri_new_password_len);
@@ -325,15 +251,10 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 
 		if (client_auth->str_conn != NULL) {
 			SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, client_auth->str_conn, client_auth->int_conn_length);
-#ifdef ENVELOPE
-#else
-			size_t int_temp = strlen(str_temp);
-			SFINISH_SNCAT(client_auth->str_int_connection_index, &int_temp, ptr_conn, strlen(ptr_conn));
-#endif
 		} else {
 			char *str_temp = get_connection_info(client_auth->str_connname, &client_auth->int_connection_index);
 			size_t int_temp = strlen(str_temp);
-#ifdef POSTAGE_INTERFACE_LIBPQ
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 			if (client_auth->str_database != NULL) {
 				SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp, " dbname=", (size_t)8, client_auth->str_database, strlen(client_auth->str_database));
 			} else {
@@ -346,7 +267,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 			snprintf(client_auth->str_int_connection_index, 20, "%zu", client_auth->int_connection_index);
 		}
 
-#if defined(ENVELOPE) && defined(POSTAGE_INTERFACE_LIBPQ)
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 		if (bol_global_set_user) {
 			// The only difference here is the callback and no user/pw
 			SFINISH_CHECK((client_auth->parent->conn = DB_connect(global_loop, client_auth, str_conn, NULL,
@@ -359,207 +280,8 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 			client_auth->int_user_length, client_auth->str_password, client_auth->int_password_length, "",
 			http_auth_change_pw_step2)) != NULL,
 			"DB_connect failed");
-#if defined(ENVELOPE) && defined(POSTAGE_INTERFACE_LIBPQ)
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 		}
-#endif
-
-#ifdef ENVELOPE
-	} else if (strncmp(client_auth->str_action, "change_database", 16) == 0) {
-		SNOTICE("REQUEST TYPE: Not a valid action.");
-
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012Connection: close\015\012\015\012"
-			"The change_database action is useful in postage, but not envelope.";
-		SFINISH_SNCAT(str_response, &int_response_len, str_temp, strlen(str_temp));
-
-		SFREE_PWORD(str_form_data);
-	} else if (strncmp(client_auth->str_action, "list", 5) == 0) {
-		SNOTICE("REQUEST TYPE: Not a valid action.");
-
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012Connection: close\015\012\015\012"
-			"The list action is useful in postage, but not envelope.";
-		SFINISH_SNCAT(str_response, &int_response_len, str_temp, strlen(str_temp));
-
-		SFREE_PWORD(str_form_data);
-
-	} else if (strncmp(client_auth->str_action, "canadd", 7) == 0) {
-		SNOTICE("REQUEST TYPE: Not a valid action.");
-
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012Connection: close\015\012\015\012"
-			"The canadd action is useful in postage, but not envelope.";
-		SFINISH_SNCAT(str_response, &int_response_len, str_temp, strlen(str_temp));
-
-		SFREE_PWORD(str_form_data);
-#else
-		//////
-		// CHANGE DATABASE, RESET COOKIE
-	} else if (strncmp(client_auth->str_action, "change_database", 16) == 0) {
-		SNOTICE("REQUEST TYPE: DATABASE CHANGE");
-		client_auth->str_database = getpar(str_form_data, "database", int_query_length, &client_auth->int_dbname_length);
-		SFINISH_CHECK(client_auth->str_database != NULL, "getpar failed");
-
-		size_t int_len = client_auth->int_dbname_length;
-		char *str_temp = client_auth->str_database;
-		char *str_temp2 = escape_conninfo_value(str_temp, &int_len);
-		SFINISH_CHECK(str_temp2 != NULL, "escape_conninfo_value failed!");
-		// if the added characters amount to more than two chars, then an escape happened
-		if ((int_len - client_auth->int_dbname_length) > 2) {
-			client_auth->str_database = str_temp2;
-			client_auth->int_dbname_length = int_len;
-
-			SFREE(str_temp);
-			str_temp2 = NULL;
-
-		// else, it isn't needed
-		} else {
-			str_temp = NULL;
-			SFREE(str_temp2);
-		}
-
-		SDEBUG("client_auth->parent->str_request: %s", client_auth->parent->str_request);
-
-		str_referer = request_header(client_auth->parent->str_request, client_auth->parent->int_request_len, "referer", &int_referer_len);
-		SFINISH_CHECK(str_referer != NULL, "No Referer header");
-		SDEBUG("str_referer: %s", str_referer);
-		ptr_conn = bstrstr(str_referer, int_referer_len, "/postage/", (size_t)9);
-		SDEBUG("ptr_conn: %s", ptr_conn);
-		SFINISH_CHECK(ptr_conn != NULL, "Invalid Referer header");
-		ptr_conn += strlen("/postage/");
-		SDEBUG("ptr_conn: %s", ptr_conn);
-		ptr_conn_end = bstrstr(ptr_conn, int_referer_len - (size_t)(ptr_conn - str_referer), "/", (size_t)1);
-		SFINISH_CHECK(ptr_conn_end != NULL, "Invalid Referer header");
-		*ptr_conn_end = 0;
-		SDEBUG("ptr_conn: %s", ptr_conn);
-
-		size_t int_temp = 0;
-		SFINISH_SNCAT(str_cookie_name, &int_temp, "postage_", (size_t)8, ptr_conn, strlen(ptr_conn));
-
-		SFREE_PWORD(str_form_data);
-		client_auth->str_cookie_encrypted = str_cookie(client_auth->parent->str_request, client_auth->parent->int_request_len, str_cookie_name, &client_auth->int_cookie_encrypted_len);
-		SFINISH_CHECK(client_auth->str_cookie_encrypted != NULL, "str_cookie failed");
-		int_cookie_len = client_auth->int_cookie_encrypted_len;
-		str_cookie_decrypted = aes_decrypt(client_auth->str_cookie_encrypted, &int_cookie_len);
-		SFREE(client_auth->str_cookie_encrypted);
-
-		client_auth->str_user = getpar(str_cookie_decrypted, "username", int_cookie_len, &client_auth->int_user_length);
-		client_auth->str_password = getpar(str_cookie_decrypted, "password", int_cookie_len, &client_auth->int_password_length);
-		str_expiration = getpar(str_cookie_decrypted, "expiration", int_cookie_len, &int_expiration_len);
-
-		client_auth->str_connname = getpar(str_cookie_decrypted, "connname", int_cookie_len, &client_auth->int_connname_length);
-		client_auth->str_conn = getpar(str_cookie_decrypted, "conn", int_cookie_len, &client_auth->int_conn_length);
-
-		SFREE_PWORD(str_cookie_decrypted);
-
-		SDEBUG("client_auth->str_connname: %s", client_auth->str_connname);
-		if (client_auth->str_conn != NULL && client_auth->str_conn[0] == 0) {
-			SFREE(client_auth->str_conn);
-		} else {
-			SFINISH_SNCAT(client_auth->parent->str_conn, &client_auth->int_conn_length, client_auth->str_conn, client_auth->int_conn_length);
-		}
-
-		if (bol_global_allow_custom_connections == false) {
-			SFINISH_CHECK(client_auth->parent->str_conn == NULL, "Cannot specify a custom connection string with current "
-																 "configuration, "
-																 "if you wish to do this, change allow_custom_connections "
-																 "to true and restart " SUN_PROGRAM_LOWER_NAME ".");
-		}
-
-
-		str_uri_new_password = snuri(client_auth->str_password, client_auth->int_password_length, &int_uri_new_password_len);
-		SFINISH_CHECK(str_uri_new_password != NULL, "snuri failed!");
-		str_uri_expiration = snuri(str_expiration, int_expiration_len, &int_uri_expiration_len);
-		SFINISH_CHECK(str_uri_expiration != NULL, "snuri failed!");
-		SFINISH_SNCAT(
-			str_new_cookie, &int_cookie_len,
-			"valid=true", (size_t)10,
-			"&username=", (size_t)10,
-			client_auth->str_user, client_auth->int_user_length,
-			"&connname=", (size_t)10,
-			client_auth->str_connname, client_auth->int_connname_length,
-			"&password=", (size_t)10,
-			str_uri_new_password, int_uri_new_password_len,
-			"&expiration=", (size_t)12,
-			str_uri_expiration, int_uri_expiration_len,
-			"&dbname=", (size_t)8,
-			client_auth->str_database, client_auth->int_dbname_length,
-			"&sessionid=", (size_t)11,
-			str_session_id, strlen(str_session_id)
-		);
-
-		if (client_auth->str_conn != NULL) {
-			SFINISH_SNFCAT(str_new_cookie, &int_cookie_len, "&conn=", 6, client_auth->str_conn, client_auth->int_conn_length);
-		}
-
-		// **** WARNING ****
-		// DO NOT UNCOMMENT THE NEXT LINE! THAT WILL PUT THE NEW PASSWORD IN THE
-		// CLEAR IN THE LOG!!!!
-		// DEBUG("str_new_cookie>%s<", str_new_cookie);
-		// **** WARNING ****
-		client_auth->int_cookie_encrypted_len = int_cookie_len;
-		client_auth->str_cookie_encrypted = aes_encrypt(str_new_cookie, &client_auth->int_cookie_encrypted_len);
-
-		SFREE_PWORD(str_uri_new_password);
-		SFREE(str_uri_expiration);
-		SFREE(str_new_cookie);
-
-		//bstr_tolower(client_auth->str_user, client_auth->int_user_length);
-
-		SNOTICE("REQUEST USERNAME: %s", client_auth->str_user);
-
-		SFINISH_CHECK(client_auth->str_conn != NULL || exists_connection_info(client_auth->str_connname),
-			"There is no connection info with that name.");
-
-		if (client_auth->str_conn != NULL) {
-			SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, client_auth->str_conn, client_auth->int_conn_length);
-
-			SFINISH_SNCAT(client_auth->str_int_connection_index, &int_temp, ptr_conn, strlen(ptr_conn));
-		} else {
-			char *str_temp = get_connection_info(client_auth->str_connname, &client_auth->int_connection_index);
-			size_t int_temp2 = strlen(str_temp);
-			SFINISH_SNCAT(str_conn, &int_temp2, str_temp, int_temp2, " dbname=", 8, client_auth->str_database, client_auth->int_dbname_length);
-			SFINISH_SALLOC(client_auth->str_int_connection_index, 20);
-			snprintf(client_auth->str_int_connection_index, 20, "%zu", client_auth->int_connection_index);
-		}
-
-		client_auth->parent->conn =
-			DB_connect(global_loop, client_auth, str_conn, client_auth->str_user, client_auth->int_user_length,
-				client_auth->str_password, client_auth->int_password_length, "", http_auth_change_database_step2);
-
-	} else if (strncmp(client_auth->str_action, "list", 5) == 0) {
-		char *str_temp =
-			"HTTP/1.1 200 OK\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012Connection: close\015\012\015\012";
-		size_t int_temp = strlen(str_temp);
-		SFINISH_SNCAT(str_response, &int_response_len, str_temp, int_temp);
-		struct struct_connection *current_connection;
-		size_t i, len;
-		for (i = 0, len = DArray_end(darr_global_connection); i < len; i++) {
-			current_connection = DArray_get(darr_global_connection, i);
-			SFINISH_SNFCAT(
-				str_response, &int_response_len,
-				current_connection->str_connection_name, strlen(current_connection->str_connection_name),
-				i == (len - 1) ? "" : "\012", i == (len - 1) ? (size_t)0 : (size_t)1
-			);
-			SDEBUG("current_connection->str_connection_name: %s", current_connection->str_connection_name);
-		}
-		SFREE_PWORD(str_form_data);
-
-	} else if (strncmp(client_auth->str_action, "canadd", 7) == 0) {
-		char *str_temp =
-			"HTTP/1.1 200 OK\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012Connection: close\015\012\015\012";
-		size_t int_temp = strlen(str_temp);
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp, int_temp,
-			bol_global_allow_custom_connections ? "true"    : "false",
-			bol_global_allow_custom_connections ? (size_t)4 : (size_t)5
-		);
 #endif
 
 	} else if (strncmp(client_auth->str_action, "logout", 7) == 0) {
@@ -568,27 +290,8 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		str_error = getpar(str_form_data, "error", int_query_length, &int_error_len);
 		str_error_uri = snuri(str_error, int_error_len, &int_error_uri_len);
 
-#ifdef ENVELOPE
 		size_t int_temp = 0;
 		SFINISH_SNCAT(str_cookie_name, &int_temp, "envelope", 8);
-#else
-		SDEBUG("client_auth->parent->str_request: %s", client_auth->parent->str_request);
-		str_referer = request_header(client_auth->parent->str_request, client_auth->parent->int_request_len, "referer", &int_referer_len);
-		SFINISH_CHECK(str_referer != NULL, "No Referer header");
-		SDEBUG("str_referer: %s", str_referer);
-		ptr_conn = bstrstr(str_referer, int_referer_len, "/postage/", (size_t)9);
-		SDEBUG("ptr_conn: %s", ptr_conn);
-		SFINISH_CHECK(ptr_conn != NULL, "Invalid Referer header");
-		ptr_conn += strlen("/postage/");
-		SDEBUG("ptr_conn: %s", ptr_conn);
-		ptr_conn_end = bstrstr(ptr_conn, int_referer_len - (size_t)(ptr_conn - str_referer), "/", (size_t)1);
-		SFINISH_CHECK(ptr_conn_end != NULL, "Invalid Referer header");
-		*ptr_conn_end = 0;
-		SDEBUG("ptr_conn: %s", ptr_conn);
-
-		size_t int_temp = 0;
-		SFINISH_SNCAT(str_cookie_name, &int_temp, "postage_", (size_t)8, ptr_conn, strlen(ptr_conn));
-#endif
 
 		client_auth->str_cookie_encrypted = str_cookie(client_auth->parent->str_request, client_auth->parent->int_request_len, str_cookie_name, &client_auth->int_cookie_encrypted_len);
 		if (client_auth->str_cookie_encrypted != NULL) {
@@ -618,7 +321,6 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 				SDEBUG("node: %p", node);
 			}
 		}
-#ifdef ENVELOPE
 		char *str_temp1 =
 			"HTTP/1.1 303 See Other\015\012"
 			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
@@ -638,34 +340,6 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 			int_error_uri_len > 0 ? str_error_uri : "", int_error_uri_len,
 			"\015\012\015\012", (size_t)4
 		);
-#else
-		//int_error_len > 0
-		char *str_temp1 =
-			"HTTP/1.1 303 See Other\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: 0\015\012"
-			"Set-Cookie: postage_";
-		size_t int_temp1 = strlen(str_temp1);
-		char *str_temp2 =
-			"; path=/; expires=Tue, 01 Jan 1990 00:00:00 GMT"
-			"; HttpOnly\015\012"
-			"Location: /postage/index.html?connection=";
-		size_t int_temp2 = strlen(str_temp2);
-		size_t i = (size_t)strtol(ptr_conn, NULL, 10);
-		struct struct_connection *current_connection = DArray_get(darr_global_connection, i);
-
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp1, int_temp1,
-			ptr_conn, strlen(ptr_conn),
-			str_temp2, int_temp2,
-			(current_connection != NULL ? current_connection->str_connection_name : "custom"), (current_connection != NULL ? strlen(current_connection->str_connection_name) : (size_t)6),
-			int_error_uri_len > 0 ? "&error=" : "", int_error_uri_len > 0 ? (size_t)7 : (size_t)0,
-			int_error_uri_len > 0 ? str_error_uri : "", int_error_uri_len,
-			"\015\012\015\012", (size_t)4
-		);
-#endif
 		SFREE_PWORD(str_form_data);
 	} else {
 		SNOTICE("REQUEST TYPE: Not a valid action.");
@@ -729,8 +403,6 @@ finish:
 	SFREE_ALL();
 
 }
-
-#ifdef ENVELOPE
 
 bool http_auth_login_step2_env(EV_P, void *cb_data, DB_result *res);
 bool http_auth_login_step3_env(EV_P, void *cb_data, DB_result *res);
@@ -984,7 +656,6 @@ finish:
 	bol_error_state = false;
 	return true;
 }
-#endif
 
 void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 	struct sock_ev_client_auth *client_auth = cb_data;
@@ -1186,7 +857,7 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 	DB_free_result(res);
 
 	if (bol_global_super_only == true && strncmp(str_rolsuper, "FALSE", 5) == 0) {
-		char *str_temp1 = "{\"stat\": false, \"dat\": \"You must login as a super user to use " SUN_PROGRAM_WORD_NAME ". If you would like to use a non-superuser role, change the `super_only` parameter to false in postage.conf\"}";
+		char *str_temp1 = "{\"stat\": false, \"dat\": \"You must login as a super user to use " SUN_PROGRAM_WORD_NAME ". If you would like to use a non-superuser role, change the `super_only` parameter to false in envelope.conf\"}";
 		SFINISH_SNCAT(str_temp, &int_temp, str_temp1, strlen(str_temp1));
 		char str_length[50];
 		snprintf(str_length, 50, "%zu", strlen(str_temp));
@@ -1233,7 +904,6 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 		SFREE(str_content_length);
 	} else {
 		str_expires = str_expire_one_day();
-#ifdef ENVELOPE
 		char *str_temp1 =
 			"HTTP/1.1 200 OK\015\012"
 			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
@@ -1254,42 +924,6 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 			(DB_connection_driver(client_auth->parent->conn) == DB_DRIVER_POSTGRES ? "PG" : "SS"), (size_t)2,
 			str_temp3, strlen(str_temp3)
 		);
-#else
-		SFINISH_SALLOC(str_int_len, 20);
-		snprintf(str_int_len, 20, "%zu", 45 + strlen(client_auth->str_int_connection_index));
-
-		size_t int_connection_index_len = strlen(client_auth->str_int_connection_index);
-		char *str_temp1 =
-			"HTTP/1.1 200 OK\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Set-Cookie: " SUN_PROGRAM_LOWER_NAME "_";
-		char *str_temp2 =
-			"; HttpOnly;\015\012Set-Cookie: DB=";
-		char *str_temp3 =
-			"; path=/;\015\012Content-Length: ";
-		char *str_temp4 =
-			"\015\012\015\012"
-			"{\"stat\": true, \"dat\": \"/" SUN_PROGRAM_LOWER_NAME "/";
-		char *str_temp5 =
-			"/index.html\"}";
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp1, strlen(str_temp1),
-			client_auth->str_int_connection_index, int_connection_index_len,
-			"=", (size_t)1,
-			client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
-			"; path=/; expires=", (size_t)18,
-			str_expires, strlen(str_expires),
-			str_temp2, strlen(str_temp2),
-			(DB_connection_driver(client_auth->parent->conn) == DB_DRIVER_POSTGRES ? "PG" : "SS"), (size_t)2,
-			str_temp3, strlen(str_temp3),
-			str_int_len, strlen(str_int_len),
-			str_temp4, strlen(str_temp4),
-			client_auth->str_int_connection_index, int_connection_index_len,
-			str_temp5, strlen(str_temp5)
-		);
-#endif
 		SFREE(str_expires);
 
 		struct sock_ev_client *client = client_auth->parent;
@@ -1316,99 +950,6 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 				(ssize_t)DArray_push(client_auth->parent->server->arr_client_last_activity, client_last_activity);
 		}
 		SDEBUG("" SUN_PROGRAM_LOWER_NAME " COOKIE SET");
-#ifdef ENVELOPE
-#else
-		if (client_request->parent->str_conn != NULL) {
-			client_auth->int_connection_index = (int_global_custom_connection_number += 1);
-		}
-
-		SFINISH_SNCAT(client_request->parent->str_connname_folder, &int_temp, client_auth->str_connname, client_auth->int_connname_length);
-		if (client_auth->str_database != NULL) {
-			SFINISH_SNFCAT(client_request->parent->str_connname_folder, &int_temp, "_", (size_t)1, client_auth->str_database, strlen(client_auth->str_database));
-		}
-		if (client_request->parent->str_conn != NULL) {
-			SFINISH_SNFCAT(client_request->parent->str_connname_folder, &int_temp, "_", (size_t)1, client_request->parent->str_conn, strlen(client_request->parent->str_conn));
-		}
-		int_i = 0;
-		int_len = strlen(client_request->parent->str_connname_folder);
-		while (int_i < int_len) {
-			if (!isalnum(client_request->parent->str_connname_folder[int_i])) {
-				client_request->parent->str_connname_folder[int_i] = '_';
-			}
-
-			int_i++;
-		}
-
-		str_temp1 = client_auth->str_user;
-		SFINISH_CHECK((client_auth->str_user = snuri(str_temp1, client_auth->int_user_length, &client_auth->int_user_length)) != NULL, "snuri failed");
-		SFREE(str_temp1);
-
-		SFINISH_SNCAT(
-			str_user, &int_temp,
-			client_request->parent->str_connname_folder, strlen(client_request->parent->str_connname_folder),
-			"/", (size_t)1,
-			client_auth->str_user, client_auth->int_user_length
-		);
-		SFINISH_SNCAT(
-			str_open, &int_temp,
-			client_request->parent->str_connname_folder, strlen(client_request->parent->str_connname_folder),
-			"/", (size_t)1,
-			client_auth->str_user, client_auth->int_user_length,
-			"/open", (size_t)5
-		);
-		SFINISH_SNCAT(
-			str_closed, &int_temp,
-			client_request->parent->str_connname_folder, strlen(client_request->parent->str_connname_folder),
-			"/", (size_t)1,
-			client_auth->str_user, client_auth->int_user_length,
-			"/closed", (size_t)7
-		);
-
-		// connection folder
-		char *str_temp = canonical(str_global_sql_root, client_request->parent->str_connname_folder, "read_dir");
-		if (str_temp == NULL) {
-			str_temp = canonical(str_global_sql_root, client_request->parent->str_connname_folder, "create_dir");
-			SFINISH_CHECK(str_temp != NULL, "Could not create directory >%s/%s<", str_global_sql_root, str_connstring);
-		}
-		SFREE(str_temp);
-		str_temp = canonical(str_global_sql_root, client_request->parent->str_connname_folder, "read_dir");
-		SFINISH_ERROR_CHECK(str_temp != NULL, "Could not create directory >%s/%s<", str_global_sql_root, str_connstring);
-		SFREE(str_temp);
-
-		// connection/user folder
-		str_temp = canonical(str_global_sql_root, str_user, "read_dir");
-		if (str_temp == NULL) {
-			str_temp = canonical(str_global_sql_root, str_user, "create_dir");
-			SFINISH_CHECK(str_temp != NULL, "Could not create directory %s", str_user);
-		}
-		SFREE(str_temp);
-		str_temp = canonical(str_global_sql_root, str_user, "read_dir");
-		SFINISH_ERROR_CHECK(str_temp != NULL, "Could not create directory >%s/%s<", str_global_sql_root, str_user);
-		SFREE(str_temp);
-
-		// connection/user/open folder
-		str_temp = canonical(str_global_sql_root, str_open, "read_dir");
-		if (str_temp == NULL) {
-			str_temp = canonical(str_global_sql_root, str_open, "create_dir");
-			SFINISH_CHECK(str_temp != NULL, "Could not create directory %s", str_open);
-		}
-		SFREE(str_temp);
-		str_temp = canonical(str_global_sql_root, str_open, "read_dir");
-		SFINISH_ERROR_CHECK(str_temp != NULL, "Could not create directory >%s/%s<", str_global_sql_root, str_open);
-		SFREE(str_temp);
-
-		// connection/user/closed folder
-		str_temp = canonical(str_global_sql_root, str_closed, "read_dir");
-		if (str_temp == NULL) {
-			str_temp = canonical(str_global_sql_root, str_closed, "create_dir");
-			SFINISH_CHECK(str_temp != NULL, "Could not create directory %s", str_closed);
-		}
-		SFREE(str_temp);
-		str_temp = canonical(str_global_sql_root, str_closed, "read_dir");
-		SFINISH_ERROR_CHECK(str_temp != NULL, "Could not create directory >%s/%s<", str_global_sql_root, str_closed);
-		SFREE(str_temp);
-		SFREE(str_global_error);
-#endif
 	}
 
 	SDEBUG("str_response: %s", str_response);
@@ -1592,7 +1133,6 @@ bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res) {
 	SDEBUG("PASSWORD CHANGE");
 	str_expires = str_expire_one_day();
 
-#ifdef ENVELOPE
 	char *str_temp1 =
 		"HTTP/1.1 200 OK\015\012"
 		"Server: " SUN_PROGRAM_LOWER_NAME "\015\012Content-Type: application/json; charset=UTF-8\015\012"
@@ -1605,22 +1145,6 @@ bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res) {
 		"; path=/; expires=", (size_t)18,
 		str_expires, strlen(str_expires),
 		str_temp2, strlen(str_temp2));
-#else
-	char *str_temp1 =
-		"HTTP/1.1 200 OK\015\012"
-		"Server: " SUN_PROGRAM_LOWER_NAME "\015\012Content-Type: application/json; charset=UTF-8\015\012"
-			"Connection: close\015\012"
-		"Set-Cookie: postage_";
-	char *str_temp2 = "; HttpOnly\015\012\015\012{\"stat\": true, \"dat\": \"OK\"}";
-	SFINISH_SNCAT(str_response, &int_response_len,
-		str_temp1, strlen(str_temp1),
-		client_auth->str_int_connection_index, strlen(client_auth->str_int_connection_index),
-		"=", (size_t)1,
-		client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
-		"; path=/; expires=", (size_t)18,
-		str_expires, strlen(str_expires),
-		str_temp2, strlen(str_temp2));
-#endif
 
 	client_auth->parent->int_last_activity_i = -1;
 	for (int_i = 0, int_len = DArray_end(client_auth->parent->server->arr_client_last_activity); int_i < int_len; int_i += 1) {
@@ -1706,7 +1230,6 @@ void http_auth_change_database_step2(EV_P, void *cb_data, DB_conn *conn) {
 	SDEBUG("DATABASE CHANGE");
 	str_expires = str_expire_one_day();
 
-#ifdef ENVELOPE
 	char *str_temp2 =
 		"HTTP/1.1 200 OK\015\012"
 		"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
@@ -1725,28 +1248,6 @@ void http_auth_change_database_step2(EV_P, void *cb_data, DB_conn *conn) {
 		str_expires, strlen(str_expires),
 		str_temp3, strlen(str_temp3)
 	);
-#else
-	char *str_temp2 =
-		"HTTP/1.1 200 OK\015\012"
-		"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-		"Content-Type: application/json; charset=UTF-8\015\012"
-		"Set-Cookie: postage_";
-	char *str_temp3 =
-		"; HttpOnly\015\012"
-		"Content-Length: 27\015\012\015\012"
-		"{\"stat\": true, \"dat\": \"OK\"}";
-	SFINISH_SNCAT(
-		str_response, &int_response_len,
-		str_temp2, strlen(str_temp2),
-		client_auth->str_int_connection_index, strlen(client_auth->str_int_connection_index),
-		"=", (size_t)1,
-		client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
-		"; path=/; expires=", (size_t)18,
-		str_expires, strlen(str_expires),
-		str_temp3, strlen(str_temp3)
-	);
-#endif
 
 	client_auth->parent->int_last_activity_i = -1;
 	for (int_i = 0, int_len = DArray_end(client_auth->parent->server->arr_client_last_activity); int_i < int_len; int_i += 1) {
@@ -1824,54 +1325,6 @@ void http_auth_change_database_step2(EV_P, void *cb_data, DB_conn *conn) {
 		client_auth->str_user, client_auth->int_user_length,
 		"/closed", (size_t)7
 	);
-
-#ifdef ENVELOPE
-#else
-	// connection folder
-	char *str_temp = canonical(str_global_sql_root, client_auth->parent->str_connname_folder, "read_dir");
-	if (str_temp == NULL) {
-		str_temp = canonical(str_global_sql_root, client_auth->parent->str_connname_folder, "create_dir");
-		SFINISH_CHECK(str_temp != NULL, "Could not create directory %s", client_auth->parent->str_connname_folder);
-	}
-	SFREE(str_temp);
-	str_temp = canonical(str_global_sql_root, client_auth->parent->str_connname_folder, "read_dir");
-	SFINISH_ERROR_CHECK(str_temp != NULL, "Could not create directory >%s/%s<", str_global_sql_root, client_auth->parent->str_connname_folder);
-	SFREE(str_temp);
-
-	// connection/user folder
-	str_temp = canonical(str_global_sql_root, str_user, "read_dir");
-	if (str_temp == NULL) {
-		str_temp = canonical(str_global_sql_root, str_user, "create_dir");
-		SFINISH_CHECK(str_temp != NULL, "Could not create directory %s", str_user);
-	}
-	SFREE(str_temp);
-	str_temp = canonical(str_global_sql_root, str_user, "read_dir");
-	SFINISH_ERROR_CHECK(str_temp != NULL, "Could not create directory >%s/%s<", str_global_sql_root, str_user);
-	SFREE(str_temp);
-
-	// connection/user/open folder
-	str_temp = canonical(str_global_sql_root, str_open, "read_dir");
-	if (str_temp == NULL) {
-		str_temp = canonical(str_global_sql_root, str_open, "create_dir");
-		SFINISH_CHECK(str_temp != NULL, "Could not create directory %s", str_open);
-	}
-	SFREE(str_temp);
-	str_temp = canonical(str_global_sql_root, str_open, "read_dir");
-	SFINISH_ERROR_CHECK(str_temp != NULL, "Could not create directory >%s/%s<", str_global_sql_root, str_open);
-	SFREE(str_temp);
-
-	// connection/user/closed folder
-	str_temp = canonical(str_global_sql_root, str_closed, "read_dir");
-	if (str_temp == NULL) {
-		str_temp = canonical(str_global_sql_root, str_closed, "create_dir");
-		SFINISH_CHECK(str_temp != NULL, "Could not create directory %s", str_closed);
-	}
-	SFREE(str_temp);
-	str_temp = canonical(str_global_sql_root, str_closed, "read_dir");
-	SFINISH_ERROR_CHECK(str_temp != NULL, "Could not create directory >%s/%s<", str_global_sql_root, str_closed);
-	SFREE(str_temp);
-	SFREE(str_global_error);
-#endif
 
 	bol_error_state = false;
 finish:

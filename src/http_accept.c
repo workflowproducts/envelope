@@ -29,28 +29,11 @@ void http_accept_step1(struct sock_ev_client *client) {
 			"", (size_t)0);
 	}
 
-#ifdef ENVELOPE
-#else
-	if (isdigit(str_uri[9])) {
-		str_uri_temp = str_uri;
-		char *ptr_temp = strchr(str_uri_temp + 9, '/');
-		SFINISH_CHECK(ptr_temp != NULL, "strchr failed");
-		SFINISH_SNCAT(str_uri, &int_uri_len,
-			"/postage/app", (size_t)12,
-			ptr_temp, strlen(ptr_temp));
-		SFREE(str_uri_temp);
-	}
-#endif
 
 	SDEBUG("str_args: %s", str_args);
 
-#ifdef ENVELOPE
 	SFINISH_SNCAT(str_action_name, &int_action_name_len,
 		str_uri + strlen("/env/"), strlen(str_uri + strlen("/env/")));
-#else
-	SFINISH_SNCAT(str_action_name, &int_action_name_len,
-		str_uri + strlen("/postage/app/"), strlen(str_uri + strlen("/postage/app/")));
-#endif
 	char *ptr_end_action_name = strchr(str_action_name, '/');
 	if (ptr_end_action_name != NULL) {
 		int_action_name_len = (size_t)(ptr_end_action_name - str_action_name);
@@ -143,7 +126,7 @@ bool http_accept_step2(EV_P, void *cb_data, DB_result *res) {
 	str_response = DArray_get(arr_row_values, 0);
 	SDEBUG("str_response: %s", str_response);
 
-	client->cur_request = create_request(client, NULL, NULL, NULL, NULL, 0, POSTAGE_REQ_ACCEPT, NULL);
+	client->cur_request = create_request(client, NULL, NULL, NULL, NULL, 0, ENVELOPE_REQ_ACCEPT, NULL);
 	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");
 	SFINISH_SALLOC(client_copy_check, sizeof(struct sock_ev_client_copy_check));
 

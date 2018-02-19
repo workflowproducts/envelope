@@ -16,15 +16,9 @@
 #include "util_error.h"
 #include "util_ini.h"
 
-#ifdef ENVELOPE
 #define SUN_PROGRAM_LOWER_NAME "envelope"
 #define SUN_PROGRAM_WORD_NAME "Envelope"
 #define SUN_PROGRAM_UPPER_NAME "ENVELOPE"
-#else
-#define SUN_PROGRAM_LOWER_NAME "postage"
-#define SUN_PROGRAM_WORD_NAME "Postage"
-#define SUN_PROGRAM_UPPER_NAME "POSTAGE"
-#endif
 
 extern char *str_global_config_file;
 extern char *str_global_connection_file;
@@ -39,7 +33,6 @@ extern DArray *darr_global_connection;
 extern size_t int_global_login_timeout;
 extern size_t int_global_custom_connection_number;
 
-#ifdef ENVELOPE
 extern char *str_global_public_username;
 extern char *str_global_public_password;
 extern bool bol_global_set_user;
@@ -48,16 +41,12 @@ extern bool bol_global_allow_origin;
 
 extern char *str_global_app_path;
 extern char *str_global_role_path;
-#else
-extern bool bol_global_allow_custom_connections;
-extern char *str_global_sql_root;
-#endif
 extern uint64_t int_global_session_id;
 
 extern char cwd[1024];
 #ifdef _WIN32
 extern const char *VERSION;
-extern char *POSTAGE_PREFIX;
+extern char *ENVELOPE_PREFIX;
 #endif
 
 struct struct_connection {
