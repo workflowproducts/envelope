@@ -297,6 +297,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+        function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     function elementInserted(element) {
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
@@ -356,6 +398,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.addEventListener('pushstate',    function () { loadPushReplacePopHandler(element); });
                 window.addEventListener('replacestate', function () { loadPushReplacePopHandler(element); });
                 window.addEventListener('popstate',     function () { loadPushReplacePopHandler(element); });
+            }
+            if (element.hasAttribute('id')) {
+                findFor(element);
             }
         }
     }
@@ -515,6 +560,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.innerHTML = '';
                 element.innerHTML = '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
                 element.control = element.children[0];
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
 
                 // bind event re-targeting functions
                 element.control.removeEventListener('change', changeFunction);
@@ -579,6 +633,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // set a variable with the control element for convenience and speed
                 element.control = xtag.query(element, '.control')[0];
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
 
                 element.control.removeEventListener('change', changeFunction);
                 element.control.addEventListener('change', changeFunction);

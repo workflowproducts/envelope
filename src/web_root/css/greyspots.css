@@ -15110,7 +15110,7 @@ gs-group > .root {
 gs-groupborder {
     display: block;
     padding: 0.25em;
-    border: 1px solid #999;
+    border: 1px solid #555;
     
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -15127,7 +15127,7 @@ gs-groupborder {
 gs-grouptitle {
     display: block;
     text-align: center;
-    color: #999;
+    color: #555;
     font-style: italic;
     -webkit-touch-callout: none;
     -webkit-user-select: none;

@@ -531,6 +531,12 @@
                                     
                                     element.classList.add('down');
                                 }
+                                
+                                if (element.hasAttribute('disabled')) {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    return true;
+                                }
                             });
                             
                             element.addEventListener('keyup', function (event) {
@@ -541,10 +547,16 @@
                                 }
                             });
                         }
-                        
+
                         element.addEventListener('click', function (event) {
                             element.classList.remove('down');
-                            clickFunction(element);
+                            if (!element.hasAttribute('disabled')) {
+                                clickFunction(element);
+                            } else {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                event.stopImmediatePropagation();
+                            }
                         });
                         
                         element.addEventListener('keypress', function (event) {
@@ -566,8 +578,8 @@
                                 window.addEventListener('keydown', function (event) {
                                     if (String(event.keyCode || event.which) === GS.keyCode(strKey) &&
                                         (
-                                            (element.hasAttribute('no-modifier-key') && !event.metaKey && !event.ctrlKey) ||
-                                            (!element.hasAttribute('no-modifier-key') && (event.metaKey || event.ctrlKey))
+                                            (element.hasAttribute('no-modifier-key') && !event.metaKey && !event.ctrlKey)
+                                            || (!element.hasAttribute('no-modifier-key') && (event.metaKey || event.ctrlKey))
                                         )) {
                                         event.preventDefault();
                                         event.stopPropagation();
@@ -1509,7 +1521,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
         if (!element.hasAttribute('suspend-created')) {
-            
+            if (!element.hasAttribute('role')) {
+                element.setAttribute('role', 'button');
+            }
         }
     }
     
@@ -1544,9 +1558,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     element.removeAttribute('tabindex');
                 }
-                
+
+
+                if (element.hasAttribute('disabled')) {
+                    element.setAttribute('aria-disabled', 'true');
+                }
+
                 element.classList.remove('down');
                 element.classList.remove('hover');
+
+                if (element.onclick) {
+                    // This is because the general 'onclick' attribute doesn't respect the 'disabled' attribute
+                    element.oldOnClick = element.onclick;
+                    element.onclick = function () {
+                        if (!element.hasAttribute('disabled')) {
+                            element.oldOnClick.apply(element, arguments);
+                        }
+                    };
+                }
+                
+                element.addEventListener('click', function (event) {
+                    element.classList.remove('down');
+                    if (element.hasAttribute('disabled')) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.stopImmediatePropagation();
+                    }
+                });
                 
                 if (!evt.touchDevice) {
                     element.addEventListener('focus', function (event) {
@@ -1669,7 +1707,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     } else if (strAttrName === 'disabled') {
                         this.classList.remove('down');
-                        
+                        if (newValue) {
+                            this.setAttribute('aria-disabled', 'true');
+                        } else {
+                            this.removeAttribute('aria-disabled');
+                        }
                     } else if (strAttrName === 'href' || strAttrName === 'target' || strAttrName === 'onclick' || strAttrName === 'download') {
                         refreshAnchor(this);
                     }

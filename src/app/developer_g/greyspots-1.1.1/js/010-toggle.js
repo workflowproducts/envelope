@@ -450,7 +450,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
         if (!element.hasAttribute('suspend-created')) {
-
+            if (!element.hasAttribute('role')) {
+                element.setAttribute('role', 'button');
+                element.setAttribute('aria-pressed', '');
+            }
         }
     }
 
@@ -571,6 +574,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             this.setAttribute('value', '0');
                         }
                         
+                        element.setAttribute('aria-pressed', 'false');
+                        
                     } else {
                         this.setAttribute('selected', '');
                         
@@ -579,6 +584,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         } else if (this.getAttribute('value') === '0') {
                             this.setAttribute('value', '-1');
                         }
+                        
+                        element.setAttribute('aria-pressed', 'true');
                     }
                     
                     xtag.fireEvent(this, 'change', {
@@ -597,8 +604,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 'set': function (newValue) {
                     if (newValue === true || newValue === 'true') {
                         this.setAttribute('selected', '');
+                        
+                        element.setAttribute('aria-pressed', 'true');
                     } else {
                         this.removeAttribute('selected');
+                        
+                        element.setAttribute('aria-pressed', 'false');
                     }
                 }
             },
@@ -611,8 +622,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 'set': function (newValue) {
                     if (newValue === true || newValue === 'true' || newValue === 'YES') {
                         this.setAttribute('selected', '');
+                        
+                        element.setAttribute('aria-pressed', 'true');
                     } else {
                         this.removeAttribute('selected');
+                        
+                        element.setAttribute('aria-pressed', 'false');
                     }
                 }
             }

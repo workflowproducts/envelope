@@ -1750,7 +1750,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     {{HUDHTML}}
                     
                     <gs-button icon="filter" icononly no-focus title="Edit Filters." class="filter-button" hidden></gs-button>
-                    <textarea class="hidden-focus-control">Focus Control</textarea>
+                    <textarea title="Hidden control" class="hidden-focus-control">Focus Control</textarea>
                 </div>
                 <div class="data-container" flex>
                     <div class="data-flex-reset">

@@ -66,25 +66,40 @@ window.addEventListener('design-register-element', function () {
     };
 });
 
+// document.addEventListener('DOMContentLoaded', function () {
+//     xtag.register('gs-header', {
+//         lifecycle: {
+//             /*inserted: function () {
+//                 if (this.border_line) {
+//                     this.removeChild(this.border_line);
+//                 }
+                
+//                 this.border_line = document.createElement('div');
+//                 this.border_line.classList.add('border-line');
+//                 this.border_line.setAttribute('gs-dynamic', '');
+                
+//                 this.appendChild(this.border_line);
+//             },
+//             removed: function () {
+//                 if (this.border_line.parentNode === this) {
+//                     this.removeChild(this.border_line);
+//                 }
+//             }*/
+//         },
+//         events: {},
+//         accessors: {},
+//         methods: {}
+//     });
+// });
 document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
     xtag.register('gs-header', {
         lifecycle: {
-            /*inserted: function () {
-                if (this.border_line) {
-                    this.removeChild(this.border_line);
+            created: function () {
+                if (!this.hasAttribute('role')) {
+                    this.setAttribute('role', 'banner');
                 }
-                
-                this.border_line = document.createElement('div');
-                this.border_line.classList.add('border-line');
-                this.border_line.setAttribute('gs-dynamic', '');
-                
-                this.appendChild(this.border_line);
             },
-            removed: function () {
-                if (this.border_line.parentNode === this) {
-                    this.removeChild(this.border_line);
-                }
-            }*/
         },
         events: {},
         accessors: {},

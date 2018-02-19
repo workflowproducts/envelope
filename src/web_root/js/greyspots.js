@@ -15409,9 +15409,25 @@ window.addEventListener('design-register-element', function () {
     designRegisterElement('gs-body', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-page.html');
 });
 
+// document.addEventListener('DOMContentLoaded', function () {
+//     xtag.register('gs-body', {
+//         lifecycle: {},
+//         events: {},
+//         accessors: {},
+//         methods: {}
+//     });
+// });
+// JOSEPH want's this to revert back to default if you remove the role attribute
 document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
     xtag.register('gs-body', {
-        lifecycle: {},
+        lifecycle: {
+            created: function () {
+                if (!this.hasAttribute('role')) {
+                    this.setAttribute('role', 'main');
+                }
+            },
+        },
         events: {},
         accessors: {},
         methods: {}
@@ -15949,6 +15965,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                     
                                     element.classList.add('down');
                                 }
+                                
+                                if (element.hasAttribute('disabled')) {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    return true;
+                                }
                             });
                             
                             element.addEventListener('keyup', function (event) {
@@ -15959,10 +15981,16 @@ document.addEventListener('DOMContentLoaded', function () {
                                 }
                             });
                         }
-                        
+
                         element.addEventListener('click', function (event) {
                             element.classList.remove('down');
-                            clickFunction(element);
+                            if (!element.hasAttribute('disabled')) {
+                                clickFunction(element);
+                            } else {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                event.stopImmediatePropagation();
+                            }
                         });
                         
                         element.addEventListener('keypress', function (event) {
@@ -15984,8 +16012,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 window.addEventListener('keydown', function (event) {
                                     if (String(event.keyCode || event.which) === GS.keyCode(strKey) &&
                                         (
-                                            (element.hasAttribute('no-modifier-key') && !event.metaKey && !event.ctrlKey) ||
-                                            (!element.hasAttribute('no-modifier-key') && (event.metaKey || event.ctrlKey))
+                                            (element.hasAttribute('no-modifier-key') && !event.metaKey && !event.ctrlKey)
+                                            || (!element.hasAttribute('no-modifier-key') && (event.metaKey || event.ctrlKey))
                                         )) {
                                         event.preventDefault();
                                         event.stopPropagation();
@@ -16927,7 +16955,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
         if (!element.hasAttribute('suspend-created')) {
-            
+            if (!element.hasAttribute('role')) {
+                element.setAttribute('role', 'button');
+            }
         }
     }
     
@@ -16962,9 +16992,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     element.removeAttribute('tabindex');
                 }
-                
+
+
+                if (element.hasAttribute('disabled')) {
+                    element.setAttribute('aria-disabled', 'true');
+                }
+
                 element.classList.remove('down');
                 element.classList.remove('hover');
+
+                if (element.onclick) {
+                    // This is because the general 'onclick' attribute doesn't respect the 'disabled' attribute
+                    element.oldOnClick = element.onclick;
+                    element.onclick = function () {
+                        if (!element.hasAttribute('disabled')) {
+                            element.oldOnClick.apply(element, arguments);
+                        }
+                    };
+                }
+                
+                element.addEventListener('click', function (event) {
+                    element.classList.remove('down');
+                    if (element.hasAttribute('disabled')) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.stopImmediatePropagation();
+                    }
+                });
                 
                 if (!evt.touchDevice) {
                     element.addEventListener('focus', function (event) {
@@ -17087,7 +17141,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     } else if (strAttrName === 'disabled') {
                         this.classList.remove('down');
-                        
+                        if (newValue) {
+                            this.setAttribute('aria-disabled', 'true');
+                        } else {
+                            this.removeAttribute('aria-disabled');
+                        }
                     } else if (strAttrName === 'href' || strAttrName === 'target' || strAttrName === 'onclick' || strAttrName === 'download') {
                         refreshAnchor(this);
                     }
@@ -17441,7 +17499,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
         if (!element.hasAttribute('suspend-created')) {
-
+            if (!element.hasAttribute('role')) {
+                element.setAttribute('role', 'checkbox');
+            }
         }
     }
 
@@ -17453,6 +17513,17 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!element.inserted) {
                 element.inserted = true;
                 element.internal = {};
+
+                if (element.hasAttribute('value')) {
+                    // console.log(element.getAttribute('value'));
+                    if (element.getAttribute('value') === 'true' || element.getAttribute('value') === '-1') {
+                        element.setAttribute('aria-checked', 'true');
+                    } else if (element.getAttribute('value') === 'false' || element.getAttribute('value') === '0') {
+                        element.setAttribute('aria-checked', 'false');
+                    } else {
+                        element.setAttribute('aria-checked', 'mixed');
+                    }
+                }
 
                 // save default attribute settings so that the qs code can access those values
                 saveDefaultAttributes(element);
@@ -17541,6 +17612,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
                     // attribute code
+                    if (strAttrName === 'value') {
+                        if (newValue === 'true' || newValue === '-1') {
+                            this.setAttribute('aria-checked', 'true');
+                        } else if (newValue === 'false' || newValue === '0') {
+                            this.setAttribute('aria-checked', 'false');
+                        } else {
+                            this.setAttribute('aria-checked', 'mixed');
+                        }
+                    }
                 }
             }
         },
@@ -18147,7 +18227,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function focusFunction(event) {
-        console.log('focus', event.target);
+        // console.log('focus', event.target);
         var element = event.target, element2 = GS.findParentTag(element, 'gs-combo');
         if (element2 && element2.tagName == 'GS-COMBO') {
             element = element2;
@@ -18994,14 +19074,23 @@ document.addEventListener('DOMContentLoaded', function () {
         element.appendChild(divElement);
         element.root = divElement;
         if (!bolspan) {
-            element.root.innerHTML = '<input gs-dynamic class="control" type="text" />' +
-                                   '<gs-button gs-dynamic class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>';
+            element.root.innerHTML = '<input role="textbox" gs-dynamic class="control" type="text" />' +
+                                   '<gs-button gs-dynamic alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>';
         } else {
             element.root.innerHTML = '<span gs-dynamic class="control" type="text" style="width: 100%;">' + ctrlValue + '</span>' +
-                                   '<gs-button gs-dynamic class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>';
+                                   '<gs-button gs-dynamic alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>';
         }
 
         element.control = xtag.query(element, '.control')[0];
+        if (element.hasAttribute('id')) {
+            element.control.setAttribute('id', element.getAttribute('id') + '_control');
+        }
+        if (element.hasAttribute('aria-labelledby')) {
+            element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+        }
+        if (element.hasAttribute('title')) {
+            element.control.setAttribute('title', element.getAttribute('title'));
+        }
         element.dropDownButton = xtag.query(element, '.drop_down_button')[0];
         
         if (element.hasAttribute('defer-insert')) {
@@ -19105,7 +19194,7 @@ document.addEventListener('DOMContentLoaded', function () {
         element.control.addEventListener('keyup', function (event) {
             // if the key was return
             if ((event.keyCode || event.which) === 13 && !element.hasAttribute('readonly')) {
-                console.log('test', element.changeOccured);
+                // console.log('test', element.changeOccured);
                 if (element.changeOccured === true) {
                     element.changeOccured = false;
                 } else if (element.control.value !== element.lastValue) {
@@ -19279,8 +19368,52 @@ document.addEventListener('DOMContentLoaded', function () {
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
         if (!element.hasAttribute('suspend-created')) {
-
+            if (!element.hasAttribute('role')) {
+                element.setAttribute('role', 'combobox');
+            }
         }
+    }
+    
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
     }
 
     //
@@ -19458,6 +19591,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         selectRecordFromValue(element, element.value, false);
                     }
                 }
+            }
+            if (element.hasAttribute('id')) {
+                findFor(element);
             }
         }
     }
@@ -21879,7 +22015,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     {{HUDHTML}}
                     
                     <gs-button icon="filter" icononly no-focus title="Edit Filters." class="filter-button" hidden></gs-button>
-                    <textarea class="hidden-focus-control">Focus Control</textarea>
+                    <textarea title="Hidden control" class="hidden-focus-control">Focus Control</textarea>
                 </div>
                 <div class="data-container" flex>
                     <div class="data-flex-reset">
@@ -24380,7 +24516,49 @@ document.addEventListener('DOMContentLoaded', function () {
             
         }
     }
-    
+
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     //
     function elementInserted(element) {
         console.warn('GS-DATE WARNING: this element is deprecated, please use the gs-datetime instead.');
@@ -24435,6 +24613,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 
                 element.refresh();
+            }
+            if (element.hasAttribute('id')) {
+                findFor(element);
             }
         }
     }
@@ -25279,13 +25460,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 // set a variable for the control element for convenience and speed
                 element.control = xtag.query(element, '.control')[0];
-                
                 // set a variable for the date picker button element for convenience and speed
                 element.datePickerButton = xtag.query(element, '.date-picker-button')[0];
                 
                 //console.log(element.control, element.getAttribute('value'), element.getAttribute('column'));
                 
                 if (element.control) {
+                    if (element.hasAttribute('id')) {
+                        element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                    }
+                    if (element.hasAttribute('aria-labelledby')) {
+                        element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                    }
+                    if (element.hasAttribute('title')) {
+                        element.control.setAttribute('title', element.getAttribute('title'));
+                    }
+                    
                     element.control.removeEventListener('change', changeFunction);
                     element.control.addEventListener('change', changeFunction);
                     
@@ -30062,6 +30252,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     function elementInserted(element) {
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
@@ -30169,6 +30401,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         createPushReplacePopHandler(element);
                     });
                 }
+            }
+            if (element.hasAttribute('id')) {
+                findFor(element);
             }
         }
     }
@@ -30319,6 +30554,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         '<gs-button no-focus icononly icon="undo" class="dt-arrow dt-reset"></gs-button>' +
                         '</div>';
                     element.control = element.children[0];
+                    if (element.hasAttribute('id')) {
+                        element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                    }
+                    if (element.hasAttribute('aria-labelledby')) {
+                        element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                    }
+                    if (element.hasAttribute('title')) {
+                        element.control.setAttribute('title', element.getAttribute('title'));
+                    }
                     element.control.addEventListener(evt.click, controlClickFunction);
 
                     var arrows = element.children[1];
@@ -30337,6 +30581,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.innerHTML =
                         '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
                     element.control = element.children[0];
+                    if (element.hasAttribute('id')) {
+                        element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                    }
+                    if (element.hasAttribute('aria-labelledby')) {
+                        element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                    }
+                    if (element.hasAttribute('title')) {
+                        element.control.setAttribute('title', element.getAttribute('title'));
+                    }
                 }
 
                 // bind event re-targeting functions
@@ -32342,7 +32595,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                          '<div class="fixed-header-container" gs-dynamic></div>' +
                                          '<div class="scroll-container" flex gs-dynamic></div>' +
                                          '<div class="hud-container-bottom" flex-horizontal gs-dynamic></div>' +
-                                         '<input class="gs-envelope-copy-focus-target" value="Firefox compatibility input" gs-dynamic />';
+                                         '<input title="Hidden control" class="gs-envelope-copy-focus-target" value="Firefox compatibility input" gs-dynamic />';
 
                 element.hudTopElement =                 xtag.queryChildren(element.root, '.hud-container-top')[0];
                 element.fixedHeaderContainerElement =   xtag.queryChildren(element.root, '.fixed-header-container')[0];
@@ -34360,11 +34613,27 @@ window.addEventListener('design-register-element', function () {
     };
 });
 
+// document.addEventListener('DOMContentLoaded', function () {
+//     'use strict';
+
+//     xtag.register('gs-footer', {
+//         lifecycle: {},
+//         events: {},
+//         accessors: {},
+//         methods: {}
+//     });
+// });
+
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
-
     xtag.register('gs-footer', {
-        lifecycle: {},
+        lifecycle: {
+            created: function () {
+                if (!this.hasAttribute('role')) {
+                    this.setAttribute('role', 'contentinfo');
+                }
+            },
+        },
         events: {},
         accessors: {},
         methods: {}
@@ -36457,25 +36726,40 @@ window.addEventListener('design-register-element', function () {
     };
 });
 
+// document.addEventListener('DOMContentLoaded', function () {
+//     xtag.register('gs-header', {
+//         lifecycle: {
+//             /*inserted: function () {
+//                 if (this.border_line) {
+//                     this.removeChild(this.border_line);
+//                 }
+                
+//                 this.border_line = document.createElement('div');
+//                 this.border_line.classList.add('border-line');
+//                 this.border_line.setAttribute('gs-dynamic', '');
+                
+//                 this.appendChild(this.border_line);
+//             },
+//             removed: function () {
+//                 if (this.border_line.parentNode === this) {
+//                     this.removeChild(this.border_line);
+//                 }
+//             }*/
+//         },
+//         events: {},
+//         accessors: {},
+//         methods: {}
+//     });
+// });
 document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
     xtag.register('gs-header', {
         lifecycle: {
-            /*inserted: function () {
-                if (this.border_line) {
-                    this.removeChild(this.border_line);
+            created: function () {
+                if (!this.hasAttribute('role')) {
+                    this.setAttribute('role', 'banner');
                 }
-                
-                this.border_line = document.createElement('div');
-                this.border_line.classList.add('border-line');
-                this.border_line.setAttribute('gs-dynamic', '');
-                
-                this.appendChild(this.border_line);
             },
-            removed: function () {
-                if (this.border_line.parentNode === this) {
-                    this.removeChild(this.border_line);
-                }
-            }*/
         },
         events: {},
         accessors: {},
@@ -37365,6 +37649,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // fill element variables
             element.control = element.children[0];
+            if (element.hasAttribute('id')) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+            }
+            if (element.hasAttribute('aria-labelledby')) {
+                element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+            }
+            if (element.hasAttribute('title')) {
+                element.control.setAttribute('title', element.getAttribute('title'));
+            }
             element.button = element.children[1];
 
             // handle passthrough attributes
@@ -37688,6 +37981,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     //
     function elementInserted(element) {
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
@@ -37707,6 +38042,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 element.lastChangeValue = element.getAttribute('value');
+            }
+            
+            if (element.hasAttribute('id')) {
+                findFor(element);
             }
         }
     }
@@ -40324,6 +40663,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var focusElement = document.createElement('textarea');
                 focusElement.classList.add('hidden-focus-control');
                 focusElement.setAttribute('value', 'text makes this textarea Firefox worthy');
+                focusElement.setAttribute('title', 'Hidden control');
 
                 element.appendChild(focusElement);
                 element.hiddenFocusControl = focusElement;
@@ -40662,6 +41002,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     //
     function elementInserted(element) {
         //var strQSValue;
@@ -40683,6 +41065,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (elementValue) {
                         element.innerHTML = '<span class="control" gs-dynamic>' + elementValue + '</span>';
                         element.control = element.children[0];
+                        if (element.hasAttribute('id')) {
+                            element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                        }
+                        if (element.hasAttribute('aria-labelledby')) {
+                            element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                        }
+                        if (element.hasAttribute('title')) {
+                            element.control.setAttribute('title', element.getAttribute('title'));
+                        }
                         element.control.value = elementValue;
                         element.syncGetters();
                     } else if (element.hasAttribute('placeholder')) {
@@ -40691,6 +41082,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     } else {
                         element.innerHTML = '<span class="control" gs-dynamic>' + elementValue + '</span>';
                         element.control = element.children[0];
+                        if (element.hasAttribute('id')) {
+                            element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                        }
+                        if (element.hasAttribute('aria-labelledby')) {
+                            element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                        }
+                        if (element.hasAttribute('title')) {
+                            element.control.setAttribute('title', element.getAttribute('title'));
+                        }
                         element.control.value = elementValue;
                         element.syncGetters();
                     }
@@ -40786,6 +41186,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     // set a variable with the control element for convenience and speed
                     element.control = xtag.queryChildren(element, '.control')[0];
+                    if (element.hasAttribute('id')) {
+                        element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                    }
+                    if (element.hasAttribute('aria-labelledby')) {
+                        element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                    }
+                    if (element.hasAttribute('title')) {
+                        element.control.setAttribute('title', element.getAttribute('title'));
+                    }
     
                     element.control.lastWidth = element.control.clientWidth;
                     element.control.lastHeight = element.control.clientHeight;
@@ -40805,6 +41214,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             }
+        }
+        if (element.hasAttribute('id')) {
+            findFor(element);
         }
     }
 
@@ -40840,6 +41252,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         // set a variable with the control element for convenience and speed
                         this.control = xtag.queryChildren(this, '.control')[0];
+                        if (this.hasAttribute('id')) {
+                            this.control.setAttribute('id', this.getAttribute('id') + '_control');
+                        }
+                        if (element.hasAttribute('aria-labelledby')) {
+                            element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                        }
+                        if (element.hasAttribute('title')) {
+                            element.control.setAttribute('title', element.getAttribute('title'));
+                        }
                         
                         this.control.lastWidth = this.control.clientWidth;
                         this.control.lastHeight = this.control.clientHeight;
@@ -40947,6 +41368,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.control.value) {
                     element.innerHTML = '<span style="white-space: pre-wrap;" class="control" gs-dynamic></span>';
                     element.control = element.children[0];
+                    
+                    if (element.hasAttribute('id')) {
+                        element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                    }
+                    if (element.hasAttribute('aria-labelledby')) {
+                        element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                    }
+                    if (element.hasAttribute('title')) {
+                        element.control.setAttribute('title', element.getAttribute('title'));
+                    }
                     element.control.textContent = elementValue;
                     element.control.value = elementValue;
                     element.syncGetters();
@@ -40955,6 +41386,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     element.innerHTML = '<span style="white-space: pre-wrap;" class="control" gs-dynamic></span>';
                     element.control = element.children[0];
+                    if (element.hasAttribute('id')) {
+                        element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                    }
+                    if (element.hasAttribute('aria-labelledby')) {
+                        element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                    }
+                    if (element.hasAttribute('title')) {
+                        element.control.setAttribute('title', element.getAttribute('title'));
+                    }
                     element.control.textContent = elementValue;
                     element.control.value = elementValue;
                     element.syncGetters();
@@ -40984,6 +41424,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.innerHTML = '';
                 element.innerHTML = '<textarea class="control" gs-dynamic></textarea>';//'<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
                 element.control = element.children[0];
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
 
                 // bind event re-targeting functions
                 element.control.removeEventListener('change', changeFunction);
@@ -42140,6 +42589,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     function elementInserted(element) {
         //var strQSValue;
 
@@ -42236,6 +42727,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     element.refresh();
                 }
+            }
+            if (element.hasAttribute('id')) {
+                findFor(element);
             }
         }
     }
@@ -42388,6 +42882,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.innerHTML = '';
                 element.innerHTML = '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
                 element.control = element.children[0];
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
 
                 // bind event re-targeting functions
                 element.control.removeEventListener('change', changeFunction);
@@ -42439,6 +42942,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 this.control = xtag.query(this, '.control')[0];
                 
                 if (this.control) {
+                    if (this.hasAttribute('id')) {
+                        this.control.setAttribute('id', this.getAttribute('id') + '_control');
+                    }
+                    if (this.hasAttribute('aria-labelledby')) {
+                        this.control.setAttribute('aria-labelledby', this.getAttribute('aria-labelledby'));
+                    }
+                    if (this.hasAttribute('title')) {
+                        this.control.setAttribute('title', this.getAttribute('title'));
+                    }
+                    
                     this.control.removeEventListener('change', changeFunction);
                     this.control.addEventListener('change', changeFunction);
                     
@@ -43884,6 +44397,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+        function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     function elementInserted(element) {
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
@@ -43943,6 +44498,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.addEventListener('pushstate',    function () { loadPushReplacePopHandler(element); });
                 window.addEventListener('replacestate', function () { loadPushReplacePopHandler(element); });
                 window.addEventListener('popstate',     function () { loadPushReplacePopHandler(element); });
+            }
+            if (element.hasAttribute('id')) {
+                findFor(element);
             }
         }
     }
@@ -44102,6 +44660,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.innerHTML = '';
                 element.innerHTML = '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
                 element.control = element.children[0];
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
 
                 // bind event re-targeting functions
                 element.control.removeEventListener('change', changeFunction);
@@ -44166,6 +44733,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // set a variable with the control element for convenience and speed
                 element.control = xtag.query(element, '.control')[0];
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
 
                 element.control.removeEventListener('change', changeFunction);
                 element.control.addEventListener('change', changeFunction);
@@ -44501,6 +45077,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     function elementInserted(element) {
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
@@ -44549,6 +45167,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     window.addEventListener('replacestate', function () { createPushReplacePopHandler(element); });
                     window.addEventListener('popstate',     function () { createPushReplacePopHandler(element); });
                 }
+            }
+            if (element.hasAttribute('id')) {
+                findFor(element);
             }
         }
     }
@@ -44699,6 +45320,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // set a variable with the new control element for convenience and speed
                 this.control = xtag.query(this, '.control')[0];
+                if (this.hasAttribute('id')) {
+                    this.control.setAttribute('id', this.getAttribute('id') + '_control');
+                }
+                if (this.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', this.getAttribute('aria-labelledby'));
+                }
+                if (this.hasAttribute('title')) {
+                    this.control.setAttribute('title', this.getAttribute('title'));
+                }
 
                 // if there is an old control: get the options and optgroups out of it and move them to the new control
                 if (this.oldcontrol) {
@@ -68479,6 +69109,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     function elementInserted(element) {
         if (element.hasAttribute('encrypted') && !window[element.getAttribute('encrypted')] && !window['getting' + element.getAttribute('encrypted')]) {
             window['getting' + element.getAttribute('encrypted')] = true;
@@ -68614,6 +69286,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         element.syncView();
                     }
                 }
+            }
+        }
+        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+            if (element.hasAttribute('id')) {
+                // console.log('running');
+                findFor(element);
             }
         }
     }
@@ -68788,6 +69466,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     // add control input and save it to a variable for later use
                     element.innerHTML = '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
                     element.control = element.children[0];
+                    if (element.hasAttribute('id')) {
+                        element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                    }
+                    if (element.hasAttribute('aria-labelledby')) {
+                        element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                    }
+                    if (element.hasAttribute('title')) {
+                        element.control.setAttribute('title', element.getAttribute('title'));
+                    }
 
                     // bind event re-targeting functions
                     element.control.removeEventListener('change', changeFunction);
@@ -68885,6 +69572,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.innerHTML = '';
                 element.innerHTML = '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
                 element.control = element.children[0];
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
 
                 // bind event re-targeting functions
                 element.control.removeEventListener('change', changeFunction);
@@ -69286,6 +69982,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // fill element variables
             element.control = element.children[0];
+            if (element.hasAttribute('id')) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+            }
+            if (element.hasAttribute('aria-labelledby')) {
+                element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+            }
+            if (element.hasAttribute('title')) {
+                element.control.setAttribute('title', element.getAttribute('title'));
+            }
             element.button = element.children[1];
 
             // handle passthrough attributes
@@ -69715,6 +70420,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     //
     function elementInserted(element) {
         console.warn('GS-TIME WARNING: this element is deprecated, please use the gs-datetime instead.');
@@ -69756,6 +70503,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.warn('gs-time Warning: No value provided on "non-empty" gs-time control. Defaulting to "12:00 PM". Please provide a default value.');
                     element.setAttribute('value', '12:00 PM');
                 }
+            }
+            if (element.hasAttribute('id')) {
+                findFor(element);
             }
         }
     }
@@ -71119,7 +71869,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
         if (!element.hasAttribute('suspend-created')) {
-
+            if (!element.hasAttribute('role')) {
+                element.setAttribute('role', 'button');
+                element.setAttribute('aria-pressed', '');
+            }
         }
     }
 
@@ -71240,6 +71993,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             this.setAttribute('value', '0');
                         }
                         
+                        element.setAttribute('aria-pressed', 'false');
+                        
                     } else {
                         this.setAttribute('selected', '');
                         
@@ -71248,6 +72003,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         } else if (this.getAttribute('value') === '0') {
                             this.setAttribute('value', '-1');
                         }
+                        
+                        element.setAttribute('aria-pressed', 'true');
                     }
                     
                     xtag.fireEvent(this, 'change', {
@@ -71266,8 +72023,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 'set': function (newValue) {
                     if (newValue === true || newValue === 'true') {
                         this.setAttribute('selected', '');
+                        
+                        element.setAttribute('aria-pressed', 'true');
                     } else {
                         this.removeAttribute('selected');
+                        
+                        element.setAttribute('aria-pressed', 'false');
                     }
                 }
             },
@@ -71280,8 +72041,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 'set': function (newValue) {
                     if (newValue === true || newValue === 'true' || newValue === 'YES') {
                         this.setAttribute('selected', '');
+                        
+                        element.setAttribute('aria-pressed', 'true');
                     } else {
                         this.removeAttribute('selected');
+                        
+                        element.setAttribute('aria-pressed', 'false');
                     }
                 }
             }

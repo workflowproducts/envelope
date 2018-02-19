@@ -1926,7 +1926,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                          '<div class="fixed-header-container" gs-dynamic></div>' +
                                          '<div class="scroll-container" flex gs-dynamic></div>' +
                                          '<div class="hud-container-bottom" flex-horizontal gs-dynamic></div>' +
-                                         '<input class="gs-envelope-copy-focus-target" value="Firefox compatibility input" gs-dynamic />';
+                                         '<input title="Hidden control" class="gs-envelope-copy-focus-target" value="Firefox compatibility input" gs-dynamic />';
 
                 element.hudTopElement =                 xtag.queryChildren(element.root, '.hud-container-top')[0];
                 element.fixedHeaderContainerElement =   xtag.queryChildren(element.root, '.fixed-header-container')[0];

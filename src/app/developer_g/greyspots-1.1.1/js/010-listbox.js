@@ -1830,6 +1830,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var focusElement = document.createElement('textarea');
                 focusElement.classList.add('hidden-focus-control');
                 focusElement.setAttribute('value', 'text makes this textarea Firefox worthy');
+                focusElement.setAttribute('title', 'Hidden control');
 
                 element.appendChild(focusElement);
                 element.hiddenFocusControl = focusElement;

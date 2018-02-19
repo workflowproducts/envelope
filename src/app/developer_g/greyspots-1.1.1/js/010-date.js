@@ -857,7 +857,49 @@ document.addEventListener('DOMContentLoaded', function () {
             
         }
     }
-    
+
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     //
     function elementInserted(element) {
         console.warn('GS-DATE WARNING: this element is deprecated, please use the gs-datetime instead.');
@@ -912,6 +954,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 
                 element.refresh();
+            }
+            if (element.hasAttribute('id')) {
+                findFor(element);
             }
         }
     }
@@ -1756,13 +1801,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 // set a variable for the control element for convenience and speed
                 element.control = xtag.query(element, '.control')[0];
-                
                 // set a variable for the date picker button element for convenience and speed
                 element.datePickerButton = xtag.query(element, '.date-picker-button')[0];
                 
                 //console.log(element.control, element.getAttribute('value'), element.getAttribute('column'));
                 
                 if (element.control) {
+                    if (element.hasAttribute('id')) {
+                        element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                    }
+                    if (element.hasAttribute('aria-labelledby')) {
+                        element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                    }
+                    if (element.hasAttribute('title')) {
+                        element.control.setAttribute('title', element.getAttribute('title'));
+                    }
+                    
                     element.control.removeEventListener('change', changeFunction);
                     element.control.addEventListener('change', changeFunction);
                     

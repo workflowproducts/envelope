@@ -303,6 +303,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     //
     function elementInserted(element) {
         //var strQSValue;
@@ -324,6 +366,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (elementValue) {
                         element.innerHTML = '<span class="control" gs-dynamic>' + elementValue + '</span>';
                         element.control = element.children[0];
+                        if (element.hasAttribute('id')) {
+                            element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                        }
+                        if (element.hasAttribute('aria-labelledby')) {
+                            element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                        }
+                        if (element.hasAttribute('title')) {
+                            element.control.setAttribute('title', element.getAttribute('title'));
+                        }
                         element.control.value = elementValue;
                         element.syncGetters();
                     } else if (element.hasAttribute('placeholder')) {
@@ -332,6 +383,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     } else {
                         element.innerHTML = '<span class="control" gs-dynamic>' + elementValue + '</span>';
                         element.control = element.children[0];
+                        if (element.hasAttribute('id')) {
+                            element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                        }
+                        if (element.hasAttribute('aria-labelledby')) {
+                            element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                        }
+                        if (element.hasAttribute('title')) {
+                            element.control.setAttribute('title', element.getAttribute('title'));
+                        }
                         element.control.value = elementValue;
                         element.syncGetters();
                     }
@@ -427,6 +487,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     // set a variable with the control element for convenience and speed
                     element.control = xtag.queryChildren(element, '.control')[0];
+                    if (element.hasAttribute('id')) {
+                        element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                    }
+                    if (element.hasAttribute('aria-labelledby')) {
+                        element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                    }
+                    if (element.hasAttribute('title')) {
+                        element.control.setAttribute('title', element.getAttribute('title'));
+                    }
     
                     element.control.lastWidth = element.control.clientWidth;
                     element.control.lastHeight = element.control.clientHeight;
@@ -446,6 +515,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             }
+        }
+        if (element.hasAttribute('id')) {
+            findFor(element);
         }
     }
 
@@ -481,6 +553,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         // set a variable with the control element for convenience and speed
                         this.control = xtag.queryChildren(this, '.control')[0];
+                        if (this.hasAttribute('id')) {
+                            this.control.setAttribute('id', this.getAttribute('id') + '_control');
+                        }
+                        if (element.hasAttribute('aria-labelledby')) {
+                            element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                        }
+                        if (element.hasAttribute('title')) {
+                            element.control.setAttribute('title', element.getAttribute('title'));
+                        }
                         
                         this.control.lastWidth = this.control.clientWidth;
                         this.control.lastHeight = this.control.clientHeight;
@@ -588,6 +669,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.control.value) {
                     element.innerHTML = '<span style="white-space: pre-wrap;" class="control" gs-dynamic></span>';
                     element.control = element.children[0];
+                    
+                    if (element.hasAttribute('id')) {
+                        element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                    }
+                    if (element.hasAttribute('aria-labelledby')) {
+                        element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                    }
+                    if (element.hasAttribute('title')) {
+                        element.control.setAttribute('title', element.getAttribute('title'));
+                    }
                     element.control.textContent = elementValue;
                     element.control.value = elementValue;
                     element.syncGetters();
@@ -596,6 +687,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     element.innerHTML = '<span style="white-space: pre-wrap;" class="control" gs-dynamic></span>';
                     element.control = element.children[0];
+                    if (element.hasAttribute('id')) {
+                        element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                    }
+                    if (element.hasAttribute('aria-labelledby')) {
+                        element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                    }
+                    if (element.hasAttribute('title')) {
+                        element.control.setAttribute('title', element.getAttribute('title'));
+                    }
                     element.control.textContent = elementValue;
                     element.control.value = elementValue;
                     element.syncGetters();
@@ -625,6 +725,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.innerHTML = '';
                 element.innerHTML = '<textarea class="control" gs-dynamic></textarea>';//'<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
                 element.control = element.children[0];
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
 
                 // bind event re-targeting functions
                 element.control.removeEventListener('change', changeFunction);

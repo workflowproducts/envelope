@@ -334,6 +334,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     function elementInserted(element) {
         if (element.hasAttribute('encrypted') && !window[element.getAttribute('encrypted')] && !window['getting' + element.getAttribute('encrypted')]) {
             window['getting' + element.getAttribute('encrypted')] = true;
@@ -469,6 +511,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         element.syncView();
                     }
                 }
+            }
+        }
+        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+            if (element.hasAttribute('id')) {
+                // console.log('running');
+                findFor(element);
             }
         }
     }
@@ -643,6 +691,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     // add control input and save it to a variable for later use
                     element.innerHTML = '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
                     element.control = element.children[0];
+                    if (element.hasAttribute('id')) {
+                        element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                    }
+                    if (element.hasAttribute('aria-labelledby')) {
+                        element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                    }
+                    if (element.hasAttribute('title')) {
+                        element.control.setAttribute('title', element.getAttribute('title'));
+                    }
 
                     // bind event re-targeting functions
                     element.control.removeEventListener('change', changeFunction);
@@ -740,6 +797,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.innerHTML = '';
                 element.innerHTML = '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
                 element.control = element.children[0];
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
 
                 // bind event re-targeting functions
                 element.control.removeEventListener('change', changeFunction);

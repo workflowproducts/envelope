@@ -384,7 +384,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function focusFunction(event) {
-        console.log('focus', event.target);
+        // console.log('focus', event.target);
         var element = event.target, element2 = GS.findParentTag(element, 'gs-combo');
         if (element2 && element2.tagName == 'GS-COMBO') {
             element = element2;
@@ -1231,14 +1231,23 @@ document.addEventListener('DOMContentLoaded', function () {
         element.appendChild(divElement);
         element.root = divElement;
         if (!bolspan) {
-            element.root.innerHTML = '<input gs-dynamic class="control" type="text" />' +
-                                   '<gs-button gs-dynamic class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>';
+            element.root.innerHTML = '<input role="textbox" gs-dynamic class="control" type="text" />' +
+                                   '<gs-button gs-dynamic alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>';
         } else {
             element.root.innerHTML = '<span gs-dynamic class="control" type="text" style="width: 100%;">' + ctrlValue + '</span>' +
-                                   '<gs-button gs-dynamic class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>';
+                                   '<gs-button gs-dynamic alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>';
         }
 
         element.control = xtag.query(element, '.control')[0];
+        if (element.hasAttribute('id')) {
+            element.control.setAttribute('id', element.getAttribute('id') + '_control');
+        }
+        if (element.hasAttribute('aria-labelledby')) {
+            element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+        }
+        if (element.hasAttribute('title')) {
+            element.control.setAttribute('title', element.getAttribute('title'));
+        }
         element.dropDownButton = xtag.query(element, '.drop_down_button')[0];
         
         if (element.hasAttribute('defer-insert')) {
@@ -1342,7 +1351,7 @@ document.addEventListener('DOMContentLoaded', function () {
         element.control.addEventListener('keyup', function (event) {
             // if the key was return
             if ((event.keyCode || event.which) === 13 && !element.hasAttribute('readonly')) {
-                console.log('test', element.changeOccured);
+                // console.log('test', element.changeOccured);
                 if (element.changeOccured === true) {
                     element.changeOccured = false;
                 } else if (element.control.value !== element.lastValue) {
@@ -1516,8 +1525,52 @@ document.addEventListener('DOMContentLoaded', function () {
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
         if (!element.hasAttribute('suspend-created')) {
-
+            if (!element.hasAttribute('role')) {
+                element.setAttribute('role', 'combobox');
+            }
         }
+    }
+    
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
     }
 
     //
@@ -1695,6 +1748,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         selectRecordFromValue(element, element.value, false);
                     }
                 }
+            }
+            if (element.hasAttribute('id')) {
+                findFor(element);
             }
         }
     }

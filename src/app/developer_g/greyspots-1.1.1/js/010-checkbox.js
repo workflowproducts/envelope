@@ -341,7 +341,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
         if (!element.hasAttribute('suspend-created')) {
-
+            if (!element.hasAttribute('role')) {
+                element.setAttribute('role', 'checkbox');
+            }
         }
     }
 
@@ -353,6 +355,17 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!element.inserted) {
                 element.inserted = true;
                 element.internal = {};
+
+                if (element.hasAttribute('value')) {
+                    // console.log(element.getAttribute('value'));
+                    if (element.getAttribute('value') === 'true' || element.getAttribute('value') === '-1') {
+                        element.setAttribute('aria-checked', 'true');
+                    } else if (element.getAttribute('value') === 'false' || element.getAttribute('value') === '0') {
+                        element.setAttribute('aria-checked', 'false');
+                    } else {
+                        element.setAttribute('aria-checked', 'mixed');
+                    }
+                }
 
                 // save default attribute settings so that the qs code can access those values
                 saveDefaultAttributes(element);
@@ -441,6 +454,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
                     // attribute code
+                    if (strAttrName === 'value') {
+                        if (newValue === 'true' || newValue === '-1') {
+                            this.setAttribute('aria-checked', 'true');
+                        } else if (newValue === 'false' || newValue === '0') {
+                            this.setAttribute('aria-checked', 'false');
+                        } else {
+                            this.setAttribute('aria-checked', 'mixed');
+                        }
+                    }
                 }
             }
         },

@@ -62,11 +62,27 @@ window.addEventListener('design-register-element', function () {
     };
 });
 
+// document.addEventListener('DOMContentLoaded', function () {
+//     'use strict';
+
+//     xtag.register('gs-footer', {
+//         lifecycle: {},
+//         events: {},
+//         accessors: {},
+//         methods: {}
+//     });
+// });
+
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
-
     xtag.register('gs-footer', {
-        lifecycle: {},
+        lifecycle: {
+            created: function () {
+                if (!this.hasAttribute('role')) {
+                    this.setAttribute('role', 'contentinfo');
+                }
+            },
+        },
         events: {},
         accessors: {},
         methods: {}

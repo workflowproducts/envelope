@@ -275,6 +275,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // fill element variables
             element.control = element.children[0];
+            if (element.hasAttribute('id')) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+            }
+            if (element.hasAttribute('aria-labelledby')) {
+                element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+            }
+            if (element.hasAttribute('title')) {
+                element.control.setAttribute('title', element.getAttribute('title'));
+            }
             element.button = element.children[1];
 
             // handle passthrough attributes
@@ -704,6 +713,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        //console.log(forElem);
+        if (forElem) {
+            forElem.setAttribute('for', element.getAttribute('id') + '_control');
+            if (element.control) {
+                element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+            }
+        }
+        
+        /*
+            if (element.hasAttribute('id')) {
+                findFor(element);
+            }
+        // please ensure that if the element has an id it is given an id
+                if (element.hasAttribute('id')) {
+                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
+                }
+                if (element.hasAttribute('aria-labelledby')) {
+                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                }
+                if (element.hasAttribute('title')) {
+                    element.control.setAttribute('title', element.getAttribute('title'));
+                }
+        */
+    }
+
     //
     function elementInserted(element) {
         console.warn('GS-TIME WARNING: this element is deprecated, please use the gs-datetime instead.');
@@ -745,6 +796,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.warn('gs-time Warning: No value provided on "non-empty" gs-time control. Defaulting to "12:00 PM". Please provide a default value.');
                     element.setAttribute('value', '12:00 PM');
                 }
+            }
+            if (element.hasAttribute('id')) {
+                findFor(element);
             }
         }
     }
