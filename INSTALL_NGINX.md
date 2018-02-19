@@ -1,15 +1,7 @@
-##INSTRUCTIONS FOR INSTALLING ENVELOPE BEHIND NGINX
+# Installing NGINX as a Reverse Proxy for Envelope
 
-In the typical case, you'll want to install Envelope behind a firewall, then VPN or tunnel to the server and use your browser to access Envelope through the tunnel. You can do all that without setting Envelope up behind a web server.
-
-But there may be a case where you want to make an instance of Envelope accessible through a web server. In that case these instructions may appeal to you.
-
-The general idea is for the web browser to communicate with the web server under SSL or TLS. Then pass the unencrypted request to the Envelope server. This way you can publish more than one secure website on the default TLS port 443. This prevents you from needing to specify a port when connecting to Envelope and simplifies firewall setup for multiple Envelope servers behind one web server. This configuration is called a reverse proxy.
-
-If your web server is NOT on the same server as the Envelope server then using a reverse proxy can offload the TLS overhead to the web server but now you have the problem of the web server talking to the Envelope server in the clear. Usually, this is NOT what you want. You'll need to set up a secure tunnel from the web server to the Envelope server or protect the traffic from your web server to Envelope. 
-
-####Here is a sample NGINX configuration:
-
+Add to your `nginx.conf` under the `http` section:
+```
 server {
         listen                          443;
         server_name                     domain-name.com;
@@ -27,15 +19,15 @@ server {
         gzip_types                      *;
 
         location / {
-                proxy_pass http://127.0.0.1:8080;
-                proxy_http_version 1.1;
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection "upgrade";
-                proxy_connect_timeout	    300s;
-                proxy_send_timeout          300s;
-                proxy_read_timeout          1d;
-                send_timeout                300s;
+                proxy_pass              http://127.0.0.1:8888;
+                proxy_http_version      1.1;
+                proxy_set_header        Upgrade $http_upgrade;
+                proxy_set_header        Connection "upgrade";
+                proxy_connect_timeout   300s;
+                proxy_send_timeout      300s;
+                proxy_read_timeout      1d;
+                send_timeout            300s;
         }
-
 }
+````
 
