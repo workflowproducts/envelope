@@ -35,7 +35,6 @@ Relayd also requires RSA certificates ([ssl(8)](https://man.openbsd.org/ssl.8)).
 To self sign a certificate, execute these commands:
 ```
 # openssl genrsa -out /etc/ssl/private/0.0.0.0.key 2048
-# openssl genrsa -aes256 -out /etc/ssl/private/0.0.0.0.key 2048
 # openssl req -new -key /etc/ssl/private/0.0.0.0.key \ 
   -out /etc/ssl/private/0.0.0.0.csr
 # openssl x509 -sha256 -req -days 365 \ 
