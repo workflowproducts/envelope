@@ -39,7 +39,7 @@ gs-datasheet > .root {
 gs-datasheet > .root > .data-container {
     border: 1px solid #006e00;
     position: relative;
-    
+
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     -ms-box-sizing: border-box;

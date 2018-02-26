@@ -110,7 +110,7 @@ window.addEventListener('design-register-element', function () {
                 for (i = 0, len = buttons.length; i < len; i += 1) {
                     strHTML +=
                         '<gs-block gs-dynamic>' +
-                            '<gs-button dialogclose ' + (i === len - 1 ? 'bg-primary listen-for-return' : '') + ' gs-dynamic>' +
+                            '<gs-button dialogclose ' + (buttons[i] === 'Cancel' ? 'key="escape" no-modifier-key ' : '') + (i === len - 1 ? 'bg-primary listen-for-return' : '') + ' gs-dynamic>' +
                                 encodeHTML(buttons[i]) +
                             '</gs-button>' +
                         '</gs-block>';
@@ -443,7 +443,7 @@ GS.closeDialog = function (dialog, strAnswer) {
         var template, templateID, strHTML, dialogOverlay, dialog, i, len, arrCloseButtons, clickHandler, sizingFunction,
             observer, arrElements, strTag, returnTarget, strTheme, strMaxWidth, strMaxHeight, strMode, refocusElement,
             scrollTarget, jsnInitalMousePos, scrollProtectorTouchStart, scrollProtectorTouchMove, scrollProtectorMouseWheel,
-            strTag, xtagSelector, intervalID, intervalI;
+            strTag, xtagSelector, intervalID, intervalI, headerId;
 
         // get template
         if (typeof templateLink === 'string') {
@@ -506,9 +506,27 @@ GS.closeDialog = function (dialog, strAnswer) {
         strMaxWidth  = template.getAttribute('data-max-width')  || '700px';
         strMaxHeight = template.getAttribute('data-max-height') || '700px';
         strMode      = template.getAttribute('data-mode')       || 'detect'; // phone, touch, constrained, full, detect
+        if (template.content.children[0].tagName.toUpperCase() === 'GS-HEADER') {
+            var header = template.content.children[0];
+            var h1 = header.getElementsByTagName('h1')[0];
+            var h2 = header.getElementsByTagName('h2')[0];
+            var h3 = header.getElementsByTagName('h3')[0];
+            var h4 = header.getElementsByTagName('h4')[0];
+            var h5 = header.getElementsByTagName('h5')[0];
+            var h6 = header.getElementsByTagName('h6')[0];
+            console.log(header, h1, h2, h3, h4, h5, h6);
+
+            var h = h1 || h2 || h3 || h4 || h5 || h6;
+            if (h) {
+                if (!h.hasAttribute('id')) {
+                    h.setAttribute('id', 'dialog-header-' + templateID);
+                }
+                headerId = h.getAttribute('id');
+            }
+        }
 
         // build full dialog html
-        strHTML = '<gs-dialog ' + (templateID ? 'id="dialog-from-' + templateID + '" ' : '') + 'class="' + strTheme + '" gs-dynamic ';
+        strHTML = '<gs-dialog role="alertdialog" aria-modal="true"' + (headerId ? ' aria-labelledby="' + headerId +'"' : '') + ' ' + (templateID ? 'id="dialog-from-' + templateID + '" ' : '') + 'class="' + strTheme + '" gs-dynamic ';
 
         if (!template.hasAttribute('no-focus-lock')) {
             strHTML += 'focus-lock ';
@@ -825,7 +843,7 @@ GS.closeDialog = function (dialog, strAnswer) {
             intDialogMidPoint, i, len, arrTests, arrCloseButtons, clickHandler, arrElements, template, strTheme, strMaxWidth,
             strMaxHeight, strTag, dialogOverlay, refocusElement, jsnInitalMousePos, scrollTarget, returnTarget,
             scrollProtectorTouchStart, scrollProtectorTouchMove, scrollProtectorMouseWheel, templateID,
-            strTag, xtagSelector, intervalID, intervalI;
+            strTag, xtagSelector, intervalID, intervalI, headerId;
 
         // get template
         if (typeof templateLink === 'string') {
@@ -885,9 +903,28 @@ GS.closeDialog = function (dialog, strAnswer) {
         strMaxWidth  = template.getAttribute('data-max-width')  || '700px';
         strMaxHeight = template.getAttribute('data-max-height') || '700px';
 
+        if (template.content.children[0].tagName.toUpperCase() === 'GS-HEADER') {
+            var header = template.content.children[0];
+            var h1 = header.getElementsByTagName('h1')[0];
+            var h2 = header.getElementsByTagName('h2')[0];
+            var h3 = header.getElementsByTagName('h3')[0];
+            var h4 = header.getElementsByTagName('h4')[0];
+            var h5 = header.getElementsByTagName('h5')[0];
+            var h6 = header.getElementsByTagName('h6')[0];
+            console.log(header, h1, h2, h3, h4, h5, h6);
+
+            var h = h1 || h2 || h3 || h4 || h5 || h6;
+            if (h) {
+                if (!h.hasAttribute('id')) {
+                    h.setAttribute('id', 'dialog-header-' + templateID);
+                }
+                headerId = h.getAttribute('id');
+            }
+        }
+
         // create dialog element
         divElement.innerHTML =
-            '<gs-dialog ' +
+            '<gs-dialog role="alertdialog" aria-modal="true"' + (headerId ? ' aria-labelledby="' + headerId +'"' : '') + ' ' +
                     (
                         templateID
                             ? 'id="dialog-from-' + templateID + '" '

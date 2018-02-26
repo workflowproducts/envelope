@@ -24,6 +24,7 @@ GS.pushMessage = function (strHTML, intTime, callback) {
     // create the pushmessage
     pushMessageElement = document.createElement('gs-pushmessage');
     pushMessageElement.setAttribute('gs-dynamic', '');
+    pushMessageElement.setAttribute('role', 'alert');
     pushMessageElement.innerHTML = strHTML;
     
     // append the pushmessage to the container

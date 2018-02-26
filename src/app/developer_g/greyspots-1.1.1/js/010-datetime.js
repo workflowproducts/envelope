@@ -1238,6 +1238,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.inserted = true;
                 element.internal = {};
                 saveDefaultAttributes(element);
+                
+                if (!element.hasAttribute('tabindex')) {
+                    element.setAttribute('tabindex', '0');
+                }
 
                 element.setAttribute('format', getFormatString(element));
                 /*if (element.hasAttribute('format')) {

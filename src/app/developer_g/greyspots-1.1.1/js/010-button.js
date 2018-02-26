@@ -938,7 +938,7 @@
             });
         },
         function (element) {// on click
-            var targetElement
+            var targetElement0
               , strTemplate = element.getAttribute('template')
               , templateElement
               , strTargetSelector = element.getAttribute('target')

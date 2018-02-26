@@ -132,6 +132,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (element.getAttribute('media')) {
                     element.handleMediaCSS();
                 }
+                
+                if (element.hasAttribute('alt')) {
+                    element.setAttribute('aria-label', element.getAttribute('alt'));
+                    element.removeAttribute('alt');
+                }
             }
         }
     }

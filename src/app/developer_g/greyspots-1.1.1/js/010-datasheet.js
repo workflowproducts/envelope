@@ -497,21 +497,21 @@ document.addEventListener('DOMContentLoaded', function () {
             
             if (element.headerTemplateRecord) {
                 strHTML = GS.templateWithQuerystring(element.headerTemplateRecord);
-                element.scrollContainer.innerHTML = '<table><thead>' + strHTML + '</thead><tbody></tbody></table>';
+                element.scrollContainer.innerHTML = '<table role="grid"><thead>' + strHTML + '</thead><tbody></tbody></table>';
                 
             } else {
                 arrElements = xtag.queryChildren(element.tableTemplateRecord, 'td, th');
                 for (i = 0, len = arrElements.length, strHTML = ''; i < len; i += 1) {
-                    strHTML += '<th>' + encodeHTML(arrElements[i].getAttribute('heading') || '') + '</th>';
+                    strHTML += '<th role="columnheader">' + encodeHTML(arrElements[i].getAttribute('heading') || '') + '</th>';
                     
                     bolHeader = Boolean(arrElements[i].hasAttribute('heading') || '') || bolHeader;
                 }
-                strHTML = '<tr>' + strHTML + '</tr>';
+                strHTML = '<tr role="row">' + strHTML + '</tr>';
                 
                 if (bolHeader) {
-                    element.scrollContainer.innerHTML = '<table><thead>' + strHTML + '</thead><tbody></tbody></table>';
+                    element.scrollContainer.innerHTML = '<table role="grid"><thead>' + strHTML + '</thead><tbody></tbody></table>';
                 } else {
-                    element.scrollContainer.innerHTML = '<table><thead hidden>' + strHTML + '</thead><tbody></tbody></table>';
+                    element.scrollContainer.innerHTML = '<table role="grid"><thead hidden>' + strHTML + '</thead><tbody></tbody></table>';
                 }
             }
         }
@@ -600,9 +600,9 @@ document.addEventListener('DOMContentLoaded', function () {
             arrElements = xtag.query(element.scrollContainer, 'tr');
             
             if (arrElements[0].parentNode.hasAttribute('hidden')) {
-                element.headerContainer.innerHTML = '<table><thead hidden>' + arrElements[0].outerHTML + '</thead></table>';
+                element.headerContainer.innerHTML = '<table role="grid"><thead hidden>' + arrElements[0].outerHTML + '</thead></table>';
             } else {
-                element.headerContainer.innerHTML = '<table><thead>' + arrElements[0].outerHTML + '</thead></table>';
+                element.headerContainer.innerHTML = '<table role="grid"><thead>' + arrElements[0].outerHTML + '</thead></table>';
             }
             
             element.headerTR = element.headerContainer.children[0].children[0].children[0];
@@ -1705,7 +1705,23 @@ document.addEventListener('DOMContentLoaded', function () {
             arrHeaderElements = xtag.query(headerRecordElement, 'td, th');
             arrElements = xtag.query(tableTemplateElement.content, 'tbody td, tbody th');
             
+            headerRecordElement.setAttribute('role', 'row');
+            
+            i = 0;
+            len = arrHeaderElements.length;
+            while (i < len) {
+                arrHeaderElements[i].setAttribute('role', 'columnheader');
+                i += 1;
+            }
+            
             for (i = 0, len = arrHeaderElements.length; i < len; i += 1) {
+                if (!arrElements[i].hasAttribute('role')) {
+                    if (i === 0) {
+                        arrElements[i].setAttribute('role', 'rowheader');
+                    } else {
+                        arrElements[i].setAttribute('role', 'gridcell');
+                    }
+                }
                 if (!arrElements[i].hasAttribute('heading')) {
                     arrElements[i].setAttribute('heading', arrHeaderElements[i].textContent);
                 }
@@ -1716,11 +1732,34 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // make table template
         recordElement = xtag.query(tableTemplateElement.content, 'tbody tr')[0];
+        recordElement.setAttribute('role', 'row');
         recordElement.setAttribute('data-index', '{{= i }}');
+        
+        
+        var arrCells = xtag.toArray(recordElement.children);
+        var i;
+        var len;
+        
+        i = 0;
+        len = arrCells.length;
+        while (i < len) {
+            if (!arrCells[i].hasAttribute('role')) {
+                if (i === 0) {
+                    arrCells[i].setAttribute('role', 'rowheader');
+                } else {
+                    arrCells[i].setAttribute('role', 'gridcell');
+                }
+            }
+            i += 1;
+        }
+        
+        
         strHTML = GS.templateColumnToValue(tableTemplateElement.innerHTML);
         tempTemplateElement = document.createElement('template');
         tempTemplateElement.innerHTML = strHTML;
         recordElement = xtag.query(tempTemplateElement.content, 'tbody tr')[0];
+        
+        
         
         element.tableTemplate = GS.templateHideSubTemplates(recordElement.outerHTML, true);
         element.tableTemplateRecord = recordElement;
@@ -1739,13 +1778,13 @@ document.addEventListener('DOMContentLoaded', function () {
         strHTML = ml(function () {/*
             <div class="root" flex-vertical flex-fill>
                 <div class="hud-container">
-                    <gs-button icon="refresh" remove-right icononly no-focus title="Refresh Data." class="refresh-button"></gs-button>
-                    <gs-button icon="times" remove-left icononly no-focus title="Delete Selected Records." class="delete-button"></gs-button>
+                    <gs-button icon="refresh" aria-label="Refresh Data." remove-right icononly no-focus title="Refresh Data." class="refresh-button"></gs-button>
+                    <gs-button icon="times" aria-label="Delete Selected Records." remove-left icononly no-focus title="Delete Selected Records." class="delete-button"></gs-button>
                     
-                    <gs-button icon="plus" icononly no-focus title="Create Record." class="insert-button"></gs-button>
+                    <gs-button icon="plus" aria-label="Create Record." icononly no-focus title="Create Record." class="insert-button"></gs-button>
                     
-                    <gs-button icon="backward" remove-right icononly no-focus title="Go to previous page." class="paginate-left"></gs-button>
-                    <gs-button icon="forward" remove-left icononly no-focus title="Go to next page." class="paginate-right"></gs-button>
+                    <gs-button icon="backward" aria-label="Go to previous page." remove-right icononly no-focus title="Go to previous page." class="paginate-left"></gs-button>
+                    <gs-button icon="forward" aria-label="Go to next page." remove-left icononly no-focus title="Go to next page." class="paginate-right"></gs-button>
                     
                     {{HUDHTML}}
                     

@@ -209,6 +209,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // re-target focus event from control to element
     function focusFunction(event) {
+        console.log('focusFunction');
         GS.triggerEvent(event.target.parentNode, 'focus');
         event.target.parentNode.classList.add('focus');
     }
@@ -331,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function valueUpdateDisplay(element) {
-        console.trace('Fired');
+        //console.trace('Fired');
         if (element.control) {
             element.control.value = valueGetCurrentDisplay(element);
         } else {
@@ -885,6 +886,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
 
             'keydown': function (event) { // don't use the "input" event, doesn't work for this
+                console.log('keydown');
                 var element = this;
                 var strValue = element.control.value;
                 var intKeyCode = (event.keyCode || event.which);

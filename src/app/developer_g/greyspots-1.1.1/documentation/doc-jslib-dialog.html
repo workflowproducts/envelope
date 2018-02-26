@@ -500,6 +500,26 @@ GS.inputbox(&lt;TITLE&gt;, &lt;MESSAGE&gt;, &lt;CALLBACK&gt;);</code></pre>
                     }
                 </template>
             </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Accessibility:</span>
+                <p>In order to be accessible, dialogs should close when escape is pressed, to do this add <code>key="escape" no-modifier-key</code> to the <code>[dialogclose]</code> button that has no effect.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="auto">
+                    <template id="dialog-documentation">
+                        <center>This is a Dialog</center>
+                        <gs-button dialogclose key="escape" no-modifier-key>Cancel</gs-button>
+                        <gs-button dialogclose bg-primary>Done</gs-button>
+                    </template>
+                    <gs-button onclick="testDialog()">Dialog</gs-button>
+                </template>
+                <template for="js" height="auto">
+                    function testDialog() {
+                        GS.openDialog('dialog-documentation');
+                    }
+                </template>
+            </gs-doc-example>
         </gs-container>
     </body>
 </html>

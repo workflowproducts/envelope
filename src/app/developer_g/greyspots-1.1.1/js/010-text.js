@@ -134,7 +134,8 @@ window.addEventListener('design-register-element', function () {
 });
 
 window.addEventListener('try-password', function (event) {
-    var elemsToRetry = xtag.query(document, 'gs-text[encrypted="' + event.keyVariable + '"]');
+    var elemsToRetry = xtag.query(document, 'gs-text[encrypted="' + event.keyVariable + '"], gs-memo[encrypted="' + event.keyVariable + '"]');
+    console.log(elemsToRetry);
     var i = 0, len = elemsToRetry.length;
     while (i < len) {
         elemsToRetry[i].syncView();

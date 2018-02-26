@@ -14673,7 +14673,7 @@ GS.addLoader = function (loaderClassOrTarget, loaderContent) {
                                     '<div class="loader-inner spinning" gs-dynamic></div>' +
                                     '<div class="loader-inner-inner spinning" gs-dynamic></div>' +
                                     '<div class="loader-inner-inner-inner spinning" gs-dynamic></div>' +
-                                    (loaderContent ? '<div class="loader-content" gs-dynamic>' + loaderContent + '</div>' : '') +
+                                    (loaderContent ? '<div class="loader-content" gs-dynamic role="alert">' + loaderContent + '</div>' : '') +
                                 '</div>';
     
     // prevent scrolling on a loader
@@ -14717,6 +14717,16 @@ GS.removeLoader = function (loaderClassOrTarget) {
     } else {
         console.warn('GS.removeLoader Error: loader' + (loaderClass ? ' class: "' + loaderClass + '"' : '') + ' not found');
     }
+    
+    element = document.createElement('div');
+    element.setAttribute('gs-dynamic', '');
+    element.setAttribute('hidden', '');
+    element.setAttribute('role', 'alert');
+    element.textContent = 'Done';
+    document.body.appendChild(element);
+    setTimeout(function () {
+        element.parentNode.removeChild(element);
+    }, 1000);
 };
 
 GS.removeAllLoaders = function () {
@@ -15423,7 +15433,7 @@ document.addEventListener('DOMContentLoaded', function () {
     xtag.register('gs-body', {
         lifecycle: {
             created: function () {
-                if (!this.hasAttribute('role')) {
+                if (!this.hasAttribute('role') && !GS.findParentTag(this, 'gs-dialog')) {
                     this.setAttribute('role', 'main');
                 }
             },
@@ -16372,7 +16382,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         },
         function (element) {// on click
-            var targetElement
+            var targetElement0
               , strTemplate = element.getAttribute('template')
               , templateElement
               , strTargetSelector = element.getAttribute('target')
@@ -17505,6 +17515,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        
+        //console.log(forElem);
+        if (forElem) {
+            if (! element.hasAttribute('aria-label') && element.innerText.length === 0) {
+                element.setAttribute('aria-label', forElem.innerText);
+            }
+        }
+    }
+
     //
     function elementInserted(element) {
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
@@ -17566,6 +17596,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
+        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+            if (element.hasAttribute('id')) {
+                // console.log('running');
+                findFor(element);
+            }
+        }
     }
 
     xtag.register('gs-checkbox', {
@@ -17613,9 +17649,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
                     // attribute code
                     if (strAttrName === 'value') {
-                        if (newValue === 'true' || newValue === '-1') {
+                        if ((newValue === 'true') || (newValue === '-1')) {
                             this.setAttribute('aria-checked', 'true');
-                        } else if (newValue === 'false' || newValue === '0') {
+                        } else if ((newValue === 'false') || (newValue === '0')) {
                             this.setAttribute('aria-checked', 'false');
                         } else {
                             this.setAttribute('aria-checked', 'mixed');
@@ -17691,27 +17727,27 @@ document.addEventListener('DOMContentLoaded', function () {
                     // get new value based on current value
                     if (strType === 'smallint') {
                         if (strValue === '0') {
-                            strValue = '-1';
-                        } else if (strValue === '-1') {
                             if (bolTripleState) {
                                 strValue = 'n';
                             } else {
-                                strValue = '0';
+                                strValue = '-1';
                             }
+                        } else if (strValue === '-1') {
+                                strValue = '0';
                         } else if (strValue === 'n') {
-                            strValue = '0';
+                            strValue = '-1';
                         }
                     } else if (strType === 'boolean') {
                         if (strValue === 'false') {
-                            strValue = 'true';
-                        } else if (strValue === 'true') {
                             if (bolTripleState) {
                                 strValue = 'null';
                             } else {
-                                strValue = 'false';
+                                strValue = 'true';
                             }
+                        } else if (strValue === 'true') {
+                                strValue = 'false';
                         } else if (strValue === 'null') {
-                            strValue = 'false';
+                            strValue = 'true';
                         }
                     }
 
@@ -18050,6 +18086,11 @@ document.addEventListener('DOMContentLoaded', function () {
         for (i = 0, len = arrSelectedTrs.length; i < len; i += 1) {
             arrSelectedTrs[i].removeAttribute('selected');
         }
+
+        // web-aria
+        if (element.control && element.control.hasAttribute('aria-owns')) {
+            element.control.removeAttribute('aria-activedescendant');
+        }
     }
 
     // clears old selection and adds selected class to record
@@ -18059,6 +18100,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // select/highlight the record that was provided
         record.setAttribute('selected', '');
+
+        // web-aria
+        if (element.control && element.control.hasAttribute('aria-owns')) {
+            element.control.setAttribute('aria-activedescendant', record.getAttribute('id'));
+        }
     }
 
     // loops through the records and finds a record using the parameter (if bolPartialMatchAllowed === true then only search the first td text)
@@ -18265,7 +18311,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function dropDown(element) {
-        var dropDownContainer = document.createElement('div'), overlay, positioningContainer, scrollContainer, observer;
+        var dropDownContainer = document.createElement('div')
+          , overlay
+          , positioningContainer
+          , scrollContainer
+          , observer;
 
         // focus control
         element.control.focus();
@@ -18274,7 +18324,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dropDownContainer.classList.add('gs-combo-dropdown-container');
         dropDownContainer.setAttribute('gs-dynamic', '');
         dropDownContainer.innerHTML =   '<div class="gs-combo-positioning-container" gs-dynamic>' +
-                                        '    <div class="gs-combo-scroll-container" gs-dynamic></div>' +
+                                        '    <div id="combo-list-' + element.internal.id + '" class="gs-combo-scroll-container" gs-dynamic></div>' +
                                         '</div>';
 
         // append dropdown to the body
@@ -18660,6 +18710,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 closeDropDown(element);
 
+            // if the esc key is pressed, restore the previous value and close the dropdown
+            } else if (event.keyCode === 27) {
+                if (element.dropdownOpen) {
+                    element.value = element.value;
+                    closeDropDown(element);
+                }
+
             } else if (!event.metaKey &&       // not command key
                        !event.ctrlKey &&       // not control key
                        event.keyCode !== 37 && // not arrow keys
@@ -18979,11 +19036,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // if there is a record: template
                 if (recordElement) {
+                    recordElement.setAttribute('id', 'combo-list-' + element.internal.id + '-item-{{! row_number - 1 }}');
 
                     // if there is a thead element: add reflow cell headers to the tds
                     if (theadElement) {
                         theadCellElements = xtag.query(theadElement, 'td, th');
                         tbodyCellElements = xtag.query(tbodyElement, 'td, th');
+
+                        if (tbodyCellElements[0].nodeName === 'TH') {
+                            recordElement.setAttribute('aria-label', tbodyCellElements[1].textContent);
+                        } else {
+                            recordElement.setAttribute('aria-label', tbodyCellElements[0].textContent);
+                        }
 
                         for (i = 0, len = theadCellElements.length; i < len; i += 1) {
                             currentCellLabelElement = document.createElement('b');
@@ -19074,11 +19138,15 @@ document.addEventListener('DOMContentLoaded', function () {
         element.appendChild(divElement);
         element.root = divElement;
         if (!bolspan) {
-            element.root.innerHTML = '<input role="textbox" gs-dynamic class="control" type="text" />' +
-                                   '<gs-button gs-dynamic alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>';
+            element.root.innerHTML = (
+                '<input role="textbox" aria-owns="combo-list-' + element.internal.id + '" aria-autocomplete="none" gs-dynamic class="control" type="text" />' +
+                '<gs-button gs-dynamic aria-label="Open the Combo box" alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>'
+            );
         } else {
-            element.root.innerHTML = '<span gs-dynamic class="control" type="text" style="width: 100%;">' + ctrlValue + '</span>' +
-                                   '<gs-button gs-dynamic alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>';
+            element.root.innerHTML = (
+                '<span gs-dynamic class="control" type="text" style="width: 100%;">' + ctrlValue + '</span>' +
+                '<gs-button gs-dynamic aria-label="Open the Combo box" alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>'
+            );
         }
 
         element.control = xtag.query(element, '.control')[0];
@@ -19417,6 +19485,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     //
+    var comboID = 0;
     function elementInserted(element) {
         var tableTemplateElement, tableTemplateElementCopy, oldRootElement, i, len,
             recordElement, strQueryString = GS.getQueryString(), arrElement, currentElement, strQSValue;
@@ -19428,6 +19497,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.inserted = true;
                 element.internal = {};
                 saveDefaultAttributes(element);
+
+                element.internal.id = comboID;
+                comboID += 1;
 
                 element.dropdownOpen = false;
                 element.error = false;
@@ -20762,21 +20834,21 @@ document.addEventListener('DOMContentLoaded', function () {
             
             if (element.headerTemplateRecord) {
                 strHTML = GS.templateWithQuerystring(element.headerTemplateRecord);
-                element.scrollContainer.innerHTML = '<table><thead>' + strHTML + '</thead><tbody></tbody></table>';
+                element.scrollContainer.innerHTML = '<table role="grid"><thead>' + strHTML + '</thead><tbody></tbody></table>';
                 
             } else {
                 arrElements = xtag.queryChildren(element.tableTemplateRecord, 'td, th');
                 for (i = 0, len = arrElements.length, strHTML = ''; i < len; i += 1) {
-                    strHTML += '<th>' + encodeHTML(arrElements[i].getAttribute('heading') || '') + '</th>';
+                    strHTML += '<th role="columnheader">' + encodeHTML(arrElements[i].getAttribute('heading') || '') + '</th>';
                     
                     bolHeader = Boolean(arrElements[i].hasAttribute('heading') || '') || bolHeader;
                 }
-                strHTML = '<tr>' + strHTML + '</tr>';
+                strHTML = '<tr role="row">' + strHTML + '</tr>';
                 
                 if (bolHeader) {
-                    element.scrollContainer.innerHTML = '<table><thead>' + strHTML + '</thead><tbody></tbody></table>';
+                    element.scrollContainer.innerHTML = '<table role="grid"><thead>' + strHTML + '</thead><tbody></tbody></table>';
                 } else {
-                    element.scrollContainer.innerHTML = '<table><thead hidden>' + strHTML + '</thead><tbody></tbody></table>';
+                    element.scrollContainer.innerHTML = '<table role="grid"><thead hidden>' + strHTML + '</thead><tbody></tbody></table>';
                 }
             }
         }
@@ -20865,9 +20937,9 @@ document.addEventListener('DOMContentLoaded', function () {
             arrElements = xtag.query(element.scrollContainer, 'tr');
             
             if (arrElements[0].parentNode.hasAttribute('hidden')) {
-                element.headerContainer.innerHTML = '<table><thead hidden>' + arrElements[0].outerHTML + '</thead></table>';
+                element.headerContainer.innerHTML = '<table role="grid"><thead hidden>' + arrElements[0].outerHTML + '</thead></table>';
             } else {
-                element.headerContainer.innerHTML = '<table><thead>' + arrElements[0].outerHTML + '</thead></table>';
+                element.headerContainer.innerHTML = '<table role="grid"><thead>' + arrElements[0].outerHTML + '</thead></table>';
             }
             
             element.headerTR = element.headerContainer.children[0].children[0].children[0];
@@ -21970,7 +22042,23 @@ document.addEventListener('DOMContentLoaded', function () {
             arrHeaderElements = xtag.query(headerRecordElement, 'td, th');
             arrElements = xtag.query(tableTemplateElement.content, 'tbody td, tbody th');
             
+            headerRecordElement.setAttribute('role', 'row');
+            
+            i = 0;
+            len = arrHeaderElements.length;
+            while (i < len) {
+                arrHeaderElements[i].setAttribute('role', 'columnheader');
+                i += 1;
+            }
+            
             for (i = 0, len = arrHeaderElements.length; i < len; i += 1) {
+                if (!arrElements[i].hasAttribute('role')) {
+                    if (i === 0) {
+                        arrElements[i].setAttribute('role', 'rowheader');
+                    } else {
+                        arrElements[i].setAttribute('role', 'gridcell');
+                    }
+                }
                 if (!arrElements[i].hasAttribute('heading')) {
                     arrElements[i].setAttribute('heading', arrHeaderElements[i].textContent);
                 }
@@ -21981,11 +22069,34 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // make table template
         recordElement = xtag.query(tableTemplateElement.content, 'tbody tr')[0];
+        recordElement.setAttribute('role', 'row');
         recordElement.setAttribute('data-index', '{{= i }}');
+        
+        
+        var arrCells = xtag.toArray(recordElement.children);
+        var i;
+        var len;
+        
+        i = 0;
+        len = arrCells.length;
+        while (i < len) {
+            if (!arrCells[i].hasAttribute('role')) {
+                if (i === 0) {
+                    arrCells[i].setAttribute('role', 'rowheader');
+                } else {
+                    arrCells[i].setAttribute('role', 'gridcell');
+                }
+            }
+            i += 1;
+        }
+        
+        
         strHTML = GS.templateColumnToValue(tableTemplateElement.innerHTML);
         tempTemplateElement = document.createElement('template');
         tempTemplateElement.innerHTML = strHTML;
         recordElement = xtag.query(tempTemplateElement.content, 'tbody tr')[0];
+        
+        
         
         element.tableTemplate = GS.templateHideSubTemplates(recordElement.outerHTML, true);
         element.tableTemplateRecord = recordElement;
@@ -22004,13 +22115,13 @@ document.addEventListener('DOMContentLoaded', function () {
         strHTML = ml(function () {/*
             <div class="root" flex-vertical flex-fill>
                 <div class="hud-container">
-                    <gs-button icon="refresh" remove-right icononly no-focus title="Refresh Data." class="refresh-button"></gs-button>
-                    <gs-button icon="times" remove-left icononly no-focus title="Delete Selected Records." class="delete-button"></gs-button>
+                    <gs-button icon="refresh" aria-label="Refresh Data." remove-right icononly no-focus title="Refresh Data." class="refresh-button"></gs-button>
+                    <gs-button icon="times" aria-label="Delete Selected Records." remove-left icononly no-focus title="Delete Selected Records." class="delete-button"></gs-button>
                     
-                    <gs-button icon="plus" icononly no-focus title="Create Record." class="insert-button"></gs-button>
+                    <gs-button icon="plus" aria-label="Create Record." icononly no-focus title="Create Record." class="insert-button"></gs-button>
                     
-                    <gs-button icon="backward" remove-right icononly no-focus title="Go to previous page." class="paginate-left"></gs-button>
-                    <gs-button icon="forward" remove-left icononly no-focus title="Go to next page." class="paginate-right"></gs-button>
+                    <gs-button icon="backward" aria-label="Go to previous page." remove-right icononly no-focus title="Go to previous page." class="paginate-left"></gs-button>
+                    <gs-button icon="forward" aria-label="Go to next page." remove-left icononly no-focus title="Go to next page." class="paginate-right"></gs-button>
                     
                     {{HUDHTML}}
                     
@@ -26768,6 +26879,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.inserted = true;
                 element.internal = {};
                 saveDefaultAttributes(element);
+                
+                if (!element.hasAttribute('tabindex')) {
+                    element.setAttribute('tabindex', '0');
+                }
 
                 element.setAttribute('format', getFormatString(element));
                 /*if (element.hasAttribute('format')) {
@@ -27484,7 +27599,7 @@ window.addEventListener('design-register-element', function () {
                 for (i = 0, len = buttons.length; i < len; i += 1) {
                     strHTML +=
                         '<gs-block gs-dynamic>' +
-                            '<gs-button dialogclose ' + (i === len - 1 ? 'bg-primary listen-for-return' : '') + ' gs-dynamic>' +
+                            '<gs-button dialogclose ' + (buttons[i] === 'Cancel' ? 'key="escape" no-modifier-key ' : '') + (i === len - 1 ? 'bg-primary listen-for-return' : '') + ' gs-dynamic>' +
                                 encodeHTML(buttons[i]) +
                             '</gs-button>' +
                         '</gs-block>';
@@ -27817,7 +27932,7 @@ GS.closeDialog = function (dialog, strAnswer) {
         var template, templateID, strHTML, dialogOverlay, dialog, i, len, arrCloseButtons, clickHandler, sizingFunction,
             observer, arrElements, strTag, returnTarget, strTheme, strMaxWidth, strMaxHeight, strMode, refocusElement,
             scrollTarget, jsnInitalMousePos, scrollProtectorTouchStart, scrollProtectorTouchMove, scrollProtectorMouseWheel,
-            strTag, xtagSelector, intervalID, intervalI;
+            strTag, xtagSelector, intervalID, intervalI, headerId;
 
         // get template
         if (typeof templateLink === 'string') {
@@ -27880,9 +27995,27 @@ GS.closeDialog = function (dialog, strAnswer) {
         strMaxWidth  = template.getAttribute('data-max-width')  || '700px';
         strMaxHeight = template.getAttribute('data-max-height') || '700px';
         strMode      = template.getAttribute('data-mode')       || 'detect'; // phone, touch, constrained, full, detect
+        if (template.content.children[0].tagName.toUpperCase() === 'GS-HEADER') {
+            var header = template.content.children[0];
+            var h1 = header.getElementsByTagName('h1')[0];
+            var h2 = header.getElementsByTagName('h2')[0];
+            var h3 = header.getElementsByTagName('h3')[0];
+            var h4 = header.getElementsByTagName('h4')[0];
+            var h5 = header.getElementsByTagName('h5')[0];
+            var h6 = header.getElementsByTagName('h6')[0];
+            console.log(header, h1, h2, h3, h4, h5, h6);
+
+            var h = h1 || h2 || h3 || h4 || h5 || h6;
+            if (h) {
+                if (!h.hasAttribute('id')) {
+                    h.setAttribute('id', 'dialog-header-' + templateID);
+                }
+                headerId = h.getAttribute('id');
+            }
+        }
 
         // build full dialog html
-        strHTML = '<gs-dialog ' + (templateID ? 'id="dialog-from-' + templateID + '" ' : '') + 'class="' + strTheme + '" gs-dynamic ';
+        strHTML = '<gs-dialog role="alertdialog" aria-modal="true"' + (headerId ? ' aria-labelledby="' + headerId +'"' : '') + ' ' + (templateID ? 'id="dialog-from-' + templateID + '" ' : '') + 'class="' + strTheme + '" gs-dynamic ';
 
         if (!template.hasAttribute('no-focus-lock')) {
             strHTML += 'focus-lock ';
@@ -28199,7 +28332,7 @@ GS.closeDialog = function (dialog, strAnswer) {
             intDialogMidPoint, i, len, arrTests, arrCloseButtons, clickHandler, arrElements, template, strTheme, strMaxWidth,
             strMaxHeight, strTag, dialogOverlay, refocusElement, jsnInitalMousePos, scrollTarget, returnTarget,
             scrollProtectorTouchStart, scrollProtectorTouchMove, scrollProtectorMouseWheel, templateID,
-            strTag, xtagSelector, intervalID, intervalI;
+            strTag, xtagSelector, intervalID, intervalI, headerId;
 
         // get template
         if (typeof templateLink === 'string') {
@@ -28259,9 +28392,28 @@ GS.closeDialog = function (dialog, strAnswer) {
         strMaxWidth  = template.getAttribute('data-max-width')  || '700px';
         strMaxHeight = template.getAttribute('data-max-height') || '700px';
 
+        if (template.content.children[0].tagName.toUpperCase() === 'GS-HEADER') {
+            var header = template.content.children[0];
+            var h1 = header.getElementsByTagName('h1')[0];
+            var h2 = header.getElementsByTagName('h2')[0];
+            var h3 = header.getElementsByTagName('h3')[0];
+            var h4 = header.getElementsByTagName('h4')[0];
+            var h5 = header.getElementsByTagName('h5')[0];
+            var h6 = header.getElementsByTagName('h6')[0];
+            console.log(header, h1, h2, h3, h4, h5, h6);
+
+            var h = h1 || h2 || h3 || h4 || h5 || h6;
+            if (h) {
+                if (!h.hasAttribute('id')) {
+                    h.setAttribute('id', 'dialog-header-' + templateID);
+                }
+                headerId = h.getAttribute('id');
+            }
+        }
+
         // create dialog element
         divElement.innerHTML =
-            '<gs-dialog ' +
+            '<gs-dialog role="alertdialog" aria-modal="true"' + (headerId ? ' aria-labelledby="' + headerId +'"' : '') + ' ' +
                     (
                         templateID
                             ? 'id="dialog-from-' + templateID + '" '
@@ -33528,7 +33680,7 @@ window.addEventListener('design-register-element', function () {
                             if (strType === 'file') {
                                 arrFiles.push(element.arrPath.join('/') + '/' + strName);
                                 divElement.innerHTML =
-                                    '<gs-button class="more-file" icononly icon="bars" remove-right></gs-button>'
+                                    '<gs-button class="more-file" icononly icon="bars" remove-right>File Options</gs-button>'
                                   + '<gs-button class="open-file" flex remove-left>' + encodeHTML(strName) + '</gs-button>';
                                 
                                 element.fileList.appendChild(divElement);
@@ -33537,7 +33689,7 @@ window.addEventListener('design-register-element', function () {
                             if (strType === 'folder') {
                                 arrFolders.push(element.arrPath.join('/') + '/' + strName);
                                 divElement.innerHTML =
-                                    '<gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>'
+                                    '<gs-button class="more-folder" icononly icon="bars" remove-right>Folder Options</gs-button>'
                                   + '<gs-button class="open-folder" flex remove-left>' + encodeHTML(strName) + '</gs-button>';
                                 
                                 element.folderList.appendChild(divElement);
@@ -33914,7 +34066,7 @@ window.addEventListener('design-register-element', function () {
                 <gs-button dialogclose remove-bottom style="border-bottom: 0 none;">Rename Folder</gs-button>
                 <gs-button dialogclose remove-top>Delete Folder</gs-button>
                 <hr />
-                <gs-button dialogclose>Cancel</gs-button>
+                <gs-button dialogclose listen-for-return>Cancel</gs-button>
             </gs-body>
         */});
         
@@ -33985,7 +34137,7 @@ window.addEventListener('design-register-element', function () {
                 Are you sure you want to delete the folder: "<b>{{STRPATH}}</b>"?
                 <hr />
                 <gs-grid>
-                    <gs-block><gs-button dialogclose remove-right style="border-right: 0 none;">No</gs-button></gs-block>
+                    <gs-block><gs-button dialogclose remove-right style="border-right: 0 none;" listen-for-return>No</gs-button></gs-block>
                     <gs-block><gs-button dialogclose remove-left>Yes</gs-button></gs-block>
                 </gs-grid>
             </gs-body>
@@ -34022,7 +34174,7 @@ window.addEventListener('design-register-element', function () {
                 <gs-text id="gs-file-manager-text-folder-name"></gs-text>
                 <hr />
                 <gs-grid>
-                    <gs-block><gs-button dialogclose style="border-right: 0 none;" remove-right>Cancel</gs-button></gs-block>
+                    <gs-block><gs-button dialogclose style="border-right: 0 none;" remove-right listen-for-return>Cancel</gs-button></gs-block>
                     <gs-block><gs-button dialogclose remove-left>Create</gs-button></gs-block>
                 </gs-grid>
             </gs-body>
@@ -34087,7 +34239,7 @@ window.addEventListener('design-register-element', function () {
                 <gs-button dialogclose remove-all style="border-bottom: 0 none;">Delete File</gs-button>
                 <gs-button dialogclose remove-top>Edit File</gs-button>
                 <hr />
-                <gs-button dialogclose>Cancel</gs-button>
+                <gs-button dialogclose listen-for-return>Cancel</gs-button>
             </gs-body>
         */});
         
@@ -34161,7 +34313,7 @@ window.addEventListener('design-register-element', function () {
                 Are you sure you want to delete the file: "<b>{{STRPATH}}</b>"?
                 <hr />
                 <gs-grid>
-                    <gs-block><gs-button dialogclose style="border-right: 0 none;" remove-right>No</gs-button></gs-block>
+                    <gs-block><gs-button dialogclose style="border-right: 0 none;" remove-right listen-for-return>No</gs-button></gs-block>
                     <gs-block><gs-button dialogclose remove-left>Yes</gs-button></gs-block>
                 </gs-grid>
             </gs-body>
@@ -34629,7 +34781,7 @@ document.addEventListener('DOMContentLoaded', function () {
     xtag.register('gs-footer', {
         lifecycle: {
             created: function () {
-                if (!this.hasAttribute('role')) {
+                if (!this.hasAttribute('role') && !GS.findParentTag(this, 'gs-dialog')) {
                     this.setAttribute('role', 'contentinfo');
                 }
             },
@@ -36756,7 +36908,7 @@ document.addEventListener('DOMContentLoaded', function () {
     xtag.register('gs-header', {
         lifecycle: {
             created: function () {
-                if (!this.hasAttribute('role')) {
+                if (!this.hasAttribute('role') && !GS.findParentTag(this, 'gs-dialog')) {
                     this.setAttribute('role', 'banner');
                 }
             },
@@ -36898,6 +37050,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.handleMinWidthCSS();
                 } else if (element.getAttribute('media')) {
                     element.handleMediaCSS();
+                }
+                
+                if (element.hasAttribute('alt')) {
+                    element.setAttribute('aria-label', element.getAttribute('alt'));
+                    element.removeAttribute('alt');
                 }
             }
         }
@@ -37481,6 +37638,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // re-target focus event from control to element
     function focusFunction(event) {
+        console.log('focusFunction');
         GS.triggerEvent(event.target.parentNode, 'focus');
         event.target.parentNode.classList.add('focus');
     }
@@ -37603,7 +37761,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function valueUpdateDisplay(element) {
-        console.trace('Fired');
+        //console.trace('Fired');
         if (element.control) {
             element.control.value = valueGetCurrentDisplay(element);
         } else {
@@ -38157,6 +38315,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
 
             'keydown': function (event) { // don't use the "input" event, doesn't work for this
+                console.log('keydown');
                 var element = this;
                 var strValue = element.control.value;
                 var intKeyCode = (event.keyCode || event.which);
@@ -39023,6 +39182,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             for (i = 0, len = arrSelectedTrs.length; i < len; i += 1) {
                 arrSelectedTrs[i].removeAttribute('selected');
+                arrSelectedTrs[i].removeAttribute('aria-selected');
             }
         }
 
@@ -39032,9 +39192,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 for (i = 0, len = record.length; i < len; i += 1) {
                     record[i].setAttribute('selected', '');
+                    record[i].setAttribute('aria-selected', 'true');
                 }
             } else {
                 record.setAttribute('selected', '');
+                var strHiddenValue = record.firstElementChild.textContent || ' ';
+                console.log(element.hiddenFocusControl);
+                
+                //element.hiddenFocusControl.value = strHiddenValue || 'blank';
+                //element.hiddenFocusControl.setAttribute('value', strHiddenValue || ' ');
+                element.hiddenFocusControl.value = ',';
+                element.hiddenFocusControl.setAttribute('aria-label', strHiddenValue || ' ');
+                console.log(element.hiddenFocusControl.value);
+                //GS.setInputSelection(element.hiddenFocusControl, 0, strHiddenValue.length);
+                record.setAttribute('aria-selected', 'true');
+                element.scrollContainer
+                    .setAttribute(
+                        'aria-activedescendant',
+                        'box-list-' + element.internal.id + '-item-' +
+                            (parseInt(record.getAttribute('data-record_no'), 10) - 1)
+                    );
             }
         }
     }
@@ -39071,7 +39248,54 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return currentElement;
     }
-    //snapback
+    
+    function addTableAria(element) {
+        var elemTable = xtag.query(element, 'table')[0];
+        var elemThead = xtag.query(elemTable, 'thead')[0];
+        var elemTbody = xtag.query(elemTable, 'tbody')[0];
+        var elemTheadTRs = elemThead ? xtag.query(elemThead, 'tr') : null;
+        var elemTbodyTRs = xtag.query(elemTbody, 'tr');
+        var cellElements;
+        var i;
+        var len;
+        var cell_i;
+        var cell_len;
+
+        //elemTable.setAttribute('role', 'grid');
+        //elemTheadTRs[0].setAttribute('role', 'row');
+
+        //cellElements = xtag.toArray(elemTheadTRs[0].children);
+        //i = 0;
+        //len = cellElements.length;
+        //while (i < len) {
+        //    cellElements[i].setAttribute('role', '');
+
+        //    i += 1;
+        //}
+        console.log('test');
+        i = 0;
+        len = elemTbodyTRs.length;
+        while (i < len) {
+            elemTbodyTRs[i].setAttribute('id', 'box-list-' + element.internal.id + '-item-' + i);
+
+            if (elemTbodyTRs[i].children[0].nodeName === 'TH') {
+                elemTbodyTRs[i].setAttribute('aria-label', elemTbodyTRs[i].children[1].textContent);
+            } else {
+                elemTbodyTRs[i].setAttribute('aria-label', elemTbodyTRs[i].children[0].textContent);
+            }
+
+            //cellElements = xtag.toArray(elemTbodyTRs[0].children);
+            //cell_i = 0;
+            //cell_len = cellElements.length;
+            //while (cell_i < cell_len) {
+            //    cellElements[i].setAttribute('role', '');
+
+            //    cell_i += 1;
+            //}
+
+            i += 1;
+        }
+    }
     
     //boladd should be true if event.metaKey is true
     
@@ -39097,6 +39321,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.secondLastClicked = null;
                 for (i = 0, len = arrRecords.length; i < len; i += 1) {
                     arrRecords[i].removeAttribute('selected');
+                    arrRecords[i].removeAttribute('aria-selected');
                     if (arrRecords[i].classList.contains('originTR')) {
                         arrRecords[i].classList.remove('originTR');
                     }
@@ -39191,12 +39416,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (bolDeselect) {
                                 if (arrAllRecords[i].hasAttribute('selected')) {
                                     arrAllRecords[i].removeAttribute('selected');
+                                    arrAllRecords[i].removeAttribute('aria-selected');
                                 }
                                 if (arrAllRecords[i].hasAttribute('selected-secondary')) {
                                     arrAllRecords[i].removeAttribute('selected-secondary');
                                 }
                             } else {
                                 arrAllRecords[i].setAttribute('selected', '');
+                                arrAllRecords[i].setAttribute('aria-selected', 'true');
                             }
                             arrAllRecords[i].classList.remove('originTR');
                         }
@@ -39209,12 +39436,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (bolDeselect) {
                                 if (arrAllRecords[i].hasAttribute('selected')) {
                                     arrAllRecords[i].removeAttribute('selected');
+                                    arrAllRecords[i].removeAttribute('aria-selected');
                                 }
                                 if (arrAllRecords[i].hasAttribute('selected-secondary')) {
                                     arrAllRecords[i].removeAttribute('selected-secondary');
                                 }
                             } else {
                                 arrAllRecords[i].setAttribute('selected', '');
+                                arrAllRecords[i].setAttribute('aria-selected', 'true');
                             }
                             arrAllRecords[i].classList.remove('originTR');
                         }
@@ -39243,6 +39472,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                     if (arrAllRecords[i].hasAttribute('selected')) {
                                         arrAllRecords[i].removeAttribute('selected');
+                                        arrAllRecords[i].removeAttribute('aria-selected');
                                     } else if (arrAllRecords[i].hasAttribute('selected-secondary')) {
                                         arrAllRecords[i].removeAttribute('selected-secondary');
                                     } else {
@@ -39255,6 +39485,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     arrAllRecords[i].classList.remove('originTR');
                                     if (arrAllRecords[i].hasAttribute('selected')) {
                                         arrAllRecords[i].removeAttribute('selected');
+                                        arrAllRecords[i].removeAttribute('aria-selected');
                                     } else if (arrAllRecords[i].hasAttribute('selected-secondary')) {
                                         arrAllRecords[i].removeAttribute('selected-secondary');
                                     } else {
@@ -39353,6 +39584,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 //console.log(arrSelectedRecords);//handle, handle.hasAttribute('selected'));
                 if (bolAdd && handle.hasAttribute('selected') && arrSelectedRecords.length > 1) {
                     handle.removeAttribute('selected');
+                    handle.removeAttribute('aria-selected');
                     if (handle.classList.contains('originTR')) {
                         handle.classList.remove('originTR');
                     }
@@ -39394,6 +39626,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     for (i = 0, len = arrSelectedTrs.length; i < len; i += 1) {
                         arrSelectedTrs[i].removeAttribute('selected-secondary');
                         arrSelectedTrs[i].setAttribute('selected', '');
+                        arrSelectedTrs[i].setAttribute('aria-selected', 'true');
                     }
                 }
                 if (record[0]) {
@@ -39406,9 +39639,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.hasAttribute('multi-select')) {
                     for (i = 0, len = record.length; i < len; i += 1) {
                         record[i].setAttribute('selected', '');
+                        record[i].setAttribute('aria-selected', 'true');
                     }
                 } else {
                     record.setAttribute('selected', '');
+                    var strHiddenValue = record.firstElementChild.textContent || ' ';
+                    console.log(element.hiddenFocusControl);
+                    if (element.hiddenFocusControl) {
+                        //element.hiddenFocusControl.value = strHiddenValue || 'blank';
+                        //element.hiddenFocusControl.setAttribute('value', strHiddenValue || ' ');
+                        element.hiddenFocusControl.value = ',';
+                        element.hiddenFocusControl.setAttribute('aria-label', strHiddenValue || ' ');
+                        console.log(element.hiddenFocusControl.value);
+                        //GS.setInputSelection(element.hiddenFocusControl, 0, strHiddenValue.length);
+                    }
+                    record.setAttribute('aria-selected', 'true');
                 }
                 //highlightRecord(element, record);
                 //console.trace('triggerchange 2');
@@ -39452,6 +39697,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             selectedRecordIndex = i;
                             selectedTr = trs[i];
                             trs[i].removeAttribute('selected');
+                            trs[i].removeAttribute('aria-selected');
                             
                             break;
                         }
@@ -39819,7 +40065,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 len = arrAttrParts.length;
                 while (i < len) {
                     strQSCol = arrAttrParts[i];
-    
+
                     if (strQSCol.indexOf('!=') !== -1) {
                         strOperator = '!=';
                         arrQSParts = strQSCol.split('!=');
@@ -39827,10 +40073,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         strOperator = '=';
                         arrQSParts = strQSCol.split('=');
                     }
-    
+
                     strQSCol = arrQSParts[0];
                     strQSAttr = arrQSParts[1] || arrQSParts[0];
-    
+
                     // if the key is not present or we've got the negator: go to the attribute's default or remove it
                     if (strOperator === '!=') {
                         // if the key is not present: add the attribute
@@ -39861,7 +40107,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             } else if (GS.qryGetKeys(strQS).indexOf(strQSCol) > -1) {
                 strQSValue = GS.qryGetVal(strQS, strQSCol);
-    
+
                 if (element.internal.bolQSFirstRun !== true) {
                     if (strQSValue !== '' || !element.getAttribute('value')) {
                         element.supressChange = true;
@@ -39872,25 +40118,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
-        
+
         // handle "refresh-on-querystring-values" and "refresh-on-querystring-change" attributes
         if (element.internal.bolQSFirstRun === true) {
             if (element.hasAttribute('refresh-on-querystring-values')) {
                 arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
-                
+
                 for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
                     currentValue = GS.qryGetVal(strQS, arrPopKeys[i]);
-                    
+
                     if (element.popValues[arrPopKeys[i]] !== currentValue) {
                         bolRefresh = true;
                     }
-                    
+
                     element.popValues[arrPopKeys[i]] = currentValue;
                 }
             } else if (element.hasAttribute('refresh-on-querystring-change')) {
                 bolRefresh = true;
             }
-            
+
             if (bolRefresh && element.hasAttribute('src')) {
                 getData(element);
             } else if (bolRefresh && !element.hasAttribute('src')) {
@@ -39899,16 +40145,16 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             if (element.hasAttribute('refresh-on-querystring-values')) {
                 arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
-                
+
                 for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
                     element.popValues[arrPopKeys[i]] = GS.qryGetVal(strQS, arrPopKeys[i]);
                 }
             }
         }
-        
+
         element.internal.bolQSFirstRun = true;
     }
-    
+
     // dont do anything that modifies the element here
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
@@ -39920,6 +40166,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.setAttribute('value', element.value);
                 delete element.value;
                 //element.value = null;
+            }
+
+            if (!element.hasAttribute('role')) {
+                element.setAttribute('role', 'listbox');
             }
         }
     }
@@ -40043,10 +40293,31 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+
+        //console.log(forElem);
+        if (forElem) {
+            if (! element.hasAttribute('aria-label')) {
+                element.setAttribute('aria-label', forElem.innerText);
+            }
+        }
+    }
+
+    var intListID = 0;
     //
     function elementInserted(element) {
         var tableTemplateElement, arrElement, recordElement, tableTemplateElementCopy, strQSValue, i, len, currentElement;
-        
+
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
             // if this is the first time inserted has been run: continue
@@ -40055,6 +40326,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.error = false;
                 element.internal = {};
                 element.internalData = {};
+                
+                element.internal.id = intListID;
+                intListID += 1;
+                
                 saveDefaultAttributes(element);
                 // handle "qs" attribute
                 if (element.hasAttribute('qs') ||
@@ -40135,24 +40410,30 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
+        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+            if (element.hasAttribute('id')) {
+                // console.log('running');
+                findFor(element);
+            }
+        }
     }
-    
+
     xtag.register('gs-listbox', {
         lifecycle: {
             created: function () {
                 elementCreated(this);
             },
-            
+
             inserted: function () {
                 elementInserted(this);
             },
-            
+
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'suspend-created' && newValue === null) {
                     elementCreated(this);
                     elementInserted(this);
-                    
+
                 // if "suspend-inserted" has been removed: run inserted code
                 } else if (strAttrName === 'suspend-inserted' && newValue === null) {
                     elementInserted(this);
@@ -40542,10 +40823,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.scrollContainer.setAttribute('gs-dynamic', '');
                 element.scrollContainer.classList.add('root');
                 element.scrollContainer.classList.add('scroll-container');
+                element.scrollContainer.setAttribute('id', 'box-list-container-' + element.internal.id);
                 element.scrollContainer.appendChild(element.tableElement);
                 
                 element.appendChild(element.scrollContainer);
                 tbodyElement = xtag.queryChildren(element.tableElement, 'tbody')[0];
+                
+                addTableAria(element);
                 
                 // add dividers
                 if (element.hasAttribute('letter-dividers') || element.hasAttribute('letter-scrollbar')) {
@@ -40662,15 +40946,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 //});
                 var focusElement = document.createElement('textarea');
                 focusElement.classList.add('hidden-focus-control');
-                focusElement.setAttribute('value', 'text makes this textarea Firefox worthy');
-                focusElement.setAttribute('title', 'Hidden control');
+                //focusElement.value = element.querySelector('tr[selected] td').textContent || 'blank';
+                if (element.querySelector('tr[selected] td')) {
+                    focusElement.setAttribute('value', element.querySelector('tr[selected] td').textContent || ' ');
+                }
+                //strHiddenValue || 'blank'
+                //focusElement.setAttribute('title', 'Hidden control');
+
+                focusElement.setAttribute('aria-owns', 'box-list-container-' + element.internal.id);
+
+                /*
+                snapdragon
+                element.control.removeAttribute('aria-activedescendant');
+                */
 
                 element.appendChild(focusElement);
                 element.hiddenFocusControl = focusElement;
 
                 element.addEventListener('focus', function (event) {
                     event.preventDefault();
-                    event.stopPropagation
+                    event.stopPropagation();
                     if (event.target !== element.hiddenFocusControl) {
                         element.hiddenFocusControl.focus();
                         GS.triggerEvent(element.hiddenFocusControl, 'focus');
@@ -40759,7 +41054,6 @@ if (!evt.touchDevice) {
             
             GS.triggerEvent(window.gsmemoNew.currentMouseTarget.parentNode, 'size-changed');
             
-            //console.log('mousemove (' + new Date().getTime() + ')');
         }
     });
     
@@ -40767,7 +41061,6 @@ if (!evt.touchDevice) {
         //var mousePosition = GS.mousePosition(event);
         
         window.bolFirstMouseMoveWhileDown = true;
-        //console.log('3***'); //, document.elementFromPoint(mousePosition.x, mousePosition.y)); //event.target);
         //window.lastMouseDownElement = element.control;
     });
 }
@@ -40786,6 +41079,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function changeFunction(event) {
         event.preventDefault();
         event.stopPropagation();
+        event.stopImmediatePropagation();
+        event.target.parentNode.syncGetters();
         
         GS.triggerEvent(event.target.parentNode, 'change');
     }
@@ -40816,6 +41111,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // re-target blur event from control to element
     function blurFunction(event) {
+                                
         GS.triggerEvent(event.target.parentNode, 'blur');
         event.target.parentNode.classList.remove('focus');
         if (event.target.parentNode.hasAttribute('defer-insert')) {
@@ -40835,18 +41131,6 @@ document.addEventListener('DOMContentLoaded', function () {
         event.target.parentNode.classList.add('hover');
     }
 
-    // function focusFunction(event) {
-    //     event.preventDefault();
-    //     event.stopPropagation();
-    //     if (event.target.parentNode.hasAttribute('first-value')) {
-    //             console.log(event);
-    //         //GS.triggerEvent(event.target.parentNode, 'focus');
-    //     } else {
-    //         event.target.parentNode.setAttribute('first-value', event.target.value);
-    //         GS.triggerEvent(event.target.parentNode, 'focus');
-    //         //console.log('test');
-    //     }
-    // }
     
     //
     function keydownFunction(event) {
@@ -40863,23 +41147,44 @@ document.addEventListener('DOMContentLoaded', function () {
                 GS.setInputSelection(element, parseInt(cursor_pos_memo, 10) + 1, parseInt(cursor_pos_memo, 10) + 1);
             } else {
                 //this.parentNode.syncView();
-                element.parentNode.setAttribute('value', element.value);
+                if (element.parentNode.hasAttribute('encrypted')) {
+                    element.parentNode.setAttribute('value', CryptoJS.AES.encrypt(element.value, (window[element.parentNode.getAttribute('encrypted')] || '')));
+                } else {
+                    element.parentNode.setAttribute('value', element.value);
+                }
                 element.parentNode.handleResizeToText();
             }
         }
+        // if (element.classList.contains('control')) {
+        //     element = GS.findParentTag(element, 'gs-memo');
+        // }
+        // if (element.hasAttribute('encrypted')) {
+        //     element.syncGetters();
+        //     if (!element.hasAttribute('defer-insert')) {
+        //         element.value = element.getAttribute('value');
+        //     } else {
+        //         element.value = CryptoJS.AES.encrypt(element.control.value, (window[element.getAttribute('encrypted')] || ''));
+        //     }
+        // }
     }
     
     //
     function keyupFunction(event) {
+                                
         var element = event.target;
         if (!element.hasAttribute('readonly')) {
             //this.parentNode.syncView();
-            element.parentNode.setAttribute('value', element.value);
+            if (element.parentNode.hasAttribute('encrypted')) {
+                element.parentNode.setAttribute('value', CryptoJS.AES.encrypt(element.value, (window[element.parentNode.getAttribute('encrypted')] || '')));
+            } else {
+                element.parentNode.setAttribute('value', element.value);
+            }
             element.parentNode.handleResizeToText();
         }
     }
     
     function insertFunction(event) {
+                                
         var element = event.target;
         element.parentNode.handleResizeToText();
     }
@@ -40894,6 +41199,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //}
     
     function saveDefaultAttributes(element) {
+                                
         var i;
         var len;
         var arrAttr;
@@ -40916,6 +41222,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function createPushReplacePopHandler(element) {
+                                
         var i;
         var len;
         var strQS = GS.getQueryString();
@@ -40986,7 +41293,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         element.internal.bolQSFirstRun = true;
     }
-    
+
     // dont do anything that modifies the element here
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
@@ -40997,14 +41304,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (element.value) {
                 element.setAttribute('value', element.value);
                 delete element.value;
-                //element.value = null;
             }
         }
     }
 
     function findFor(element) {
         var forElem;
-        // console.log(element, element.previousElementSibling)
         if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
             && element.previousElementSibling.hasAttribute('for')
             && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
@@ -41013,7 +41318,6 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
             forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
         }
-        //console.log(forElem);
         if (forElem) {
             forElem.setAttribute('for', element.getAttribute('id') + '_control');
             if (element.control) {
@@ -41026,27 +41330,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
-        
-        /*
-            if (element.hasAttribute('id')) {
-                findFor(element);
-            }
-        // please ensure that if the element has an id it is given an id
-                if (element.hasAttribute('id')) {
-                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
-                }
-                if (element.hasAttribute('aria-labelledby')) {
-                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
-                }
-                if (element.hasAttribute('title')) {
-                    element.control.setAttribute('title', element.getAttribute('title'));
-                }
-        */
     }
 
     //
     function elementInserted(element) {
         //var strQSValue;
+        if (element.hasAttribute('encrypted') && !window[element.getAttribute('encrypted')] && !window['getting' + element.getAttribute('encrypted')]) {
+            window['getting' + element.getAttribute('encrypted')] = true;
+            GS.triggerEvent(element, 'password-error', {'reason': 'no', 'keyVariable': element.getAttribute('encrypted')});
+        }
         if (element.hasAttribute('defer-insert')) {
             // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
             if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
@@ -41055,14 +41347,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.inserted = true;
                     element.internal = {};
                     saveDefaultAttributes(element);
-    
+
                     if (!element.hasAttribute('tabindex')) {
                         element.setAttribute('tabindex', '0');
                     }
                     element.bolSelect = true;
-                    
+                    element.skip = false;
                     var elementValue = (element.getAttribute('value') || '');
                     if (elementValue) {
+                        if (element.hasAttribute('encrypted') && window[element.getAttribute('encrypted')]) {
+                            elementValue = CryptoJS.AES.decrypt(element.getAttribute('value'), (window[element.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                            element.syncGetters();
+                        } else if (element.hasAttribute('encrypted')) {
+                            element.skip = true;
+                        }
                         element.innerHTML = '<span class="control" gs-dynamic>' + elementValue + '</span>';
                         element.control = element.children[0];
                         if (element.hasAttribute('id')) {
@@ -41074,7 +41372,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (element.hasAttribute('title')) {
                             element.control.setAttribute('title', element.getAttribute('title'));
                         }
-                        element.control.value = elementValue;
+                        if (!element.skip) {
+                            element.control.value = elementValue;
+                        }
                         element.syncGetters();
                     } else if (element.hasAttribute('placeholder')) {
                         element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
@@ -41091,17 +41391,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (element.hasAttribute('title')) {
                             element.control.setAttribute('title', element.getAttribute('title'));
                         }
-                        element.control.value = elementValue;
+                        if (!element.skip) {
+                            element.control.value = elementValue;
+                        }
                         element.syncGetters();
                     }
                     element.style.height = ((element.getAttribute('rows') || 2) * 1.2) + 'em';
-                    // element.appendChild(multiLineTemplate.cloneNode(true));
-                    // if (element.hasAttribute('data-tabindex')) {
-                    //     xtag.query(element, '.control')[0].setAttribute('tabindex', element.getAttribute('data-tabindex'));
-                    // }
-                    // set a variable with the control element for convenience and speed
-                    //element.control = xtag.queryChildren(element, '.control')[0];
-                    //console.log(element.control);
                     if (element.control) {
                         element.control.lastWidth = element.control.clientWidth;
                         element.control.lastHeight = element.control.clientHeight;
@@ -41174,7 +41469,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.inserted = true;
                     element.internal = {};
                     saveDefaultAttributes(element);
-    
+                    
                     if (element.hasAttribute('tabindex')) {
                         element.setAttribute('data-tabindex', element.getAttribute('tabindex'));
                         element.removeAttribute('tabindex');
@@ -41232,7 +41527,17 @@ document.addEventListener('DOMContentLoaded', function () {
             
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
-                if (strAttrName === 'suspend-created' && newValue === null) {
+                if (strAttrName === 'value' && this.initalized) {
+                        var currentValue = this.control.value;
+                        var newCryptedValue = newValue;
+                        // if there is a difference between the new value in the
+                        //      attribute and the valued in the front end: refresh the front end
+                        if (newCryptedValue !== currentValue) {
+                            this.setAttribute('value', newCryptedValue);
+                        } else {
+                            this.setAttribute('value', currentValue);
+                        }
+                    } else if (strAttrName === 'suspend-created' && newValue === null) {
                     elementCreated(this);
                     elementInserted(this);
                     
@@ -41241,7 +41546,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     elementInserted(this);
                     
                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
-                    //console.log(this.getAttribute('id'), strAttrName, oldValue, newValue);
                     if (strAttrName === 'disabled' && newValue !== null) {
                         this.innerHTML = this.getAttribute('value') || this.getAttribute('placeholder');
                     } else if (strAttrName === 'disabled' && newValue === null) {
@@ -41255,18 +41559,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (this.hasAttribute('id')) {
                             this.control.setAttribute('id', this.getAttribute('id') + '_control');
                         }
-                        if (element.hasAttribute('aria-labelledby')) {
-                            element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                        if (this.hasAttribute('aria-labelledby')) {
+                            this.control.setAttribute('aria-labelledby', this.getAttribute('aria-labelledby'));
                         }
-                        if (element.hasAttribute('title')) {
-                            element.control.setAttribute('title', element.getAttribute('title'));
+                        if (this.hasAttribute('title')) {
+                            this.control.setAttribute('title', this.getAttribute('title'));
                         }
                         
                         this.control.lastWidth = this.control.clientWidth;
                         this.control.lastHeight = this.control.clientHeight;
                         this.syncView();
-                    } else if (strAttrName === 'value' && newValue !== oldValue) {
-                        this.value = newValue;
                     }
                 }
             }
@@ -41277,46 +41579,79 @@ document.addEventListener('DOMContentLoaded', function () {
                 // get value straight from the input
                 get: function () {
                     if (this.hasAttribute('defer-insert')) {
-                        if (this.control) {
-                            return this.control.value;
-                        } else {
-                            return '';
-                        }
+                        return this.getAttribute('value');
                     } else {
-                        if (this.control) {
-                            return this.control.value;
-                        } else {
-                            return this.innerHTML;
-                        }
+                        return this.getAttribute('value');
                     }
                 },
                 
-                // set the value of the input and set the value attribute
+                
                 set: function (strNewValue) {
                     if (this.hasAttribute('defer-insert')) {
-                        if (this.getAttribute('value') !== strNewValue) {
-                            this.setAttribute('value', strNewValue);
-                        }
-                        if (this.control.tagName === 'SPAN') {
-                            this.control.textContent = strNewValue;
-                            this.control.value = strNewValue;
-                            this.syncGetters();
+                        if (this.hasAttribute('encrypted')) {
+                            if (CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) === '') {
+                                this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
+                            } else {
+                                this.setAttribute('value', strNewValue);
+                            }
                         } else {
-                            this.control.value = strNewValue;
+                            this.setAttribute('value', strNewValue);
+                            this.syncView();
                         }
                     } else {
-                        if (this.getAttribute('value') !== strNewValue) {
-                            this.setAttribute('value', strNewValue);
-                        }
-                        if (this.control) {
-                            this.control.value = strNewValue;
-                        } else {
-                            this.innerHTML = strNewValue;
-                        }
-                        this.syncView();
+                        this.setAttribute('value', strNewValue);
                     }
-                    
                 }
+                // // set the value of the input and set the value attribute
+                // set: function (strNewValue) {
+                //     if (this.hasAttribute('defer-insert')) {
+                //         if (this.getAttribute('value') !== strNewValue) {
+                //             if (this.hasAttribute('encrypted')) {
+                //                 this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
+                //             } else {
+                //                 this.setAttribute('value', strNewValue);
+                //             }
+                //         }
+                //         if (this.control.tagName === 'SPAN') {
+                //             if (this.hasAttribute('encrypted')) {
+                //                 this.control.textContent = CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                //             } else {
+                //                 this.control.textContent = strNewValue;
+                //             }
+                //             this.control.value = strNewValue;
+                //             this.syncGetters();
+                //         } else {
+                //             if (this.hasAttribute('encrypted')) {
+                //                 this.control.value = CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                //             } else {
+                //                 this.control.value = strNewValue;
+                //             }
+                //         }
+                //     } else {
+                //         if (this.getAttribute('value') !== strNewValue) {
+                //             if (this.hasAttribute('encrypted')) {
+                //                 this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
+                //             } else {
+                //                 this.setAttribute('value', strNewValue);
+                //             }
+                //         }
+                //         if (this.control) {
+                //             if (this.hasAttribute('encrypted')) {
+                //                 this.control.value = CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                //             } else {
+                //                 this.control.value = strNewValue;
+                //             }
+                //         } else {
+                //             if (this.hasAttribute('encrypted')) {
+                //                 this.innerHTML = CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                //             } else {
+                //                 this.innerHTML = strNewValue;
+                //             }
+                //         }
+                //         this.syncView();
+                //     }
+                    
+                // }
             },
             textValue: {
                 // get value straight from the input
@@ -41339,7 +41674,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 // set the value attribute
                 set: function (newValue) {
                     //this.setAttribute('value', newValue);
-                    this.value = newValue;
+                    // this.value = newValue;
+                
+                    if (this.control) {
+                        this.control.value = newValue;
+                    } else {
+                        this.innerHTML = newValue;
+                    }
                 }
             }
         },
@@ -41360,8 +41701,10 @@ document.addEventListener('DOMContentLoaded', function () {
             removeControl: function () {
                 var element = this;
                 var elementHeight = element.control.clientHeight;
-                console.log(elementHeight);
                 var elementValue = element.control.value
+                // if (element.hasAttribute('encrypted')) {
+                //     elementValue = CryptoJS.AES.decrypt(elementValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                // }
                 if (element.control) {
                     element.setAttribute('tabindex', element.control.getAttribute('tabindex'));
                 }
@@ -41466,9 +41809,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     i += 1;
                 }
-                //console.log(elementValue);
                 element.control.value = elementValue;
-                element.value = elementValue;
+                if (element.hasAttribute('encrypted')) {
+                    element.value = CryptoJS.AES.encrypt(elementValue, (window[element.getAttribute('encrypted')] || ''));
+                } else {
+                    element.value = elementValue;
+                }
                 // if we saved a tabindex: apply the tabindex to the control
                 if (element.savedTabIndex !== undefined && element.savedTabIndex !== null) {
                     element.control.setAttribute('tabindex', element.savedTabIndex);
@@ -41481,6 +41827,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // sync control and resize to text
             syncView: function () {
+                                
                 var element = this, arrPassThroughAttributes, i, len;
                 
                 /*
@@ -41527,11 +41874,29 @@ document.addEventListener('DOMContentLoaded', function () {
                     this.control.removeEventListener('insert', insertFunction);
                     this.control.addEventListener('insert', insertFunction);
                 }
-                
-                if (this.control) {
-                    this.control.value = this.getAttribute('value');
+                // console.log(this.control.nodeName);
+                if (this.control && this.control.nodeName === 'TEXTAREA') {
+                    if (this.hasAttribute('encrypted')) {
+                        if (window[this.getAttribute('encrypted')] && this.control.value !== this.getAttribute('value')) {
+                            console.log(window[this.getAttribute('encrypted')], this.getAttribute('value'));
+                            this.control.value = CryptoJS.AES.decrypt(this.getAttribute('value') || '', (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                            // this.innerHTML = CryptoJS.AES.decrypt(this.getAttribute('value') || '', (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                            console.log(this.control.value);
+                        } else {
+                        }
+                    } else {
+                        this.control.value = this.getAttribute('value');
+                    }
                 } else {
-                    this.innerHTML = this.getAttribute('value') || this.getAttribute('placeholder') || '';
+                    console.log(this.outerHTML);
+                    if (this.hasAttribute('encrypted')) {
+                        if (window[this.getAttribute('encrypted')] && this.control.value !== this.getAttribute('value')) {
+                            this.control.innerHTML = CryptoJS.AES.decrypt(this.getAttribute('value'), (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) || this.getAttribute('placeholder') || '';
+                        }
+                    } else {
+                        this.control.innerHTML = this.getAttribute('value') || this.getAttribute('placeholder') || '';
+                    }
+                    
                 }
                     
                 if (this.getAttribute('value')) {
@@ -41563,7 +41928,14 @@ document.addEventListener('DOMContentLoaded', function () {
             
             syncGetters: function () {
                 if (this.control) {
-                    this.setAttribute('value', this.control.value);
+                    if (this.hasAttribute('encrypted')) {
+                        if (window[this.getAttribute('encrypted')]) {
+                            this.setAttribute('value', CryptoJS.AES.encrypt(this.control.value, (window[this.getAttribute('encrypted')] || '')));
+                        }
+                    } else {
+                        this.setAttribute('value', this.control.value);
+                    }
+                    
                 }
             },
             
@@ -43115,22 +43487,25 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // removes selected attribute from old selected option adds selected attribute to option
     function highlightOption(element, option) {
-        var i, len, arrSelectedOptions, arrTempSelectedOptions;
+        var i, len, arrSelectedOptions, arrAriaSelectedOptions;
         
         // clear previous selection
         arrSelectedOptions = xtag.query(element, 'gs-option[selected]');
-        arrTempSelectedOptions = xtag.query(element, 'gs-option[tempselect]');
+        arrAriaSelectedOptions = xtag.query(element, 'gs-option');
         for (i = 0, len = arrSelectedOptions.length; i < len; i += 1) {
             arrSelectedOptions[i].removeAttribute('selected');
+            arrSelectedOptions[i].setAttribute('tabindex', '-1');
         }
         
-        for (i = 0, len = arrTempSelectedOptions.length; i < len; i += 1) {
-            arrTempSelectedOptions[i].removeAttribute('tempselect');
+        for (i = 0, len = arrAriaSelectedOptions.length; i < len; i += 1) {
+            arrAriaSelectedOptions[i].setAttribute('aria-checked', 'false');
         }
 
         // select/highlight the record that was provided
         if (option) {
             option.setAttribute('selected', '');
+            option.setAttribute('tabindex', '0');
+            option.setAttribute('aria-checked', 'true');
         }
     }
 
@@ -43185,75 +43560,44 @@ document.addEventListener('DOMContentLoaded', function () {
     // #################################################################
     // ########################## USER EVENTS ##########################
     // #################################################################
-    /*
     // handle behaviours on keydown
     function handleKeyDown(event) {
-        var element = event.target, intKeyCode = event.keyCode || event.which,
+        //console.log(handleKeyDown, event, event.target);
+        var element = GS.findParentTag(event.target, 'gs-optionbox'), intKeyCode = event.keyCode || event.which,
             selectedOption, selectedOptionIndex,
-            tempSelectedOption, tempSelectedOptionIndex, arrOptions, i, len;
+            arrOptions, i, len;
 
         if (!element.hasAttribute('disabled')) {
-            if ((intKeyCode === 40 || intKeyCode === 38) && !event.shiftKey && !event.metaKey && !event.ctrlKey && !element.error) {
+            if ((intKeyCode === 40 || intKeyCode === 39 || intKeyCode === 38 || intKeyCode === 37) && !event.shiftKey && !event.metaKey && !event.ctrlKey && !element.error) {
                 arrOptions = xtag.query(element, 'gs-option');
 
                 for (i = 0, len = arrOptions.length; i < len; i += 1) {
-                    if (arrOptions[i].hasAttribute('tempselect')) {
-                        tempSelectedOptionIndex = i;
-                        tempSelectedOption = arrOptions[i];
-                        arrOptions[i].removeAttribute('tempselect');
-                    }
-
                     if (arrOptions[i].hasAttribute('selected')) {
                         selectedOptionIndex = i;
                         selectedOption = arrOptions[i];
                     }
 
-                    if (selectedOption && tempSelectedOption) {
+                    if (selectedOption) {
                         break;
                     }
                 }
 
-                //console.log(selectedOption, selectedOptionIndex, tempSelectedOption, tempSelectedOptionIndex, arrOptions.length);
+                //console.log(selectedOption, selectedOptionIndex, arrOptions.length);
 
-                if (tempSelectedOption && tempSelectedOptionIndex !== arrOptions.length - 1 && intKeyCode === 40) {
-                    if (!arrOptions[tempSelectedOptionIndex + 1].hasAttribute('selected')) {
-                        arrOptions[tempSelectedOptionIndex + 1].setAttribute('tempselect', '');
-                    }
-                } else if (tempSelectedOption && tempSelectedOptionIndex !== 0 && intKeyCode === 38) {
-                    if (!arrOptions[tempSelectedOptionIndex - 1].hasAttribute('selected')) {
-                        arrOptions[tempSelectedOptionIndex - 1].setAttribute('tempselect', '');
-                    }
-                } else if (!tempSelectedOption && selectedOption && selectedOptionIndex !== arrOptions.length - 1 && intKeyCode === 40) {
-                    if (!arrOptions[selectedOptionIndex + 1].hasAttribute('selected')) {
-                        arrOptions[selectedOptionIndex + 1].setAttribute('tempselect', '');
-                    }
-                } else if (!tempSelectedOption && selectedOption && selectedOptionIndex !== 0 && intKeyCode === 38) {
-                    if (!arrOptions[selectedOptionIndex - 1].hasAttribute('selected')) {
-                        arrOptions[selectedOptionIndex - 1].setAttribute('tempselect', '');
-                    }
-                // tempselect first record
-                } else if (intKeyCode === 40) {
-                    if (!arrOptions[0].hasAttribute('selected')) {
-                        arrOptions[0].setAttribute('tempselect', '');
-                    }
-                // tempselect last record
-                } else if (intKeyCode === 38) {
-                    if (!arrOptions[arrOptions.length - 1].hasAttribute('selected')) {
-                        arrOptions[arrOptions.length - 1].setAttribute('tempselect', '');
-                    }
+                if (selectedOption && selectedOptionIndex !== arrOptions.length - 1 && (intKeyCode === 40 || intKeyCode === 39)) {
+                    selectOption(element, arrOptions[selectedOptionIndex + 1], true);
+                } else if (selectedOption && selectedOptionIndex !== 0 && (intKeyCode === 38 || intKeyCode === 37)) {
+                    selectOption(element, arrOptions[selectedOptionIndex - 1], true);
+                // select first record
+                } else if (intKeyCode === 40 || intKeyCode === 39) {
+                    selectOption(element, arrOptions[0], true);
+                // select last record
+                } else if (intKeyCode === 38 || intKeyCode === 37) {
+                    selectOption(element, arrOptions[arrOptions.length - 1], true);
                 }
                 event.preventDefault();
                 event.stopPropagation();
 
-            } else if (event.keyCode === 13 || event.keyCode === 32) {
-                selectedOption = xtag.query(element, 'gs-option[selected]')[0];
-                tempSelectedOption = xtag.query(element, 'gs-option[tempselect]')[0];
-
-                if (tempSelectedOption) {
-                    selectOption(element, tempSelectedOption, true);
-                } else if (selectedOption) {
-                    selectOption(element, selectedOption, true);
-                }
             }
         } else {
             if (event.keyCode !== 9) {
@@ -43263,7 +43607,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         //console.log('handleKeyDown', intKeyCode, event);
-    }*/
+    }
+    function handleKeyPress(event) {
+        //console.log(handleKeyPress, event, event.target);
+        var element = event.target, intKeyCode = event.keyCode || event.which;
+
+        if (!element.hasAttribute('disabled')) {
+            if ((intKeyCode === 40 || intKeyCode === 39 || intKeyCode === 38 || intKeyCode === 37) && !event.shiftKey && !event.metaKey && !event.ctrlKey && !element.error) {
+                event.preventDefault();
+                event.stopPropagation();
+
+            }
+        } else {
+            if (event.keyCode !== 9) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        }
+
+        //console.log('handleKeyDown', intKeyCode, event);
+    }
 
     function getParentOption(element) {
         var currentElement = element;
@@ -43394,6 +43757,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 arrElement[i].setAttribute('iconleft', '');
             }
             arrElement[i].setAttribute('icon', '');
+            arrElement[i].setAttribute('role', 'radio');
+            arrElement[i].setAttribute('tabindex', '-1');
+            arrElement[i].addEventListener('focus', function () {
+                selectOption(element, this, true);
+            });
         }
     }
 
@@ -43412,6 +43780,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+
+        //console.log(forElem);
+        if (forElem) {
+            if (! element.hasAttribute('aria-label')) {
+                element.setAttribute('aria-label', forElem.innerText);
+            }
+        }
+    }
+
     //
     function elementInserted(element) {
         var strQSValue, observer;
@@ -43423,6 +43811,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.inserted = true;
                 element.internal = {};
                 saveDefaultAttributes(element);
+                
+                if (!element.hasAttribute('role')) {
+                    element.setAttribute('role', 'radiogroup');
+                }
 
                 //// allows the element to have focus
                 //if (!element.hasAttribute('tabindex')) {
@@ -43476,6 +43868,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
+        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+            if (element.hasAttribute('id')) {
+                // console.log('running');
+                findFor(element);
+            }
+        }
     }
 
     xtag.register('gs-optionbox', {
@@ -43483,11 +43881,11 @@ document.addEventListener('DOMContentLoaded', function () {
             created: function () {
                 elementCreated(this);
             },
-            
+
             inserted: function () {
                 elementInserted(this);
             },
-            
+
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'suspend-created' && newValue === null) {
@@ -43506,11 +43904,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
         events: {
-            //'keydown': function (event) {
-            //    if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
-            //        handleKeyDown(event);
-            //    }
-            //},
+            'keydown': function (event) {
+                if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
+                    handleKeyDown(event);
+                }
+            },
+            'keypress': function (event) {
+                if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
+                    handleKeyPress(event);
+                }
+            },
             
             'click': function (event) {
                 if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted') && !this.hasAttribute('readonly')) {
@@ -43529,21 +43932,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         selectOption(this, undefined);
                     }
                 }
-            }//,
-            
-            //'focusout': function () {
-            //    if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
-            //        var selectedOption = xtag.query(this, 'gs-option[selected]')[0],
-            //            tempSelectedOption = xtag.query(this, 'gs-option[tempselect]')[0];
-            //        
-            //        if (tempSelectedOption) {
-            //            selectOption(this, tempSelectedOption, true);
-            //            
-            //        } else if (selectedOption) {
-            //            selectOption(this, selectedOption, true);
-            //        }
-            //    }
-            //}
+            }
         },
         accessors: {
             value: {
@@ -44039,6 +44428,7 @@ GS.pushMessage = function (strHTML, intTime, callback) {
     // create the pushmessage
     pushMessageElement = document.createElement('gs-pushmessage');
     pushMessageElement.setAttribute('gs-dynamic', '');
+    pushMessageElement.setAttribute('role', 'alert');
     pushMessageElement.innerHTML = strHTML;
     
     // append the pushmessage to the container
@@ -45797,7 +46187,13 @@ document.addEventListener('DOMContentLoaded', function () {
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
         if (!element.hasAttribute('suspend-created')) {
-            
+            if (!element.hasAttribute('role') && !GS.findParentTag(element, 'gs-dialog')) {
+                if (element.getAttribute('direction') === 'down') {
+                    element.setAttribute('role', 'contentinfo');
+                } else {
+                    element.setAttribute('role', 'banner');
+                }
+            }
         }
     }
     
@@ -65338,9 +65734,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         10
                     );
 
-                    //console.log('strColumn:', strColumn);
+
+                    console.log('columnElement.value:',  columnElement.value);
+                    console.log('target.value:',  target.value);
+                    console.log('columnElement.checked:',  columnElement.checked);
+                    console.log('target.checked:',  target.checked);
+                    console.log('strColumn:', strColumn);
                     //console.log('intRecord:', intRecord);
-                    //console.log('newValue:', newValue);
+                    console.log('newValue:', newValue);
 
                     // call the update function
                     dataUPDATE(element, 'single-cell', {
@@ -68909,7 +69310,8 @@ window.addEventListener('design-register-element', function () {
 });
 
 window.addEventListener('try-password', function (event) {
-    var elemsToRetry = xtag.query(document, 'gs-text[encrypted="' + event.keyVariable + '"]');
+    var elemsToRetry = xtag.query(document, 'gs-text[encrypted="' + event.keyVariable + '"], gs-memo[encrypted="' + event.keyVariable + '"]');
+    console.log(elemsToRetry);
     var i = 0, len = elemsToRetry.length;
     while (i < len) {
         elemsToRetry[i].syncView();
@@ -71887,6 +72289,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 saveDefaultAttributes(element);
 
                 if (!evt.touchDevice) {
+                    element.addEventListener('focus', function (event) {
+                        element.classList.add('focus');
+                    });
+                    
+                    element.addEventListener('blur', function (event) {
+                        element.classList.remove('focus');
+                    });
+                    
                     element.addEventListener(evt.mousedown, function (event) {
                         element.classList.add('down');
                     });
@@ -71927,7 +72337,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (typeof element.getAttribute('value') === 'string') {
                     if (element.getAttribute('value') === 'true' || element.getAttribute('value') === '-1') {
                         element.setAttribute('selected', '');
+                        
+                        element.setAttribute('aria-pressed', 'true');
+                    } else {
+                        element.setAttribute('aria-pressed', 'false');
                     }
+                } else {
+                    element.setAttribute('aria-pressed', 'false');
                 }
 
                 // handle "qs" attribute
@@ -71993,7 +72409,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             this.setAttribute('value', '0');
                         }
                         
-                        element.setAttribute('aria-pressed', 'false');
+                        this.setAttribute('aria-pressed', 'false');
                         
                     } else {
                         this.setAttribute('selected', '');
@@ -72004,7 +72420,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             this.setAttribute('value', '-1');
                         }
                         
-                        element.setAttribute('aria-pressed', 'true');
+                        this.setAttribute('aria-pressed', 'true');
                     }
                     
                     xtag.fireEvent(this, 'change', {
@@ -72024,11 +72440,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (newValue === true || newValue === 'true') {
                         this.setAttribute('selected', '');
                         
-                        element.setAttribute('aria-pressed', 'true');
+                        this.setAttribute('aria-pressed', 'true');
                     } else {
                         this.removeAttribute('selected');
                         
-                        element.setAttribute('aria-pressed', 'false');
+                        this.setAttribute('aria-pressed', 'false');
                     }
                 }
             },
@@ -72042,11 +72458,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (newValue === true || newValue === 'true' || newValue === 'YES') {
                         this.setAttribute('selected', '');
                         
-                        element.setAttribute('aria-pressed', 'true');
+                        this.setAttribute('aria-pressed', 'true');
                     } else {
                         this.removeAttribute('selected');
                         
-                        element.setAttribute('aria-pressed', 'false');
+                        this.setAttribute('aria-pressed', 'false');
                     }
                 }
             }

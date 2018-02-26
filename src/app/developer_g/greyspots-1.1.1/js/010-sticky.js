@@ -127,7 +127,13 @@ document.addEventListener('DOMContentLoaded', function () {
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
         if (!element.hasAttribute('suspend-created')) {
-            
+            if (!element.hasAttribute('role') && !GS.findParentTag(element, 'gs-dialog')) {
+                if (element.getAttribute('direction') === 'down') {
+                    element.setAttribute('role', 'contentinfo');
+                } else {
+                    element.setAttribute('role', 'banner');
+                }
+            }
         }
     }
     

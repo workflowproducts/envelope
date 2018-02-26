@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
     xtag.register('gs-header', {
         lifecycle: {
             created: function () {
-                if (!this.hasAttribute('role')) {
+                if (!this.hasAttribute('role') && !GS.findParentTag(this, 'gs-dialog')) {
                     this.setAttribute('role', 'banner');
                 }
             },

@@ -207,6 +207,11 @@ document.addEventListener('DOMContentLoaded', function () {
         for (i = 0, len = arrSelectedTrs.length; i < len; i += 1) {
             arrSelectedTrs[i].removeAttribute('selected');
         }
+
+        // web-aria
+        if (element.control && element.control.hasAttribute('aria-owns')) {
+            element.control.removeAttribute('aria-activedescendant');
+        }
     }
 
     // clears old selection and adds selected class to record
@@ -216,6 +221,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // select/highlight the record that was provided
         record.setAttribute('selected', '');
+
+        // web-aria
+        if (element.control && element.control.hasAttribute('aria-owns')) {
+            element.control.setAttribute('aria-activedescendant', record.getAttribute('id'));
+        }
     }
 
     // loops through the records and finds a record using the parameter (if bolPartialMatchAllowed === true then only search the first td text)
@@ -422,7 +432,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function dropDown(element) {
-        var dropDownContainer = document.createElement('div'), overlay, positioningContainer, scrollContainer, observer;
+        var dropDownContainer = document.createElement('div')
+          , overlay
+          , positioningContainer
+          , scrollContainer
+          , observer;
 
         // focus control
         element.control.focus();
@@ -431,7 +445,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dropDownContainer.classList.add('gs-combo-dropdown-container');
         dropDownContainer.setAttribute('gs-dynamic', '');
         dropDownContainer.innerHTML =   '<div class="gs-combo-positioning-container" gs-dynamic>' +
-                                        '    <div class="gs-combo-scroll-container" gs-dynamic></div>' +
+                                        '    <div id="combo-list-' + element.internal.id + '" class="gs-combo-scroll-container" gs-dynamic></div>' +
                                         '</div>';
 
         // append dropdown to the body
@@ -817,6 +831,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 closeDropDown(element);
 
+            // if the esc key is pressed, restore the previous value and close the dropdown
+            } else if (event.keyCode === 27) {
+                if (element.dropdownOpen) {
+                    element.value = element.value;
+                    closeDropDown(element);
+                }
+
             } else if (!event.metaKey &&       // not command key
                        !event.ctrlKey &&       // not control key
                        event.keyCode !== 37 && // not arrow keys
@@ -1136,11 +1157,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // if there is a record: template
                 if (recordElement) {
+                    recordElement.setAttribute('id', 'combo-list-' + element.internal.id + '-item-{{! row_number - 1 }}');
 
                     // if there is a thead element: add reflow cell headers to the tds
                     if (theadElement) {
                         theadCellElements = xtag.query(theadElement, 'td, th');
                         tbodyCellElements = xtag.query(tbodyElement, 'td, th');
+
+                        if (tbodyCellElements[0].nodeName === 'TH') {
+                            recordElement.setAttribute('aria-label', tbodyCellElements[1].textContent);
+                        } else {
+                            recordElement.setAttribute('aria-label', tbodyCellElements[0].textContent);
+                        }
 
                         for (i = 0, len = theadCellElements.length; i < len; i += 1) {
                             currentCellLabelElement = document.createElement('b');
@@ -1231,11 +1259,15 @@ document.addEventListener('DOMContentLoaded', function () {
         element.appendChild(divElement);
         element.root = divElement;
         if (!bolspan) {
-            element.root.innerHTML = '<input role="textbox" gs-dynamic class="control" type="text" />' +
-                                   '<gs-button gs-dynamic alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>';
+            element.root.innerHTML = (
+                '<input role="textbox" aria-owns="combo-list-' + element.internal.id + '" aria-autocomplete="none" gs-dynamic class="control" type="text" />' +
+                '<gs-button gs-dynamic aria-label="Open the Combo box" alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>'
+            );
         } else {
-            element.root.innerHTML = '<span gs-dynamic class="control" type="text" style="width: 100%;">' + ctrlValue + '</span>' +
-                                   '<gs-button gs-dynamic alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>';
+            element.root.innerHTML = (
+                '<span gs-dynamic class="control" type="text" style="width: 100%;">' + ctrlValue + '</span>' +
+                '<gs-button gs-dynamic aria-label="Open the Combo box" alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>'
+            );
         }
 
         element.control = xtag.query(element, '.control')[0];
@@ -1574,6 +1606,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     //
+    var comboID = 0;
     function elementInserted(element) {
         var tableTemplateElement, tableTemplateElementCopy, oldRootElement, i, len,
             recordElement, strQueryString = GS.getQueryString(), arrElement, currentElement, strQSValue;
@@ -1585,6 +1618,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.inserted = true;
                 element.internal = {};
                 saveDefaultAttributes(element);
+
+                element.internal.id = comboID;
+                comboID += 1;
 
                 element.dropdownOpen = false;
                 element.error = false;

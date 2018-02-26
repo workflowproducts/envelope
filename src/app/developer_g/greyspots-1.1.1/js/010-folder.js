@@ -139,7 +139,7 @@ window.addEventListener('design-register-element', function () {
                             if (strType === 'file') {
                                 arrFiles.push(element.arrPath.join('/') + '/' + strName);
                                 divElement.innerHTML =
-                                    '<gs-button class="more-file" icononly icon="bars" remove-right></gs-button>'
+                                    '<gs-button class="more-file" icononly icon="bars" remove-right>File Options</gs-button>'
                                   + '<gs-button class="open-file" flex remove-left>' + encodeHTML(strName) + '</gs-button>';
                                 
                                 element.fileList.appendChild(divElement);
@@ -148,7 +148,7 @@ window.addEventListener('design-register-element', function () {
                             if (strType === 'folder') {
                                 arrFolders.push(element.arrPath.join('/') + '/' + strName);
                                 divElement.innerHTML =
-                                    '<gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>'
+                                    '<gs-button class="more-folder" icononly icon="bars" remove-right>Folder Options</gs-button>'
                                   + '<gs-button class="open-folder" flex remove-left>' + encodeHTML(strName) + '</gs-button>';
                                 
                                 element.folderList.appendChild(divElement);
@@ -525,7 +525,7 @@ window.addEventListener('design-register-element', function () {
                 <gs-button dialogclose remove-bottom style="border-bottom: 0 none;">Rename Folder</gs-button>
                 <gs-button dialogclose remove-top>Delete Folder</gs-button>
                 <hr />
-                <gs-button dialogclose>Cancel</gs-button>
+                <gs-button dialogclose listen-for-return>Cancel</gs-button>
             </gs-body>
         */});
         
@@ -596,7 +596,7 @@ window.addEventListener('design-register-element', function () {
                 Are you sure you want to delete the folder: "<b>{{STRPATH}}</b>"?
                 <hr />
                 <gs-grid>
-                    <gs-block><gs-button dialogclose remove-right style="border-right: 0 none;">No</gs-button></gs-block>
+                    <gs-block><gs-button dialogclose remove-right style="border-right: 0 none;" listen-for-return>No</gs-button></gs-block>
                     <gs-block><gs-button dialogclose remove-left>Yes</gs-button></gs-block>
                 </gs-grid>
             </gs-body>
@@ -633,7 +633,7 @@ window.addEventListener('design-register-element', function () {
                 <gs-text id="gs-file-manager-text-folder-name"></gs-text>
                 <hr />
                 <gs-grid>
-                    <gs-block><gs-button dialogclose style="border-right: 0 none;" remove-right>Cancel</gs-button></gs-block>
+                    <gs-block><gs-button dialogclose style="border-right: 0 none;" remove-right listen-for-return>Cancel</gs-button></gs-block>
                     <gs-block><gs-button dialogclose remove-left>Create</gs-button></gs-block>
                 </gs-grid>
             </gs-body>
@@ -698,7 +698,7 @@ window.addEventListener('design-register-element', function () {
                 <gs-button dialogclose remove-all style="border-bottom: 0 none;">Delete File</gs-button>
                 <gs-button dialogclose remove-top>Edit File</gs-button>
                 <hr />
-                <gs-button dialogclose>Cancel</gs-button>
+                <gs-button dialogclose listen-for-return>Cancel</gs-button>
             </gs-body>
         */});
         
@@ -772,7 +772,7 @@ window.addEventListener('design-register-element', function () {
                 Are you sure you want to delete the file: "<b>{{STRPATH}}</b>"?
                 <hr />
                 <gs-grid>
-                    <gs-block><gs-button dialogclose style="border-right: 0 none;" remove-right>No</gs-button></gs-block>
+                    <gs-block><gs-button dialogclose style="border-right: 0 none;" remove-right listen-for-return>No</gs-button></gs-block>
                     <gs-block><gs-button dialogclose remove-left>Yes</gs-button></gs-block>
                 </gs-grid>
             </gs-body>

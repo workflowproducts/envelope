@@ -18859,9 +18859,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         10
                     );
 
-                    //console.log('strColumn:', strColumn);
+
+                    console.log('columnElement.value:',  columnElement.value);
+                    console.log('target.value:',  target.value);
+                    console.log('columnElement.checked:',  columnElement.checked);
+                    console.log('target.checked:',  target.checked);
+                    console.log('strColumn:', strColumn);
                     //console.log('intRecord:', intRecord);
-                    //console.log('newValue:', newValue);
+                    console.log('newValue:', newValue);
 
                     // call the update function
                     dataUPDATE(element, 'single-cell', {
