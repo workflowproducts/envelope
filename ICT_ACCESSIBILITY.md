@@ -13,6 +13,8 @@ The purpose of this policy is to ensure Customers, Prospects and Employee's of W
 - aXe browser add-ons for testing accessibility
     - <https://chrome.google.com/webstore/detail/axe/lhdoppojpmngadmnindnejefpokejbdd>
     - <https://addons.mozilla.org/en-US/firefox/addon/axe-devtools/>
+- NVDA (NonVisual Desktop Access) Screen Reader
+    - <https://www.nvaccess.org/download/>
 
 # Accessibility Conformance Testing
 
