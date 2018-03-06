@@ -1,3 +1,8 @@
+# Kitchen Sink
+Run the kitchen sink on sunnyserve with the latest code and it will automatically record the accessibility errors to our system.
+
+It will not work on anywhere other than on sunnyserve.
+
 # FreeBSD Envelope
 ```
 su -
