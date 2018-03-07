@@ -1,6 +1,6 @@
 # General Policy Statement
 
-The purpose of this policy is to ensure that accesse disabled Customers, Prospects and Employee's of Workflow Products, L.L.C. can access website and webapps created by Workflow Products, L.L.C. This policy contains links and references to standards and tools we use, the instructions for testing our widgets and web pages for compliance and instructions for feedback.
+The purpose of this policy is to ensure that access disabled Customers, Prospects and Employees of Workflow Products, L.L.C. can access websites and webapps created by Workflow Products, L.L.C. This policy contains links and references to standards and tools we use, the instructions for testing our widgets and web pages for compliance, and instructions for feedback.
 
 # Links/References
 
