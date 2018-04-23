@@ -62,17 +62,15 @@ You'll also need to set up a connection string to tell Envelope where your Postg
 
 #### Pooling
 
-To use Envelope with a connection pool, you need a Super User in your database that specifically for Envelope.
+To use Envelope with a connection pool, you need to set up a PostgreSQL superuser for Envelope.
 
 The recommended script for creating this user is:
 ```
 CREATE ROLE <username> LOGIN SUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD '<password>'
 ```
 
-Of course, you should choose a name and password that doesn't have 'envelope' in it, otherwise people who try to break into your database can make that assumption.
-
 Envelope will detect if you want to use this mode if you have a `user` key in your `envelope-connections.conf`.
-It is recommended to use a `.pgpass` or some other means of storing the password so that it isn't in the `envelope-connections.conf`.
+It is recommended to use a `.pgpass` or some other means of storing the password so that it isn't in the `envelope-connections.conf`. See the PostgreSQL documentation for this here: https://www.postgresql.org/docs/9.6/static/libpq.html
 
 #### TESTING ENVELOPE BEFORE INSTALLING
 
@@ -127,36 +125,20 @@ If you like some or all of Envelope's functionality and the current license won'
 
 Workflow Products has been building custom ERP and MRP applications, mostly in PostgreSQL and Microsoft Access for about ten years now. At about the four year mark we developed the first in-house only version of Envelope and put up a simple timekeeping application. It allowed us to punch in and out of various customer projects all day. Suddenly, we were getting paid a lot more because the overhead of keeping track of small amounts of time was gone.
 
-Prior to that we had turned down many web projects but no longer! We now have many projects in maintenance mode, some on very old versions of Envelope that were never open sourced. 
+Prior to that we had turned down many web projects but no longer! We now have many projects in maintenance mode, some started on very old versions of Envelope that were never open sourced. All are on the latest version now. Once we moved to the Web Components architecture, keeping clients up to date became a breeze.
 
 Envelope seeks to be the easiest way to build web apps for accounting, inventory and other business applications. Over time we notice when we're writing similar Javascript over and over and we'll build another Web Component to remove all that. 
 
-Around 2014 we got a government contract than they said they preferred open source. We polished it up and released it. It was a disaster. It had integrated development source and SQL code control and users were unable to comprehend it. All the feedback was negative. We ripped all the extras out and re-released it. The simpler, cleaner version seems to be easier to understand, install and manage. 
+Around 2014 we got a government contract and they said they preferred open source. We polished it up and released it. It was a disaster. It had integrated development source and SQL code control and developers were unable to comprehend it. All the feedback was negative. We ripped all the extras out and re-released it. The simpler, cleaner version seems to be easier to understand, install and manage. 
 
 ## Roadmap
 
-Frankly, we miss our integrated SQL and source code control. Our highest priority is to figure out a way to add that functionality back in while keeping it in a separate, optional project or something.
-
-Then we'll move back into feature expansion. The features we want to bring to Envelope next, in no particular order:
-
-* Increase Datasheet and Combo box element performance to thousands of records in real time.
-* More Web Components for specific data types.
-* Small improvements to Web Components to bring functionality up to desktop level.
-* Paste into Datasheet to create new records.
-
-Workflow Products itself is healthier than it's ever been. We're celebrating our tenth year in November 2016. We're now at five full time employees and we expect to be around in another ten years. If you have any further questions please contact us directly at 817-503-9545.
+No major features on the horizon. Envelope is pretty stable.
 
 ## Section 508 Compliance
 We strive to be 508 compliant. If you see any accessibility issues, please post an issue.
 
 ## Contributors
 If you would like to contribute to Envelope, first submit an issue. Please include how you plan to solve the issue. Then work on the patch. This way we get a moment to give feedback before you invest your time. 
-
-Anyone presenting a quality patch that asks for commit privileges will likely receive them! 
-
-We're not against forking. We just want people communicating. Preferably before putting forth effort. If we all use the Github issue tracker then there will be a minimum of wasted effort. 
-
-Copyright 2016 Workflow Products LLC
-
 
 

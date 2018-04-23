@@ -495,7 +495,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 						((unsigned char)(client->str_request[int_i]) > 126 &&
 							(unsigned char)(client->str_request[int_i]) < 160))) {
 					char str_int_code[4] = {0};
-					snprintf(str_int_code, 3, "%d", (unsigned char)(client->str_request[int_i]));
+					snprintf(str_int_code, 4, "%d", (unsigned char)(client->str_request[int_i]));
 					SERROR_SNCAT(str_response, &int_response_len,
 						"HTTP/1.1 400 Bad Request\015\012Connection: close\015\012\015\012An invalid character with the code '", (size_t)83,
 						str_int_code, strlen(str_int_code),
