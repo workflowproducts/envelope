@@ -10,6 +10,7 @@
 #else
 #include <getopt.h>
 #include <pwd.h>
+#include <grp.h>
 #endif
 #include "util_canonical.h"
 #include "util_darray.h"
@@ -28,6 +29,8 @@ extern char *str_global_data_root;
 extern char *str_global_port;
 extern bool bol_global_local_only;
 extern bool bol_global_super_only;
+extern char *str_global_set_uname;
+extern char *str_global_set_gname;
 
 extern DArray *darr_global_connection;
 extern size_t int_global_login_timeout;
