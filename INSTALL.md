@@ -19,6 +19,15 @@ Or if you choose LibreSSL, make sure its `openssl` is first in the $PATH (On Ope
 
 *\* Apple does not include a good enough version of OpenSSL. We officially support the `brew` versions of OpenSSL. If installing OpenSSL from source (untested) make sure to install static libraries.*
 
+### Linux Capabilities
+In order to setuid/setgid on linux, we require that you have libcap headers installed.
+
+```
+sudo apt install libcap-dev # Ubuntu
+sudo dnf install libcap-devel # Fedora
+sudo yum install libcap-devel # CentOS/RHEL
+```
+
 #### Downloading Envelope
 
 https://github.com/workflowproducts/envelope/releases
