@@ -12,6 +12,10 @@
 #include <pwd.h>
 #include <grp.h>
 #endif
+#ifdef __linux__
+#include <sys/capability.h>
+#include <sys/prctl.h>
+#endif
 #include "util_canonical.h"
 #include "util_darray.h"
 #include "util_error.h"

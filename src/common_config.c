@@ -438,7 +438,7 @@ bool parse_options(int argc, char *const *argv) {
 	};
 // clang-format on
 
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:i:x:r:p:j:k:s:t:l:o:a:b:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:i:x:r:p:j:k:s:t:l:o:a:e:b:", longopts, NULL)) != -1) {
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -462,7 +462,7 @@ bool parse_options(int argc, char *const *argv) {
 	char *str_config_empty = "";
 	ini_parse(str_global_config_file, handler, &str_config_empty);
 
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:i:x:r:p:j:k:s:t:l:o:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:i:x:r:p:j:k:s:t:l:o:a:e:b:", longopts, NULL)) != -1) {
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -634,13 +634,30 @@ bool parse_options(int argc, char *const *argv) {
 
 #ifdef _WIN32
 #else
-	if (str_global_set_uname) {
-		struct passwd *obj_uname = getpwnam(str_global_set_uname);
-		SERROR_CHECK(setuid(obj_uname->pw_uid) != 0, "setuid() failed!");
+	#ifdef CAP_SETUID
+	if (str_global_set_gname != NULL || str_global_set_uname != NULL) {
+		cap_t caps;
+		cap_value_t cap_list[2];
+		SERROR_CHECK((caps = cap_get_proc()) != NULL, "cap_get_proc() failed!");
+		cap_list[0] = CAP_SETUID;
+		cap_list[1] = CAP_SETGID;
+		SERROR_CHECK(cap_set_flag(caps, CAP_PERMITTED, 2, cap_list, CAP_SET) != -1, "cap_set_flag() failed!");
+		SERROR_CHECK(cap_set_proc(caps) != -1, "cap_set_proc() failed!");
+		// By default capability sets are lost across an UID transigion
+		SERROR_CHECK(prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) == 0, "prctl() failed!");
+		SERROR_CHECK(cap_free(caps) != -1, "cap_free() failed!");
 	}
-	if (str_global_set_gname) {
+	#endif
+
+	if (str_global_set_gname != NULL) {
 		struct group *obj_gname = getgrnam(str_global_set_gname);
-		SERROR_CHECK(setgid(obj_gname->gr_gid) != 0, "setgid() failed!");
+		SERROR_CHECK(obj_gname != NULL, "getgrnam() failed!");
+		SERROR_CHECK(setgid(obj_gname->gr_gid) == 0, "setgid() failed!");
+	}
+	if (str_global_set_uname != NULL) {
+		struct passwd *obj_uname = getpwnam(str_global_set_uname);
+		SERROR_CHECK(obj_uname != NULL, "getpwnam() failed!");
+		SERROR_CHECK(setuid(obj_uname->pw_uid) == 0, "setuid() failed!");
 	}
 #endif
 
