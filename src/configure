@@ -58,6 +58,13 @@ if test $(uname -s) = "Linux"; then
 	}
 	echo "yes"
 
+	HEADER="sys/capability.h"
+	. scripts/check_header
+	if test "x$HAVE_HEADER" = "x0"; then
+		echo >&2 "Cannot use sys/capability.h! Install libcap-dev (apt) or libcap-devel (yum) and re-run configure."
+		exit 1
+	fi
+
 elif test $(uname -s) = "Darwin"; then
 	LDFLAGS="-lm"
 	echo "Darwin"
