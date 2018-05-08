@@ -46,7 +46,7 @@ libtre="no"
 MANDIR="share/man"
 printf "checking for platform..."
 if test $(uname -s) = "Linux"; then
-	LDFLAGS="-lm -lrt"
+	LDFLAGS="-lm -lrt -lcap"
 	CPPFLAGS="-D_GNU_SOURCE"
 	echo "Linux"
 
