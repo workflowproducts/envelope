@@ -475,6 +475,12 @@ document.addEventListener('DOMContentLoaded', function () {
         
         disabled = element.hasAttribute('disabled') || !element.hasAttribute('pk');
         
+        var strCaption = '';
+        console.log('strCaption', element.hasAttribute('caption'));
+        if (element.hasAttribute('caption')) {
+            strCaption = '<caption><center><h4>' + element.getAttribute('caption') + '</h4></center></caption>';
+        }
+        
         // if first callback: table and header
         if (data.intCallback === 0) {
             if (!element.hasAttribute('lock')) {
@@ -497,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             if (element.headerTemplateRecord) {
                 strHTML = GS.templateWithQuerystring(element.headerTemplateRecord);
-                element.scrollContainer.innerHTML = '<table role="grid"><thead>' + strHTML + '</thead><tbody></tbody></table>';
+                element.scrollContainer.innerHTML = '<table role="grid">' + strCaption + '<thead>' + strHTML + '</thead><tbody></tbody></table>';
                 
             } else {
                 arrElements = xtag.queryChildren(element.tableTemplateRecord, 'td, th');
@@ -509,9 +515,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 strHTML = '<tr role="row">' + strHTML + '</tr>';
                 
                 if (bolHeader) {
-                    element.scrollContainer.innerHTML = '<table role="grid"><thead>' + strHTML + '</thead><tbody></tbody></table>';
+                    element.scrollContainer.innerHTML = '<table role="grid">' + strCaption + '<thead>' + strHTML + '</thead><tbody></tbody></table>';
                 } else {
-                    element.scrollContainer.innerHTML = '<table role="grid"><thead hidden>' + strHTML + '</thead><tbody></tbody></table>';
+                    element.scrollContainer.innerHTML = '<table role="grid">' + strCaption + '<thead hidden>' + strHTML + '</thead><tbody></tbody></table>';
                 }
             }
         }
@@ -535,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (element.paginated === true && !isNaN(element.getAttribute('offset'))) {
                 numberOffset = parseInt(element.getAttribute('offset'), 10);
             } else {
-                numberOffset = 0
+                numberOffset = 0;
             }
             
             strHTML = GS.templateWithEnvelopeData(
@@ -600,12 +606,14 @@ document.addEventListener('DOMContentLoaded', function () {
             arrElements = xtag.query(element.scrollContainer, 'tr');
             
             if (arrElements[0].parentNode.hasAttribute('hidden')) {
-                element.headerContainer.innerHTML = '<table role="grid"><thead hidden>' + arrElements[0].outerHTML + '</thead></table>';
+                element.headerContainer.innerHTML = '<table role="grid">' + strCaption + '<thead hidden>' + arrElements[0].outerHTML + '</thead></table>';
             } else {
-                element.headerContainer.innerHTML = '<table role="grid"><thead>' + arrElements[0].outerHTML + '</thead></table>';
+                element.headerContainer.innerHTML = '<table role="grid">' + strCaption + '<thead>' + arrElements[0].outerHTML + '</thead></table>';
             }
             
-            element.headerTR = element.headerContainer.children[0].children[0].children[0];
+            element.headerTR = xtag.query(element.headerContainer, 'thead')[0].children[0];
+            element.scrollCaption = xtag.query(element.scrollContainer, 'caption')[0];
+            element.headerCaption = xtag.query(element.headerContainer, 'caption')[0];
             
             refreshReflow(element);
             refreshHeight(element);
@@ -625,12 +633,20 @@ document.addEventListener('DOMContentLoaded', function () {
         'use strict';
         var guideTR, targetTR, arrChildren, i, len, subtractPadding;
         
+        if (element.scrollCaption) {
+            element.scrollCaption.style.width = (element.clientWidth) + 'px';
+        }
+        if (element.headerCaption) {
+            element.headerCaption.style.width = (element.clientWidth) + 'px';
+        }
+        
         targetTR = element.headerTR;
         if (element.scrollContainer) {
             guideTR = xtag.query(element.scrollContainer, 'tr')[0];
             
             if (guideTR) {
                 arrChildren = xtag.toArray(guideTR.children);
+                console.log(element);
                 subtractPadding = 0; //GS.emToPx(element.headerContainer, 0.2);
                 
                 if (element.scrollContainer.scrollHeight > element.scrollContainer.clientHeight) {

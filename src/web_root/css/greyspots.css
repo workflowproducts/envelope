@@ -12754,6 +12754,11 @@ gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > 
     border: 2px solid white; /* should match background, can't be transparent */
 }
 
+gs-datasheet > .root > .data-container > .data-flex-reset > .scroll-container > table > caption,
+gs-datasheet > .root > .data-container > .data-flex-reset > .header-container > table > caption {
+    border-bottom: 1px solid #ddd;
+}
+
 gs-datasheet > .root > .data-container > .data-flex-reset > .insert-container {
     position: absolute;
     bottom: 0;

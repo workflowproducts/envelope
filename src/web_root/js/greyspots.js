@@ -20806,6 +20806,12 @@ document.addEventListener('DOMContentLoaded', function () {
         
         disabled = element.hasAttribute('disabled') || !element.hasAttribute('pk');
         
+        var strCaption = '';
+        console.log('strCaption', element.hasAttribute('caption'));
+        if (element.hasAttribute('caption')) {
+            strCaption = '<caption><center><h4>' + element.getAttribute('caption') + '</h4></center></caption>';
+        }
+        
         // if first callback: table and header
         if (data.intCallback === 0) {
             if (!element.hasAttribute('lock')) {
@@ -20828,7 +20834,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             if (element.headerTemplateRecord) {
                 strHTML = GS.templateWithQuerystring(element.headerTemplateRecord);
-                element.scrollContainer.innerHTML = '<table role="grid"><thead>' + strHTML + '</thead><tbody></tbody></table>';
+                element.scrollContainer.innerHTML = '<table role="grid">' + strCaption + '<thead>' + strHTML + '</thead><tbody></tbody></table>';
                 
             } else {
                 arrElements = xtag.queryChildren(element.tableTemplateRecord, 'td, th');
@@ -20840,9 +20846,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 strHTML = '<tr role="row">' + strHTML + '</tr>';
                 
                 if (bolHeader) {
-                    element.scrollContainer.innerHTML = '<table role="grid"><thead>' + strHTML + '</thead><tbody></tbody></table>';
+                    element.scrollContainer.innerHTML = '<table role="grid">' + strCaption + '<thead>' + strHTML + '</thead><tbody></tbody></table>';
                 } else {
-                    element.scrollContainer.innerHTML = '<table role="grid"><thead hidden>' + strHTML + '</thead><tbody></tbody></table>';
+                    element.scrollContainer.innerHTML = '<table role="grid">' + strCaption + '<thead hidden>' + strHTML + '</thead><tbody></tbody></table>';
                 }
             }
         }
@@ -20866,7 +20872,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (element.paginated === true && !isNaN(element.getAttribute('offset'))) {
                 numberOffset = parseInt(element.getAttribute('offset'), 10);
             } else {
-                numberOffset = 0
+                numberOffset = 0;
             }
             
             strHTML = GS.templateWithEnvelopeData(
@@ -20931,12 +20937,14 @@ document.addEventListener('DOMContentLoaded', function () {
             arrElements = xtag.query(element.scrollContainer, 'tr');
             
             if (arrElements[0].parentNode.hasAttribute('hidden')) {
-                element.headerContainer.innerHTML = '<table role="grid"><thead hidden>' + arrElements[0].outerHTML + '</thead></table>';
+                element.headerContainer.innerHTML = '<table role="grid">' + strCaption + '<thead hidden>' + arrElements[0].outerHTML + '</thead></table>';
             } else {
-                element.headerContainer.innerHTML = '<table role="grid"><thead>' + arrElements[0].outerHTML + '</thead></table>';
+                element.headerContainer.innerHTML = '<table role="grid">' + strCaption + '<thead>' + arrElements[0].outerHTML + '</thead></table>';
             }
             
-            element.headerTR = element.headerContainer.children[0].children[0].children[0];
+            element.headerTR = xtag.query(element.headerContainer, 'thead')[0].children[0];
+            element.scrollCaption = xtag.query(element.scrollContainer, 'caption')[0];
+            element.headerCaption = xtag.query(element.headerContainer, 'caption')[0];
             
             refreshReflow(element);
             refreshHeight(element);
@@ -20956,12 +20964,20 @@ document.addEventListener('DOMContentLoaded', function () {
         'use strict';
         var guideTR, targetTR, arrChildren, i, len, subtractPadding;
         
+        if (element.scrollCaption) {
+            element.scrollCaption.style.width = (element.clientWidth) + 'px';
+        }
+        if (element.headerCaption) {
+            element.headerCaption.style.width = (element.clientWidth) + 'px';
+        }
+        
         targetTR = element.headerTR;
         if (element.scrollContainer) {
             guideTR = xtag.query(element.scrollContainer, 'tr')[0];
             
             if (guideTR) {
                 arrChildren = xtag.toArray(guideTR.children);
+                console.log(element);
                 subtractPadding = 0; //GS.emToPx(element.headerContainer, 0.2);
                 
                 if (element.scrollContainer.scrollHeight > element.scrollContainer.clientHeight) {
@@ -45729,7 +45745,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // if disabled has changed, refresh
                 } else if (strAttrName === 'disabled') {
-                    console.log('disabled this.refreshOptionList()');
                     this.refreshOptionList();
 
                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
@@ -45737,8 +45752,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         this.value = newValue;
                     }
                 }
-                
-                console.log('attributeChanged', '>' + strAttrName + '<', oldValue, newValue);
             }
         },
         events: {
@@ -45869,8 +45882,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (this.hasAttribute('title')) {
                     this.control.setAttribute('title', this.getAttribute('title'));
                 }
-                
-                console.log('disabled', this.hasAttribute('disabled'));
                 if (this.hasAttribute('disabled')) {
                     this.control.setAttribute('disabled', this.getAttribute('disabled'));
                 }
@@ -66372,13 +66383,51 @@ document.addEventListener('DOMContentLoaded', function () {
                 parentCell.classList.contains('table-insert') &&
                 keyCode === 13
             ) {
-                triggerRecordInsert(element);
+                // triggerRecordInsert(element);
+                // don't trigger an insert, fire a blur instead
+                // clearSelection stops it from reverting the focus
+                element.clearSelection();
+                focusHiddenControl(element);
             }
+        };
+        element.internalEvents.insertRecordBlur = function (event) {
+            setTimeout(function()
+            {
+                console.log(document.activeElement);
+                var parentCell = GS.findParentTag(event.target, 'gs-cell');
+                var newParentCell = GS.findParentTag(
+                    document.activeElement,
+                    'gs-cell'
+                );
+                // we only want return to insert if the return occured inside
+                //      an insert cell
+                if (
+                    (parentCell.classList.contains('table-insert') &&
+                    !newParentCell) ||
+                    (parentCell.classList.contains('table-insert') &&
+                    !newParentCell.classList.contains('table-insert'))
+                ) {
+                    var totalValues = false, insertElements = xtag.query(element, '.table-insert input');
+                    for (var i = 0, len = insertElements.length; i < len; i++) {
+                        totalValues += insertElements[i].value;
+                    }
+                    if (totalValues && totalValues !== 'false') {
+                        console.log('why:' + totalValues);
+                        triggerRecordInsert(element);
+                    }
+                }
+            }, 1);
+
         };
 
         element.elems.dataViewport.addEventListener(
             'keydown',
             element.internalEvents.insertRecordReturn
+        );
+        element.elems.dataViewport.addEventListener(
+            'blur',
+            element.internalEvents.insertRecordBlur,
+            true
         );
 
         // we want to be able to fill in some insert cells, scroll away,

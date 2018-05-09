@@ -19342,13 +19342,51 @@ document.addEventListener('DOMContentLoaded', function () {
                 parentCell.classList.contains('table-insert') &&
                 keyCode === 13
             ) {
-                triggerRecordInsert(element);
+                // triggerRecordInsert(element);
+                // don't trigger an insert, fire a blur instead
+                // clearSelection stops it from reverting the focus
+                element.clearSelection();
+                focusHiddenControl(element);
             }
+        };
+        element.internalEvents.insertRecordBlur = function (event) {
+            setTimeout(function()
+            {
+                console.log(document.activeElement);
+                var parentCell = GS.findParentTag(event.target, 'gs-cell');
+                var newParentCell = GS.findParentTag(
+                    document.activeElement,
+                    'gs-cell'
+                );
+                // we only want return to insert if the return occured inside
+                //      an insert cell
+                if (
+                    (parentCell.classList.contains('table-insert') &&
+                    !newParentCell) ||
+                    (parentCell.classList.contains('table-insert') &&
+                    !newParentCell.classList.contains('table-insert'))
+                ) {
+                    var totalValues = false, insertElements = xtag.query(element, '.table-insert input');
+                    for (var i = 0, len = insertElements.length; i < len; i++) {
+                        totalValues += insertElements[i].value;
+                    }
+                    if (totalValues && totalValues !== 'false') {
+                        console.log('why:' + totalValues);
+                        triggerRecordInsert(element);
+                    }
+                }
+            }, 1);
+
         };
 
         element.elems.dataViewport.addEventListener(
             'keydown',
             element.internalEvents.insertRecordReturn
+        );
+        element.elems.dataViewport.addEventListener(
+            'blur',
+            element.internalEvents.insertRecordBlur,
+            true
         );
 
         // we want to be able to fill in some insert cells, scroll away,
