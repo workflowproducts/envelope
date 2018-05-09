@@ -568,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 
                 set: function (strNewValue) {
-                    selectOption(this, strNewValue);
+                    selectOption(this, String(strNewValue));
                 }
             },
             

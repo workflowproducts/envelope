@@ -286,6 +286,7 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             elemTbodyTRs[i].setAttribute('id', 'box-list-' + element.internal.id + '-item-' + i);
 
+            elemTbodyTRs[i].setAttribute('role', 'option');
             if (elemTbodyTRs[i].children[0].nodeName === 'TH') {
                 elemTbodyTRs[i].setAttribute('aria-label', elemTbodyTRs[i].children[1].textContent);
             } else {
@@ -863,13 +864,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 // create an array of hidden column numbers
                 arrHide = (element.getAttribute('hide') || '').split(/[\s]*,[\s]*/);
                 
+                var strTableID = element.getAttribute('id');
+                if (! strTableID) {
+                    strTableID = GS.GUID();
+                }
+                
                 // build up the header cells variable and the record cells variable
                 for (i = 0, len = data.arr_column.length, strHeaderCells = '', strRecordCells = '', intVisibleColumns = 0; i < len; i += 1) {
                     // if this column is not hidden
                     if (arrHide.indexOf((i + 1) + '') === -1 && arrHide.indexOf(data.arr_column[i]) === -1) {
                         // append a new cell to each of the header cells and record cells variables
-                        strHeaderCells += '<th gs-dynamic>' + encodeHTML(data.arr_column[i]) + '</th> ';
-                        strRecordCells += '<td gs-dynamic>{{! row[\'' + data.arr_column[i] + '\'] }}</td> ';
+                        strHeaderCells += '<th id="' + strTableID + '_' + data.arr_column[i] + '" gs-dynamic>' + encodeHTML(data.arr_column[i]) + '</th> ';
+                        strRecordCells += '<td headers="' + strTableID + '_' + data.arr_column[i] + '" gs-dynamic>{{! row[\'' + data.arr_column[i] + '\'] }}</td> ';
                         intVisibleColumns += 1;
                     }
                 }

@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // build HTML
             strHTML = '<input class="control" gs-dynamic type="text" />';
             if (!element.hasAttribute('no-picker')) {
-                strHTML += '<gs-button class="time-picker-button" gs-dynamic inline icononly icon="clock-o" no-focus></gs-button>';
+                strHTML += '<gs-button class="time-picker-button" gs-dynamic inline icononly icon="clock-o" no-focus>Open Time Picker</gs-button>';
             }
 
             // set control HTML

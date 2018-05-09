@@ -502,7 +502,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 arrElements = xtag.queryChildren(element.tableTemplateRecord, 'td, th');
                 for (i = 0, len = arrElements.length, strHTML = ''; i < len; i += 1) {
-                    strHTML += '<th role="columnheader">' + encodeHTML(arrElements[i].getAttribute('heading') || '') + '</th>';
+                    strHTML += '<th scope="col" role="columnheader">' + encodeHTML(arrElements[i].getAttribute('heading') || '') + '</th>';
                     
                     bolHeader = Boolean(arrElements[i].hasAttribute('heading') || '') || bolHeader;
                 }
@@ -1711,6 +1711,7 @@ document.addEventListener('DOMContentLoaded', function () {
             len = arrHeaderElements.length;
             while (i < len) {
                 arrHeaderElements[i].setAttribute('role', 'columnheader');
+                arrHeaderElements[i].setAttribute('scope', 'col');
                 i += 1;
             }
             
@@ -1718,6 +1719,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!arrElements[i].hasAttribute('role')) {
                     if (i === 0) {
                         arrElements[i].setAttribute('role', 'rowheader');
+                        arrElements[i].setAttribute('scope', 'row');
                     } else {
                         arrElements[i].setAttribute('role', 'gridcell');
                     }
@@ -1746,6 +1748,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!arrCells[i].hasAttribute('role')) {
                 if (i === 0) {
                     arrCells[i].setAttribute('role', 'rowheader');
+                    arrCells[i].setAttribute('scope', 'row');
                 } else {
                     arrCells[i].setAttribute('role', 'gridcell');
                 }

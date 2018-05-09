@@ -362,10 +362,6 @@ gs-datasheet th:first-child {
     vertical-align: middle;
 }
 
-gs-datasheet tbody th:first-child {
-    color: #CCC;
-}
-
 
 gs-datasheet thead th {
     cursor: s-resize;

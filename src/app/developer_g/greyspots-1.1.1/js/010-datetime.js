@@ -1238,7 +1238,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.inserted = true;
                 element.internal = {};
                 saveDefaultAttributes(element);
-                
+
                 if (!element.hasAttribute('tabindex')) {
                     element.setAttribute('tabindex', '0');
                 }
@@ -1258,9 +1258,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.dteValue = new Date();
                 } else if (element.getAttribute('value')) {
                     if (/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]($|\ )/.test(element.getAttribute('value'))) {
-                        console.log(element.getAttribute('value').replace('-', '/').replace('-', '/'));//.replace(/-/g, '/'));
-                        element.setAttribute('value', element.getAttribute('value').replace('-', '/').replace('-', '/'));//.replace(/-/g, '/'));
+                        //console.log(element.getAttribute('value').replace('-', '/').replace('-', '/'));
+                        element.setAttribute('value', element.getAttribute('value').replace('-', '/').replace('-', '/'));
                     }
+
+                    if (/\.([0-9]*)$/.test(element.getAttribute('value'))) {
+                        element.setAttribute('value', element.getAttribute('value').replace(/\.([0-9]*)$/, ''));
+                        //alert(element.dteValue);
+                    }
+
                     if (element.getAttribute('value').indexOf(' ') > -1) {
                         element.setAttribute('value', element.getAttribute('value').replace(/-[0-9][0-9]$/, ''));
                         element.dteValue = new Date(element.getAttribute('value'));
@@ -1272,6 +1278,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (isNaN(element.dteValue.getTime())) {
                         element.dteValue = new Date((element.hasDate ? '' : '1/1/1970 ') + element.getAttribute('value') + (element.hasTime ? '' : ' 00:00:00'));
                     }
+                    //alert(element.dteValue);
                 } else if (!element.getAttribute('value')) {
                     element.innerHTML = '<span gs-dynamic class="placeholder">' + (element.getAttribute('placeholder') || '') + '</span>';
                 }
@@ -1297,7 +1304,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             datetimeOpenCalendarDialog(element);
                         } else {
                             datetimeOpenWheelDialog(element);
-                        } 
+                        }
                     }
                 });
 
@@ -1347,11 +1354,11 @@ document.addEventListener('DOMContentLoaded', function () {
         accessors: {
             value: {
                 get: function () {
-                    return this.getAttribute('value');
+                    return formatDate(new Date(this.getAttribute('value')), this.getAttribute('format'));
                 },
                 set: function (newValue) {
                     this.setAttribute('value', newValue);
-                    this.innerText = newValue;
+                    this.innerText = formatDate(new Date(this.getAttribute('value')), this.getAttribute('format'));
                 }
             },
             dteValue: {
@@ -1362,7 +1369,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     return dteValue;
                 },
                 set: function (newValue) {
-                    this.value = formatDate(newValue, this.getAttribute('format'));
+                    this.value = formatDate(newValue, (this.hasDate ? 'yyyy/MM/dd' : '') + ' ' + (this.hasTime ? 'HH:mm:ss' : '').trim());
                 }
             }
         },
@@ -1373,8 +1380,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function addNumberToStart(element) {
         var wheel = element.wheel;
+        var arrValues;
+
         wheel.removeChild(wheel.lastChild);
-        var newRotation = parseFloat(wheel.firstChild.getAttribute('rotation')), newNumber = parseInt(wheel.firstChild.innerText, 10) - 1;
+
+        var newRotation = parseFloat(wheel.firstChild.getAttribute('rotation'));
+        var newNumber = parseInt(wheel.firstChild.getAttribute('data-number'), 10) - 1;
+
         newRotation += element.rotationInterval;
         if (newRotation > 0) {
             newRotation -= 360;
@@ -1382,13 +1394,34 @@ document.addEventListener('DOMContentLoaded', function () {
         if (newNumber < element.min) {
             newNumber += (element.max - element.min) + 1;
         }
-        wheel.insertBefore(GS.stringToElement('<span class="value" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + GS.leftPad(newNumber, '0', 2) + '</span>'), wheel.firstChild);
+
+        if (element.getAttribute('type') === 'eighths') {
+            arrValues = [
+                '<sup>0</sup>/<sub>8</sub>',
+                '<sup>1</sup>/<sub>8</sub>',
+                '<sup>1</sup>/<sub>4</sub>',
+                '<sup>3</sup>/<sub>8</sub>',
+                '<sup>1</sup>/<sub>2</sub>',
+                '<sup>5</sup>/<sub>8</sub>',
+                '<sup>3</sup>/<sub>4</sub>',
+                '<sup>7</sup>/<sub>8</sub>'
+            ];
+            wheel.insertBefore(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrValues[newNumber] + '</span>'), wheel.firstChild);
+
+        } else {
+            wheel.insertBefore(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + GS.leftPad(newNumber, '0', 2) + '</span>'), wheel.firstChild);
+        }
     }
 
     function addNumberToEnd(element) {
         var wheel = element.wheel;
+        var arrValues;
+
         wheel.removeChild(wheel.firstChild);
-        var newRotation = parseFloat(wheel.lastChild.getAttribute('rotation')), newNumber = parseInt(wheel.lastChild.innerText, 10) + 1;
+
+        var newRotation = parseFloat(wheel.lastChild.getAttribute('rotation'))
+          , newNumber = parseInt(wheel.lastChild.getAttribute('data-number'), 10) + 1;
+
         newRotation -= element.rotationInterval;
         if (newRotation <= -360) {
             newRotation += 360;
@@ -1396,7 +1429,23 @@ document.addEventListener('DOMContentLoaded', function () {
         if (newNumber > element.max) {
             newNumber -= (element.max - element.min) + 1;
         }
-        wheel.appendChild(GS.stringToElement('<span class="value" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + GS.leftPad(newNumber, '0', 2) + '</span>'));
+
+        if (element.getAttribute('type') === 'eighths') {
+            arrValues = [
+                '<sup>0</sup>/<sub>8</sub>',
+                '<sup>1</sup>/<sub>8</sub>',
+                '<sup>1</sup>/<sub>4</sub>',
+                '<sup>3</sup>/<sub>8</sub>',
+                '<sup>1</sup>/<sub>2</sub>',
+                '<sup>5</sup>/<sub>8</sub>',
+                '<sup>3</sup>/<sub>4</sub>',
+                '<sup>7</sup>/<sub>8</sub>'
+            ];
+            wheel.appendChild(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrValues[newNumber] + '</span>'));
+
+        } else {
+            wheel.appendChild(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + GS.leftPad(newNumber, '0', 2) + '</span>'));
+        }
     }
 
     function wheelDragStartHandler(event, immediateKinetic) {
@@ -1472,7 +1521,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
 
                 var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
-                element.setAttribute('value', valueElement.innerText);
+                if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
+                    element.setAttribute('value', valueElement.innerText);
+                } else {
+                    element.setAttribute('value', valueElement.getAttribute('data-number'));
+                }
+                
                 GS.triggerEvent(element, 'change');
 
             } else {
@@ -1505,7 +1559,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
-                    element.setAttribute('value', valueElement.innerText);
+                    if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
+                        element.setAttribute('value', valueElement.innerText);
+                    } else {
+                        element.setAttribute('value', valueElement.getAttribute('data-number'));
+                    }
 
                     element.rotation = -180;
                     wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
@@ -1552,12 +1610,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
             console.log(wheel, element.rotation);
             var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
-            element.setAttribute('value', valueElement.innerText);
+            if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
+                element.setAttribute('value', valueElement.innerText);
+            } else {
+                element.setAttribute('value', valueElement.getAttribute('data-number'));
+            }
 
             wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
             if (!element.ampm) {
                 addNumberToStart(element);
             }
+            GS.triggerEvent(element, 'change');
 
         } else if (event.target.classList.contains('arrow-down')) {
             element.rotation += element.rotationInterval;
@@ -1579,12 +1642,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
             console.log(wheel, element.rotation);
             var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
-            element.setAttribute('value', valueElement.innerText);
+            if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
+                element.setAttribute('value', valueElement.innerText);
+            } else {
+                element.setAttribute('value', valueElement.getAttribute('data-number'));
+            }
 
             wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
             if (!element.ampm) {
                 addNumberToEnd(element);
             }
+            GS.triggerEvent(element, 'change');
         }
     }
 
@@ -1643,13 +1711,58 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function wheelGenerateHTML(element) {
+        var bolEighths = (element.getAttribute('type') === 'eighths');
+        var arrValues;
+
+        element.rotation = -180;
+        element.wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
         element.wheel.innerHTML = '';
         for (var rotation = 0, j = parseInt(element.value, 10) - 8; rotation > -360; rotation -= element.rotationInterval, j += 1) {
             if (element.ampm) {
-                element.wheel.appendChild(GS.stringToElement('<span class="value" rotation="' + rotation + '" style="transform: rotateX(' + rotation + 'deg) translateZ(' + element.radius + ');">' + (rotation === 0 ? 'AM' : 'PM') + '</span>'));
+                element.wheel.appendChild(
+                    GS.stringToElement(
+                        '<span class="value" data-number="' + j + '" ' +
+                            'rotation="' + rotation + '" ' +
+                            'style="transform: rotateX(' + rotation + 'deg) translateZ(' + element.radius + ');">' +
+                                (rotation === 0 ? 'AM' : 'PM') +
+                        '</span>'
+                    )
+                );
                 if (rotation == -22.5) {
                     break;
                 }
+
+            } else if (bolEighths) {
+                arrValues = [
+                    '<sup>0</sup>/<sub>8</sub>',
+                    '<sup>1</sup>/<sub>8</sub>',
+                    '<sup>1</sup>/<sub>4</sub>',
+                    '<sup>3</sup>/<sub>8</sub>',
+                    '<sup>1</sup>/<sub>2</sub>',
+                    '<sup>5</sup>/<sub>8</sub>',
+                    '<sup>3</sup>/<sub>4</sub>',
+                    '<sup>7</sup>/<sub>8</sub>'
+                ];
+                if (j < element.min) {
+                    if (j >= 0) {
+                        j = element.max - j;
+                    } else {
+                        j = (element.max + (element.min === 0 ? 1 : 0)) + j;
+                    }
+                }
+                element.wheel.appendChild(
+                    GS.stringToElement(
+                        '<span class="value" data-number="' + j + '" ' +
+                            'rotation="' + rotation + '" ' +
+                            'style="transform: rotateX(' + rotation + 'deg) translateZ(' + element.radius + ');">' +
+                                arrValues[j] +
+                        '</span>'
+                    )
+                );
+                if (j === element.max) {
+                    j = element.min - 1;
+                }
+
             } else {
                 if (j < element.min) {
                     if (j >= 0) {
@@ -1658,7 +1771,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         j = (element.max + (element.min === 0 ? 1 : 0)) + j;
                     }
                 }
-                element.wheel.appendChild(GS.stringToElement('<span class="value" rotation="' + rotation + '" style="transform: rotateX(' + rotation + 'deg) translateZ(' + element.radius + ');">' + GS.leftPad(j, '0', 2) + '</span>'));
+                element.wheel.appendChild(
+                    GS.stringToElement(
+                        '<span class="value" data-number="' + j + '" ' +
+                            'rotation="' + rotation + '" ' +
+                            'style="transform: rotateX(' + rotation + 'deg) translateZ(' + element.radius + ');">' +
+                                GS.leftPad(j, '0', 2) +
+                        '</span>'
+                    )
+                );
                 if (j === element.max) {
                     j = element.min - 1;
                 }
@@ -1689,7 +1810,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     var maybePreventPullToRefresh = false;
                     var lastTouchY = 0;
-                    var touchstartHandler = function(e) {
+                    var touchstartHandler = function (e) {
                         if (e.touches.length != 1) {
                             return;
                         }
@@ -1768,7 +1889,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 //y|yyyy|yy|M|MM|d|dd|EEE|EEEE
                 //k|kk|hh|h|H|HH|m|mm|s|ss|S|SS|SSS
                 //console.log(element.values, element.values.substring(0, 2) === 'dd', element.values.substring(0, 1) === 'd');
-                if (element.values === 'M' || element.values === 'MM' || element.values === 'H' || element.values === 'HH') {
+                
+                if (!element.values && element.hasAttribute('min') && element.hasAttribute('max')) {
+                    element.values = (element.getAttribute('min') + '-' + element.getAttribute('max'));
+                    element.min = parseInt(element.getAttribute('min'), 10);
+                    element.max = parseInt(element.getAttribute('max'), 10);
+                } else if (element.values === 'M' || element.values === 'MM' || element.values === 'H' || element.values === 'HH') {
                     element.min = 1;
                     element.max = 12;
                 } else if (element.values === 'h' || element.values === 'hh') {
@@ -1797,8 +1923,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
                 } else {
                     var arrValue = element.values.split('-');
-                    element.min = arrValue[0];
-                    element.max = arrValue[1];
+                    element.min = parseInt(arrValue[0], 10);
+                    element.max = parseInt(arrValue[1], 10);
                 }
 
                 wheelGenerateHTML(element);

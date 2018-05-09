@@ -13009,10 +13009,6 @@ gs-datasheet th:first-child {
     vertical-align: middle;
 }
 
-gs-datasheet tbody th:first-child {
-    color: #CCC;
-}
-
 
 gs-datasheet thead th {
     cursor: s-resize;
@@ -13653,12 +13649,12 @@ gs-wheel {
     -ms-user-select: none;
     user-select: none;
 	
-	height: 10em;
+	height: 8em;
 	width: auto;
 	display: inline-block;
 }
 gs-wheel[touch] {
-    font-size: 9vh;
+    /*font-size: 9vh;*/
 }
 
 gs-wheel .root {
@@ -17660,6 +17656,27 @@ gs-text[readonly] {
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
+}
+
+gs-text {
+    position: relative;
+}
+
+gs-text[show-caps].caps::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: block;
+    width: 1.12em;
+    height: 1.12em;
+    line-height: 1.25em;
+    /* padding: 0.1em; */
+    content: '\f023';
+    font-family: fontawesome;
+    text-align: center;
+    text-indent: 0;
+    font-size: 1.4em;
+    
 }gs-time .time-picker-button {
     position: absolute;
     right: 0;

@@ -59,6 +59,10 @@ window.addEventListener('design-register-element', function () {
             return setOrRemoveTextAttribute(selectedElement, 'spellcheck', (this.value === 'false' ? 'false' : ''));
         });
 
+        addProp('Show Caps Lock', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('show-caps') !== 'false') + '" mini></gs-checkbox>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'show-caps', (this.value === 'false' ? 'false' : ''));
+        });
+
         // SUSPEND-CREATED attribute
         addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
@@ -132,6 +136,18 @@ window.addEventListener('design-register-element', function () {
         addFlexProps(selectedElement);
     };
 });
+// function getCaps() {
+//     var event = document.createEvent("KeyboardEvent");
+//     console.log(event, event.getModifierState('CapsLock'));
+//     var caps = event.getModifierState && event.getModifierState( 'CapsLock' );
+//     window.caps = caps;
+//     console.log(window.caps);
+// }
+
+window.addEventListener('keydown', function (event) {
+    window.caps = event.getModifierState && event.getModifierState( 'CapsLock' );
+    // console.log(caps);
+});
 
 window.addEventListener('try-password', function (event) {
     var elemsToRetry = xtag.query(document, 'gs-text[encrypted="' + event.keyVariable + '"], gs-memo[encrypted="' + event.keyVariable + '"]');
@@ -142,6 +158,7 @@ window.addEventListener('try-password', function (event) {
         i++;
     }
 });
+
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
@@ -157,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return false;
     }
-    
+
     function keydownFunction(event) {
         var element = event.target;
         if (element.classList.contains('control')) {
@@ -170,14 +187,32 @@ document.addEventListener('DOMContentLoaded', function () {
             element.value = CryptoJS.AES.encrypt(element.control.value, (window[element.getAttribute('encrypted')] || ''));
         }
     }
+    
+    function CapsLock(event) {
+        var element = event.target;
+        if (element.classList.contains('control')) {
+            element = GS.findParentTag(element, 'gs-text');
+        }
+        var temp_caps = event.getModifierState && event.getModifierState( 'CapsLock' );
+        console.log(temp_caps);
+        if (temp_caps) {
+            element.classList.add('caps');
+        } else {
+            if (element.classList.contains('caps')) {
+                element.classList.remove('caps');
+            }
+        }
+    }
 
     function focusFunction(event) {
+        // getCaps();
+        // console.log(window.caps);
         var element = event.target;
         if (element.classList.contains('focus')) {
             return;
         }
         if (element.hasAttribute('defer-insert')) {
-            if (event.target.classList.contains('control')) {
+            if (focus_event.target.classList.contains('control')) {
                 element = element.parentNode.parentNode;
             }
             element.removeEventListener('focus', focusFunction);
@@ -199,6 +234,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (element.hasAttribute('encrypted') && element.control) {
             element.control.addEventListener('keydown', keydownFunction);
         }
+        if (window.caps) {
+            element.classList.add('caps');
+        }
     }
 
     // re-target blur event from control to element
@@ -211,6 +249,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (element.hasAttribute('encrypted')) {
             event.target.removeEventListener('keydown', keydownFunction);
+        }
+        //remove icon
+        if (element.classList.contains('caps')) {
+            element.classList.remove('caps');
         }
     }
 
@@ -408,6 +450,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
                     }
     
+                    element.addEventListener('keydown', CapsLock);
                     element.addEventListener('focus', focusFunction);
                     if (evt.touchDevice) {
                         element.addEventListener(evt.click, focusFunction);
@@ -690,7 +733,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 // if the gs-text doesn't have a disabled attribute: use an input element
                 // if (!element.hasAttribute('disabled')) {
                     // add control input and save it to a variable for later use
-                    element.innerHTML = '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
+                    if (element.hasAttribute('show-caps')) {
+                        if (element.hasAttribute('type')) {
+                            element.setAttribute('input-type', element.getAttribute('type'));
+                            element.removeAttribute('type');
+                        }
+                    }
+                    element.innerHTML = '<input class="control" gs-dynamic type="' + ((element.getAttribute('input-type') || element.getAttribute('type')) || 'text') + '" />';
                     element.control = element.children[0];
                     if (element.hasAttribute('id')) {
                         element.control.setAttribute('id', element.getAttribute('id') + '_control');
@@ -698,11 +747,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (element.hasAttribute('aria-labelledby')) {
                         element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
                     }
+                    if (element.hasAttribute('aria-label')) {
+                        element.control.setAttribute('aria-label', element.getAttribute('aria-label'));
+                    }
                     if (element.hasAttribute('title')) {
                         element.control.setAttribute('title', element.getAttribute('title'));
                     }
 
                     // bind event re-targeting functions
+                    element.control.removeEventListener('keydown', CapsLock);
+                    element.control.addEventListener('keydown', CapsLock);
+
                     element.control.removeEventListener('change', changeFunction);
                     element.control.addEventListener('change', changeFunction);
 

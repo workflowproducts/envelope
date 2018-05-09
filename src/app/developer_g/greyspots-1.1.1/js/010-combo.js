@@ -440,6 +440,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // focus control
         element.control.focus();
+        element.control.setAttribute('aria-owns', 'combo-list-' + element.internal.id);
 
         // create the dropdown element (and its children)
         dropDownContainer.classList.add('gs-combo-dropdown-container');
@@ -736,6 +737,7 @@ document.addEventListener('DOMContentLoaded', function () {
             element.classList.remove('open');
             element.dropdownOpen = false;
             element.droppingDown = false;
+            element.control.removeAttribute('aria-owns');
 
             //element.parentNode.removeChild(element.placeholderElement);
             //element.placeholderElement = undefined;
@@ -1260,7 +1262,7 @@ document.addEventListener('DOMContentLoaded', function () {
         element.root = divElement;
         if (!bolspan) {
             element.root.innerHTML = (
-                '<input role="textbox" aria-owns="combo-list-' + element.internal.id + '" aria-autocomplete="none" gs-dynamic class="control" type="text" />' +
+                '<input role="textbox" aria-autocomplete="none" gs-dynamic class="control" type="text" />' +
                 '<gs-button gs-dynamic aria-label="Open the Combo box" alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>'
             );
         } else {
@@ -1856,13 +1858,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         } else {
                             selectRecordFromValue(this, newValue, false);
                         }
-                        if (this.control.tagName.toUpperCase() === 'SPAN') {
+                        if (this.control && this.control.tagName.toUpperCase() === 'SPAN') {
                             refreshControl(this, true);
                         } else {
                             refreshControl(this);
                         }
-                        selectRecordFromValue(this, newValue, false);
-                        GS.triggerEvent(this, 'change');
                     } else {
                         // if we have not yet templated: just stick the value in an attribute
                         if (this.ready === false) {

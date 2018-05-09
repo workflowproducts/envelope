@@ -383,6 +383,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (strAttrName === 'suspend-inserted' && newValue === null) {
                     elementInserted(this);
 
+                // if disabled has changed, refresh
+                } else if (strAttrName === 'disabled') {
+                    this.refreshOptionList();
+
                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
                     if (strAttrName === 'value' && newValue !== oldValue) {
                         this.value = newValue;
@@ -474,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function () {
             refreshOptionList: function () {
                 var i, len, elementsToMove, oldvalue, arrChildren, controlElement;
 
-                //console.log('refreshOptionList');
+                console.log('refreshOptionList');
 
                 // remove invalid elements from immediate children
                 arrChildren = this.children;
@@ -517,6 +521,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 if (this.hasAttribute('title')) {
                     this.control.setAttribute('title', this.getAttribute('title'));
+                }
+                if (this.hasAttribute('disabled')) {
+                    this.control.setAttribute('disabled', this.getAttribute('disabled'));
                 }
 
                 // if there is an old control: get the options and optgroups out of it and move them to the new control

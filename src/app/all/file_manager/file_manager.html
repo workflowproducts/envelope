@@ -813,13 +813,13 @@
 
                 document.getElementById('button-upload-file').addEventListener('click', function(event) {
                     GS.openDialog('dialog-upload', function() {
-                        var loadFunction;
+                        var loadFunction, uploadFolder = filePathPrefix('');
 
                         if (bolWebSocket) {
                             document.getElementById('form-file-upload').setAttribute('action', '/env/upload');
                         }
 
-                        document.getElementById('upload-file-name').value = filePathPrefix('');
+                        document.getElementById('upload-file-name').value = uploadFolder;
 
                         // upload existing file
                         document.getElementById('new-file-upload').addEventListener('click', function(event) {
@@ -844,7 +844,7 @@
                         document.getElementById('upload-file-content').addEventListener('change', function(event) {
                             var strValue = this.value, uploadFileNameControl = document.getElementById('upload-file-name');
 
-                            uploadFileNameControl.value = uploadFileNameControl.value +
+                            uploadFileNameControl.value = uploadFileNameControl.value.substring(0, uploadFileNameControl.value.lastIndexOf('/') + 1) +
                                                             strValue.substring(strValue.lastIndexOf('\\') + 1);
                             uploadFileNameControl.focus();
                         });

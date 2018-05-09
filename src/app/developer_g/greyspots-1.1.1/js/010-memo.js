@@ -534,16 +534,24 @@ document.addEventListener('DOMContentLoaded', function () {
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'value' && this.initalized) {
-                        var currentValue = this.control.value;
-                        var newCryptedValue = newValue;
-                        // if there is a difference between the new value in the
-                        //      attribute and the valued in the front end: refresh the front end
-                        if (newCryptedValue !== currentValue) {
-                            this.setAttribute('value', newCryptedValue);
+                    var currentValue = this.control.value;
+                    var newCryptedValue = newValue;
+                    // if there is a difference between the new value in the
+                    //      attribute and the valued in the front end: refresh the front end
+                    if (newCryptedValue !== currentValue) {
+                        this.setAttribute('value', newCryptedValue);
+                        if (this.hasAttribute('encrypted')) {
                         } else {
-                            this.setAttribute('value', currentValue);
+                            this.control.value = newCryptedValue;
                         }
-                    } else if (strAttrName === 'suspend-created' && newValue === null) {
+                    } else {
+                        this.setAttribute('value', currentValue);
+                        if (this.hasAttribute('encrypted')) {
+                        } else {
+                            this.control.value = currentValue;
+                        }
+                    }
+                } else if (strAttrName === 'suspend-created' && newValue === null) {
                     elementCreated(this);
                     elementInserted(this);
                     
@@ -760,7 +768,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ];
                 var i;
                 var len;
-                var elementValue = element.textContent;
+                var elementValue = element.textContent || element.value;
                 if (element.children[0].classList.contains('placeholder')) {
                     elementValue = '';
                 }
@@ -928,6 +936,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     }
                 }
+                this.initalized = true;
                 
                 // copy passthrough attributes to control
             },

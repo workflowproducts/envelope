@@ -57,12 +57,14 @@
                     if (arrElements[i].hasAttribute('data-group')) {
                         if (userData.groups.indexOf(arrElements[i].getAttribute('data-group')) !== -1) {
                             arrElements[i].removeAttribute('data-group');
+                            arrElements[i].removeAttribute('suspend-inserted');
                         }
                         
                     // remove links that have a user attached that is not your username (data.session_user)
                     } else {
                         if (arrElements[i].getAttribute('data-user') === userData.username) {
                             arrElements[i].removeAttribute('data-user');
+                            arrElements[i].removeAttribute('suspend-inserted');
                         }
                     }
                 }
@@ -124,7 +126,8 @@
                                         });
                                     });
                                 }, function (event, strAnswer) {
-                                    document.getElementById('todo_list_mainmenu').refresh();
+                                    document.getElementById('todo_list_mainmenu').removeAttribute('suspend-inserted');
+                                    //document.getElementById('todo_list_mainmenu').refresh();
                                 });
                             }
                         } else {
@@ -680,7 +683,7 @@
                     </div>
                     <br data-group="gvr_g" />
 
-                    <div class="group-container">
+                    <div class="group-container" data-group="tocci_g">
                         <h4><i>Apps</i></h4>
                         <span class="space"></span>
                         <gs-button target="_blank" data-user="joseph@wfprod.com" href="../wiki_g/index.html?page_id=63243"><b>MENU</b></gs-button>
@@ -703,6 +706,7 @@
                             </gs-block>
                             <gs-block>
                                 <gs-button jumbo target="_blank" data-group="pvt_g" href="../pvt_g/index.html">Private</gs-button>
+                                <!--
                                 <gs-form src="post.rptdownload_new" data-group="tocci_g" style="overflow: visible;">
                                     <template>
                                         <gs-button jumbo target="_blank" href="../all/splashcount.html">
@@ -710,6 +714,7 @@
                                         </gs-button>
                                     </template>
                                 </gs-form>
+                                -->
                                 <gs-button jumbo target="_blank" data-group="shop_g" href="../shop_g/index.html">TEMP</gs-button>
                                 <gs-button jumbo target="_blank" data-group="tst_g" href="../tst_g/index.html">Testing Facility Monitor</gs-button>
                                 <gs-button jumbo target="_blank" data-group="wtkv2_g" href="../wtk_g/index.html">Timekeeping</gs-button>
@@ -720,9 +725,9 @@
                                 <gs-button jumbo target="_blank" data-group="wiki_g" href="../wiki_g/index_dotty.html">Wiki (Dotty XLD)</gs-button>
                                 <gs-button jumbo target="_blank" data-group="enwk_g" href="../enwk_g/index.html">Wiki (Encrypted)</gs-button>
                             </gs-block>
-                            <gs-block data-group="todo_g">
-                                <br/>
-                                <gs-listbox src="days.qryupcoming">
+                            <gs-block>
+                                <br data-group="cal2_g"/>
+                                <gs-listbox src="days.qryupcoming" data-group="cal2_g" suspend-inserted>
                                     <template>
                                         <table>
                                             <thead>
@@ -752,10 +757,24 @@
                                         </table>
                                     </template>
                                 </gs-listbox>
+                                <br data-group="meal_g"/>
+                                <h3 data-group="meal_g">Meals</h3>
+                                <gs-listbox src="meal.qrytoday" suspend-inserted data-group="meal_g">
+                                    <template>
+                                        <table>
+                                            <tbody>
+                                                <tr>
+                                                    <td>{{! row.meal_name }}</td>
+                                                    <td>{{! row.courses }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </template>
+                                </gs-listbox>
                             </gs-block>
                             <gs-block data-group="todo_g">
                                 <br/>
-                                <gs-envelope id="todo_list_mainmenu" src="todo.frmtodo" no-hudlimit no-hudorderby>
+                                <gs-envelope id="todo_list_mainmenu" src="todo.frmtodo" no-hudlimit no-hudorderby suspend-inserted>
                                     <template for="hud"></template>
                                     <template for="table">
                                         <table>
@@ -784,12 +803,24 @@
                         </gs-grid>
                     </div>
                     
+                    <br data-group="win_g" />
+                    <div class="group-container" data-group="win_g">
+                        <h4><i>Window Designer Demo</i></h4>
+                        <span class="space"></span>
+                        
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button target="_self" jumbo data-group="win_g" href="../win_g/index.html" bg-primary>Window Designer</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>
+                    
                     <br data-group="developer_g" />
                     <div class="group-container" data-group="developer_g">
                         <h4><i>Developer</i></h4>
                         <span class="space"></span>
                         
-                        <gs-grid widths="1,1,1" reflow-at="500px" gutter>
+                        <gs-grid widths="1,1,1,1" reflow-at="500px" gutter>
                             <gs-block>
                                 <gs-button target="_blank" data-group="developer_g" href="../developer_g/greyspots-1.1.1/documentation/index.html" jumbo>Documentation</gs-button>
                                 <br />
@@ -801,6 +832,9 @@
                             <gs-block>
                                 <gs-button target="_blank" data-group="pdf_g" href="../pdf_g/pdf_list.html" jumbo>PDF Design</gs-button>
                                 <br />
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo target="_blank" data-group="developer_g" href="/env/acs.accept_accessibility_metrics/accessibility_metrics.html">Accessibility Metrics</gs-button>
                             </gs-block>
                         </gs-grid>
                         

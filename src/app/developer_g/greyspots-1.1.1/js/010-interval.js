@@ -370,7 +370,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     'autocorrect="off" autocapitalize="off" ' +
                     'autocomplete="off" spellcheck="false" />';
             if (!element.hasAttribute('no-picker')) {
-                strHTML += '<gs-button class="time-picker-button" gs-dynamic inline icononly icon="hourglass-o" no-focus></gs-button>';
+                strHTML += '<gs-button class="time-picker-button" gs-dynamic inline icononly icon="hourglass-o" no-focus>Open Picker</gs-button>';
             }
 
             // set control HTML
