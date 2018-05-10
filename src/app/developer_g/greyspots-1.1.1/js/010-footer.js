@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
     xtag.register('gs-footer', {
         lifecycle: {
             created: function () {
-                if (!this.hasAttribute('role')) {
+                if (!this.hasAttribute('role') && !GS.findParentTag(this, 'gs-dialog')) {
                     this.setAttribute('role', 'contentinfo');
                 }
             },

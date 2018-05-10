@@ -765,7 +765,8 @@ a[bg-warning]:focus,a[bg-warning]:hover{
 }
 
 [bg-danger]{
-	background-color:#b30500
+	background-color:#b30500;
+    color: #fff;
 }
 
 a[bg-danger]:focus,a[bg-danger]:hover{
@@ -1980,7 +1981,7 @@ gs-dialog-button {
 
 gs-option {
     margin: 0;
-    box-shadow: 0 0 0.2em 0 rgba(0,0,0,.2) !important;
+    /*box-shadow: 0 0 0.2em 0 rgba(0,0,0,.2) !important;*/
     border-radius: 0;
 }
 
@@ -12685,7 +12686,7 @@ gs-datasheet > .root {
 gs-datasheet > .root > .data-container {
     border: 1px solid #006e00;
     position: relative;
-    
+
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     -ms-box-sizing: border-box;
@@ -12751,6 +12752,11 @@ gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > 
 gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > .scroll-container::-webkit-scrollbar-thumb {
     border-radius: 8px;
     border: 2px solid white; /* should match background, can't be transparent */
+}
+
+gs-datasheet > .root > .data-container > .data-flex-reset > .scroll-container > table > caption,
+gs-datasheet > .root > .data-container > .data-flex-reset > .header-container > table > caption {
+    border-bottom: 1px solid #ddd;
 }
 
 gs-datasheet > .root > .data-container > .data-flex-reset > .insert-container {
@@ -13006,10 +13012,6 @@ gs-datasheet th, gs-datasheet td {
 
 gs-datasheet th:first-child {
     vertical-align: middle;
-}
-
-gs-datasheet tbody th:first-child {
-    color: #CCC;
 }
 
 
@@ -13652,12 +13654,12 @@ gs-wheel {
     -ms-user-select: none;
     user-select: none;
 	
-	height: 10em;
+	height: 8em;
 	width: auto;
 	display: inline-block;
 }
 gs-wheel[touch] {
-    font-size: 9vh;
+    /*font-size: 9vh;*/
 }
 
 gs-wheel .root {
@@ -17659,6 +17661,27 @@ gs-text[readonly] {
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
+}
+
+gs-text {
+    position: relative;
+}
+
+gs-text[show-caps].caps::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: block;
+    width: 1.12em;
+    height: 1.12em;
+    line-height: 1.25em;
+    /* padding: 0.1em; */
+    content: '\f023';
+    font-family: fontawesome;
+    text-align: center;
+    text-indent: 0;
+    font-size: 1.4em;
+    
 }gs-time .time-picker-button {
     position: absolute;
     right: 0;

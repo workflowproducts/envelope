@@ -114,22 +114,25 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // removes selected attribute from old selected option adds selected attribute to option
     function highlightOption(element, option) {
-        var i, len, arrSelectedOptions, arrTempSelectedOptions;
+        var i, len, arrSelectedOptions, arrAriaSelectedOptions;
         
         // clear previous selection
         arrSelectedOptions = xtag.query(element, 'gs-option[selected]');
-        arrTempSelectedOptions = xtag.query(element, 'gs-option[tempselect]');
+        arrAriaSelectedOptions = xtag.query(element, 'gs-option');
         for (i = 0, len = arrSelectedOptions.length; i < len; i += 1) {
             arrSelectedOptions[i].removeAttribute('selected');
+            arrSelectedOptions[i].setAttribute('tabindex', '-1');
         }
         
-        for (i = 0, len = arrTempSelectedOptions.length; i < len; i += 1) {
-            arrTempSelectedOptions[i].removeAttribute('tempselect');
+        for (i = 0, len = arrAriaSelectedOptions.length; i < len; i += 1) {
+            arrAriaSelectedOptions[i].setAttribute('aria-checked', 'false');
         }
 
         // select/highlight the record that was provided
         if (option) {
             option.setAttribute('selected', '');
+            option.setAttribute('tabindex', '0');
+            option.setAttribute('aria-checked', 'true');
         }
     }
 
@@ -184,75 +187,44 @@ document.addEventListener('DOMContentLoaded', function () {
     // #################################################################
     // ########################## USER EVENTS ##########################
     // #################################################################
-    /*
     // handle behaviours on keydown
     function handleKeyDown(event) {
-        var element = event.target, intKeyCode = event.keyCode || event.which,
+        //console.log(handleKeyDown, event, event.target);
+        var element = GS.findParentTag(event.target, 'gs-optionbox'), intKeyCode = event.keyCode || event.which,
             selectedOption, selectedOptionIndex,
-            tempSelectedOption, tempSelectedOptionIndex, arrOptions, i, len;
+            arrOptions, i, len;
 
         if (!element.hasAttribute('disabled')) {
-            if ((intKeyCode === 40 || intKeyCode === 38) && !event.shiftKey && !event.metaKey && !event.ctrlKey && !element.error) {
+            if ((intKeyCode === 40 || intKeyCode === 39 || intKeyCode === 38 || intKeyCode === 37) && !event.shiftKey && !event.metaKey && !event.ctrlKey && !element.error) {
                 arrOptions = xtag.query(element, 'gs-option');
 
                 for (i = 0, len = arrOptions.length; i < len; i += 1) {
-                    if (arrOptions[i].hasAttribute('tempselect')) {
-                        tempSelectedOptionIndex = i;
-                        tempSelectedOption = arrOptions[i];
-                        arrOptions[i].removeAttribute('tempselect');
-                    }
-
                     if (arrOptions[i].hasAttribute('selected')) {
                         selectedOptionIndex = i;
                         selectedOption = arrOptions[i];
                     }
 
-                    if (selectedOption && tempSelectedOption) {
+                    if (selectedOption) {
                         break;
                     }
                 }
 
-                //console.log(selectedOption, selectedOptionIndex, tempSelectedOption, tempSelectedOptionIndex, arrOptions.length);
+                //console.log(selectedOption, selectedOptionIndex, arrOptions.length);
 
-                if (tempSelectedOption && tempSelectedOptionIndex !== arrOptions.length - 1 && intKeyCode === 40) {
-                    if (!arrOptions[tempSelectedOptionIndex + 1].hasAttribute('selected')) {
-                        arrOptions[tempSelectedOptionIndex + 1].setAttribute('tempselect', '');
-                    }
-                } else if (tempSelectedOption && tempSelectedOptionIndex !== 0 && intKeyCode === 38) {
-                    if (!arrOptions[tempSelectedOptionIndex - 1].hasAttribute('selected')) {
-                        arrOptions[tempSelectedOptionIndex - 1].setAttribute('tempselect', '');
-                    }
-                } else if (!tempSelectedOption && selectedOption && selectedOptionIndex !== arrOptions.length - 1 && intKeyCode === 40) {
-                    if (!arrOptions[selectedOptionIndex + 1].hasAttribute('selected')) {
-                        arrOptions[selectedOptionIndex + 1].setAttribute('tempselect', '');
-                    }
-                } else if (!tempSelectedOption && selectedOption && selectedOptionIndex !== 0 && intKeyCode === 38) {
-                    if (!arrOptions[selectedOptionIndex - 1].hasAttribute('selected')) {
-                        arrOptions[selectedOptionIndex - 1].setAttribute('tempselect', '');
-                    }
-                // tempselect first record
-                } else if (intKeyCode === 40) {
-                    if (!arrOptions[0].hasAttribute('selected')) {
-                        arrOptions[0].setAttribute('tempselect', '');
-                    }
-                // tempselect last record
-                } else if (intKeyCode === 38) {
-                    if (!arrOptions[arrOptions.length - 1].hasAttribute('selected')) {
-                        arrOptions[arrOptions.length - 1].setAttribute('tempselect', '');
-                    }
+                if (selectedOption && selectedOptionIndex !== arrOptions.length - 1 && (intKeyCode === 40 || intKeyCode === 39)) {
+                    selectOption(element, arrOptions[selectedOptionIndex + 1], true);
+                } else if (selectedOption && selectedOptionIndex !== 0 && (intKeyCode === 38 || intKeyCode === 37)) {
+                    selectOption(element, arrOptions[selectedOptionIndex - 1], true);
+                // select first record
+                } else if (intKeyCode === 40 || intKeyCode === 39) {
+                    selectOption(element, arrOptions[0], true);
+                // select last record
+                } else if (intKeyCode === 38 || intKeyCode === 37) {
+                    selectOption(element, arrOptions[arrOptions.length - 1], true);
                 }
                 event.preventDefault();
                 event.stopPropagation();
 
-            } else if (event.keyCode === 13 || event.keyCode === 32) {
-                selectedOption = xtag.query(element, 'gs-option[selected]')[0];
-                tempSelectedOption = xtag.query(element, 'gs-option[tempselect]')[0];
-
-                if (tempSelectedOption) {
-                    selectOption(element, tempSelectedOption, true);
-                } else if (selectedOption) {
-                    selectOption(element, selectedOption, true);
-                }
             }
         } else {
             if (event.keyCode !== 9) {
@@ -262,7 +234,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         //console.log('handleKeyDown', intKeyCode, event);
-    }*/
+    }
+    function handleKeyPress(event) {
+        //console.log(handleKeyPress, event, event.target);
+        var element = event.target, intKeyCode = event.keyCode || event.which;
+
+        if (!element.hasAttribute('disabled')) {
+            if ((intKeyCode === 40 || intKeyCode === 39 || intKeyCode === 38 || intKeyCode === 37) && !event.shiftKey && !event.metaKey && !event.ctrlKey && !element.error) {
+                event.preventDefault();
+                event.stopPropagation();
+
+            }
+        } else {
+            if (event.keyCode !== 9) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        }
+
+        //console.log('handleKeyDown', intKeyCode, event);
+    }
 
     function getParentOption(element) {
         var currentElement = element;
@@ -393,6 +384,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 arrElement[i].setAttribute('iconleft', '');
             }
             arrElement[i].setAttribute('icon', '');
+            arrElement[i].setAttribute('role', 'radio');
+            arrElement[i].setAttribute('tabindex', '-1');
+            arrElement[i].addEventListener('focus', function () {
+                selectOption(element, this, true);
+            });
         }
     }
 
@@ -411,6 +407,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+
+        //console.log(forElem);
+        if (forElem) {
+            if (! element.hasAttribute('aria-label')) {
+                element.setAttribute('aria-label', forElem.innerText);
+            }
+        }
+    }
+
     //
     function elementInserted(element) {
         var strQSValue, observer;
@@ -422,6 +438,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.inserted = true;
                 element.internal = {};
                 saveDefaultAttributes(element);
+                
+                if (!element.hasAttribute('role')) {
+                    element.setAttribute('role', 'radiogroup');
+                }
 
                 //// allows the element to have focus
                 //if (!element.hasAttribute('tabindex')) {
@@ -475,6 +495,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
+        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+            if (element.hasAttribute('id')) {
+                // console.log('running');
+                findFor(element);
+            }
+        }
     }
 
     xtag.register('gs-optionbox', {
@@ -482,11 +508,11 @@ document.addEventListener('DOMContentLoaded', function () {
             created: function () {
                 elementCreated(this);
             },
-            
+
             inserted: function () {
                 elementInserted(this);
             },
-            
+
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'suspend-created' && newValue === null) {
@@ -505,11 +531,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
         events: {
-            //'keydown': function (event) {
-            //    if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
-            //        handleKeyDown(event);
-            //    }
-            //},
+            'keydown': function (event) {
+                if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
+                    handleKeyDown(event);
+                }
+            },
+            'keypress': function (event) {
+                if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
+                    handleKeyPress(event);
+                }
+            },
             
             'click': function (event) {
                 if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted') && !this.hasAttribute('readonly')) {
@@ -528,21 +559,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         selectOption(this, undefined);
                     }
                 }
-            }//,
-            
-            //'focusout': function () {
-            //    if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
-            //        var selectedOption = xtag.query(this, 'gs-option[selected]')[0],
-            //            tempSelectedOption = xtag.query(this, 'gs-option[tempselect]')[0];
-            //        
-            //        if (tempSelectedOption) {
-            //            selectOption(this, tempSelectedOption, true);
-            //            
-            //        } else if (selectedOption) {
-            //            selectOption(this, selectedOption, true);
-            //        }
-            //    }
-            //}
+            }
         },
         accessors: {
             value: {
@@ -551,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 
                 set: function (strNewValue) {
-                    selectOption(this, strNewValue);
+                    selectOption(this, String(strNewValue));
                 }
             },
             

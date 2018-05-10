@@ -347,6 +347,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+        
+        //console.log(forElem);
+        if (forElem) {
+            if (! element.hasAttribute('aria-label') && element.innerText.length === 0) {
+                element.setAttribute('aria-label', forElem.innerText);
+            }
+        }
+    }
+
     //
     function elementInserted(element) {
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
@@ -408,6 +428,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
+        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+            if (element.hasAttribute('id')) {
+                // console.log('running');
+                findFor(element);
+            }
+        }
     }
 
     xtag.register('gs-checkbox', {
@@ -455,9 +481,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
                     // attribute code
                     if (strAttrName === 'value') {
-                        if (newValue === 'true' || newValue === '-1') {
+                        if ((newValue === 'true') || (newValue === '-1')) {
                             this.setAttribute('aria-checked', 'true');
-                        } else if (newValue === 'false' || newValue === '0') {
+                        } else if ((newValue === 'false') || (newValue === '0')) {
                             this.setAttribute('aria-checked', 'false');
                         } else {
                             this.setAttribute('aria-checked', 'mixed');
@@ -533,27 +559,27 @@ document.addEventListener('DOMContentLoaded', function () {
                     // get new value based on current value
                     if (strType === 'smallint') {
                         if (strValue === '0') {
-                            strValue = '-1';
-                        } else if (strValue === '-1') {
                             if (bolTripleState) {
                                 strValue = 'n';
                             } else {
-                                strValue = '0';
+                                strValue = '-1';
                             }
+                        } else if (strValue === '-1') {
+                                strValue = '0';
                         } else if (strValue === 'n') {
-                            strValue = '0';
+                            strValue = '-1';
                         }
                     } else if (strType === 'boolean') {
                         if (strValue === 'false') {
-                            strValue = 'true';
-                        } else if (strValue === 'true') {
                             if (bolTripleState) {
                                 strValue = 'null';
                             } else {
-                                strValue = 'false';
+                                strValue = 'true';
                             }
+                        } else if (strValue === 'true') {
+                                strValue = 'false';
                         } else if (strValue === 'null') {
-                            strValue = 'false';
+                            strValue = 'true';
                         }
                     }
 

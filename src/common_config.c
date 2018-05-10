@@ -11,6 +11,9 @@ bool bol_global_local_only = false;
 
 bool bol_global_super_only = false;
 
+char *str_global_set_uname = NULL;
+char *str_global_set_gname = NULL;
+
 size_t int_global_login_timeout = 3600;
 size_t int_global_custom_connection_number = 0;
 uint64_t int_global_session_id = 0;
@@ -47,6 +50,8 @@ char *ENVELOPE_PREFIX = NULL;
 // str_global_port						envelope_port					p							envelope-port
 // bol_global_local_only				NULL							x							local-only
 // bol_global_super_only				super_only						s							super-only
+// str_global_set_uname				set_uname						e							set-uname
+// str_global_set_gname				set_gname						b							set-gname
 // bol_global_allow_custom_connections	allow_custom_connections		n							allow-custom-connections
 // int_global_login_timeout	 			login_timeout					t							login-timeout
 // str_global_log_level					log_level						l							log-level
@@ -126,6 +131,16 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 
 	} else if (SMATCH("", "super_only")) {
 		bol_global_super_only = *str_value == 'T' || *str_value == 't';
+
+	} else if (SMATCH("", "set_uname")) {
+		SFREE(str_global_set_uname);
+		SERROR_SNCAT(str_global_set_uname, &int_len,
+			str_value, strlen(str_value));
+
+	} else if (SMATCH("", "set_gname")) {
+		SFREE(str_global_set_gname);
+		SERROR_SNCAT(str_global_set_gname, &int_len,
+			str_value, strlen(str_value));
 
 	} else if (SMATCH("", "log_level")) {
 		SFREE(str_global_log_level);
@@ -396,7 +411,7 @@ bool parse_options(int argc, char *const *argv) {
 
 	// options descriptor
 	// clang-format off
-	static struct option longopts[22] = {
+	static struct option longopts[24] = {
 		{"help",							no_argument,			NULL,	'h'},
 		{"version",							no_argument,			NULL,	'v'},
 		{"config-file",						required_argument,		NULL,	'c'},
@@ -414,6 +429,8 @@ bool parse_options(int argc, char *const *argv) {
 		{"tls-cert",						required_argument,		NULL,	'j'},
 		{"tls-key",							required_argument,		NULL,	'k'},
 		{"super-only",						required_argument,		NULL,	's'},
+		{"set-uname",						required_argument,		NULL,	'e'},
+		{"set-gname",						required_argument,		NULL,	'b'},
 		{"login-timeout",					required_argument,		NULL,	't'},
 		{"log-level",						required_argument,		NULL,	'l'},
 		{"log-file",						required_argument,		NULL,	'o'},
@@ -421,7 +438,7 @@ bool parse_options(int argc, char *const *argv) {
 	};
 // clang-format on
 
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:i:x:r:p:j:k:s:t:l:o:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:i:x:r:p:j:k:s:t:l:o:a:e:b:", longopts, NULL)) != -1) {
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -445,7 +462,7 @@ bool parse_options(int argc, char *const *argv) {
 	char *str_config_empty = "";
 	ini_parse(str_global_config_file, handler, &str_config_empty);
 
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:i:x:r:p:j:k:s:t:l:o:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:i:x:r:p:j:k:s:t:l:o:a:e:b:", longopts, NULL)) != -1) {
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -506,6 +523,16 @@ bool parse_options(int argc, char *const *argv) {
 
 		} else if (ch == 's') {
 			bol_global_super_only = *optarg == 'T' || *optarg == 't';
+
+		} else if (ch == 'e') {
+			SFREE(str_global_set_uname);
+			SERROR_SNCAT(str_global_set_uname, &int_global_len,
+				optarg, strlen(optarg));
+
+		} else if (ch == 'b') {
+			SFREE(str_global_set_gname);
+			SERROR_SNCAT(str_global_set_gname, &int_global_len,
+				optarg, strlen(optarg));
 
 		} else if (ch == 't') {
 			int_global_login_timeout = (size_t)strtol(optarg, NULL, 10);
@@ -604,6 +631,36 @@ bool parse_options(int argc, char *const *argv) {
 #endif
 	}
 
+
+#ifdef _WIN32
+#else
+	#ifdef CAP_SETUID
+	if (str_global_set_gname != NULL || str_global_set_uname != NULL) {
+		cap_t caps;
+		cap_value_t cap_list[2];
+		SERROR_CHECK((caps = cap_get_proc()) != NULL, "cap_get_proc() failed!");
+		cap_list[0] = CAP_SETUID;
+		cap_list[1] = CAP_SETGID;
+		SERROR_CHECK(cap_set_flag(caps, CAP_PERMITTED, 2, cap_list, CAP_SET) != -1, "cap_set_flag() failed!");
+		SERROR_CHECK(cap_set_proc(caps) != -1, "cap_set_proc() failed!");
+		// By default capability sets are lost across an UID transigion
+		SERROR_CHECK(prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) == 0, "prctl() failed!");
+		SERROR_CHECK(cap_free(caps) != -1, "cap_free() failed!");
+	}
+	#endif
+
+	if (str_global_set_gname != NULL) {
+		struct group *obj_gname = getgrnam(str_global_set_gname);
+		SERROR_CHECK(obj_gname != NULL, "getgrnam() failed!");
+		SERROR_CHECK(setgid(obj_gname->gr_gid) == 0, "setgid() failed!");
+	}
+	if (str_global_set_uname != NULL) {
+		struct passwd *obj_uname = getpwnam(str_global_set_uname);
+		SERROR_CHECK(obj_uname != NULL, "getpwnam() failed!");
+		SERROR_CHECK(setuid(obj_uname->pw_uid) == 0, "setuid() failed!");
+	}
+#endif
+
 	// This is because if there is a symoblic link, we want the resolved path
 	SFREE(str_global_data_root);
 	str_global_data_root = str_temp;
@@ -696,6 +753,8 @@ void usage() {
 	printf("\t[-j <tls-cert>					 \t| --tls-cert=<tls-cert>]\012");
 	printf("\t[-k <tls-key>					  \t| --tls-key=<tls-key>]\012");
 	printf("\t[-s <super-only>				   \t| --super-only=<super-only>]\012");
+	printf("\t[-e <set-uname>				   \t| --set-uname=<set-uname>]\012");
+	printf("\t[-b <set-gname>				   \t| --set-gname=<set-gname>]\012");
 	printf("\t[-l <log-level>					\t| --log-level=<log-level>]\012");
 	printf("\t[-o <log-file>					 \t| --log-file=<log-file>]\012");
 	printf("\012");

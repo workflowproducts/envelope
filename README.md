@@ -141,4 +141,3 @@ We strive to be 508 compliant. If you see any accessibility issues, please post 
 ## Contributors
 If you would like to contribute to Envelope, first submit an issue. Please include how you plan to solve the issue. Then work on the patch. This way we get a moment to give feedback before you invest your time. 
 
-

@@ -26,6 +26,7 @@
 //      # PASTE FUNCTIONS
 //      # BUTTON FUNCTIONS
 //      # EVENT FUNCTIONS
+//          # QS EVENTS
 //          # FOCUS EVENTS
 //          # SCROLL EVENTS
 //          # SELECTION EVENTS
@@ -1560,15 +1561,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
         while (i < len) {
             if (arrColumnWidths[i] > 0) {
-                //no worky
-                //console.log(element.internalDisplay.columnWidths[i]);
-                //console.log((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width));
-                // if ((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width) > arrColumnWidths[i]) {
-                //     //console.log(element.internalDisplay.columnWidths[i]);
-                //     //console.log((( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width));
-                //     element.internalDisplay.columnWidths[i] = (( arrCell[i].style.width.indexOf('em') !== -1 ) ? GS.emToPx(document.body, arrCell[i].style.width) : arrCell[i].style.width);
-                // }
-                // console.log(arrCell, i, arrCell[i]);
+                // who left this?
+                // Next time say what was wrong and sign your name.
+                // ~Michael
+
+                //// no worky
+                //if (
+                //    (
+                //        arrCell[i].style.width.indexOf('em') !== -1
+                //            ? GS.emToPx(document.body, arrCell[i].style.width)
+                //            : arrCell[i].style.width
+                //    ) > arrColumnWidths[i]
+                //) {
+                //    element.internalDisplay.columnWidths[i] = (
+                //        arrCell[i].style.width.indexOf('em') !== -1
+                //            ? GS.emToPx(document.body, arrCell[i].style.width)
+                //            : arrCell[i].style.width
+                //    );
+                //}
+
                 strCells += arrCell[i].outerHTML;
             }
             i += 1;
@@ -3470,13 +3481,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 // we need to be able to restore the column widths after the
                 //      user resizes them, so this array contains the column
                 //      widths and cannot be updated by column resizing
-                //console.log(arrColumnElements[i] && arrColumnElements[i].style.width);
                 element.internalDisplay.defaultColumnWidths.push(
                     parseInt(arrColumnElements[i].style.width, 10) ||
                     intColumnWidth
                 );
-                
-                
 
                 // if there is a width, remove it. we do this because the width
                 //      is added dynamically when the header is rendered. if
@@ -3827,7 +3835,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.elems.testHeader.innerHTML = (
                     arrColumnElements[i].innerHTML
                 );
-                
+
                 intColumnWidth = (
                     //GS.getTextWidth(
                     //    element.elems.testHeader,
@@ -3840,7 +3848,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     3
                 );
                 if (element.elems.testHeader.offsetWidth === 0) {
-                    //console.log(arrColumnElements[i].textContent);
                     intColumnWidth = (
                         7 + GS.getTextWidth(
                             element.elems.testHeader,
@@ -3850,13 +3857,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         // for some reason, a few pixels are missing
                         3
                     );
-                    //console.log(intColumnWidth);
-                    element.elems.testHeader.style.width = intColumnWidth + 'px';
-                }
-                //console.log(element.elems.testHeader.offsetWidth + 3);
-                element.elems.testHeader.innerHTML = '';
 
-                //console.log(arrColumnElements[i].textContent);
+                    element.elems.testHeader.style.width = (
+                        intColumnWidth + 'px'
+                    );
+                }
+                element.elems.testHeader.innerHTML = '';
 
                 // if there is a data column associated, we need to
                 //      add the width of the header button
@@ -3867,16 +3873,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
                 }
 
-                //console.log(intColumnWidth);
-
                 element.internalDisplay.minColumnWidths.push(
                     intColumnWidth
                 );
 
-                //console.log(
-                //    intColumnWidth,
-                //    element.internalDisplay.columnWidths[i]
-                //);
                 if (
                     intColumnWidth >
                         element.internalDisplay.columnWidths[i]
@@ -4985,8 +4985,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function renderSelection(element) {//<br />=
-        //console.trace('test');
+    function renderSelection(element) {//<br />
         var bolHeaders;
         var bolSelectors;
         var bolInsert;
@@ -5093,14 +5092,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 col_i += 1;
             }
-            //console.log(arrSelection);
-            
-            if (arrSelection && arrSelection[0] && arrSelection[0][0] !== 'G') {
-                console.trace(arrSelection);
-            }
-            
-            //console.log(arrSelectionRows);
-            //console.log(arrSelectionCols);
+
+            //if (
+            //    arrSelection &&
+            //    arrSelection[0] &&
+            //    arrSelection[0][0] !== 'G'
+            //) {
+            //    console.trace(arrSelection);
+            //}
 
         } else {
             element.internalSelection.rangeCache = strCompareString;
@@ -7329,6 +7328,24 @@ document.addEventListener('DOMContentLoaded', function () {
             element.elems.dataViewport.clientHeight
         );
 
+        element.internalDisplay.focus.selectionRange = null;
+        if (GS.findParentElement(document.activeElement, element) === element) {
+            // we want to save the text selection of the current
+            //      control before we do the render
+            if (
+                element.internalDisplay.focus.latest &&
+                (
+                    document.activeElement.nodeName === 'INPUT' ||
+                    document.activeElement.nodeName === 'TEXTAREA'
+                )
+            ) {
+                element.internalDisplay.focus.selectionRange = (
+                    GS.getInputSelection(document.activeElement)
+                );
+            }
+        }
+        console.log(element.internalDisplay.focus.selectionRange);
+
         // we want to either do a full re-render or a partial re-render
         if (intViewportHeight < 3 || intViewportWidth < 3) {
             //console.log('Empty');
@@ -8673,6 +8690,10 @@ document.addEventListener('DOMContentLoaded', function () {
         var arrOldColumnListFilters;
 
         var strWhere;
+        // Code related to strWhereAddendum was added because the moron
+        //      who wrote this code wasn't appending to strWhere, 
+        //      they were replacing it
+        var strWhereAddendum;
         var strUserWhere;
         var strWhereColumn;
 
@@ -8684,12 +8705,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // add in user filters, if any
         if (element.getAttribute('session-filter')) {
-            strWhere = '(' + element.getAttribute('session-filter') + ')';
-            strWhere += (
-                strWhere
-                    ? ' AND ' + strWhere
-                    : ''
-            );
+            // strWhere = '(' + element.getAttribute('session-filter') + ')';
+            strWhereAddendum = '(' + element.getAttribute('session-filter') + ')';
+            if (strWhereAddendum) {
+                strWhere += (
+                    strWhere
+                        ? ' AND ' + strWhereAddendum
+                        : '' + strWhereAddendum
+                );
+                strWhereAddendum = '';
+            }
         }
 
         // add in a column or qs where, if any
@@ -8713,7 +8738,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // if the value is not a number, we need to do a string
             //      comparison in the where clause.
             if (isNaN(element.value)) {
-                strWhere = (
+                strWhereAddendum = (
                     'CAST(' +
                     strWhereColumn + ' AS ' +
                     GS.database.type.text +
@@ -8723,20 +8748,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     GS.database.type.text +
                     ')'
                 );
-                strWhere += (
-                    strWhere !== ''
-                        ? ' AND (' + strWhere + ')'
-                        : ''
-                );
+                if (strWhereAddendum) {
+                    strWhere += (
+                        strWhere !== ''
+                            ? ' AND (' + strWhereAddendum + ')'
+                            : '' + strWhereAddendum
+                    );
+                }
 
             // if the value is a number, we can do simpler, number comparison
             } else {
-                strWhere = strWhereColumn + '=' + (element.value);
-                strWhere += (
-                    strWhere !== ''
-                        ? ' AND (' + strWhere + ')'
-                        : ''
-                );
+                // strWhere = strWhereColumn + '=' + (element.value);
+                strWhereAddendum = strWhereColumn + '=' + (element.value);
+                if (strWhereAddendum) {
+                    strWhere += (
+                        strWhere !== ''
+                            ? ' AND (' + strWhereAddendum + ')'
+                            : '' + strWhereAddendum
+                    );
+                }
             }
         }
 
@@ -9367,7 +9397,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     ? '\t'
                     : ''
             );
-            strReturn += element.internalData.columnNames[col_i].replace(/(\\)/g, '\\\\');
+            strReturn += (
+                element.internalData.columnNames[col_i].replace(/(\\)/g, '\\\\')
+            );
             col_i += 1;
         }
 
@@ -9436,7 +9468,9 @@ document.addEventListener('DOMContentLoaded', function () {
             col_i = 0;
             col_len = jsnInsert.data.columns.length;
             while (col_i < col_len) {
-                strColumn = jsnInsert.data.columns[col_i].replace(/(\\)/g, '\\\\');
+                strColumn = (
+                    jsnInsert.data.columns[col_i].replace(/(\\)/g, '\\\\')
+                );
 
                 strInsertColumns += (
                     strInsertColumns
@@ -9502,7 +9536,9 @@ document.addEventListener('DOMContentLoaded', function () {
             col_i = 0;
             col_len = jsnInsert.data.columns.length;
             while (col_i < col_len) {
-                strColumn = jsnInsert.data.columns[col_i].replace(/(\\)/g, '\\\\');
+                strColumn = (
+                    jsnInsert.data.columns[col_i].replace(/(\\)/g, '\\\\')
+                );
 
                 strInsertColumns += (
                     strInsertColumns
@@ -9821,7 +9857,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     ? '\t'
                     : ''
             );
-            strReturn += element.internalData.columnNames[col_i].replace(/(\\)/g, '\\\\');
+            strReturn += (
+                element.internalData.columnNames[col_i].replace(/(\\)/g, '\\\\')
+            );
             col_i += 1;
         }
 
@@ -9832,7 +9870,9 @@ document.addEventListener('DOMContentLoaded', function () {
         //      one record
         if (strMode === 'single-cell') {
             jsnCurrentData = {
-                "columnName": jsnUpdate.data.columnName.replace(/(\\)/g, '\\\\'),
+                "columnName": (
+                    jsnUpdate.data.columnName.replace(/(\\)/g, '\\\\')
+                ),
                 "recordNumber": jsnUpdate.data.recordNumber,
                 "oldValue": ""
             };
@@ -10118,7 +10158,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         ? '\t'
                         : ''
                 );
-                strColumns += jsnUpdate.data.columns[i].replace(/(\\)/g, '\\\\');
+                strColumns += (
+                    jsnUpdate.data.columns[i].replace(/(\\)/g, '\\\\')
+                );
                 i += 1;
             }
 
@@ -12053,20 +12095,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function dataUPDATE(element, strMode, jsnUpdate) {
         if (!element.hasAttribute('no-update')) {
-            // we want to save the text selection of the current
-            //      control before we do the update
-            element.internalDisplay.focus.selectionRange = null;
-            if (
-                element.internalDisplay.focus.latest &&
-                (
-                    document.activeElement.nodeName === 'INPUT' ||
-                    document.activeElement.nodeName === 'TEXTAREA'
-                )
-            ) {
-                element.internalDisplay.focus.selectionRange = (
-                    GS.getInputSelection(document.activeElement)
-                );
-            }
+            // because updates take time, we need to do this right before re-render - Nunzio on 2017-03-28
+            // // we want to save the text selection of the current
+            // //      control before we do the update
+            // element.internalDisplay.focus.selectionRange = null;
+            // if (
+            //     element.internalDisplay.focus.latest &&
+            //     (
+            //         document.activeElement.nodeName === 'INPUT' ||
+            //         document.activeElement.nodeName === 'TEXTAREA'
+            //     )
+            // ) {
+            //     element.internalDisplay.focus.selectionRange = (
+            //         GS.getInputSelection(document.activeElement)
+            //     );
+            // }
 
             if (element.hasAttribute("src")) {
                 databaseWSUPDATE(element, strMode, jsnUpdate);
@@ -13041,7 +13084,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         enc_elems[enc_i].getAttribute('encrypted')
                     );
                     if (!window[encrypted_vars[enc_i]]) {
-                        console.error('the encrypted password variable is not filled, if a user pastes it will paste UNENCRYPTED DATA. Please ensure all your variables are full before allowing users to paste');
+                        console.error(
+                            'the encrypted password variable is not filled, ' +
+                            'if a user pastes it will paste UNENCRYPTED ' +
+                            'DATA. Please ensure all your variables are full ' +
+                            'before allowing users to paste'
+                        );
                         return;
                     }
                     enc_i++;
@@ -13511,11 +13559,13 @@ document.addEventListener('DOMContentLoaded', function () {
         addLoader(element, 'paste-parse', 'Parsing Pasted Data...');
 
         // sometimes there's a whole page that contains the table HTML inside it
-        //strUnnormalizedPasteString = 
+        //strUnnormalizedPasteString =
         if (strUnnormalizedPasteString.substring(0, 6) === '<HTML>') {
             var extractorDiv = document.createElement('div');
             extractorDiv.innerHTML = strUnnormalizedPasteString;
-            strUnnormalizedPasteString = xtag.query(extractorDiv, 'table')[0].outerHTML;
+            strUnnormalizedPasteString = (
+                xtag.query(extractorDiv, 'table')[0].outerHTML
+            );
         }
 
         // if no HTML or no valid HTML: build HTML using plain text
@@ -14542,6 +14592,154 @@ document.addEventListener('DOMContentLoaded', function () {
 // ############################## EVENT FUNCTIONS ##############################
 // #############################################################################
 
+    // ############# QS EVENTS #############
+    
+    function saveDefaultAttributes(element) {
+        var i;
+        var len;
+        var arrAttr;
+        var jsnAttr;
+
+        // we need a place to store the attributes
+        element.internalData.defaultAttributes = {};
+
+        // loop through attributes and store them in the internal defaultAttributes object
+        i = 0;
+        len = element.attributes.length;
+        arrAttr = element.attributes;
+        while (i < len) {
+            jsnAttr = element.attributes[i];
+
+            element.internalData.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
+
+            i += 1;
+        }
+    }
+    
+    function pushReplacePopHandler(element) {
+        var i;
+        var len;
+        var strQS = GS.getQueryString();
+        var strQSCol = element.getAttribute('qs');
+        var strQSValue;
+        var strQSAttr;
+        var arrQSParts;
+        var arrAttrParts;
+        var arrPopKeys;
+        var currentValue;
+        var bolRefresh;
+        var strOperator;
+
+        if (strQSCol) {
+            if (strQSCol.indexOf('=') !== -1) {
+                arrAttrParts = strQSCol.split(',');
+                i = 0;
+                len = arrAttrParts.length;
+                while (i < len) {
+                    strQSCol = arrAttrParts[i];
+
+                    if (strQSCol.indexOf('!=') !== -1) {
+                        strOperator = '!=';
+                        arrQSParts = strQSCol.split('!=');
+                    } else {
+                        strOperator = '=';
+                        arrQSParts = strQSCol.split('=');
+                    }
+
+                    strQSCol = arrQSParts[0];
+                    strQSAttr = arrQSParts[1] || arrQSParts[0];
+
+                    // if the key is not present or we've got the negator: go to the attribute's default or remove it
+                    if (strOperator === '!=') {
+                        // if the key is not present: add the attribute
+                        if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
+                            element.setAttribute(strQSAttr, '');
+                        // else: remove the attribute
+                        } else {
+                            element.removeAttribute(strQSAttr);
+                        }
+                    } else {
+                        // if the key is not present: go to the attribute's default or remove it
+                        if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
+                            if (element.internalData.defaultAttributes[strQSAttr] !== undefined) {
+                                element.setAttribute(strQSAttr, (element.internalData.defaultAttributes[strQSAttr] || ''));
+                            } else {
+                                element.removeAttribute(strQSAttr);
+                            }
+                        // else: set attribute to exact text from QS
+                        } else {
+                            element.setAttribute(strQSAttr, (
+                                GS.qryGetVal(strQS, strQSCol) ||
+                                element.internalData.defaultAttributes[strQSAttr] ||
+                                ''
+                            ));
+                        }
+                    }
+                    i += 1;
+                }
+            } else if (GS.qryGetKeys(strQS).indexOf(strQSCol) > -1) {
+                strQSValue = GS.qryGetVal(strQS, strQSCol);
+
+                if (element.internalData.bolQSFirstRun !== true) {
+                    if (strQSValue !== '' || !element.getAttribute('value')) {
+                        element.setAttribute('value', strQSValue);
+                    }
+                } else {
+                    element.value = strQSValue;
+                }
+            }
+        }
+
+        // handle "refresh-on-querystring-values" and "refresh-on-querystring-change" attributes
+        if (element.internalData.bolQSFirstRun === true) {
+            if (element.hasAttribute('refresh-on-querystring-values')) {
+                arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
+
+                for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
+                    currentValue = GS.qryGetVal(strQS, arrPopKeys[i]);
+
+                    if (element.popValues[arrPopKeys[i]] !== currentValue) {
+                        bolRefresh = true;
+                    }
+
+                    element.popValues[arrPopKeys[i]] = currentValue;
+                }
+            } else if (element.hasAttribute('refresh-on-querystring-change')) {
+                bolRefresh = true;
+            }
+
+            if (bolRefresh && element.hasAttribute('src')) {
+                console.log('pushReplacePopHandler: refresh', element);
+                element.refresh();
+            } else if (bolRefresh && !element.hasAttribute('src')) {
+                console.warn('gs-table Warning: element has "refresh-on-querystring-values" or "refresh-on-querystring-change", but no "src".', element);
+            }
+        } else {
+            if (element.hasAttribute('refresh-on-querystring-values')) {
+                arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
+
+                for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
+                    element.popValues[arrPopKeys[i]] = GS.qryGetVal(strQS, arrPopKeys[i]);
+                }
+            }
+        }
+
+        element.internalData.bolQSFirstRun = true;
+    }
+    
+    function bindQuerystringEvents(element) {
+        if (element.getAttribute('qs') ||
+                element.getAttribute('refresh-on-querystring-values') ||
+                element.hasAttribute('refresh-on-querystring-change')) {
+            element.popValues = {};
+
+            pushReplacePopHandler(element);
+            window.addEventListener('pushstate',    function () { pushReplacePopHandler(element); });
+            window.addEventListener('replacestate', function () { pushReplacePopHandler(element); });
+            window.addEventListener('popstate',     function () { pushReplacePopHandler(element); });
+        }
+    }
+    
     // ############# FOCUS EVENTS #############
     function unbindFocus(element) {
         element.removeEventListener(
@@ -14596,8 +14794,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // if no focusable control was moused on: focus
             //      hiddenFocusControl
-            //console.log(document.activeElement, target, target.parentNode, parentCell, GS.findParentTag(target, 'gs-dt'));
-            //console.log(GS.isElementFocusable(target));
             if (!GS.isElementFocusable(target) && !evt.touchDevice) {
                 focusHiddenControl(element);
 
@@ -15740,6 +15936,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 var intOldEndRow;
                 var intOldEndColumn;
                 var currentRange;
+                var jsnCurrentSelection;
+
+                jsnCurrentSelection =
+                    GS.getInputSelection(document.activeElement);
 
                 getCellFromMouseEvent(element, event);
 
@@ -15747,6 +15947,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      selection, unbind selectDragMove and unbind
                 //      selectDragEnd
                 if (event.which === 0 && !evt.touchDevice) {
+                    element.internalEvents.selectDragEnd();
+
+                // if selecting text, prevent selection
+                } else if (
+                    (jsnCurrentSelection.end - jsnCurrentSelection.start) !== 0
+                ) {
                     element.internalEvents.selectDragEnd();
 
                 } else {
@@ -18859,9 +19065,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         10
                     );
 
-                    //console.log('strColumn:', strColumn);
+
+                    console.log('columnElement.value:',  columnElement.value);
+                    console.log('target.value:',  target.value);
+                    console.log('columnElement.checked:',  columnElement.checked);
+                    console.log('target.checked:',  target.checked);
+                    console.log('strColumn:', strColumn);
                     //console.log('intRecord:', intRecord);
-                    //console.log('newValue:', newValue);
+                    console.log('newValue:', newValue);
 
                     // call the update function
                     dataUPDATE(element, 'single-cell', {
@@ -18886,6 +19097,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //      focused way, with more room. so, we open the update dialog
         //      when an update dialog button is clicked.
         element.internalEvents.updateDialog = function (event) {
+            console.log(event);
             var target = event.target;
             var arrCol;
             var intRow;
@@ -19130,13 +19342,51 @@ document.addEventListener('DOMContentLoaded', function () {
                 parentCell.classList.contains('table-insert') &&
                 keyCode === 13
             ) {
-                triggerRecordInsert(element);
+                // triggerRecordInsert(element);
+                // don't trigger an insert, fire a blur instead
+                // clearSelection stops it from reverting the focus
+                element.clearSelection();
+                focusHiddenControl(element);
             }
+        };
+        element.internalEvents.insertRecordBlur = function (event) {
+            setTimeout(function()
+            {
+                console.log(document.activeElement);
+                var parentCell = GS.findParentTag(event.target, 'gs-cell');
+                var newParentCell = GS.findParentTag(
+                    document.activeElement,
+                    'gs-cell'
+                );
+                // we only want return to insert if the return occured inside
+                //      an insert cell
+                if (
+                    (parentCell.classList.contains('table-insert') &&
+                    !newParentCell) ||
+                    (parentCell.classList.contains('table-insert') &&
+                    !newParentCell.classList.contains('table-insert'))
+                ) {
+                    var totalValues = false, insertElements = xtag.query(element, '.table-insert input');
+                    for (var i = 0, len = insertElements.length; i < len; i++) {
+                        totalValues += insertElements[i].value;
+                    }
+                    if (totalValues && totalValues !== 'false') {
+                        console.log('why:' + totalValues);
+                        triggerRecordInsert(element);
+                    }
+                }
+            }, 1);
+
         };
 
         element.elems.dataViewport.addEventListener(
             'keydown',
             element.internalEvents.insertRecordReturn
+        );
+        element.elems.dataViewport.addEventListener(
+            'blur',
+            element.internalEvents.insertRecordBlur,
+            true
         );
 
         // we want to be able to fill in some insert cells, scroll away,
@@ -21640,9 +21890,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 resolveElementAttributes(element);
                 prepareElement(element);
+                saveDefaultAttributes(element);
+                bindQuerystringEvents(element);
                 siphonElement(element);
                 renderHUD(element);
                 bindElement(element);
+                GS.addBeforeUnloadEvent(function () {
+                    if (element.internalData.insertRecordRetainedColumns && element.internalData.insertRecordRetainedColumns.length > 0) {
+                        return 'There is data in the insert record.';
+                    }
+                });
                 createWebWorker(element);
                 //dataSELECT(element);
                 GS.triggerEvent(element, 'initialized');
@@ -22079,6 +22336,9 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             'getCopyStrings': function () {
                 return getCopyStrings(this);
+            },
+            'updateDialog': function (event) {
+                this.internalEvents.updateDialog(event)
             },
             'paste': function (strPasteString) {
                 usePasteString(this, strPasteString);

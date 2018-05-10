@@ -697,28 +697,22 @@ bool permissions_check(EV_P, DB_conn *conn, char *str_path, void *cb_data, reada
 
 bool permissions_write_check(EV_P, DB_conn *conn, char *str_path, void *cb_data, readable_cb_t readable_cb) {
 	char *ptr_path = str_path;
+	
 	if (*ptr_path == '/') {
 		ptr_path++;
 	}
-
 	if (strncmp(ptr_path, "role/", 5) == 0 || strncmp(ptr_path, "role", 5) == 0) {
 		if (strlen(ptr_path) > 5) {
 			return ddl_readable(EV_A, conn, ptr_path + 4 + (strncmp(ptr_path, "role/download", 13) == 0 ? 9 : 0), true, cb_data, readable_cb);
 		} else {
 			return readable_cb(EV_A, cb_data, true);
 		}
-	} else if (strncmp(ptr_path, "web_root/", 9) == 0 || strncmp(ptr_path, "web_root", 9) == 0) {
+	} else if (strncmp(ptr_path, "web_root/", 9) == 0 || strncmp(ptr_path, "web_root", 9) == 0
+			|| strncmp(ptr_path, "app/", 4) == 0 || strncmp(ptr_path, "app", 4) == 0) {
 		return ddl_readable(EV_A, conn, "developer_g", false, cb_data, readable_cb);
-	} else if (strncmp(ptr_path, "app/", 4) == 0 || strncmp(ptr_path, "app", 4) == 0) {
-		if (strlen(ptr_path) > 4) {
-			return ddl_readable(EV_A, conn, ptr_path + 3 + (strncmp(ptr_path, "app/download", 12) == 0 ? 9 : 0), false, cb_data, readable_cb);
-		} else {
-			return readable_cb(EV_A, cb_data, true);
-		}
 	} else {
 		return false;
 	}
-
 	return false;
 }
 

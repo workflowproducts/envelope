@@ -468,6 +468,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 saveDefaultAttributes(element);
 
                 if (!evt.touchDevice) {
+                    element.addEventListener('focus', function (event) {
+                        element.classList.add('focus');
+                    });
+                    
+                    element.addEventListener('blur', function (event) {
+                        element.classList.remove('focus');
+                    });
+                    
                     element.addEventListener(evt.mousedown, function (event) {
                         element.classList.add('down');
                     });
@@ -508,7 +516,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (typeof element.getAttribute('value') === 'string') {
                     if (element.getAttribute('value') === 'true' || element.getAttribute('value') === '-1') {
                         element.setAttribute('selected', '');
+                        
+                        element.setAttribute('aria-pressed', 'true');
+                    } else {
+                        element.setAttribute('aria-pressed', 'false');
                     }
+                } else {
+                    element.setAttribute('aria-pressed', 'false');
                 }
 
                 // handle "qs" attribute
@@ -574,7 +588,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             this.setAttribute('value', '0');
                         }
                         
-                        element.setAttribute('aria-pressed', 'false');
+                        this.setAttribute('aria-pressed', 'false');
                         
                     } else {
                         this.setAttribute('selected', '');
@@ -585,7 +599,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             this.setAttribute('value', '-1');
                         }
                         
-                        element.setAttribute('aria-pressed', 'true');
+                        this.setAttribute('aria-pressed', 'true');
                     }
                     
                     xtag.fireEvent(this, 'change', {
@@ -605,11 +619,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (newValue === true || newValue === 'true') {
                         this.setAttribute('selected', '');
                         
-                        element.setAttribute('aria-pressed', 'true');
+                        this.setAttribute('aria-pressed', 'true');
                     } else {
                         this.removeAttribute('selected');
                         
-                        element.setAttribute('aria-pressed', 'false');
+                        this.setAttribute('aria-pressed', 'false');
                     }
                 }
             },
@@ -623,11 +637,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (newValue === true || newValue === 'true' || newValue === 'YES') {
                         this.setAttribute('selected', '');
                         
-                        element.setAttribute('aria-pressed', 'true');
+                        this.setAttribute('aria-pressed', 'true');
                     } else {
                         this.removeAttribute('selected');
                         
-                        element.setAttribute('aria-pressed', 'false');
+                        this.setAttribute('aria-pressed', 'false');
                     }
                 }
             }

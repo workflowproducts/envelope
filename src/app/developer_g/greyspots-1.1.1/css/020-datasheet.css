@@ -39,7 +39,7 @@ gs-datasheet > .root {
 gs-datasheet > .root > .data-container {
     border: 1px solid #006e00;
     position: relative;
-    
+
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     -ms-box-sizing: border-box;
@@ -105,6 +105,11 @@ gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > 
 gs-datasheet:not(.scroll-normal) > .root > .data-container > .data-flex-reset > .scroll-container::-webkit-scrollbar-thumb {
     border-radius: 8px;
     border: 2px solid white; /* should match background, can't be transparent */
+}
+
+gs-datasheet > .root > .data-container > .data-flex-reset > .scroll-container > table > caption,
+gs-datasheet > .root > .data-container > .data-flex-reset > .header-container > table > caption {
+    border-bottom: 1px solid #ddd;
 }
 
 gs-datasheet > .root > .data-container > .data-flex-reset > .insert-container {
@@ -360,10 +365,6 @@ gs-datasheet th, gs-datasheet td {
 
 gs-datasheet th:first-child {
     vertical-align: middle;
-}
-
-gs-datasheet tbody th:first-child {
-    color: #CCC;
 }
 
 

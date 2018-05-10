@@ -190,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             for (i = 0, len = arrSelectedTrs.length; i < len; i += 1) {
                 arrSelectedTrs[i].removeAttribute('selected');
+                arrSelectedTrs[i].removeAttribute('aria-selected');
             }
         }
 
@@ -199,9 +200,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 for (i = 0, len = record.length; i < len; i += 1) {
                     record[i].setAttribute('selected', '');
+                    record[i].setAttribute('aria-selected', 'true');
                 }
             } else {
                 record.setAttribute('selected', '');
+                var strHiddenValue = record.firstElementChild.textContent || ' ';
+                console.log(element.hiddenFocusControl);
+                
+                //element.hiddenFocusControl.value = strHiddenValue || 'blank';
+                //element.hiddenFocusControl.setAttribute('value', strHiddenValue || ' ');
+                element.hiddenFocusControl.value = ',';
+                element.hiddenFocusControl.setAttribute('aria-label', strHiddenValue || ' ');
+                console.log(element.hiddenFocusControl.value);
+                //GS.setInputSelection(element.hiddenFocusControl, 0, strHiddenValue.length);
+                record.setAttribute('aria-selected', 'true');
+                element.scrollContainer
+                    .setAttribute(
+                        'aria-activedescendant',
+                        'box-list-' + element.internal.id + '-item-' +
+                            (parseInt(record.getAttribute('data-record_no'), 10) - 1)
+                    );
             }
         }
     }
@@ -238,7 +256,55 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return currentElement;
     }
-    //snapback
+    
+    function addTableAria(element) {
+        var elemTable = xtag.query(element, 'table')[0];
+        var elemThead = xtag.query(elemTable, 'thead')[0];
+        var elemTbody = xtag.query(elemTable, 'tbody')[0];
+        var elemTheadTRs = elemThead ? xtag.query(elemThead, 'tr') : null;
+        var elemTbodyTRs = xtag.query(elemTbody, 'tr');
+        var cellElements;
+        var i;
+        var len;
+        var cell_i;
+        var cell_len;
+
+        //elemTable.setAttribute('role', 'grid');
+        //elemTheadTRs[0].setAttribute('role', 'row');
+
+        //cellElements = xtag.toArray(elemTheadTRs[0].children);
+        //i = 0;
+        //len = cellElements.length;
+        //while (i < len) {
+        //    cellElements[i].setAttribute('role', '');
+
+        //    i += 1;
+        //}
+        console.log('test');
+        i = 0;
+        len = elemTbodyTRs.length;
+        while (i < len) {
+            elemTbodyTRs[i].setAttribute('id', 'box-list-' + element.internal.id + '-item-' + i);
+
+            elemTbodyTRs[i].setAttribute('role', 'option');
+            if (elemTbodyTRs[i].children[0].nodeName === 'TH') {
+                elemTbodyTRs[i].setAttribute('aria-label', elemTbodyTRs[i].children[1].textContent);
+            } else {
+                elemTbodyTRs[i].setAttribute('aria-label', elemTbodyTRs[i].children[0].textContent);
+            }
+
+            //cellElements = xtag.toArray(elemTbodyTRs[0].children);
+            //cell_i = 0;
+            //cell_len = cellElements.length;
+            //while (cell_i < cell_len) {
+            //    cellElements[i].setAttribute('role', '');
+
+            //    cell_i += 1;
+            //}
+
+            i += 1;
+        }
+    }
     
     //boladd should be true if event.metaKey is true
     
@@ -264,6 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.secondLastClicked = null;
                 for (i = 0, len = arrRecords.length; i < len; i += 1) {
                     arrRecords[i].removeAttribute('selected');
+                    arrRecords[i].removeAttribute('aria-selected');
                     if (arrRecords[i].classList.contains('originTR')) {
                         arrRecords[i].classList.remove('originTR');
                     }
@@ -358,12 +425,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (bolDeselect) {
                                 if (arrAllRecords[i].hasAttribute('selected')) {
                                     arrAllRecords[i].removeAttribute('selected');
+                                    arrAllRecords[i].removeAttribute('aria-selected');
                                 }
                                 if (arrAllRecords[i].hasAttribute('selected-secondary')) {
                                     arrAllRecords[i].removeAttribute('selected-secondary');
                                 }
                             } else {
                                 arrAllRecords[i].setAttribute('selected', '');
+                                arrAllRecords[i].setAttribute('aria-selected', 'true');
                             }
                             arrAllRecords[i].classList.remove('originTR');
                         }
@@ -376,12 +445,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (bolDeselect) {
                                 if (arrAllRecords[i].hasAttribute('selected')) {
                                     arrAllRecords[i].removeAttribute('selected');
+                                    arrAllRecords[i].removeAttribute('aria-selected');
                                 }
                                 if (arrAllRecords[i].hasAttribute('selected-secondary')) {
                                     arrAllRecords[i].removeAttribute('selected-secondary');
                                 }
                             } else {
                                 arrAllRecords[i].setAttribute('selected', '');
+                                arrAllRecords[i].setAttribute('aria-selected', 'true');
                             }
                             arrAllRecords[i].classList.remove('originTR');
                         }
@@ -410,6 +481,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                     if (arrAllRecords[i].hasAttribute('selected')) {
                                         arrAllRecords[i].removeAttribute('selected');
+                                        arrAllRecords[i].removeAttribute('aria-selected');
                                     } else if (arrAllRecords[i].hasAttribute('selected-secondary')) {
                                         arrAllRecords[i].removeAttribute('selected-secondary');
                                     } else {
@@ -422,6 +494,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     arrAllRecords[i].classList.remove('originTR');
                                     if (arrAllRecords[i].hasAttribute('selected')) {
                                         arrAllRecords[i].removeAttribute('selected');
+                                        arrAllRecords[i].removeAttribute('aria-selected');
                                     } else if (arrAllRecords[i].hasAttribute('selected-secondary')) {
                                         arrAllRecords[i].removeAttribute('selected-secondary');
                                     } else {
@@ -520,6 +593,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 //console.log(arrSelectedRecords);//handle, handle.hasAttribute('selected'));
                 if (bolAdd && handle.hasAttribute('selected') && arrSelectedRecords.length > 1) {
                     handle.removeAttribute('selected');
+                    handle.removeAttribute('aria-selected');
                     if (handle.classList.contains('originTR')) {
                         handle.classList.remove('originTR');
                     }
@@ -561,6 +635,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     for (i = 0, len = arrSelectedTrs.length; i < len; i += 1) {
                         arrSelectedTrs[i].removeAttribute('selected-secondary');
                         arrSelectedTrs[i].setAttribute('selected', '');
+                        arrSelectedTrs[i].setAttribute('aria-selected', 'true');
                     }
                 }
                 if (record[0]) {
@@ -573,9 +648,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.hasAttribute('multi-select')) {
                     for (i = 0, len = record.length; i < len; i += 1) {
                         record[i].setAttribute('selected', '');
+                        record[i].setAttribute('aria-selected', 'true');
                     }
                 } else {
                     record.setAttribute('selected', '');
+                    var strHiddenValue = record.firstElementChild.textContent || ' ';
+                    console.log(element.hiddenFocusControl);
+                    if (element.hiddenFocusControl) {
+                        //element.hiddenFocusControl.value = strHiddenValue || 'blank';
+                        //element.hiddenFocusControl.setAttribute('value', strHiddenValue || ' ');
+                        element.hiddenFocusControl.value = ',';
+                        element.hiddenFocusControl.setAttribute('aria-label', strHiddenValue || ' ');
+                        console.log(element.hiddenFocusControl.value);
+                        //GS.setInputSelection(element.hiddenFocusControl, 0, strHiddenValue.length);
+                    }
+                    record.setAttribute('aria-selected', 'true');
                 }
                 //highlightRecord(element, record);
                 //console.trace('triggerchange 2');
@@ -619,6 +706,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             selectedRecordIndex = i;
                             selectedTr = trs[i];
                             trs[i].removeAttribute('selected');
+                            trs[i].removeAttribute('aria-selected');
                             
                             break;
                         }
@@ -776,13 +864,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 // create an array of hidden column numbers
                 arrHide = (element.getAttribute('hide') || '').split(/[\s]*,[\s]*/);
                 
+                var strTableID = element.getAttribute('id');
+                if (! strTableID) {
+                    strTableID = GS.GUID();
+                }
+                
                 // build up the header cells variable and the record cells variable
                 for (i = 0, len = data.arr_column.length, strHeaderCells = '', strRecordCells = '', intVisibleColumns = 0; i < len; i += 1) {
                     // if this column is not hidden
                     if (arrHide.indexOf((i + 1) + '') === -1 && arrHide.indexOf(data.arr_column[i]) === -1) {
                         // append a new cell to each of the header cells and record cells variables
-                        strHeaderCells += '<th gs-dynamic>' + encodeHTML(data.arr_column[i]) + '</th> ';
-                        strRecordCells += '<td gs-dynamic>{{! row[\'' + data.arr_column[i] + '\'] }}</td> ';
+                        strHeaderCells += '<th id="' + strTableID + '_' + data.arr_column[i] + '" gs-dynamic>' + encodeHTML(data.arr_column[i]) + '</th> ';
+                        strRecordCells += '<td headers="' + strTableID + '_' + data.arr_column[i] + '" gs-dynamic>{{! row[\'' + data.arr_column[i] + '\'] }}</td> ';
                         intVisibleColumns += 1;
                     }
                 }
@@ -986,7 +1079,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 len = arrAttrParts.length;
                 while (i < len) {
                     strQSCol = arrAttrParts[i];
-    
+
                     if (strQSCol.indexOf('!=') !== -1) {
                         strOperator = '!=';
                         arrQSParts = strQSCol.split('!=');
@@ -994,10 +1087,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         strOperator = '=';
                         arrQSParts = strQSCol.split('=');
                     }
-    
+
                     strQSCol = arrQSParts[0];
                     strQSAttr = arrQSParts[1] || arrQSParts[0];
-    
+
                     // if the key is not present or we've got the negator: go to the attribute's default or remove it
                     if (strOperator === '!=') {
                         // if the key is not present: add the attribute
@@ -1028,7 +1121,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             } else if (GS.qryGetKeys(strQS).indexOf(strQSCol) > -1) {
                 strQSValue = GS.qryGetVal(strQS, strQSCol);
-    
+
                 if (element.internal.bolQSFirstRun !== true) {
                     if (strQSValue !== '' || !element.getAttribute('value')) {
                         element.supressChange = true;
@@ -1039,25 +1132,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
-        
+
         // handle "refresh-on-querystring-values" and "refresh-on-querystring-change" attributes
         if (element.internal.bolQSFirstRun === true) {
             if (element.hasAttribute('refresh-on-querystring-values')) {
                 arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
-                
+
                 for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
                     currentValue = GS.qryGetVal(strQS, arrPopKeys[i]);
-                    
+
                     if (element.popValues[arrPopKeys[i]] !== currentValue) {
                         bolRefresh = true;
                     }
-                    
+
                     element.popValues[arrPopKeys[i]] = currentValue;
                 }
             } else if (element.hasAttribute('refresh-on-querystring-change')) {
                 bolRefresh = true;
             }
-            
+
             if (bolRefresh && element.hasAttribute('src')) {
                 getData(element);
             } else if (bolRefresh && !element.hasAttribute('src')) {
@@ -1066,16 +1159,16 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             if (element.hasAttribute('refresh-on-querystring-values')) {
                 arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
-                
+
                 for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
                     element.popValues[arrPopKeys[i]] = GS.qryGetVal(strQS, arrPopKeys[i]);
                 }
             }
         }
-        
+
         element.internal.bolQSFirstRun = true;
     }
-    
+
     // dont do anything that modifies the element here
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
@@ -1087,6 +1180,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.setAttribute('value', element.value);
                 delete element.value;
                 //element.value = null;
+            }
+
+            if (!element.hasAttribute('role')) {
+                element.setAttribute('role', 'listbox');
             }
         }
     }
@@ -1210,10 +1307,31 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function findFor(element) {
+        var forElem;
+        // console.log(element, element.previousElementSibling)
+        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
+            && element.previousElementSibling.hasAttribute('for')
+            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+        ) {
+            forElem = element.previousElementSibling;
+        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
+            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
+        }
+
+        //console.log(forElem);
+        if (forElem) {
+            if (! element.hasAttribute('aria-label')) {
+                element.setAttribute('aria-label', forElem.innerText);
+            }
+        }
+    }
+
+    var intListID = 0;
     //
     function elementInserted(element) {
         var tableTemplateElement, arrElement, recordElement, tableTemplateElementCopy, strQSValue, i, len, currentElement;
-        
+
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
             // if this is the first time inserted has been run: continue
@@ -1222,6 +1340,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.error = false;
                 element.internal = {};
                 element.internalData = {};
+                
+                element.internal.id = intListID;
+                intListID += 1;
+                
                 saveDefaultAttributes(element);
                 // handle "qs" attribute
                 if (element.hasAttribute('qs') ||
@@ -1302,24 +1424,30 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
+        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+            if (element.hasAttribute('id')) {
+                // console.log('running');
+                findFor(element);
+            }
+        }
     }
-    
+
     xtag.register('gs-listbox', {
         lifecycle: {
             created: function () {
                 elementCreated(this);
             },
-            
+
             inserted: function () {
                 elementInserted(this);
             },
-            
+
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'suspend-created' && newValue === null) {
                     elementCreated(this);
                     elementInserted(this);
-                    
+
                 // if "suspend-inserted" has been removed: run inserted code
                 } else if (strAttrName === 'suspend-inserted' && newValue === null) {
                     elementInserted(this);
@@ -1709,10 +1837,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.scrollContainer.setAttribute('gs-dynamic', '');
                 element.scrollContainer.classList.add('root');
                 element.scrollContainer.classList.add('scroll-container');
+                element.scrollContainer.setAttribute('id', 'box-list-container-' + element.internal.id);
                 element.scrollContainer.appendChild(element.tableElement);
                 
                 element.appendChild(element.scrollContainer);
                 tbodyElement = xtag.queryChildren(element.tableElement, 'tbody')[0];
+                
+                addTableAria(element);
                 
                 // add dividers
                 if (element.hasAttribute('letter-dividers') || element.hasAttribute('letter-scrollbar')) {
@@ -1829,15 +1960,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 //});
                 var focusElement = document.createElement('textarea');
                 focusElement.classList.add('hidden-focus-control');
-                focusElement.setAttribute('value', 'text makes this textarea Firefox worthy');
-                focusElement.setAttribute('title', 'Hidden control');
+                //focusElement.value = element.querySelector('tr[selected] td').textContent || 'blank';
+                if (element.querySelector('tr[selected] td')) {
+                    focusElement.setAttribute('value', element.querySelector('tr[selected] td').textContent || ' ');
+                }
+                //strHiddenValue || 'blank'
+                //focusElement.setAttribute('title', 'Hidden control');
+
+                focusElement.setAttribute('aria-owns', 'box-list-container-' + element.internal.id);
+
+                /*
+                snapdragon
+                element.control.removeAttribute('aria-activedescendant');
+                */
 
                 element.appendChild(focusElement);
                 element.hiddenFocusControl = focusElement;
 
                 element.addEventListener('focus', function (event) {
                     event.preventDefault();
-                    event.stopPropagation
+                    event.stopPropagation();
                     if (event.target !== element.hiddenFocusControl) {
                         element.hiddenFocusControl.focus();
                         GS.triggerEvent(element.hiddenFocusControl, 'focus');

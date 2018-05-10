@@ -371,8 +371,8 @@ window.addEventListener('click', function (event) {
                         Commercial license terms for the Envelope platform are available for a small fee. Contact us for details.
                         <br /><br />
                         <center><b>Workflow Products, L.L.C.</b></center>
-                        <center>7813 Harwood Road</center>
-                        <center>North Richland Hills Texas 76180</center>
+                        <center>609 W Harwood Road</center>
+                        <center>Hurst, Texas 76054</center>
                         <center>(817) 503-9545</center>
                     </div>
                     <br />
@@ -419,7 +419,7 @@ window.addEventListener('click', function (event) {
             
             // this is for envelope
             if (location.pathname.indexOf('/env/') === 0) {
-                strHTML += '<center><b><a target="_self" href="/env/app/all/index.html">Back To Main Menu</a></b></center>';
+                strHTML += '<center><gs-button target="_self" href="/env/app/all/index.html" inline>Back To Main Menu</gs-button></center>';
                 strHTML += '<center>' +
                                 '<gs-button target="_self" href="/env/auth/?action=logout" inline>Log out</gs-button><br />' +
                                 '<gs-button onclick="GS.userChangePassword()" inline>Change Password</gs-button>' +
@@ -690,7 +690,6 @@ window.addEventListener('load', function () {
                 }
             }
         });
-        
         testElement.innerHTML = '<div></div><p></p><asdf-test-two></asdf-test-two>';
         
         functionality.HTMLTemplateElement = (xtag.query(testElement, '.find-me').length === 0);

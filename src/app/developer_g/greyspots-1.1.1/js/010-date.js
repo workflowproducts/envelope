@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
         singleLineTemplate;
 
     singleLineTemplateElement.innerHTML = '<input class="control" gs-dynamic type="text" />' +
-                             '<gs-button class="date-picker-button" gs-dynamic inline icononly icon="calendar" no-focus></gs-button>';
+                             '<gs-button class="date-picker-button" gs-dynamic inline icononly icon="calendar" no-focus>Open Date Picker</gs-button>';
 
     singleLineTemplate = singleLineTemplateElement.content;
 

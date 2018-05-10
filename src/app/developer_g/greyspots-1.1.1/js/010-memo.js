@@ -60,7 +60,6 @@ if (!evt.touchDevice) {
             
             GS.triggerEvent(window.gsmemoNew.currentMouseTarget.parentNode, 'size-changed');
             
-            //console.log('mousemove (' + new Date().getTime() + ')');
         }
     });
     
@@ -68,7 +67,6 @@ if (!evt.touchDevice) {
         //var mousePosition = GS.mousePosition(event);
         
         window.bolFirstMouseMoveWhileDown = true;
-        //console.log('3***'); //, document.elementFromPoint(mousePosition.x, mousePosition.y)); //event.target);
         //window.lastMouseDownElement = element.control;
     });
 }
@@ -87,6 +85,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function changeFunction(event) {
         event.preventDefault();
         event.stopPropagation();
+        event.stopImmediatePropagation();
+        event.target.parentNode.syncGetters();
         
         GS.triggerEvent(event.target.parentNode, 'change');
     }
@@ -117,6 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // re-target blur event from control to element
     function blurFunction(event) {
+                                
         GS.triggerEvent(event.target.parentNode, 'blur');
         event.target.parentNode.classList.remove('focus');
         if (event.target.parentNode.hasAttribute('defer-insert')) {
@@ -136,18 +137,6 @@ document.addEventListener('DOMContentLoaded', function () {
         event.target.parentNode.classList.add('hover');
     }
 
-    // function focusFunction(event) {
-    //     event.preventDefault();
-    //     event.stopPropagation();
-    //     if (event.target.parentNode.hasAttribute('first-value')) {
-    //             console.log(event);
-    //         //GS.triggerEvent(event.target.parentNode, 'focus');
-    //     } else {
-    //         event.target.parentNode.setAttribute('first-value', event.target.value);
-    //         GS.triggerEvent(event.target.parentNode, 'focus');
-    //         //console.log('test');
-    //     }
-    // }
     
     //
     function keydownFunction(event) {
@@ -164,23 +153,44 @@ document.addEventListener('DOMContentLoaded', function () {
                 GS.setInputSelection(element, parseInt(cursor_pos_memo, 10) + 1, parseInt(cursor_pos_memo, 10) + 1);
             } else {
                 //this.parentNode.syncView();
-                element.parentNode.setAttribute('value', element.value);
+                if (element.parentNode.hasAttribute('encrypted')) {
+                    element.parentNode.setAttribute('value', CryptoJS.AES.encrypt(element.value, (window[element.parentNode.getAttribute('encrypted')] || '')));
+                } else {
+                    element.parentNode.setAttribute('value', element.value);
+                }
                 element.parentNode.handleResizeToText();
             }
         }
+        // if (element.classList.contains('control')) {
+        //     element = GS.findParentTag(element, 'gs-memo');
+        // }
+        // if (element.hasAttribute('encrypted')) {
+        //     element.syncGetters();
+        //     if (!element.hasAttribute('defer-insert')) {
+        //         element.value = element.getAttribute('value');
+        //     } else {
+        //         element.value = CryptoJS.AES.encrypt(element.control.value, (window[element.getAttribute('encrypted')] || ''));
+        //     }
+        // }
     }
     
     //
     function keyupFunction(event) {
+                                
         var element = event.target;
         if (!element.hasAttribute('readonly')) {
             //this.parentNode.syncView();
-            element.parentNode.setAttribute('value', element.value);
+            if (element.parentNode.hasAttribute('encrypted')) {
+                element.parentNode.setAttribute('value', CryptoJS.AES.encrypt(element.value, (window[element.parentNode.getAttribute('encrypted')] || '')));
+            } else {
+                element.parentNode.setAttribute('value', element.value);
+            }
             element.parentNode.handleResizeToText();
         }
     }
     
     function insertFunction(event) {
+                                
         var element = event.target;
         element.parentNode.handleResizeToText();
     }
@@ -195,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //}
     
     function saveDefaultAttributes(element) {
+                                
         var i;
         var len;
         var arrAttr;
@@ -217,6 +228,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function createPushReplacePopHandler(element) {
+                                
         var i;
         var len;
         var strQS = GS.getQueryString();
@@ -287,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         element.internal.bolQSFirstRun = true;
     }
-    
+
     // dont do anything that modifies the element here
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
@@ -298,14 +310,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (element.value) {
                 element.setAttribute('value', element.value);
                 delete element.value;
-                //element.value = null;
             }
         }
     }
 
     function findFor(element) {
         var forElem;
-        // console.log(element, element.previousElementSibling)
         if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
             && element.previousElementSibling.hasAttribute('for')
             && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
@@ -314,7 +324,6 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
             forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
         }
-        //console.log(forElem);
         if (forElem) {
             forElem.setAttribute('for', element.getAttribute('id') + '_control');
             if (element.control) {
@@ -327,27 +336,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
-        
-        /*
-            if (element.hasAttribute('id')) {
-                findFor(element);
-            }
-        // please ensure that if the element has an id it is given an id
-                if (element.hasAttribute('id')) {
-                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
-                }
-                if (element.hasAttribute('aria-labelledby')) {
-                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
-                }
-                if (element.hasAttribute('title')) {
-                    element.control.setAttribute('title', element.getAttribute('title'));
-                }
-        */
     }
 
     //
     function elementInserted(element) {
         //var strQSValue;
+        if (element.hasAttribute('encrypted') && !window[element.getAttribute('encrypted')] && !window['getting' + element.getAttribute('encrypted')]) {
+            window['getting' + element.getAttribute('encrypted')] = true;
+            GS.triggerEvent(element, 'password-error', {'reason': 'no', 'keyVariable': element.getAttribute('encrypted')});
+        }
         if (element.hasAttribute('defer-insert')) {
             // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
             if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
@@ -356,14 +353,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.inserted = true;
                     element.internal = {};
                     saveDefaultAttributes(element);
-    
+
                     if (!element.hasAttribute('tabindex')) {
                         element.setAttribute('tabindex', '0');
                     }
                     element.bolSelect = true;
-                    
+                    element.skip = false;
                     var elementValue = (element.getAttribute('value') || '');
                     if (elementValue) {
+                        if (element.hasAttribute('encrypted') && window[element.getAttribute('encrypted')]) {
+                            elementValue = CryptoJS.AES.decrypt(element.getAttribute('value'), (window[element.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                            element.syncGetters();
+                        } else if (element.hasAttribute('encrypted')) {
+                            element.skip = true;
+                        }
                         element.innerHTML = '<span class="control" gs-dynamic>' + elementValue + '</span>';
                         element.control = element.children[0];
                         if (element.hasAttribute('id')) {
@@ -375,7 +378,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (element.hasAttribute('title')) {
                             element.control.setAttribute('title', element.getAttribute('title'));
                         }
-                        element.control.value = elementValue;
+                        if (!element.skip) {
+                            element.control.value = elementValue;
+                        }
                         element.syncGetters();
                     } else if (element.hasAttribute('placeholder')) {
                         element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
@@ -392,17 +397,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (element.hasAttribute('title')) {
                             element.control.setAttribute('title', element.getAttribute('title'));
                         }
-                        element.control.value = elementValue;
+                        if (!element.skip) {
+                            element.control.value = elementValue;
+                        }
                         element.syncGetters();
                     }
                     element.style.height = ((element.getAttribute('rows') || 2) * 1.2) + 'em';
-                    // element.appendChild(multiLineTemplate.cloneNode(true));
-                    // if (element.hasAttribute('data-tabindex')) {
-                    //     xtag.query(element, '.control')[0].setAttribute('tabindex', element.getAttribute('data-tabindex'));
-                    // }
-                    // set a variable with the control element for convenience and speed
-                    //element.control = xtag.queryChildren(element, '.control')[0];
-                    //console.log(element.control);
                     if (element.control) {
                         element.control.lastWidth = element.control.clientWidth;
                         element.control.lastHeight = element.control.clientHeight;
@@ -475,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.inserted = true;
                     element.internal = {};
                     saveDefaultAttributes(element);
-    
+                    
                     if (element.hasAttribute('tabindex')) {
                         element.setAttribute('data-tabindex', element.getAttribute('tabindex'));
                         element.removeAttribute('tabindex');
@@ -533,7 +533,25 @@ document.addEventListener('DOMContentLoaded', function () {
             
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
-                if (strAttrName === 'suspend-created' && newValue === null) {
+                if (strAttrName === 'value' && this.initalized) {
+                    var currentValue = this.control.value;
+                    var newCryptedValue = newValue;
+                    // if there is a difference between the new value in the
+                    //      attribute and the valued in the front end: refresh the front end
+                    if (newCryptedValue !== currentValue) {
+                        this.setAttribute('value', newCryptedValue);
+                        if (this.hasAttribute('encrypted')) {
+                        } else {
+                            this.control.value = newCryptedValue;
+                        }
+                    } else {
+                        this.setAttribute('value', currentValue);
+                        if (this.hasAttribute('encrypted')) {
+                        } else {
+                            this.control.value = currentValue;
+                        }
+                    }
+                } else if (strAttrName === 'suspend-created' && newValue === null) {
                     elementCreated(this);
                     elementInserted(this);
                     
@@ -542,7 +560,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     elementInserted(this);
                     
                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
-                    //console.log(this.getAttribute('id'), strAttrName, oldValue, newValue);
                     if (strAttrName === 'disabled' && newValue !== null) {
                         this.innerHTML = this.getAttribute('value') || this.getAttribute('placeholder');
                     } else if (strAttrName === 'disabled' && newValue === null) {
@@ -556,18 +573,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (this.hasAttribute('id')) {
                             this.control.setAttribute('id', this.getAttribute('id') + '_control');
                         }
-                        if (element.hasAttribute('aria-labelledby')) {
-                            element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+                        if (this.hasAttribute('aria-labelledby')) {
+                            this.control.setAttribute('aria-labelledby', this.getAttribute('aria-labelledby'));
                         }
-                        if (element.hasAttribute('title')) {
-                            element.control.setAttribute('title', element.getAttribute('title'));
+                        if (this.hasAttribute('title')) {
+                            this.control.setAttribute('title', this.getAttribute('title'));
                         }
                         
                         this.control.lastWidth = this.control.clientWidth;
                         this.control.lastHeight = this.control.clientHeight;
                         this.syncView();
-                    } else if (strAttrName === 'value' && newValue !== oldValue) {
-                        this.value = newValue;
                     }
                 }
             }
@@ -578,46 +593,79 @@ document.addEventListener('DOMContentLoaded', function () {
                 // get value straight from the input
                 get: function () {
                     if (this.hasAttribute('defer-insert')) {
-                        if (this.control) {
-                            return this.control.value;
-                        } else {
-                            return '';
-                        }
+                        return this.getAttribute('value');
                     } else {
-                        if (this.control) {
-                            return this.control.value;
-                        } else {
-                            return this.innerHTML;
-                        }
+                        return this.getAttribute('value');
                     }
                 },
                 
-                // set the value of the input and set the value attribute
+                
                 set: function (strNewValue) {
                     if (this.hasAttribute('defer-insert')) {
-                        if (this.getAttribute('value') !== strNewValue) {
-                            this.setAttribute('value', strNewValue);
-                        }
-                        if (this.control.tagName === 'SPAN') {
-                            this.control.textContent = strNewValue;
-                            this.control.value = strNewValue;
-                            this.syncGetters();
+                        if (this.hasAttribute('encrypted')) {
+                            if (CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) === '') {
+                                this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
+                            } else {
+                                this.setAttribute('value', strNewValue);
+                            }
                         } else {
-                            this.control.value = strNewValue;
+                            this.setAttribute('value', strNewValue);
+                            this.syncView();
                         }
                     } else {
-                        if (this.getAttribute('value') !== strNewValue) {
-                            this.setAttribute('value', strNewValue);
-                        }
-                        if (this.control) {
-                            this.control.value = strNewValue;
-                        } else {
-                            this.innerHTML = strNewValue;
-                        }
-                        this.syncView();
+                        this.setAttribute('value', strNewValue);
                     }
-                    
                 }
+                // // set the value of the input and set the value attribute
+                // set: function (strNewValue) {
+                //     if (this.hasAttribute('defer-insert')) {
+                //         if (this.getAttribute('value') !== strNewValue) {
+                //             if (this.hasAttribute('encrypted')) {
+                //                 this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
+                //             } else {
+                //                 this.setAttribute('value', strNewValue);
+                //             }
+                //         }
+                //         if (this.control.tagName === 'SPAN') {
+                //             if (this.hasAttribute('encrypted')) {
+                //                 this.control.textContent = CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                //             } else {
+                //                 this.control.textContent = strNewValue;
+                //             }
+                //             this.control.value = strNewValue;
+                //             this.syncGetters();
+                //         } else {
+                //             if (this.hasAttribute('encrypted')) {
+                //                 this.control.value = CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                //             } else {
+                //                 this.control.value = strNewValue;
+                //             }
+                //         }
+                //     } else {
+                //         if (this.getAttribute('value') !== strNewValue) {
+                //             if (this.hasAttribute('encrypted')) {
+                //                 this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
+                //             } else {
+                //                 this.setAttribute('value', strNewValue);
+                //             }
+                //         }
+                //         if (this.control) {
+                //             if (this.hasAttribute('encrypted')) {
+                //                 this.control.value = CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                //             } else {
+                //                 this.control.value = strNewValue;
+                //             }
+                //         } else {
+                //             if (this.hasAttribute('encrypted')) {
+                //                 this.innerHTML = CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                //             } else {
+                //                 this.innerHTML = strNewValue;
+                //             }
+                //         }
+                //         this.syncView();
+                //     }
+                    
+                // }
             },
             textValue: {
                 // get value straight from the input
@@ -640,7 +688,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 // set the value attribute
                 set: function (newValue) {
                     //this.setAttribute('value', newValue);
-                    this.value = newValue;
+                    // this.value = newValue;
+                
+                    if (this.control) {
+                        this.control.value = newValue;
+                    } else {
+                        this.innerHTML = newValue;
+                    }
                 }
             }
         },
@@ -661,8 +715,10 @@ document.addEventListener('DOMContentLoaded', function () {
             removeControl: function () {
                 var element = this;
                 var elementHeight = element.control.clientHeight;
-                console.log(elementHeight);
                 var elementValue = element.control.value
+                // if (element.hasAttribute('encrypted')) {
+                //     elementValue = CryptoJS.AES.decrypt(elementValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                // }
                 if (element.control) {
                     element.setAttribute('tabindex', element.control.getAttribute('tabindex'));
                 }
@@ -712,7 +768,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ];
                 var i;
                 var len;
-                var elementValue = element.textContent;
+                var elementValue = element.textContent || element.value;
                 if (element.children[0].classList.contains('placeholder')) {
                     elementValue = '';
                 }
@@ -767,9 +823,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     i += 1;
                 }
-                //console.log(elementValue);
                 element.control.value = elementValue;
-                element.value = elementValue;
+                if (element.hasAttribute('encrypted')) {
+                    element.value = CryptoJS.AES.encrypt(elementValue, (window[element.getAttribute('encrypted')] || ''));
+                } else {
+                    element.value = elementValue;
+                }
                 // if we saved a tabindex: apply the tabindex to the control
                 if (element.savedTabIndex !== undefined && element.savedTabIndex !== null) {
                     element.control.setAttribute('tabindex', element.savedTabIndex);
@@ -782,6 +841,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // sync control and resize to text
             syncView: function () {
+                                
                 var element = this, arrPassThroughAttributes, i, len;
                 
                 /*
@@ -828,11 +888,29 @@ document.addEventListener('DOMContentLoaded', function () {
                     this.control.removeEventListener('insert', insertFunction);
                     this.control.addEventListener('insert', insertFunction);
                 }
-                
-                if (this.control) {
-                    this.control.value = this.getAttribute('value');
+                // console.log(this.control.nodeName);
+                if (this.control && this.control.nodeName === 'TEXTAREA') {
+                    if (this.hasAttribute('encrypted')) {
+                        if (window[this.getAttribute('encrypted')] && this.control.value !== this.getAttribute('value')) {
+                            console.log(window[this.getAttribute('encrypted')], this.getAttribute('value'));
+                            this.control.value = CryptoJS.AES.decrypt(this.getAttribute('value') || '', (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                            // this.innerHTML = CryptoJS.AES.decrypt(this.getAttribute('value') || '', (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+                            console.log(this.control.value);
+                        } else {
+                        }
+                    } else {
+                        this.control.value = this.getAttribute('value');
+                    }
                 } else {
-                    this.innerHTML = this.getAttribute('value') || this.getAttribute('placeholder') || '';
+                    console.log(this.outerHTML);
+                    if (this.hasAttribute('encrypted')) {
+                        if (window[this.getAttribute('encrypted')] && this.control.value !== this.getAttribute('value')) {
+                            this.control.innerHTML = CryptoJS.AES.decrypt(this.getAttribute('value'), (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) || this.getAttribute('placeholder') || '';
+                        }
+                    } else {
+                        this.control.innerHTML = this.getAttribute('value') || this.getAttribute('placeholder') || '';
+                    }
+                    
                 }
                     
                 if (this.getAttribute('value')) {
@@ -858,13 +936,21 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     }
                 }
+                this.initalized = true;
                 
                 // copy passthrough attributes to control
             },
             
             syncGetters: function () {
                 if (this.control) {
-                    this.setAttribute('value', this.control.value);
+                    if (this.hasAttribute('encrypted')) {
+                        if (window[this.getAttribute('encrypted')]) {
+                            this.setAttribute('value', CryptoJS.AES.encrypt(this.control.value, (window[this.getAttribute('encrypted')] || '')));
+                        }
+                    } else {
+                        this.setAttribute('value', this.control.value);
+                    }
+                    
                 }
             },
             

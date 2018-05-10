@@ -42,7 +42,7 @@ GS.addLoader = function (loaderClassOrTarget, loaderContent) {
                                     '<div class="loader-inner spinning" gs-dynamic></div>' +
                                     '<div class="loader-inner-inner spinning" gs-dynamic></div>' +
                                     '<div class="loader-inner-inner-inner spinning" gs-dynamic></div>' +
-                                    (loaderContent ? '<div class="loader-content" gs-dynamic>' + loaderContent + '</div>' : '') +
+                                    (loaderContent ? '<div class="loader-content" gs-dynamic role="alert">' + loaderContent + '</div>' : '') +
                                 '</div>';
     
     // prevent scrolling on a loader
@@ -86,6 +86,16 @@ GS.removeLoader = function (loaderClassOrTarget) {
     } else {
         console.warn('GS.removeLoader Error: loader' + (loaderClass ? ' class: "' + loaderClass + '"' : '') + ' not found');
     }
+    
+    element = document.createElement('div');
+    element.setAttribute('gs-dynamic', '');
+    element.setAttribute('hidden', '');
+    element.setAttribute('role', 'alert');
+    element.textContent = 'Done';
+    document.body.appendChild(element);
+    setTimeout(function () {
+        element.parentNode.removeChild(element);
+    }, 1000);
 };
 
 GS.removeAllLoaders = function () {

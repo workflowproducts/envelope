@@ -381,12 +381,12 @@ gs-wheel {
     -ms-user-select: none;
     user-select: none;
 	
-	height: 10em;
+	height: 8em;
 	width: auto;
 	display: inline-block;
 }
 gs-wheel[touch] {
-    font-size: 9vh;
+    /*font-size: 9vh;*/
 }
 
 gs-wheel .root {
