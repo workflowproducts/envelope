@@ -43,6 +43,10 @@ window.addEventListener('design-register-element', function () {
             return setOrRemoveTextAttribute(selectedElement, 'tabindex', this.value);
         });
 
+        addProp('Max-length', true, '<gs-number class="target" value="' + encodeHTML(selectedElement.getAttribute('max-length') || '') + '" mini></gs-number>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'max-length', this.value);
+        });
+
         addProp('Autocorrect', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocorrect') !== 'off') + '" mini></gs-checkbox>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'autocorrect', (this.value === 'false' ? 'off' : ''));
         });
@@ -175,6 +179,42 @@ document.addEventListener('DOMContentLoaded', function () {
         return false;
     }
 
+    function focusNextElement() {
+        //add all elements we want to include in our selection
+        var focussableElements = 'a:not([disabled]), button:not([disabled]), input:not([disabled]), gs-button:not([disabled])';
+        if (document.activeElement) {
+            var focussable = Array.prototype.filter.call(document.querySelectorAll(focussableElements),
+            function (element) {
+                //check for visibility while always include the current activeElement 
+                return element.offsetWidth > 0 || element.offsetHeight > 0 || element === document.activeElement
+            });
+            var index = focussable.indexOf(document.activeElement);
+            if(index > -1) {
+               var nextElement = focussable[index + 1] || focussable[0];
+               nextElement.focus();
+            }                    
+        }
+    }
+
+    function checkMaxLength(event) {
+        var element = event.target;
+        if (element.classList.contains('control')) {
+            element = GS.findParentTag(element, 'gs-text');
+        }
+        element.syncGetters();
+        if (element.hasAttribute('max-length') && element.value.length >= element.getAttribute('max-length')) {
+            if (element.value.length > element.getAttribute('max-length')) {
+                element.value = element.value.substring(0,element.getAttribute('max-length'));
+            }
+            if (element.control.hasAttribute('tabindex') && xtag.query(document, '[tabindex="' + (parseInt(element.control.getAttribute('tabindex'), 10) + 1) + '"]').length > 0) {
+                xtag.query(document, '[tabindex="' + (parseInt(element.control.getAttribute('tabindex'), 10) + 1) + '"]')[0].focus();
+            // find next focusable element
+            } else {
+                focusNextElement();
+            }
+        }
+    }
+
     function keydownFunction(event) {
         var element = event.target;
         if (element.classList.contains('control')) {
@@ -194,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
             element = GS.findParentTag(element, 'gs-text');
         }
         var temp_caps = event.getModifierState && event.getModifierState( 'CapsLock' );
-        console.log(temp_caps);
+        // console.log(temp_caps);
         if (temp_caps) {
             element.classList.add('caps');
         } else {
@@ -452,6 +492,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
                     element.addEventListener('keydown', CapsLock);
                     element.addEventListener('focus', focusFunction);
+                    element.addEventListener('keyup', checkMaxLength);
                     if (evt.touchDevice) {
                         element.addEventListener(evt.click, focusFunction);
                         element.addEventListener(evt.mousedown, function (event) {
@@ -763,6 +804,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     element.control.removeEventListener('focus', focusFunction);
                     element.control.addEventListener('focus', focusFunction);
+                    
+                    element.removeEventListener('keyup', checkMaxLength);
+                    element.addEventListener('keyup', checkMaxLength);
 
                     element.control.removeEventListener('blur', blurFunction);
                     element.control.addEventListener('blur', blurFunction);

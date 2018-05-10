@@ -881,7 +881,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 
                 // put everything together
-                strTemplate =   '<table gs-dynamic>';
+                strTemplate = '<table gs-dynamic>';
                 
                 if (intVisibleColumns > 1) { // data.arr_column.length (didn't take into account hidden columns)
                     strTemplate +=  '<thead gs-dynamic>' +
@@ -896,7 +896,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                             strRecordCells +
                                         '</tr>' +
                                     '</tbody>' +
-                                '<table>';
+                                '</table>';
             }
             
             divElement = document.createElement('div');
@@ -1154,7 +1154,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (bolRefresh && element.hasAttribute('src')) {
                 getData(element);
             } else if (bolRefresh && !element.hasAttribute('src')) {
-                console.warn('gs-combo Warning: element has "refresh-on-querystring-values" or "refresh-on-querystring-change", but no "src".', element);
+                console.warn('gs-listbox Warning: element has "refresh-on-querystring-values" or "refresh-on-querystring-change", but no "src".', element);
             }
         } else {
             if (element.hasAttribute('refresh-on-querystring-values')) {
@@ -1840,6 +1840,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.scrollContainer.setAttribute('id', 'box-list-container-' + element.internal.id);
                 element.scrollContainer.appendChild(element.tableElement);
                 
+                
+                if (!element.hasAttribute('src')) {
+                    var tableElement = element.tableElement; //xtag.queryChildren(element, 'table')[0];
+                    
+                    console.log('caption', element.hasAttribute('caption'));
+                    console.log('tableElement', tableElement);
+                    if (element.hasAttribute('caption')) {
+                        var objCaption = document.createElement('caption');
+                        objCaption.innerHTML = '<center><h4>' + element.getAttribute('caption') + '</h4></center>';
+                        tableElement.insertBefore(objCaption, tableElement.children[0]);
+                    }
+                }
+                
                 element.appendChild(element.scrollContainer);
                 tbodyElement = xtag.queryChildren(element.tableElement, 'tbody')[0];
                 
@@ -1991,6 +2004,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 bindCopy(element);
                 //console.log(element.tableTemplate);
                 
+
                 
             },
             

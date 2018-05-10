@@ -87,7 +87,33 @@
                     </gs-datasheet>          
                 </template>
             </gs-doc-example>
-                
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>"caption"</code>:</span>
+                <p>The <code>"caption"</code> attribute provides a caption at the top of the datasheet.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="32">
+                    <gs-datasheet src="gsdoc.texample" pk="id" cols="id,first_name,change_stamp" caption="Example Caption">
+                        <template for="table">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <th heading="#">{{! row_number }}</th>
+                                        <td heading="First Name">
+                                            <gs-text mini column="first_name"></gs-text>
+                                        </td>
+                                        <td heading="Last Name">
+                                            <gs-text mini column="last_name"></gs-text>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </template>
+                    </gs-datasheet>          
+                </template>
+            </gs-doc-example>
+            
             <div class="doc-example-description" id="qsattribute">
                 <span class="h3">Attribute <code>[qs=""]</code>:</span><br />
                 <p>The name <code>[qs]</code> stands for "querystring". The querystring is the part in the URL after the "?". The <code>[qs]</code> attribute has two formats, each with their own use.</p>

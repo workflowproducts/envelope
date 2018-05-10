@@ -4,7 +4,7 @@ gs-listbox {
     
     height: 100%;
     
-    border-left: 1px solid #CCC;
+    /*border: 1px solid #CCC;*/
     
     overflow: auto;
     -webkit-overflow-scrolling: touch;
@@ -26,6 +26,20 @@ gs-listbox {
 
 gs-listbox[letter-scrollbar] {
     padding-right: 1.5em;
+}
+
+/*
+gs-listbox table tr th:last-child, gs-listbox table tr td:last-child {
+    border-right: 0;
+}
+
+gs-listbox table tr:last-child th, gs-listbox table tr:last-child td {
+    border-bottom: 0;
+}
+*/
+
+gs-listbox table tr th:first-child, gs-listbox table tr td:first-child {
+    border-left: 1px solid #CCC;
 }
 
 gs-listbox table tbody tr {

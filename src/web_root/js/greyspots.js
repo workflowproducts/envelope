@@ -27062,6 +27062,16 @@ document.addEventListener('DOMContentLoaded', function () {
             ];
             wheel.insertBefore(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrValues[newNumber] + '</span>'), wheel.firstChild);
 
+        } else if (element.hasAttribute('arrvalue')) {
+            var j = parseInt(wheel.children[0].getAttribute('data-number'), 10) - 1;
+            var i = j;
+            arrValues = element.getAttribute('arrvalue').split(',');
+            while (Math.abs(i) > (arrValues.length - 1)) {
+                i = Math.abs(i) - arrValues.length;
+            }
+            console.log(Math.abs(i), j);
+            var arrTitles = element.getAttribute('arrtitle').split(',');
+            wheel.insertBefore(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'), wheel.firstChild);
         } else {
             wheel.insertBefore(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + GS.leftPad(newNumber, '0', 2) + '</span>'), wheel.firstChild);
         }
@@ -27097,8 +27107,17 @@ document.addEventListener('DOMContentLoaded', function () {
             ];
             wheel.appendChild(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrValues[newNumber] + '</span>'));
 
+        } else if (element.hasAttribute('arrvalue')) {
+            var j = parseInt(wheel.children[wheel.children.length - 1].getAttribute('data-number'), 10) + 1;
+            var i = j;
+            arrValues = element.getAttribute('arrvalue').split(',');
+            while (Math.abs(i) > (arrValues.length - 1)) {
+                i = Math.abs(i) - arrValues.length;
+            }
+            var arrTitles = element.getAttribute('arrtitle').split(',');
+            wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
         } else {
-            wheel.appendChild(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + GS.leftPad(newNumber, '0', 2) + '</span>'));
+            wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
         }
     }
 
@@ -27372,6 +27391,7 @@ document.addEventListener('DOMContentLoaded', function () {
         element.wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
         element.wheel.innerHTML = '';
         for (var rotation = 0, j = parseInt(element.value, 10) - 8; rotation > -360; rotation -= element.rotationInterval, j += 1) {
+            console.log('run');
             if (element.ampm) {
                 element.wheel.appendChild(
                     GS.stringToElement(
@@ -27386,6 +27406,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     break;
                 }
 
+            } else if (element.hasAttribute('arrvalue')) {
+                // console.log(element.outerHTML);
+                arrValues = element.getAttribute('arrvalue').split(',');
+                var i = j;
+                if (Math.abs(i) > (arrValues.length - 1)) {
+                    i = Math.abs(i) - arrValues.length;
+                }
+                var arrTitles = element.getAttribute('arrtitle').split(',');
+                // console.log(Math.abs(i), j);
+                // console.log(Math.abs(i), j);
+                element.wheel.appendChild(
+                    GS.stringToElement(
+                        '<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" ' +
+                            'rotation="' + rotation + '" ' +
+                            'style="transform: rotateX(' + rotation + 'deg) translateZ(' + element.radius + ');">' +
+                                arrTitles[Math.abs(i)] +
+                        '</span>'
+                    )
+                );
             } else if (bolEighths) {
                 arrValues = [
                     '<sup>0</sup>/<sub>8</sub>',
@@ -27560,7 +27599,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (element.values === 'm' || element.values === 'mm' || element.values === 'ss') {
                     element.min = 0;
                     element.max = 59;
-                } else if (element.values[0] === 'd') {
+                } else if (element.values && element.values[0] === 'd') {
                     element.min = 1;
                     element.max = element.values.length > 2 ? parseInt(element.values.substring(element.values.length - 2, element.values.length), 10) : 31;
                 } else if (element.values === 'y') {
@@ -27575,7 +27614,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.ampm = true;
                     element.rotation = element.value === 'AM' ? 0 : 22.5;
                     element.wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
+                } else if (element.hasAttribute('arrValue')) {
+                    
                 } else {
+                    console.log('yep');
                     var arrValue = element.values.split('-');
                     element.min = parseInt(arrValue[0], 10);
                     element.max = parseInt(arrValue[1], 10);
@@ -27593,6 +27635,17 @@ document.addEventListener('DOMContentLoaded', function () {
             },
 
             inserted: function () {
+                if (this.innerHTML.indexOf('option') !== -1) {
+                    var arrValues = [], arrTitles = [];
+                    for (var i = 0, len = this.children.length; i < len; i++) {
+                        arrValues[i] = (this.children[i].getAttribute('value') || this.children[i].textContent);
+                        arrTitles[i] = this.children[i].textContent;
+                    }
+                    this.setAttribute('arrvalue', arrValues);
+                    this.setAttribute('arrtitle', arrTitles);
+                } else if (this.hasAttribute('values')) {
+                    // create list of all values
+                }
                 wheelElementInserted(this);
             },
 
@@ -40017,7 +40070,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 
                 // put everything together
-                strTemplate =   '<table gs-dynamic>';
+                strTemplate = '<table gs-dynamic>';
                 
                 if (intVisibleColumns > 1) { // data.arr_column.length (didn't take into account hidden columns)
                     strTemplate +=  '<thead gs-dynamic>' +
@@ -40032,7 +40085,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                             strRecordCells +
                                         '</tr>' +
                                     '</tbody>' +
-                                '<table>';
+                                '</table>';
             }
             
             divElement = document.createElement('div');
@@ -40290,7 +40343,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (bolRefresh && element.hasAttribute('src')) {
                 getData(element);
             } else if (bolRefresh && !element.hasAttribute('src')) {
-                console.warn('gs-combo Warning: element has "refresh-on-querystring-values" or "refresh-on-querystring-change", but no "src".', element);
+                console.warn('gs-listbox Warning: element has "refresh-on-querystring-values" or "refresh-on-querystring-change", but no "src".', element);
             }
         } else {
             if (element.hasAttribute('refresh-on-querystring-values')) {
@@ -40976,6 +41029,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.scrollContainer.setAttribute('id', 'box-list-container-' + element.internal.id);
                 element.scrollContainer.appendChild(element.tableElement);
                 
+                
+                if (!element.hasAttribute('src')) {
+                    var tableElement = element.tableElement; //xtag.queryChildren(element, 'table')[0];
+                    
+                    console.log('caption', element.hasAttribute('caption'));
+                    console.log('tableElement', tableElement);
+                    if (element.hasAttribute('caption')) {
+                        var objCaption = document.createElement('caption');
+                        objCaption.innerHTML = '<center><h4>' + element.getAttribute('caption') + '</h4></center>';
+                        tableElement.insertBefore(objCaption, tableElement.children[0]);
+                    }
+                }
+                
                 element.appendChild(element.scrollContainer);
                 tbodyElement = xtag.queryChildren(element.tableElement, 'tbody')[0];
                 
@@ -41127,6 +41193,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 bindCopy(element);
                 //console.log(element.tableTemplate);
                 
+
                 
             },
             
@@ -69640,6 +69707,10 @@ window.addEventListener('design-register-element', function () {
             return setOrRemoveTextAttribute(selectedElement, 'tabindex', this.value);
         });
 
+        addProp('Max-length', true, '<gs-number class="target" value="' + encodeHTML(selectedElement.getAttribute('max-length') || '') + '" mini></gs-number>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'max-length', this.value);
+        });
+
         addProp('Autocorrect', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocorrect') !== 'off') + '" mini></gs-checkbox>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'autocorrect', (this.value === 'false' ? 'off' : ''));
         });
@@ -69772,6 +69843,42 @@ document.addEventListener('DOMContentLoaded', function () {
         return false;
     }
 
+    function focusNextElement() {
+        //add all elements we want to include in our selection
+        var focussableElements = 'a:not([disabled]), button:not([disabled]), input:not([disabled]), gs-button:not([disabled])';
+        if (document.activeElement) {
+            var focussable = Array.prototype.filter.call(document.querySelectorAll(focussableElements),
+            function (element) {
+                //check for visibility while always include the current activeElement 
+                return element.offsetWidth > 0 || element.offsetHeight > 0 || element === document.activeElement
+            });
+            var index = focussable.indexOf(document.activeElement);
+            if(index > -1) {
+               var nextElement = focussable[index + 1] || focussable[0];
+               nextElement.focus();
+            }                    
+        }
+    }
+
+    function checkMaxLength(event) {
+        var element = event.target;
+        if (element.classList.contains('control')) {
+            element = GS.findParentTag(element, 'gs-text');
+        }
+        element.syncGetters();
+        if (element.hasAttribute('max-length') && element.value.length >= element.getAttribute('max-length')) {
+            if (element.value.length > element.getAttribute('max-length')) {
+                element.value = element.value.substring(0,element.getAttribute('max-length'));
+            }
+            if (element.control.hasAttribute('tabindex') && xtag.query(document, '[tabindex="' + (parseInt(element.control.getAttribute('tabindex'), 10) + 1) + '"]').length > 0) {
+                xtag.query(document, '[tabindex="' + (parseInt(element.control.getAttribute('tabindex'), 10) + 1) + '"]')[0].focus();
+            // find next focusable element
+            } else {
+                focusNextElement();
+            }
+        }
+    }
+
     function keydownFunction(event) {
         var element = event.target;
         if (element.classList.contains('control')) {
@@ -69791,7 +69898,7 @@ document.addEventListener('DOMContentLoaded', function () {
             element = GS.findParentTag(element, 'gs-text');
         }
         var temp_caps = event.getModifierState && event.getModifierState( 'CapsLock' );
-        console.log(temp_caps);
+        // console.log(temp_caps);
         if (temp_caps) {
             element.classList.add('caps');
         } else {
@@ -70049,6 +70156,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
                     element.addEventListener('keydown', CapsLock);
                     element.addEventListener('focus', focusFunction);
+                    element.addEventListener('keyup', checkMaxLength);
                     if (evt.touchDevice) {
                         element.addEventListener(evt.click, focusFunction);
                         element.addEventListener(evt.mousedown, function (event) {
@@ -70360,6 +70468,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     element.control.removeEventListener('focus', focusFunction);
                     element.control.addEventListener('focus', focusFunction);
+                    
+                    element.removeEventListener('keyup', checkMaxLength);
+                    element.addEventListener('keyup', checkMaxLength);
 
                     element.control.removeEventListener('blur', blurFunction);
                     element.control.addEventListener('blur', blurFunction);
