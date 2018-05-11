@@ -1,4 +1,5 @@
 // Hark ye onlooker: Adding UTIL_DEBUG to this file slows it down considerably. You have been warned.
+#define UTIL_DEBUG
 #include "common_client.h"
 
 #ifdef _WIN32
