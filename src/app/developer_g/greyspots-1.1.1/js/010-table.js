@@ -19360,11 +19360,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
                 // we only want return to insert if the return occured inside
                 //      an insert cell
-                if (
-                    (parentCell.classList.contains('table-insert') &&
-                    !newParentCell) ||
-                    (parentCell.classList.contains('table-insert') &&
-                    !newParentCell.classList.contains('table-insert'))
+                if (parentCell &&
+                    (
+                        (parentCell.classList.contains('table-insert') &&
+                        !newParentCell) ||
+                        (parentCell.classList.contains('table-insert') &&
+                        !newParentCell.classList.contains('table-insert')
+                    ))
                 ) {
                     var totalValues = false, insertElements = xtag.query(element, '.table-insert input');
                     for (var i = 0, len = insertElements.length; i < len; i++) {

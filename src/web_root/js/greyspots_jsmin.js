@@ -4770,15 +4770,15 @@ xtag.register('gs-datetime',{lifecycle:{created:function(){datetimeElementCreate
             ];
             wheel.insertBefore(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrValues[newNumber] + '</span>'), wheel.firstChild);
 
-        } else if (element.hasAttribute('arrvalue')) {
+        } else if (element.arrvalue) {
             var j = parseInt(wheel.children[0].getAttribute('data-number'), 10) - 1;
             var i = j;
-            arrValues = element.getAttribute('arrvalue').split(',');
-            while (Math.abs(i) > (arrValues.length - 1)) {
-                i = Math.abs(i) - arrValues.length;
-            }
-            console.log(Math.abs(i), j);
-            var arrTitles = element.getAttribute('arrtitle').split(',');
+            arrValues = element.arrvalue;
+            i = Math.abs(i) % arrValues.length;
+            console.log(i, j);
+            i = Math.abs(i - arrValues.length) - 2;
+            console.log(i, j);
+            var arrTitles = element.arrtitle;
             wheel.insertBefore(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'), wheel.firstChild);
         } else {
             wheel.insertBefore(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + GS.leftPad(newNumber, '0', 2) + '</span>'), wheel.firstChild);
@@ -4815,14 +4815,12 @@ xtag.register('gs-datetime',{lifecycle:{created:function(){datetimeElementCreate
             ];
             wheel.appendChild(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrValues[newNumber] + '</span>'));
 
-        } else if (element.hasAttribute('arrvalue')) {
+        } else if (element.arrvalue) {
             var j = parseInt(wheel.children[wheel.children.length - 1].getAttribute('data-number'), 10) + 1;
             var i = j;
-            arrValues = element.getAttribute('arrvalue').split(',');
-            while (Math.abs(i) > (arrValues.length - 1)) {
-                i = Math.abs(i) - arrValues.length;
-            }
-            var arrTitles = element.getAttribute('arrtitle').split(',');
+            arrValues = element.arrvalue;
+            i = Math.abs(i) % arrValues.length;
+            var arrTitles = element.arrtitle;
             wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
         } else {
             wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
@@ -4905,7 +4903,7 @@ xtag.register('gs-datetime',{lifecycle:{created:function(){datetimeElementCreate
                 if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
                     element.setAttribute('value', valueElement.innerText);
                 } else {
-                    element.setAttribute('value', valueElement.getAttribute('data-number'));
+                    element.setAttribute('value', (valueElement.getAttribute('value') || valueElement.getAttribute('data-number')));
                 }
                 
                 GS.triggerEvent(element, 'change');
@@ -4989,12 +4987,12 @@ xtag.register('gs-datetime',{lifecycle:{created:function(){datetimeElementCreate
                 }
             }
 
-            console.log(wheel, element.rotation);
+            // console.log(wheel, element.rotation);
             var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
             if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
                 element.setAttribute('value', valueElement.innerText);
             } else {
-                element.setAttribute('value', valueElement.getAttribute('data-number'));
+                element.setAttribute('value', (valueElement.getAttribute('value') || valueElement.getAttribute('data-number')));
             }
 
             wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
@@ -5026,7 +5024,7 @@ xtag.register('gs-datetime',{lifecycle:{created:function(){datetimeElementCreate
             if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
                 element.setAttribute('value', valueElement.innerText);
             } else {
-                element.setAttribute('value', valueElement.getAttribute('data-number'));
+                element.setAttribute('value', (valueElement.getAttribute('value') || valueElement.getAttribute('data-number')));
             }
 
             wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
@@ -5060,7 +5058,7 @@ xtag.register('gs-datetime',{lifecycle:{created:function(){datetimeElementCreate
             }
 
             var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
-            element.setAttribute('value', valueElement.innerText);
+            element.setAttribute('value', (valueElement.getAttribute('value') || valueElement.innerText));
 
             wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
             addNumberToStart(element);
@@ -5084,7 +5082,7 @@ xtag.register('gs-datetime',{lifecycle:{created:function(){datetimeElementCreate
             }
 
             var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
-            element.setAttribute('value', valueElement.innerText);
+            element.setAttribute('value', (valueElement.getAttribute('value') || valueElement.innerText));
 
             wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
             addNumberToEnd(element);
@@ -5098,8 +5096,7 @@ xtag.register('gs-datetime',{lifecycle:{created:function(){datetimeElementCreate
         element.rotation = -180;
         element.wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
         element.wheel.innerHTML = '';
-        for (var rotation = 0, j = parseInt(element.value, 10) - 8; rotation > -360; rotation -= element.rotationInterval, j += 1) {
-            console.log('run');
+        for (var rotation = 0, j = parseInt(element.value - ((element.arrvalue) ? 1 : 0), 10) - 8; rotation > -360; rotation -= element.rotationInterval, j += 1) {
             if (element.ampm) {
                 element.wheel.appendChild(
                     GS.stringToElement(
@@ -5114,16 +5111,26 @@ xtag.register('gs-datetime',{lifecycle:{created:function(){datetimeElementCreate
                     break;
                 }
 
-            } else if (element.hasAttribute('arrvalue')) {
-                // console.log(element.outerHTML);
-                arrValues = element.getAttribute('arrvalue').split(',');
-                var i = j;
-                if (Math.abs(i) > (arrValues.length - 1)) {
-                    i = Math.abs(i) - arrValues.length;
+            } else if (element.arrvalue) {
+                arrValues = element.arrvalue;
+                if (j < 0) {
+                    if (j >= 0) {
+                        j = element.arrvalue.length - j;
+                    } else {
+                        j = (element.arrvalue.length + 1) + j;
+                    }
+                    var i = j;
+                } else {
+                    var i = j;
                 }
-                var arrTitles = element.getAttribute('arrtitle').split(',');
-                // console.log(Math.abs(i), j);
-                // console.log(Math.abs(i), j);
+                j = ((j < 0) ? (Math.abs(i) % arrValues.length) - ((Math.abs(i) % arrValues.length) * 2) : (Math.abs(i) % arrValues.length));
+                i = Math.abs(i) % arrValues.length;
+                // console.log(i, j);
+                if (rotation == -180) {
+                    element.setAttribute('value', arrValues[Math.abs(i)]);
+                    xtag.query(element, '.container')[0].style.width = element.longestWidth + 'px';
+                }
+                var arrTitles = element.arrtitle;
                 element.wheel.appendChild(
                     GS.stringToElement(
                         '<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" ' +
@@ -5250,6 +5257,9 @@ xtag.register('gs-datetime',{lifecycle:{created:function(){datetimeElementCreate
                 }
 
                 element.radius = '4em'; //(element.clientHeight / 2) + 'px';
+                if (element.hasAttribute('min') && element.hasAttribute('max')) {
+                    element.setAttribute('values', element.getAttribute('min') + '-' + element.getAttribute('max'));
+                }
                 element.values = element.getAttribute('values');
                 if (evt.touchDevice) {
                     element.innerHTML = ml(function () {/*
@@ -5272,10 +5282,13 @@ xtag.register('gs-datetime',{lifecycle:{created:function(){datetimeElementCreate
                         </div>
                     */}).replace('{{RADIUS}}',element.radius);}
 element.wheel=xtag.query(element,'.wheel')[0];element.arrowUp=xtag.query(element,'.arrow-up')[0];element.arrowDown=xtag.query(element,'.arrow-down')[0];element.rotation=-180;if(evt.touchDevice){element.addEventListener(evt.mousedown,wheelDragStartHandler);}else{element.arrowUp.addEventListener('click',arrowClickHandler);element.arrowDown.addEventListener('click',arrowClickHandler);element.addEventListener('wheel',wheelScrollHandler);}
-element.rotationInterval=360/16;if(!element.values&&element.hasAttribute('min')&&element.hasAttribute('max')){element.values=(element.getAttribute('min')+'-'+element.getAttribute('max'));element.min=parseInt(element.getAttribute('min'),10);element.max=parseInt(element.getAttribute('max'),10);}else if(element.values==='M'||element.values==='MM'||element.values==='H'||element.values==='HH'){element.min=1;element.max=12;}else if(element.values==='h'||element.values==='hh'){element.min=0;element.max=23;}else if(element.values==='k'||element.values==='kk'){element.min=0;element.max=23;}else if(element.values==='m'||element.values==='mm'||element.values==='ss'){element.min=0;element.max=59;}else if(element.values&&element.values[0]==='d'){element.min=1;element.max=element.values.length>2?parseInt(element.values.substring(element.values.length-2,element.values.length),10):31;}else if(element.values==='y'){element.min=0;element.max=99;}else if(element.values==='yyyy'){var d=new Date();element.min=d.getFullYear()-50;element.max=d.getFullYear()+50;}else if(element.values==='ampm'){element.ampm=true;element.rotation=element.value==='AM'?0:22.5;element.wheel.setAttribute('style','transform: translateZ(-'+element.radius+') rotateX('+element.rotation+'deg);');}else if(element.hasAttribute('arrValue')){}else{console.log('yep');var arrValue=element.values.split('-');element.min=parseInt(arrValue[0],10);element.max=parseInt(arrValue[1],10);}
+element.rotationInterval=360/16;if(!element.values&&element.hasAttribute('min')&&element.hasAttribute('max')){element.values=(element.getAttribute('min')+'-'+element.getAttribute('max'));element.min=parseInt(element.getAttribute('min'),10);element.max=parseInt(element.getAttribute('max'),10);}else if(element.values==='M'||element.values==='MM'||element.values==='H'||element.values==='HH'){element.min=1;element.max=12;}else if(element.values==='h'||element.values==='hh'){element.min=0;element.max=23;}else if(element.values==='k'||element.values==='kk'){element.min=0;element.max=23;}else if(element.values==='m'||element.values==='mm'||element.values==='ss'){element.min=0;element.max=59;}else if(element.values&&element.values[0]==='d'){element.min=1;element.max=element.values.length>2?parseInt(element.values.substring(element.values.length-2,element.values.length),10):31;}else if(element.values==='y'){element.min=0;element.max=99;}else if(element.values==='yyyy'){var d=new Date();element.min=d.getFullYear()-50;element.max=d.getFullYear()+50;}else if(element.values==='ampm'){element.ampm=true;element.rotation=element.value==='AM'?0:22.5;element.wheel.setAttribute('style','transform: translateZ(-'+element.radius+') rotateX('+element.rotation+'deg);');}else if(element.arrvalue){}else{var arrValue=element.values.split('-');var i=parseInt(arrValue[0],10);console.log(arrValue);element.arrvalue=[];element.arrtitle=[];var len=parseInt(arrValue[1],10)+1;while(i<len){element.arrvalue.push(i);element.arrtitle.push(i);i++;}
+element.removeAttribute('values');}
 wheelGenerateHTML(element);}}}
+function longestOfArray(a){var c=0,d=0,l=0,i=a.length;if(i)while(i--){d=a[i].length;if(d>c){l=i;c=d;}}
+return a[l];}
 xtag.register('gs-wheel',{lifecycle:{created:function(){wheelElementCreated(this);},inserted:function(){if(this.innerHTML.indexOf('option')!==-1){var arrValues=[],arrTitles=[];for(var i=0,len=this.children.length;i<len;i++){arrValues[i]=(this.children[i].getAttribute('value')||this.children[i].textContent);arrTitles[i]=this.children[i].textContent;}
-this.setAttribute('arrvalue',arrValues);this.setAttribute('arrtitle',arrTitles);}else if(this.hasAttribute('values')){}
+this.arrvalue=arrValues;this.arrtitle=arrTitles;this.longest=longestOfArray(arrTitles);this.innerHTML='<div style="position: absolute; visibility: hidden; height: auto; width: auto; white-space: nowrap;">&nbsp;'+this.longest+'&nbsp;</div>';this.longestWidth=this.children[0].offsetWidth;console.log(this.longestWidth);}
 wheelElementInserted(this);},attributeChanged:function(strAttrName,oldValue,newValue){if(strAttrName==='suspend-created'&&newValue===null){wheelElementCreated(this);wheelElementInserted(this);}else if(strAttrName==='suspend-inserted'&&newValue===null){wheelElementInserted(this);}else if(!this.hasAttribute('suspend-created')&&!this.hasAttribute('suspend-inserted')){}}},events:{},accessors:{value:{get:function(){return this.getAttribute('value')||'0';},set:function(newValue){this.setAttribute('value',newValue);wheelGenerateHTML(this);}}},methods:{}});});window.addEventListener('design-register-element',function(){'use strict';registerDesignSnippet('Dialog From Template','Dialog From Template','GS.openDialog(\'${1:templateID}\', function () {\n'+'    // after dialog open \n'+'}, function (event, strAnswer) {\n'+'    if (strAnswer === \'${2:Ok}\') {\n'+'        // before dialog close\n'+'        $0\n'+'    }\n'+'});');registerDesignSnippet('GS.openDialog','GS.openDialog','GS.openDialog(\'${1:templateID}\', function () {\n'+'    // after dialog open \n'+'}, function (event, strAnswer) {\n'+'    if (strAnswer === \'${2:Ok}\') {\n'+'        // beforedialog close\n'+'        $0\n'+'    }\n'+'});');registerDesignSnippet('GS.closeDialog','GS.closeDialog','GS.closeDialog(${1:dialog}, ${2:\'Ok\'});');registerDesignSnippet('Close Dialog','Close Dialog','GS.closeDialog(${1:dialog}, ${2:\'Ok\'});');registerDesignSnippet('GS.msgbox','GS.msgbox','GS.msgbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, '+'${3:[\'Cancel\', \'Ok\']}, function (strAnswer) {\n'+'    if (strAnswer === ${4:\'Ok\'}) {\n'+'        // before dialog close\n'+'        $0\n'+'    }\n'+'});');registerDesignSnippet('Message Box','Message Box','GS.msgbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, '+'${3:[\'Cancel\', \'Ok\']}, function (strAnswer) {\n'+'    if (strAnswer === ${4:\'Ok\'}) {\n'+'        // before dialog close\n'+'        $0\n'+'    }\n'+'});');registerDesignSnippet('GS.inputbox','GS.inputbox','GS.inputbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, '+'function (strInputValue) {\n'+'    // before dialog close\n'+'    $0\n'+'});');registerDesignSnippet('Input Box','Input Box','GS.inputbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, '+'function (strInputValue) {\n'+'    // before dialog close\n'+'    $0\n'+'});');registerDesignSnippet('GS.openDialogToElement','GS.openDialogToElement','GS.openDialogToElement(${1:document.getElementById(\'target\')}, \'${2:templateID}\', '+'\'${3:right}\', function () {\n'+'    // after dialog open \n'+'}, function (event, strAnswer) {\n'+'    if (strAnswer === \'${4:Ok}\') {\n'+'        // beforedialog close\n'+'        $0\n'+'    }\n'+'});');registerDesignSnippet('Dialog For Element','Dialog For Element','GS.openDialogToElement(${1:document.getElementById(\'target\')}, \'${2:templateID}\', '+'\'${3:right}\', function () {\n'+'    // after dialog open \n'+'}, function (event, strAnswer) {\n'+'    if (strAnswer === \'${4:Ok}\') {\n'+'        // beforedialog close\n'+'        $0\n'+'    }\n'+'});');});(function(){'use strict';function buttonHTML(buttons){var strHTML,i,len;buttons=buttons||['Ok'];if(typeof buttons==='string'){if(buttons==='okcancel'||buttons==='cancelok'){buttons=['Cancel','Ok'];}else if(buttons==='ok'||buttons==='okonly'){buttons=['Ok'];}else if(buttons==='cancel'||buttons==='cancelonly'){buttons=['Cancel'];}else if(buttons==='yesno'||buttons==='noyes'){buttons=['No','Yes'];}else if(buttons==='Yes'||buttons==='yesonly'){buttons=['Yes'];}else if(buttons==='No'||buttons==='noonly'){buttons=['No'];}}
 if(typeof buttons==='object'){if(buttons.length>0){strHTML='<gs-grid gs-dynamic>';for(i=0,len=buttons.length;i<len;i+=1){strHTML+='<gs-block gs-dynamic>'+'<gs-button dialogclose '+(buttons[i]==='Cancel'?'key="escape" no-modifier-key ':'')+(i===len-1?'bg-primary listen-for-return':'')+' gs-dynamic>'+
 encodeHTML(buttons[i])+'</gs-button>'+'</gs-block>';}
@@ -5570,7 +5583,7 @@ function getNumberOfDaysInMonth(d){d=new Date(d);d.setMonth(d.getMonth()+1);d.se
 function insertText(str){if(!document.queryCommandSupported('insertText')||!document.queryCommandEnabled('insertText')){var element=document.activeElement;var jsnTextSelection=GS.getInputSelection(element);element.value=element.value.substring(0,jsnTextSelection.start)+str+element.value.substring(jsnTextSelection.end);element.parentNode.cancelSelectEvent=true;GS.setInputSelection(element,jsnTextSelection.start+str.length,jsnTextSelection.start+str.length);}else{document.execCommand('insertText',true,str);}}
 function controlKeydownFunction(event){var element=event.target.parentNode;if(!event.ctrlKey&&!event.metaKey&&!event.altKey){var strValue=element.control.value;var intKeyCode=(event.keyCode||event.which);var jsnTextSelection;var format;var arrFormatSeparators;var strFormatSeparators;var regFormatSeparators;var arrDate;var arrFormat;var arrValueRanges;var currentValueRange;var i;var j;var len;var getValueRanges=function(){arrFormatSeparators=format.match(/[^yMdEHhKAaPpmsS]+/g);strFormatSeparators='['+arrFormatSeparators.join('').replace(/\[/g,'\\[').replace(/\]/g,'\\]').replace(/-/g,'\\-')+']';regFormatSeparators=new RegExp(strFormatSeparators,'g');arrDate=strValue.split(regFormatSeparators);arrFormat=format.split(regFormatSeparators);arrValueRanges=[];i=0;j=0;len=arrDate.length;while(i<len){arrValueRanges.push({start:j,end:j+arrDate[i].length});j+=arrDate[i].length+1;i+=1;}};format=getFormatString(element);getValueRanges();jsnTextSelection=GS.getInputSelection(element.control);currentValueRange=-2;i=0;len=arrValueRanges.length;while(i<len){if(jsnTextSelection.start>=arrValueRanges[i].start&&jsnTextSelection.end<=arrValueRanges[i].end){currentValueRange=i;break;}
 i+=1;}
-if(intKeyCode>=37&&intKeyCode<=40&&element.internal.validDate){event.preventDefault();event.stopPropagation();(function(){if(intKeyCode===37){if(currentValueRange===-2){currentValueRange=0;}else{currentValueRange-=1;}
+console.log('intKeyCode',intKeyCode);if(intKeyCode>=37&&intKeyCode<=40&&element.internal.validDate){event.preventDefault();event.stopPropagation();(function(){if(intKeyCode===37){if(currentValueRange===-2){currentValueRange=0;}else{currentValueRange-=1;}
 while(currentValueRange>0&&arrDate[currentValueRange].length===0){currentValueRange-=1;}}else if(intKeyCode===39){if(currentValueRange===-2){currentValueRange=0;}else{currentValueRange+=1;}
 while(currentValueRange<arrDate.length&&arrDate[currentValueRange].length===0){currentValueRange+=1;}}
 if(currentValueRange===-2){currentValueRange=0;}else if(currentValueRange<0){currentValueRange+=arrValueRanges.length;}else if(currentValueRange>=arrValueRanges.length){currentValueRange-=arrValueRanges.length;}
@@ -5585,7 +5598,7 @@ if(!element.internal.bolDayToYear){saveYear=d.getFullYear();}
 if(!element.internal.bolDayToMonth&&d.getDate()===1){d.setDate(getNumberOfDaysInMonth(d));}else{d.setDate(d.getDate()-1);}
 if(!element.internal.bolDayToMonth){d.setMonth(saveMonth);}
 if(!element.internal.bolDayToYear){d.setFullYear(saveYear);}}else if(/[HhK]/.test(arrFormat[currentValueRange])){d.setHours(d.getHours()-1);}else if(/[AaPp]/.test(arrFormat[currentValueRange])){d.setHours(d.getHours()-(/a/i.test(arrDate[currentValueRange])?12:-12));}else if(/[m]/.test(arrFormat[currentValueRange])){d.setMinutes(d.getMinutes()-1);}else if(/[s]/.test(arrFormat[currentValueRange])){d.setSeconds(d.getSeconds()-1);}else if(/[S]/.test(arrFormat[currentValueRange])){d.setMilliseconds(d.getMilliseconds()-1);}}
-element.internal.validDate=d.toString()!=='Invalid Date';if(element.internal.validDate){element.internal.lastValidDate=d;strValue=formatDate(d,getFormatString(element));element.internal.lastValidValue=strValue;getValueRanges();GS.setInputSelection(element.control,0,element.control.value.length);insertText(strValue);GS.setInputSelection(element.control,arrValueRanges[currentValueRange].start,arrValueRanges[currentValueRange].end);}else{GS.setInputSelection(element.control,0,element.control.value.length);insertText('Invalid Date');setTimeout(function(){element.control.value=null;},250);}}());}else if(intKeyCode>=37&&intKeyCode<=40){event.preventDefault();}else if(intKeyCode===27){element.internal.validDate=true;strValue=formatDate(element.internal.lastValidDate,getFormatString(element));getValueRanges();GS.setInputSelection(element.control,0,element.control.value.length);insertText(strValue);currentValueRange=currentValueRange===-1?0:currentValueRange;GS.setInputSelection(element.control,arrValueRanges[currentValueRange].start,arrValueRanges[currentValueRange].end);}else if(intKeyCode===32){event.preventDefault();var d=newDateInCurrentTimeZone(element.control.value);element.internal.lastValidDate=d;strValue=formatDate(d,getFormatString(element));element.internal.lastValidValue=strValue;getValueRanges();GS.setInputSelection(element.control,0,element.control.value.length);insertText(strValue);currentValueRange+=1;while(currentValueRange<arrDate.length&&arrDate[currentValueRange].length===0){currentValueRange+=1;}
+element.internal.validDate=d.toString()!=='Invalid Date';if(element.internal.validDate){element.internal.lastValidDate=d;strValue=formatDate(d,getFormatString(element));element.internal.lastValidValue=strValue;getValueRanges();GS.setInputSelection(element.control,0,element.control.value.length);insertText(strValue);GS.setInputSelection(element.control,arrValueRanges[currentValueRange].start,arrValueRanges[currentValueRange].end);}else{GS.setInputSelection(element.control,0,element.control.value.length);insertText('Invalid Date');setTimeout(function(){element.control.value=null;},250);}}());}else if(intKeyCode>=37&&intKeyCode<=40){event.preventDefault();}else if(intKeyCode===13){GS.triggerEvent(element.control,'change');}else if(intKeyCode===27){element.internal.validDate=true;strValue=formatDate(element.internal.lastValidDate,getFormatString(element));getValueRanges();GS.setInputSelection(element.control,0,element.control.value.length);insertText(strValue);currentValueRange=currentValueRange===-1?0:currentValueRange;GS.setInputSelection(element.control,arrValueRanges[currentValueRange].start,arrValueRanges[currentValueRange].end);}else if(intKeyCode===32){event.preventDefault();var d=newDateInCurrentTimeZone(element.control.value);element.internal.lastValidDate=d;strValue=formatDate(d,getFormatString(element));element.internal.lastValidValue=strValue;getValueRanges();GS.setInputSelection(element.control,0,element.control.value.length);insertText(strValue);currentValueRange+=1;while(currentValueRange<arrDate.length&&arrDate[currentValueRange].length===0){currentValueRange+=1;}
 if(currentValueRange>=arrDate.length){currentValueRange-=arrDate.length;}
 element.cancelSelectEvent=true;GS.setInputSelection(element.control,arrValueRanges[currentValueRange].start,arrValueRanges[currentValueRange].end);strValue=element.control.value;}else if(intKeyCode>=48){var bolAlpha=intKeyCode>=65&&intKeyCode<=90;var bolNum=(intKeyCode>=48&&intKeyCode<=57)||(intKeyCode>=96&&intKeyCode<=105);var bolAllowTyping=!element.internal.validDate;if(bolAlpha&&(arrFormat[Math.max(currentValueRange,0)]==='MMM'||arrFormat[Math.max(currentValueRange,0)]==='MMMM'||(/[AaPp]/).test(arrFormat[Math.max(currentValueRange,0)]))){bolAllowTyping=true;}else if(bolNum&&arrFormat[Math.max(currentValueRange,0)]!=='MMM'&&arrFormat[Math.max(currentValueRange,0)]!=='MMMM'){bolAllowTyping=true;}
 if(!bolAllowTyping){event.preventDefault();}else if(currentValueRange<0&&GS.charFromKeyCode(event)){event.preventDefault();currentValueRange=0;GS.setInputSelection(element.control,arrValueRanges[currentValueRange].start,arrValueRanges[currentValueRange].end);element.cancelSelectEvent=true;insertText(GS.charFromKeyCode(event));}else if(arrFormat[currentValueRange]==='EEE'||arrFormat[currentValueRange]==='EEEE'||(/[AaPp]/.test(arrFormat[currentValueRange])&&intKeyCode!==65&&intKeyCode!==80)){event.preventDefault();}else if(/[AaPp]/.test(arrFormat[currentValueRange])&&(intKeyCode===65||intKeyCode===80)){event.preventDefault();GS.setInputSelection(element.control,arrValueRanges[currentValueRange].start,arrValueRanges[currentValueRange].end);insertText(intKeyCode===65?'AM':'PM');GS.setInputSelection(element.control,arrValueRanges[currentValueRange].start,arrValueRanges[currentValueRange].end);strValue=element.control.value;}else if(element.internal.validDate&&currentValueRange>=0&&arrFormat[currentValueRange].length===2&&arrDate[currentValueRange].length===2&&(jsnTextSelection.end-jsnTextSelection.start)===0){event.preventDefault();currentValueRange+=1;while(currentValueRange<arrDate.length&&arrDate[currentValueRange].length===0){currentValueRange+=1;}
@@ -5604,7 +5617,8 @@ i+=1;}
 if(currentValueRange>=0){element.cancelSelectEvent=true;GS.setInputSelection(element.control,arrValueRanges[currentValueRange].start,arrValueRanges[currentValueRange].end);}}
 function arrowMousedownFunction(event){var element=GS.findParentTag(event.target,'gs-dt');event.preventDefault();if(evt.touchDevice){element.bolArrowEvent=true;}
 GS.triggerEvent(element.control,'keydown',{which:(event.target.classList.contains('dt-arrow-left')?37:event.target.classList.contains('dt-arrow-up')?38:event.target.classList.contains('dt-arrow-right')?39:event.target.classList.contains('dt-arrow-down')?40:0)});}
-function changeFunction(event){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();event.target.parentNode.syncGetters();event.target.parentNode.internal.lastChangeValue=event.target.parentNode.value;GS.triggerEvent(event.target.parentNode,'change');return false;}
+function changeFunction(event){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();event.target.parentNode.syncGetters();event.target.parentNode.internal.lastChangeValue=event.target.parentNode.value;if(event.target.parentNode.changeOldValue!==event.target.value){event.target.parentNode.changeOldValue=event.target.value;GS.triggerEvent(event.target.parentNode,'change');}
+return false;}
 function focusFunction(event){var element=event.target;if(event.target.classList.contains('control')){element=element.parentNode.parentNode;}
 element.removeEventListener('focus',focusFunction);element.classList.add('focus');element.addControl();if(element.control.value&&element.control.value.length>0){if(element.bolSelect){element.control.setSelectionRange(0,element.control.value.length);}else{element.control.setSelectionRange(element.control.value.length,element.control.value.length);}}
 element.bolSelect=true;}
@@ -8658,7 +8672,7 @@ elem_i+=1;}
 if(arrColumns.length>0){afterUpdateFunc=function(){GS.closeDialog(dialog,'Ok');element.removeEventListener('after_update',afterUpdateFunc);};element.addEventListener('after_update',afterUpdateFunc);dataUPDATE(element,'cell-range',{"data":{"columns":arrColumns,"records":[intRow],"values":[arrValues.join('\t')]},"updateConfirmed":false});}};document.getElementById('gs-table-update-record').addEventListener('click',saveButtonClick);});}};element.elems.dataViewport.addEventListener('click',element.internalEvents.updateDialog);}
 function unbindInsert(element){element.elems.dataViewport.removeEventListener('keydown',element.internalEvents.insertRecordReturn);element.elems.dataViewport.removeEventListener('change',element.internalEvents.insertRecordValueRetain,true);element.elems.dataViewport.removeEventListener('keyup',element.internalEvents.insertRecordValueRetain);}
 function bindInsert(element){element.internalEvents.insertRecordReturn=function(event){var parentCell=GS.findParentTag(event.target,'gs-cell');var keyCode=(event.keyCode||event.which);if(parentCell.classList.contains('table-insert')&&keyCode===13){element.clearSelection();focusHiddenControl(element);}};element.internalEvents.insertRecordBlur=function(event){setTimeout(function()
-{console.log(document.activeElement);var parentCell=GS.findParentTag(event.target,'gs-cell');var newParentCell=GS.findParentTag(document.activeElement,'gs-cell');if((parentCell.classList.contains('table-insert')&&!newParentCell)||(parentCell.classList.contains('table-insert')&&!newParentCell.classList.contains('table-insert'))){var totalValues=false,insertElements=xtag.query(element,'.table-insert input');for(var i=0,len=insertElements.length;i<len;i++){totalValues+=insertElements[i].value;}
+{console.log(document.activeElement);var parentCell=GS.findParentTag(event.target,'gs-cell');var newParentCell=GS.findParentTag(document.activeElement,'gs-cell');if(parentCell&&((parentCell.classList.contains('table-insert')&&!newParentCell)||(parentCell.classList.contains('table-insert')&&!newParentCell.classList.contains('table-insert')))){var totalValues=false,insertElements=xtag.query(element,'.table-insert input');for(var i=0,len=insertElements.length;i<len;i++){totalValues+=insertElements[i].value;}
 if(totalValues&&totalValues!=='false'){console.log('why:'+totalValues);triggerRecordInsert(element);}}},1);};element.elems.dataViewport.addEventListener('keydown',element.internalEvents.insertRecordReturn);element.elems.dataViewport.addEventListener('blur',element.internalEvents.insertRecordBlur,true);element.internalEvents.insertRecordValueRetain=function(event){console.log(event);if(event.type==='keyup'&&event.keyCode==13){console.log('exit');return;console.log(event.type);}
 var target=event.target;var parentCell=GS.findParentTag(target,'gs-cell');var parentColumn=GS.findParentElement(target,'[column]');var strColumn=parentColumn.getAttribute('column');var strValue=parentColumn.value;if(parentCell.classList.contains('table-insert')&&strColumn){if(strValue){element.internalData.insertRecord[strColumn]=strValue;if(element.internalData.insertRecordRetainedColumns.indexOf(strColumn)===-1){element.internalData.insertRecordRetainedColumns.push(strColumn);}}else if(!strValue&&element.internalData.insertRecordRetainedColumns.indexOf(strColumn)>-1){element.internalData.insertRecord[strColumn]=undefined;element.internalData.insertRecordRetainedColumns.splice(element.internalData.insertRecordRetainedColumns.indexOf(strColumn));}}};element.elems.dataViewport.addEventListener('keyup',element.internalEvents.insertRecordValueRetain);}
 function unbindHUD(element){}
