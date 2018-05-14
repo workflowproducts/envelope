@@ -3337,6 +3337,86 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('Centered H6', 'Centered H6', '<center><h6>$0</h6></center>');
 
     // javascript snippets
+    registerDesignSnippet('Xtag Register', 'xtag.register',
+            'window.addEventListener(\'design-register-element\', function () {\n' +
+            'window.designElementProperty_GS${1:element} = function (selectedElement) {\n' +
+            '        // Sample properties:\n' +
+            '        // Checkbox:\n' +
+            '        // addProp(\'Property\', true, \'<gs-checkbox class="target" value="\' + (selectedElement.hasAttribute(\'property\') || \'\') + \'" mini></gs-checkbox>\', function () {\n' +
+            '        //     return setOrRemoveBooleanAttribute(selectedElement, \'property\', this.value === \'true\', true);\n' +
+            '        // });\n' +
+            '        // Text:\n' +
+            '        // addProp(\'Property\', true, \'<gs-text class="target" value="\' + encodeHTML(selectedElement.getAttribute(\'property\') || \'\') + \'" mini></gs-text>\', function () {\n' +
+            '        //     return setOrRemoveTextAttribute(selectedElement, \'property\', this.value, false);\n' +
+            '        // });\n' +
+            '    };\n' +
+            '});\n' +
+            '\n' +
+            '//global xtag\n' +
+            '//jslint browser:true\n' +
+            'document.addEventListener("DOMContentLoaded", function () {\n' +
+            '    "use strict";\n' +
+            '    // dont do anything that modifies the element here\n' +
+            '    function elementCreated(element) {\n' +
+            '        // if "created" hasn\'t been suspended: run created code\n' +
+            '        if (!element.hasAttribute(\'suspend-created\')) {\n' +
+            '            ${2:Created Code}\n' +
+            '        }\n' +
+            '    }\n' +
+            '\n' +
+            '    function elementInserted(element) {\n' +
+            '        // if "created" hasn\'t been suspended and "inserted" hasn\'t been suspended: run inserted code\n' +
+            '        if (!element.hasAttribute("suspend-created") && !element.hasAttribute("suspend-inserted")) {\n' +
+            '            // if this is the first time inserted has been run: continue\n' +
+            '            if (!element.inserted) {\n' +
+            '                element.inserted = true;\n' +
+            '                ${3:Inserted Code}\n' +
+            '            }\n' +
+            '        }\n' +
+            '    }\n' +
+            '\n' +
+            '    xtag.register("${1:element}", {\n' +
+            '        lifecycle: {\n' +
+            '            created function () {\n' +
+            '                elementCreated(this);\n' +
+            '            },\n' +
+            '            inserted: function () {\n' +
+            '                elementInserted(this);\n' +
+            '            },\n' +
+            '            attributeChanged: function (strAttrName, oldValue, newValue) {\n' +
+            '                var element = this;\n' +
+            '\n' +
+            '                // if "suspend-created" has been removed: run created and inserted code\n' +
+            '                if (strAttrName === "suspend-created" && newValue === null) {\n' +
+            '                    elementInserted(element);\n' +
+            '\n' +
+            '                // if "suspend-inserted" has been removed: run inserted code\n' +
+            '                } else if (strAttrName === "suspend-inserted" && newValue === null) {\n' +
+            '                    elementInserted(element);\n' +
+            '                }\n' +
+            '            }\n' +
+            '        },\n' +
+            '        events: {},\n' +
+            '        accessors: {\n' +
+            '            // Sample accessor:\n' +
+            '            // \'value\': {\n' +
+            '            //     get: function () {\n' +
+            '            //         var element = this;\n' +
+            '            //     },\n' +
+            '            //     set: function (strNewValue) {\n' +
+            '            //         var element = this;\n' +
+            '            //     }\n' +
+            '            // }\n' +
+            '        },\n' +
+            '        methods: {\n' +
+            '            // Sample method:\n' +
+            '            // \'method\': function () {\n' +
+            '            //     var element = this;\n' +
+            '            // }\n' +
+            '        }\n' +
+            '    });\n' +
+            '});');
+    
     registerDesignSnippet('Window Load', 'window.addEventListener',
             'window.addEventListener(\'load\', function () {\n' +
             '    $0\n' +
@@ -3346,6 +3426,25 @@ window.addEventListener('design-register-element', function () {
             'ml(function () {/*\n' +
             '    ${0}\n' +
             '})');
+            
+    registerDesignSnippet('document.getElementById', 'document.getElementById',
+            'document.getElementById(\'${1:id}\')');
+            
+    registerDesignSnippet('document.getElementsByClassName', 'document.getElementsByClassName',
+            'document.getElementsByClassName(\'${1:class}\')');
+            
+    registerDesignSnippet('document.getElementsByName', 'document.getElementsByName',
+            'document.getElementsByName(\'${1:name}\')');
+            
+    registerDesignSnippet('document.getElementsByTagName', 'document.getElementsByTagName',
+            'document.getElementsByTagName(\'${1:tagname}\')');
+
+    registerDesignSnippet('Xtag Query', 'xtag.query',
+            'xtag.query(${1:element}, \'${2:selector}\');');
+    registerDesignSnippet('Xtag Query Children', 'xtag.queryChildren',
+            'xtag.queryChildren(${1:element}, \'${2:selector}\');');
+    registerDesignSnippet('Xtag Match Selector', 'xtag.matchSelector',
+            'xtag.matchSelector(${1:element}, \'${2:selector}\');');
 
     registerDesignSnippet('ml()', 'ml()',
             'ml(function () {/*\n' +
@@ -3907,7 +4006,9 @@ GS.findParentTag = function (element, strTagName) {
 GS.findParentElement = function (element, checkParameter) {
     'use strict';
     var currentElement = element;
-    
+    if (currentElement === window || currentElement === document) {
+        return document.documentElement;
+    }
     // if checkParameter is a function: use it to check the element
     if (typeof checkParameter === 'function') {
         while (currentElement && !checkParameter(currentElement) && currentElement.nodeName !== 'HTML') {
@@ -26195,7 +26296,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
-            console.log(element.hasTime);
+            // console.log(element.hasTime);
             if (element.hasTime) {
                 var clock = xtag.query(document, 'gs-dialog .clock')[0];
                 var timeAdjustSection = xtag.query(document, 'gs-dialog .time-adjust-section')[0];
@@ -26537,7 +26638,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var wheelHTML = function () {
             var strRet = '';
-            console.log(arrFormat, arrDate);
+            // console.log(arrFormat, arrDate);
             for (i = 0, len = arrFormat.length; i < len; i += 1) {
                 if (arrFormat[i] === '\'') {
                     i += 1;
@@ -26628,7 +26729,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }, function (event, strAnswer) {
             if (strAnswer === 'Done') {
                 var dialog = xtag.query(document, 'gs-dialog')[0];
-                console.log(dialog);
+                // console.log(dialog);
 
                 for (i = 0, len = arrFormat.length; i < len; i += 1) {
                     if (arrFormat[i] === '\'') {
@@ -27064,12 +27165,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } else if (element.arrvalue) {
             var j = parseInt(wheel.children[0].getAttribute('data-number'), 10) - 1;
+            if (j === -1) {
+                j = element.arrvalue.length - 1;
+            }
             var i = j;
             arrValues = element.arrvalue;
             i = Math.abs(i) % arrValues.length;
-            console.log(i, j);
-            i = Math.abs(i - arrValues.length) - 2;
-            console.log(i, j);
             var arrTitles = element.arrtitle;
             wheel.insertBefore(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'), wheel.firstChild);
         } else {
@@ -27108,14 +27209,13 @@ document.addEventListener('DOMContentLoaded', function () {
             wheel.appendChild(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrValues[newNumber] + '</span>'));
 
         } else if (element.arrvalue) {
-            var j = parseInt(wheel.children[wheel.children.length - 1].getAttribute('data-number'), 10) + 1;
-            var i = j;
+            var i = parseInt(wheel.children[wheel.children.length - 1].getAttribute('data-number'), 10) + 1;
             arrValues = element.arrvalue;
             i = Math.abs(i) % arrValues.length;
             var arrTitles = element.arrtitle;
-            wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
+            wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + i + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
         } else {
-            wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
+            wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + i + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
         }
     }
 
@@ -27311,7 +27411,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            console.log(wheel, element.rotation);
+            // console.log(wheel, element.rotation);
             var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
             if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
                 element.setAttribute('value', valueElement.innerText);
@@ -27415,17 +27515,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     var i = j;
                 }
+                // console.log(i, j);
                 j = ((j < 0) ? (Math.abs(i) % arrValues.length) - ((Math.abs(i) % arrValues.length) * 2) : (Math.abs(i) % arrValues.length));
-                i = Math.abs(i) % arrValues.length;
+                if (j == -1) {
+                    j = arrValues.length - 1;
+                }
+                i = Math.abs(j) % arrValues.length;
                 // console.log(i, j);
                 if (rotation == -180) {
                     element.setAttribute('value', arrValues[Math.abs(i)]);
-                    xtag.query(element, '.container')[0].style.width = element.longestWidth + 'px';
+                    if (xtag.query(element, '.container')[0].style.width < element.longestWidth + 'px') {
+                        xtag.query(element, '.container')[0].style.width = element.longestWidth + 'px';
+                    }
                 }
                 var arrTitles = element.arrtitle;
                 element.wheel.appendChild(
                     GS.stringToElement(
-                        '<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" ' +
+                        '<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + Math.abs(j) + '" ' +
                             'rotation="' + rotation + '" ' +
                             'style="transform: rotateX(' + rotation + 'deg) translateZ(' + element.radius + ');">' +
                                 arrTitles[Math.abs(i)] +
@@ -27632,7 +27738,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // element.max = parseInt(arrValue[1], 10);
                     var arrValue = element.values.split('-');
                     var i = parseInt(arrValue[0], 10);
-                    console.log(arrValue);
+                    // console.log(arrValue);
                     element.arrvalue = [];
                     element.arrtitle = [];
                     var len = parseInt(arrValue[1], 10) + 1;
@@ -27683,7 +27789,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     this.longest = longestOfArray(arrTitles);
                     this.innerHTML = '<div style="position: absolute; visibility: hidden; height: auto; width: auto; white-space: nowrap;">&nbsp;' + this.longest + '&nbsp;</div>';
                     this.longestWidth = this.children[0].offsetWidth;
-                    console.log(this.longestWidth);
+                    // console.log(this.longestWidth);
                 }
                 wheelElementInserted(this);
             },
@@ -30343,7 +30449,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function arrowMousedownFunction(event) {
-        var element = GS.findParentTag(event.target, 'gs-dt');
+        var element = event.target.parentNode.element;//GS.findParentTag(event.target, 'gs-dt');
         event.preventDefault();
         if (evt.touchDevice) {
             element.bolArrowEvent = true;
@@ -30893,14 +30999,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.internal.validDate = newDateInCurrentTimeZone(element.control.value).toString() !== 'Invalid Date';
                     if (element.internal.validDate) {
                         element.innerHTML = formatDateHTML(newDateInCurrentTimeZone(element.control.value), getFormatString(element));
+                        element.arrowElem.parentNode.removeChild(element.arrowElem);;
                     } else {
                         element.removeAttribute('value');
                     }
                     element.syncGetters();
                 } else if (element.hasAttribute('placeholder')) {
                     element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
+                    element.arrowElem.parentNode.removeChild(element.arrowElem);;
                 } else {
-                    element.innerHTML = ''
+                    element.innerHTML = '';
+                    element.arrowElem.parentNode.removeChild(element.arrowElem);;
                 }
                 element.control = false;
             },
@@ -30939,15 +31048,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.innerHTML = '';
                 if (!(element.hasAttribute('disabled') || element.hasAttribute('readonly'))) {
                     element.innerHTML =
-                        '<input class="control needsclick" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />' +
-                        '<div class="dt-arrows">' +
-                        //'<gs-button no-focus icononly icon="arrow-left" class="dt-arrow dt-arrow-left"></gs-button>' +
-                        '<gs-button no-focus icononly icon="arrow-up" class="dt-arrow dt-arrow-up"></gs-button>' +
-                        '<gs-button no-focus icononly icon="arrow-down" class="dt-arrow dt-arrow-down"></gs-button>' +
-                        //'<gs-button no-focus icononly icon="arrow-right" class="dt-arrow dt-arrow-right"></gs-button>' +
-                        '<gs-button no-focus icononly icon="undo" class="dt-arrow dt-reset"></gs-button>' +
-                        '</div>';
+                        '<input class="control needsclick" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';// +
+                        // '<div class="dt-arrows">' +
+                        // //'<gs-button no-focus icononly icon="arrow-left" class="dt-arrow dt-arrow-left"></gs-button>' +
+                        // '<gs-button no-focus icononly icon="arrow-up" class="dt-arrow dt-arrow-up"></gs-button>' +
+                        // '<gs-button no-focus icononly icon="arrow-down" class="dt-arrow dt-arrow-down"></gs-button>' +
+                        // //'<gs-button no-focus icononly icon="arrow-right" class="dt-arrow dt-arrow-right"></gs-button>' +
+                        // '<gs-button no-focus icononly icon="undo" class="dt-arrow dt-reset"></gs-button>' +
+                        // '</div>';
                     element.control = element.children[0];
+                    var arrowElem = document.createElement('div');
+                    arrowElem.classList.add('dt-arrows');
+                    arrowElem.innerHTML = '<gs-button no-focus icononly icon="arrow-up" class="dt-arrow dt-arrow-up"></gs-button>' +
+                        '<gs-button no-focus icononly icon="arrow-down" class="dt-arrow dt-arrow-down"></gs-button>' +
+                        '<gs-button no-focus icononly icon="undo" class="dt-arrow dt-reset"></gs-button>';
+                    var rect = element.getBoundingClientRect();
+                    element.arrowElem = arrowElem;
+                    arrowElem.style.top = (rect.height + rect.top) + 'px';
+                    arrowElem.element = element;
+                    document.body.appendChild(arrowElem);
+                    arrowElem.style.left = parseInt(rect.width + rect.left - arrowElem.offsetWidth, 10) + 'px';
+                    console.log(arrowElem.offsetWidth, arrowElem.clientWidth);
+                    // element.control = arrowElem;
                     if (element.hasAttribute('id')) {
                         element.control.setAttribute('id', element.getAttribute('id') + '_control');
                     }
@@ -30959,7 +31081,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     element.control.addEventListener(evt.click, controlClickFunction);
 
-                    var arrows = element.children[1];
+                    var arrows = arrowElem;//= element.children[1];
                     arrows.addEventListener(evt.mousedown, function (event) {
                         event.stopPropagation();
                         event.preventDefault();

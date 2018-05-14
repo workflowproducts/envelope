@@ -65,7 +65,9 @@ GS.findParentTag = function (element, strTagName) {
 GS.findParentElement = function (element, checkParameter) {
     'use strict';
     var currentElement = element;
-    
+    if (currentElement === window || currentElement === document) {
+        return document.documentElement;
+    }
     // if checkParameter is a function: use it to check the element
     if (typeof checkParameter === 'function') {
         while (currentElement && !checkParameter(currentElement) && currentElement.nodeName !== 'HTML') {

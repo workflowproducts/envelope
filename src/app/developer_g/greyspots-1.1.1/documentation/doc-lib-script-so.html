@@ -91,6 +91,53 @@ EOF</pre>
                             <pre>action_test.plx --arg1=value1 --arg2=value2 &lt;EOF
 The input to the script
 EOF</pre>
+                            <span class="h3">Perl script example for receiving arguments:</h3>
+                            <pre>#!/usr/bin/perl -w
+
+use Getopt::Long; #CANNOT USE STRICT WHILE USING THIS CORE MODULE!!! I KNOW IT MAKES NO SENSE!!!
+my $to = "";
+
+GetOptions("to=s" => \$to) or die("Error in command line arguments\n");
+
+print "To: " . $to . "\n";</pre>
+                            <pre>./action_test.plx --to=testing</pre>
+                            <span class="h3">Bash script example for receiving arguments:</h3>
+                            <pre>#!/bin/bash
+optspec=":hv-:"
+while getopts "$optspec" optchar; do
+    case "${optchar}" in
+        -)
+            case "${OPTARG}" in
+                loglevel)
+                    val="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    echo "Parsing option: '--${OPTARG}', value: '${val}'" >&2;
+                    ;;
+                loglevel=*)
+                    val=${OPTARG#*=}
+                    opt=${OPTARG%=$val}
+                    echo "Parsing option: '--${opt}', value: '${val}'" >&2
+                    ;;
+                *)
+                    if [ "$OPTERR" = 1 ] && [ "${optspec:0:1}" != ":" ]; then
+                        echo "Unknown option --${OPTARG}" >&2
+                    fi
+                    ;;
+            esac;;
+        h)
+            echo "usage: $0 [-v] [--loglevel[=]<value>]" >&2
+            exit 2
+            ;;
+        v)
+            echo "Parsing option: '-${optchar}'" >&2
+            ;;
+        *)
+            if [ "$OPTERR" != 1 ] || [ "${optspec:0:1}" = ":" ]; then
+                echo "Non-option argument: '-${OPTARG}'" >&2
+            fi
+            ;;
+    esac
+done</pre>
+                            <pre>./action_test.sh --loglevel=testing</pre>
                 </div>
         </gs-container>
     </body>

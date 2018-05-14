@@ -541,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
-            console.log(element.hasTime);
+            // console.log(element.hasTime);
             if (element.hasTime) {
                 var clock = xtag.query(document, 'gs-dialog .clock')[0];
                 var timeAdjustSection = xtag.query(document, 'gs-dialog .time-adjust-section')[0];
@@ -883,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var wheelHTML = function () {
             var strRet = '';
-            console.log(arrFormat, arrDate);
+            // console.log(arrFormat, arrDate);
             for (i = 0, len = arrFormat.length; i < len; i += 1) {
                 if (arrFormat[i] === '\'') {
                     i += 1;
@@ -974,7 +974,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }, function (event, strAnswer) {
             if (strAnswer === 'Done') {
                 var dialog = xtag.query(document, 'gs-dialog')[0];
-                console.log(dialog);
+                // console.log(dialog);
 
                 for (i = 0, len = arrFormat.length; i < len; i += 1) {
                     if (arrFormat[i] === '\'') {
@@ -1410,12 +1410,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } else if (element.arrvalue) {
             var j = parseInt(wheel.children[0].getAttribute('data-number'), 10) - 1;
+            if (j === -1) {
+                j = element.arrvalue.length - 1;
+            }
             var i = j;
             arrValues = element.arrvalue;
             i = Math.abs(i) % arrValues.length;
-            console.log(i, j);
-            i = Math.abs(i - arrValues.length) - 1;
-            console.log(i, j);
             var arrTitles = element.arrtitle;
             wheel.insertBefore(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'), wheel.firstChild);
         } else {
@@ -1454,14 +1454,13 @@ document.addEventListener('DOMContentLoaded', function () {
             wheel.appendChild(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrValues[newNumber] + '</span>'));
 
         } else if (element.arrvalue) {
-            var j = parseInt(wheel.children[wheel.children.length - 1].getAttribute('data-number'), 10) + 1;
-            var i = j;
+            var i = parseInt(wheel.children[wheel.children.length - 1].getAttribute('data-number'), 10) + 1;
             arrValues = element.arrvalue;
             i = Math.abs(i) % arrValues.length;
             var arrTitles = element.arrtitle;
-            wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
+            wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + i + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
         } else {
-            wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
+            wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + i + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
         }
     }
 
@@ -1657,7 +1656,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            console.log(wheel, element.rotation);
+            // console.log(wheel, element.rotation);
             var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
             if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
                 element.setAttribute('value', valueElement.innerText);
@@ -1761,17 +1760,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     var i = j;
                 }
+                // console.log(i, j);
                 j = ((j < 0) ? (Math.abs(i) % arrValues.length) - ((Math.abs(i) % arrValues.length) * 2) : (Math.abs(i) % arrValues.length));
-                i = Math.abs(i) % arrValues.length;
+                if (j == -1) {
+                    j = arrValues.length - 1;
+                }
+                i = Math.abs(j) % arrValues.length;
                 // console.log(i, j);
                 if (rotation == -180) {
                     element.setAttribute('value', arrValues[Math.abs(i)]);
-                    xtag.query(element, '.container')[0].style.width = element.longestWidth + 'px';
+                    if (xtag.query(element, '.container')[0].style.width < element.longestWidth + 'px') {
+                        xtag.query(element, '.container')[0].style.width = element.longestWidth + 'px';
+                    }
                 }
                 var arrTitles = element.arrtitle;
                 element.wheel.appendChild(
                     GS.stringToElement(
-                        '<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + j + '" ' +
+                        '<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + Math.abs(j) + '" ' +
                             'rotation="' + rotation + '" ' +
                             'style="transform: rotateX(' + rotation + 'deg) translateZ(' + element.radius + ');">' +
                                 arrTitles[Math.abs(i)] +
@@ -1978,7 +1983,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // element.max = parseInt(arrValue[1], 10);
                     var arrValue = element.values.split('-');
                     var i = parseInt(arrValue[0], 10);
-                    console.log(arrValue);
+                    // console.log(arrValue);
                     element.arrvalue = [];
                     element.arrtitle = [];
                     var len = parseInt(arrValue[1], 10) + 1;
@@ -2029,7 +2034,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     this.longest = longestOfArray(arrTitles);
                     this.innerHTML = '<div style="position: absolute; visibility: hidden; height: auto; width: auto; white-space: nowrap;">&nbsp;' + this.longest + '&nbsp;</div>';
                     this.longestWidth = this.children[0].offsetWidth;
-                    console.log(this.longestWidth);
+                    // console.log(this.longestWidth);
                 }
                 wheelElementInserted(this);
             },

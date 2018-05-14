@@ -548,7 +548,12 @@
                         saveFile(true);
                         
                     // space
-                    } else if (intKeyCode === 32) {
+                    //} else if (intKeyCode === 32) {
+                    // non alpha
+                    } else if (! (
+                            (intKeyCode >= 65 && intKeyCode < 90)
+                            || (intKeyCode >= 97 && intKeyCode < 122)
+                        )) {
                         editor.completer.detach();
                     }
                 });

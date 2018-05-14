@@ -500,6 +500,6 @@ gs-wheel .value {
 	white-space: nowrap;
 	overflow: hidden;
 	width: 100%;
-	text-align: left;
+	text-align: center;
 	user-select: none;
 }

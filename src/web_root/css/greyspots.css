@@ -13773,7 +13773,7 @@ gs-wheel .value {
 	white-space: nowrap;
 	overflow: hidden;
 	width: 100%;
-	text-align: left;
+	text-align: center;
 	user-select: none;
 }
 html.no-scroll-except-for-dialog,
@@ -13889,7 +13889,8 @@ gs-dt, gs-dt .control {
 gs-dt {
     position: relative;
 }
-gs-dt .dt-arrows {
+
+.dt-arrows {
     background: #FFFFFF !important;
     position: absolute;
     right: 0;
@@ -13912,7 +13913,7 @@ gs-dt .dt-arrows {
     }
 }
 
-gs-dt .dt-arrow {
+.dt-arrow {
     display: inline-block;
 }
 

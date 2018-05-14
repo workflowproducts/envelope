@@ -36,6 +36,86 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('Centered H6', 'Centered H6', '<center><h6>$0</h6></center>');
 
     // javascript snippets
+    registerDesignSnippet('Xtag Register', 'xtag.register',
+            'window.addEventListener(\'design-register-element\', function () {\n' +
+            'window.designElementProperty_GS${1:element} = function (selectedElement) {\n' +
+            '        // Sample properties:\n' +
+            '        // Checkbox:\n' +
+            '        // addProp(\'Property\', true, \'<gs-checkbox class="target" value="\' + (selectedElement.hasAttribute(\'property\') || \'\') + \'" mini></gs-checkbox>\', function () {\n' +
+            '        //     return setOrRemoveBooleanAttribute(selectedElement, \'property\', this.value === \'true\', true);\n' +
+            '        // });\n' +
+            '        // Text:\n' +
+            '        // addProp(\'Property\', true, \'<gs-text class="target" value="\' + encodeHTML(selectedElement.getAttribute(\'property\') || \'\') + \'" mini></gs-text>\', function () {\n' +
+            '        //     return setOrRemoveTextAttribute(selectedElement, \'property\', this.value, false);\n' +
+            '        // });\n' +
+            '    };\n' +
+            '});\n' +
+            '\n' +
+            '//global xtag\n' +
+            '//jslint browser:true\n' +
+            'document.addEventListener("DOMContentLoaded", function () {\n' +
+            '    "use strict";\n' +
+            '    // dont do anything that modifies the element here\n' +
+            '    function elementCreated(element) {\n' +
+            '        // if "created" hasn\'t been suspended: run created code\n' +
+            '        if (!element.hasAttribute(\'suspend-created\')) {\n' +
+            '            ${2:Created Code}\n' +
+            '        }\n' +
+            '    }\n' +
+            '\n' +
+            '    function elementInserted(element) {\n' +
+            '        // if "created" hasn\'t been suspended and "inserted" hasn\'t been suspended: run inserted code\n' +
+            '        if (!element.hasAttribute("suspend-created") && !element.hasAttribute("suspend-inserted")) {\n' +
+            '            // if this is the first time inserted has been run: continue\n' +
+            '            if (!element.inserted) {\n' +
+            '                element.inserted = true;\n' +
+            '                ${3:Inserted Code}\n' +
+            '            }\n' +
+            '        }\n' +
+            '    }\n' +
+            '\n' +
+            '    xtag.register("${1:element}", {\n' +
+            '        lifecycle: {\n' +
+            '            created function () {\n' +
+            '                elementCreated(this);\n' +
+            '            },\n' +
+            '            inserted: function () {\n' +
+            '                elementInserted(this);\n' +
+            '            },\n' +
+            '            attributeChanged: function (strAttrName, oldValue, newValue) {\n' +
+            '                var element = this;\n' +
+            '\n' +
+            '                // if "suspend-created" has been removed: run created and inserted code\n' +
+            '                if (strAttrName === "suspend-created" && newValue === null) {\n' +
+            '                    elementInserted(element);\n' +
+            '\n' +
+            '                // if "suspend-inserted" has been removed: run inserted code\n' +
+            '                } else if (strAttrName === "suspend-inserted" && newValue === null) {\n' +
+            '                    elementInserted(element);\n' +
+            '                }\n' +
+            '            }\n' +
+            '        },\n' +
+            '        events: {},\n' +
+            '        accessors: {\n' +
+            '            // Sample accessor:\n' +
+            '            // \'value\': {\n' +
+            '            //     get: function () {\n' +
+            '            //         var element = this;\n' +
+            '            //     },\n' +
+            '            //     set: function (strNewValue) {\n' +
+            '            //         var element = this;\n' +
+            '            //     }\n' +
+            '            // }\n' +
+            '        },\n' +
+            '        methods: {\n' +
+            '            // Sample method:\n' +
+            '            // \'method\': function () {\n' +
+            '            //     var element = this;\n' +
+            '            // }\n' +
+            '        }\n' +
+            '    });\n' +
+            '});');
+    
     registerDesignSnippet('Window Load', 'window.addEventListener',
             'window.addEventListener(\'load\', function () {\n' +
             '    $0\n' +
@@ -45,6 +125,25 @@ window.addEventListener('design-register-element', function () {
             'ml(function () {/*\n' +
             '    ${0}\n' +
             '})');
+            
+    registerDesignSnippet('document.getElementById', 'document.getElementById',
+            'document.getElementById(\'${1:id}\')');
+            
+    registerDesignSnippet('document.getElementsByClassName', 'document.getElementsByClassName',
+            'document.getElementsByClassName(\'${1:class}\')');
+            
+    registerDesignSnippet('document.getElementsByName', 'document.getElementsByName',
+            'document.getElementsByName(\'${1:name}\')');
+            
+    registerDesignSnippet('document.getElementsByTagName', 'document.getElementsByTagName',
+            'document.getElementsByTagName(\'${1:tagname}\')');
+
+    registerDesignSnippet('Xtag Query', 'xtag.query',
+            'xtag.query(${1:element}, \'${2:selector}\');');
+    registerDesignSnippet('Xtag Query Children', 'xtag.queryChildren',
+            'xtag.queryChildren(${1:element}, \'${2:selector}\');');
+    registerDesignSnippet('Xtag Match Selector', 'xtag.matchSelector',
+            'xtag.matchSelector(${1:element}, \'${2:selector}\');');
 
     registerDesignSnippet('ml()', 'ml()',
             'ml(function () {/*\n' +
