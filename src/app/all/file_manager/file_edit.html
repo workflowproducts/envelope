@@ -553,6 +553,7 @@
                     } else if (! (
                             (intKeyCode >= 65 && intKeyCode < 90)
                             || (intKeyCode >= 97 && intKeyCode < 122)
+                            || (intKeyCode === 45) // dash
                         )) {
                         editor.completer.detach();
                     }
