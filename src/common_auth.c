@@ -2,6 +2,7 @@
 
 void connect_cb_env(EV_P, void *cb_data, DB_conn *conn);
 bool connect_cb_env_step2(EV_P, void *cb_data, DB_result *res);
+bool connect_cb_env_step3(EV_P, void *cb_data, DB_result *res);
 
 // get connection string from cookie
 DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
@@ -490,6 +491,51 @@ finish:
 
 bool connect_cb_env_step2(EV_P, void *cb_data, DB_result *res) {
 	SDEBUG("connect_cb_env_step2");
+	struct sock_ev_client *client = cb_data;
+	char *str_response = NULL;
+	size_t int_temp = 0;
+	SDEFINE_VAR_ALL(str_diag, str_app, str_app_literal, str_sql);
+	str_diag = DB_get_diagnostic(client->conn, res);
+
+	SFINISH_CHECK(res != NULL, "DB_exec failed");
+	SFINISH_CHECK(res->status == DB_RES_COMMAND_OK, "DB_exec failed: %s", str_diag);
+
+	SFINISH_SNCAT(
+		str_app, &int_temp,
+		SUN_PROGRAM_WORD_NAME, strlen(SUN_PROGRAM_WORD_NAME),
+		" (", (size_t)2,
+		client->str_username, client->int_username_len,
+		")", (size_t)1
+	);
+
+	str_app_literal = DB_escape_literal(client->conn, str_app, int_temp);
+	SFINISH_CHECK(str_app_literal != NULL, "DB_escape_identifier failed");
+
+	SFINISH_SNCAT(
+		str_sql, &int_temp,
+		"SET application_name = ", (size_t)23,
+		str_app_literal, strlen(str_app_literal),
+		";", (size_t)1
+	);
+
+	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
+	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, connect_cb_env_step3), "DB_exec failed");
+
+finish:
+	DB_free_result(res);
+	if (bol_error_state == true) {
+		SFREE(client->conn->str_response);
+		client->conn->str_response = str_response;
+		client->conn->int_status = -1;
+		client->connect_cb(EV_A, client, client->conn);
+	}
+	bol_error_state = false;
+	SFREE_ALL();
+	return true;
+}
+
+bool connect_cb_env_step3(EV_P, void *cb_data, DB_result *res) {
+	SDEBUG("connect_cb_env_step3");
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
 	SDEFINE_VAR_ALL(str_diag);
