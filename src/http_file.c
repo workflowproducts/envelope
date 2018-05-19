@@ -419,7 +419,7 @@ void http_file_step2(EV_P, ev_check *w, int revents) {
 
 	char *str_maybe_download = client_http_file->bol_download ? "Content-Disposition: attachment\015\012" : "";
 
-	if (strncmp(str_content_type, "text/html", 9) != 0 && !bol_modified) {
+	if (/*strncmp(str_content_type, "text/html", 9) != 0 && */!bol_modified) {
 		char *str_temp1 = "HTTP/1.1 304 Not Modified\015\012ETag: \"";
 		char *str_temp2 = "\"\015\012Last-Modified: ";
 		char *str_temp3 = "\015\012Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
@@ -449,25 +449,24 @@ void http_file_step2(EV_P, ev_check *w, int revents) {
 			str_maybe_download, strlen(str_maybe_download)
 		);
 
-		if (strncmp(str_content_type, "text/html", 9) == 0) {
-			SERROR_SNFCAT(
-				client->str_response, &client_http_file->int_response_len,
-				"Cache-Control: no-cache\015\012", (size_t)25
-			);
-		} else {
-			SERROR_SNFCAT(
-				client->str_response, &client_http_file->int_response_len,
-				"ETag: \"", (size_t)7,
-				str_etag, strlen(str_etag),
-				"\"\015\012", (size_t)3,
-				"Last-Modified: ", (size_t)15,
-				str_last_modified, strlen(str_last_modified),
-				"\015\012", (size_t)2,
-				"Connection: close\015\012", (size_t)19
-				// Not needed right now, but here it is in case we do later.
-				//"Cache-Control: no-store\015\012"
-			);
-		}
+		//if (strncmp(str_content_type, "text/html", 9) == 0) {
+		//	SERROR_SNFCAT(
+		//		client->str_response, &client_http_file->int_response_len,
+		//		"Cache-Control: no-cache\015\012", (size_t)25
+		//	);
+		//} else {
+		SERROR_SNFCAT(
+			client->str_response, &client_http_file->int_response_len,
+			"ETag: \"", (size_t)7,
+			str_etag, strlen(str_etag),
+			"\"\015\012", (size_t)3,
+			"Last-Modified: ", (size_t)15,
+			str_last_modified, strlen(str_last_modified),
+			"\015\012", (size_t)2,
+			"Connection: close\015\012", (size_t)19,
+			"Cache-Control: max-age=0,must-revalidate\015\012", (size_t)42
+		);
+		//}
 
 		char *str_temp4 = "Server: " SUN_PROGRAM_LOWER_NAME "\015\012Content-Length: ";
 		SERROR_SNFCAT(
