@@ -154,6 +154,8 @@ bool get_schema_and_table_name(DB_conn *conn, char *_str_query, size_t int_query
 		SFREE(str_temp);
 	}
 
+	SFREE(str_query);
+
 	return true;
 error:
 	SFREE(str_temp1);
