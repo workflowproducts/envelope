@@ -70,10 +70,10 @@ CREATE OR REPLACE VIEW ttesting_view AS
      ON UPDATE TO ttesting_view2 DO INSTEAD  UPDATE rtesting_table SET test_name = new.test_name_1
    WHERE old.id_1 = rtesting_table.id;
 CREATE OR REPLACE FUNCTION public.action_delete_rows(str_args text)
-    RETURNS text AS
+  RETURNS text AS
 $BODY$
 DECLARE
-
+    
 BEGIN
     DELETE FROM rtesting_table
     	WHERE id::text ILIKE (str_args || '%');
@@ -81,12 +81,13 @@ BEGIN
         WHERE id_1::text ILIKE (str_args || '%');
     DELETE FROM rtesting_table_with_capital_column_name
         WHERE id::text ILIKE (str_args || '%');
+    ALTER SEQUENCE public.rtesting_table_with_sequence_id_seq RESTART WITH 1;
     RETURN '""';
 
 END;
 $BODY$
-LANGUAGE plpgsql VOLATILE
-COST 100;
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
 
 ALTER FUNCTION public.action_delete_rows(str_args text) OWNER TO postgres;
 
@@ -190,3 +191,20 @@ GRANT EXECUTE ON FUNCTION public.action_testing_return_null(str_args text) TO po
 REVOKE ALL ON FUNCTION public.action_testing_return_null(str_args text) FROM public;
 
 --SELECT public.action_testing_return_null(str_args text);
+
+REVOKE ALL ON FUNCTION public.action_delete_rows(str_args text) FROM public;
+
+--SELECT public.action_delete_rows(str_args text);
+
+CREATE TABLE public.rtesting_table_with_sequence (
+  id serial,
+  test_name character varying(150),
+  test_name2 character varying(150),
+  "select" character varying(150),
+  "test@test" character varying(150),
+  CONSTRAINT rtesting_table_with_sequence_pk PRIMARY KEY (id)
+) WITH (
+  OIDS=FALSE
+);
+
+ALTER TABLE public.rtesting_table_with_sequence OWNER TO postgres;
