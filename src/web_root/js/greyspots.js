@@ -7457,6 +7457,19 @@ GS.hitLink = function (strLink) {
     document.body.appendChild(iframeElement);
 };
 
+GS.newDate = function (date) {
+    var strDate = '' + date + '';
+    // console.log(strDate.indexOf('-'), strDate.lastIndexOf('-'));
+    if (strDate.indexOf('-') !== strDate.lastIndexOf('-')) {
+        strDate = (
+            strDate
+                .replace(/\-/, '/')
+                .replace(/\-/, '/')
+        );
+    }
+    return new Date(strDate);
+}
+
 
 GS.log = function (bolsend, message) {
     "use strict";
@@ -18536,23 +18549,25 @@ document.addEventListener('DOMContentLoaded', function () {
         // set width and left variables
         // try regular
         if (scrollContainer.scrollWidth <= scrollContainer.offsetWidth) {
-            if (intComboWidth < 150) {
-                intNewWidth = (window.innerWidth - jsnComboOffset.left) - 20;
-
-                if (intNewWidth < 300) {
-                    strWidth = intNewWidth + 'px';
-                } else {
-                    strWidth = '300px';
-                }
-
-            } else {
-                strWidth = intComboWidth + 'px';
-            }
+            // Skipping the width allows the dropdown to resize to the content
+            //if (intComboWidth < 150) {
+            //    intNewWidth = (window.innerWidth - jsnComboOffset.left) - 20;
+            //
+            //    if (intNewWidth < 300) {
+            //        strWidth = intNewWidth + 'px';
+            //    } else {
+            //        strWidth = '300px';
+            //    }
+            //
+            //} else {
+            //    strWidth = intComboWidth + 'px';
+            //}
             strLeft = jsnComboOffset.left + 'px';
 
         // else full width
         } else {
-            strWidth = '100%';
+            // Skipping the width allows the dropdown to resize to the content
+            //strWidth = '100%';
             strLeft = '0px';
         }
 
@@ -18561,7 +18576,8 @@ document.addEventListener('DOMContentLoaded', function () {
         positioningContainer.style.left   = strLeft;
         positioningContainer.style.top    = strTop;
         positioningContainer.style.bottom = strBottom;
-        positioningContainer.style.width  = strWidth;
+        // Skipping the width allows the dropdown to resize to the content
+        //positioningContainer.style.width  = strWidth;
         positioningContainer.style.height = strHeight;
 
         if (strTop) {
@@ -27112,7 +27128,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     return formatDate(new Date(this.getAttribute('value')), this.getAttribute('format'));
                 },
                 set: function (newValue) {
-                    this.setAttribute('value', newValue);
+                    var newerValue = GS.newDate(newValue);
+                    this.setAttribute('value', newerValue);
                     this.innerText = formatDate(new Date(this.getAttribute('value')), this.getAttribute('format'));
                 }
             },
@@ -27124,7 +27141,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     return dteValue;
                 },
                 set: function (newValue) {
-                    this.value = formatDate(newValue, (this.hasDate ? 'yyyy/MM/dd' : '') + ' ' + (this.hasTime ? 'HH:mm:ss' : '').trim());
+                    var newerValue = GS.newDate(newValue);
+                    this.value = formatDate(newerValue, (this.hasDate ? 'yyyy/MM/dd' : '') + ' ' + (this.hasTime ? 'HH:mm:ss' : '').trim());
                 }
             }
         },
@@ -35321,12 +35339,48 @@ document.addEventListener('DOMContentLoaded', function () {
         updateFrameData = (strRoles + '\n' + strColumns + '\n' + updateFrameData);
         GS.triggerEvent(element, 'before_update');
         
+        element.saveState = 'saving';
+        if (element.saveTimeout) {
+            clearTimeout(element.saveTimeout);
+        }
+        //console.log('wait five seconds');
+        element.saveTimeout = setTimeout(function () {
+            //console.log('element.saveState', element.saveState);
+            if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
+                element.saveState = 'error';
+                var parentElement = document.createElement('center');
+                parentElement.setAttribute('class', 'saving-warning-parent');
+                
+                var warningElement = document.createElement('div');
+                warningElement.setAttribute('class', 'saving-warning');
+    
+                // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
+                warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />THE SAVE PROCESS IS HANGING WITH NO ERROR<br />IT MIGHT JUST TAKE A LONG TIME';
+    
+                parentElement.appendChild(warningElement);
+                element.insertBefore(parentElement, element.children[0]);
+                
+                // element.appendChild(parentElement);
+                /*
+                warningElement.addEventListener('click', function () {
+                    saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
+                });
+                */
+            }
+        }, /*30*/ 5 * 1000);
+        
         GS.requestUpdateFromSocket(
             GS.envSocket, strSchema, strObject
           , strReturnCols, strHashCols, updateFrameData
             
           , function (data, error, transactionID) {
                 if (error) {
+                    //console.log('error');
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'error';
+                    
                     getData(element);
                     GS.removeLoader(element);
                     GS.webSocketErrorDialog(data);
@@ -35337,6 +35391,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 if (!error) {
                     if (data === 'TRANSACTION COMPLETED') {
+                        //console.log('saved');
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.saveState = 'saved';
+                        
                         commitFunction();
                     } else {
                         var arrRecords, arrCells, i, len, cell_i, cell_len;
@@ -35355,6 +35415,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     
                 } else {
+                    //console.log('error');
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'error';
+                    
                     rollbackFunction();
                     getData(element);
                     GS.webSocketErrorDialog(data);
@@ -35365,6 +35431,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 if (!error) {
                     if (strAnswer === 'COMMIT') {
+                        //console.log('saved');
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.saveState = 'saved';
+                        
                         var idIndex, i, len;
                         
                         idIndex = element.lastSuccessData.arr_column.indexOf('id');
@@ -35384,6 +35456,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         getData(element);
                     }
                 } else {
+                    //console.log('error');
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'error';
+                    
                     getData(element);
                     GS.webSocketErrorDialog(data);
                 }
@@ -40219,8 +40297,9 @@ document.addEventListener('DOMContentLoaded', function () {
             
             if (element.tableTemplate) {// element.tableTemplateElement
                 strTemplate = element.tableTemplate;// element.tableTemplateElement
-                
+                console.log('srsly?');
             } else {
+                console.log('yeah');
                 // create an array of hidden column numbers
                 arrHide = (element.getAttribute('hide') || '').split(/[\s]*,[\s]*/);
                 
@@ -40257,6 +40336,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         '</tr>' +
                                     '</tbody>' +
                                 '</table>';
+                                
             }
             
             divElement = document.createElement('div');
@@ -40265,6 +40345,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tableElement = xtag.queryChildren(divElement, 'table')[0];
             theadElement = xtag.queryChildren(tableElement, 'thead')[0];
             tbodyElement = xtag.queryChildren(tableElement, 'tbody')[0];
+            
             
             // if there is a tbody
             if (tbodyElement) {
@@ -40301,6 +40382,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.internalData.records = data;
                 }
             }
+            
+            if (theadElement && tbodyElement && theadElement.children[0]) {
+                tbodyElement.innerHTML = theadElement.innerHTML + '' + tbodyElement.innerHTML;
+                var cols_i = 0, cols_len = theadElement.children[0].children.length;
+                element.tbodyheader = xtag.query(tbodyElement, 'tr:not([data-record_no])')[0];
+                element.tbodyElement = tbodyElement;
+                element.theadElement = theadElement;
+                console.log(element.tbodyheader);
+                while (cols_i < cols_len) {
+                    theadElement.children[0].children[cols_i].setAttribute('style', 'width: ' + element.tbodyheader.children[cols_i].clientWidth + 'px !important; padding-right: 0; padding-left: 0;');
+                    cols_i++;
+                }
+            }
+            //snapback
             
             //console.log('1***', bolInitalLoad, element.getAttribute('value'));
             
@@ -40344,7 +40439,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function windowResizeHandler() {
-        var i, len, arrElement;
+        var i, len, arrElement, element;
         
         arrElement = document.getElementsByTagName('gs-listbox');
         
@@ -40358,6 +40453,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 arrElement[i].letterScrollbarHandler();
                 this.oldWidth = this.offsetWidth;
+            }
+            element = arrElement[i];
+            if (element.theadElement && element.tbodyElement) {
+                var cols_i = 0, cols_len = element.theadElement.children[0].children.length;
+                while (cols_i < cols_len) {
+                    element.theadElement.children[0].children[cols_i].setAttribute('style', 'width: ' + element.tbodyheader.children[cols_i].clientWidth + 'px !important; padding-right: 0; padding-left: 0;');
+                    cols_i++;
+                }
             }
         }
     }
@@ -40772,6 +40875,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     } else {
                         element.tableElement = document.createElement('table');
                     }
+                    
+                    //snapback
                     //loop through and add the data-record_no attribute
                     //console.log(element.innerHTML);
                     var trSet = xtag.query(tableTemplateElement.content, 'tr');//:not(.divider)');
@@ -40780,7 +40885,22 @@ document.addEventListener('DOMContentLoaded', function () {
                         //console.log(trSet[i]);
                         trSet[i].setAttribute('data-record_no', i);
                     }
+                    
                     element.syncView();
+                    var theadElement = xtag.query(element.tableElement, 'thead')[0];
+                    var tbodyElement = xtag.query(element.tableElement, 'tbody')[0];
+                    if (theadElement && tbodyElement && theadElement.children[0]) {
+                        tbodyElement.innerHTML = theadElement.innerHTML + '' + tbodyElement.innerHTML;
+                        var cols_i_1 = 0, cols_len_1 = theadElement.children[0].children.length;
+                        element.tbodyheader = xtag.query(tbodyElement, 'tr[data-record_no="0"]')[0];
+                        element.tbodyheader.removeAttribute('data-record_no');
+                        element.tbodyElement = tbodyElement;
+                        element.theadElement = theadElement;
+                        while (cols_i_1 < cols_len_1) {
+                            theadElement.children[0].children[cols_i_1].setAttribute('style', 'width: ' + element.tbodyheader.children[cols_i_1].clientWidth + 'px !important; padding-right: 0; padding-left: 0;');
+                            cols_i_1++;
+                        }
+                    }
                 }
             }
         }
@@ -44488,6 +44608,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.recalculatePadding();
                 });
                 element.recalculatePadding();
+                if (element.parentNode.tagName.toLowerCase() === 'gs-dialog') {
+                    element.setAttribute('role', 'complementary');
+                }
             }
         }
     }
@@ -46164,6 +46287,603 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (this.oldTabIndex) {
                     this.control.setAttribute('tabindex', this.oldTabIndex);
+                }
+            }
+        }
+    });
+});//global window, document, GS, ml, shimmed, encodeHTML, addFlexContainerProps, addFlexProps, addProp, registerDesignSnippet, designRegisterElement, setOrRemoveTextAttribute, setOrRemoveBooleanAttribute, xtag, doT
+
+window.addEventListener('design-register-element', function () {
+    'use strict';
+    registerDesignSnippet('<gs-slide>', '<gs-slide>', 'gs-slide>\n' +
+            '    <template for="${1:none}"></template>\n' +
+            '    <template for="${2:detail}"></template>\n' +
+            '</gs-slide>');
+
+    designRegisterElement('gs-slide', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-slide.html');
+
+    window.designElementProperty_GSSLIDE = function (selectedElement) {
+
+        addProp('Template', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('template') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'template', this.value);
+        });
+
+        addProp('Refresh On Querystring Columns', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('refresh-on-querystring-values') || '') + '" mini></gs-text>', function () {
+            this.removeAttribute('refresh-on-querystring-change');
+            return setOrRemoveTextAttribute(selectedElement, 'refresh-on-querystring-values', this.value);
+        });
+
+        addProp('Refresh On Querystring Change', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('refresh-on-querystring-change')) + '" mini></gs-checkbox>', function () {
+            this.removeAttribute('refresh-on-querystring-values');
+            return setOrRemoveBooleanAttribute(selectedElement, 'refresh-on-querystring-change', this.value === 'true', true);
+        });
+
+        addProp('Column In Querystring', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'qs', this.value, false);
+        });
+
+        addFlexContainerProps(selectedElement);
+        addFlexProps(selectedElement);
+
+        // SUSPEND-CREATED attribute
+        addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
+            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
+        });
+
+        // SUSPEND-INSERTED attribute
+        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
+            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
+        });
+    };
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
+
+    function subsafeTemplate(strTemplate) {
+        var templateElement = document.createElement('template');
+        var strID;
+        var arrTemplates;
+        var i;
+        var len;
+        var jsnTemplates;
+        var strRet;
+        var arrTemplateNames;
+
+        templateElement.innerHTML = strTemplate;
+
+        // temporarily remove templates. recursively go through templates whose parents do not have the source attribute
+        i = 0;
+        arrTemplates = xtag.query(templateElement.content, 'template');
+
+        jsnTemplates = {};
+        arrTemplateNames = [];
+
+        while (arrTemplates.length > 0 && i < 100) {
+            //console.log(arrTemplates[0]);
+            //console.log(arrTemplates[0].parentNode);
+            //console.log(arrTemplates[0].parentNode.hasAttribute('src'));
+
+            // if the current template has a source parent: remove temporarily
+            if (
+                arrTemplates[0].parentNode &&
+                arrTemplates[0].parentNode.hasAttribute &&
+                (
+                    arrTemplates[0].parentNode.hasAttribute('src') ||
+                    arrTemplates[0].parentNode.hasAttribute('source')
+                )
+            ) {
+                strID = 'UNIqUE_PLaCEhOLDER-' + GS.GUID() + '-UNiQUE_PLaCEhOLdER';
+                jsnTemplates[strID] = arrTemplates[0].outerHTML;
+                arrTemplates[0].outerHTML = strID;
+                arrTemplateNames.push(strID);
+
+            // else: add to the arrTemplates array
+            } else if (arrTemplates[0].content) {
+                arrTemplates.push.apply(arrTemplates, xtag.query(arrTemplates[0].content, 'template'));
+            }
+
+            // remove the current template from the arrTemplates array
+            arrTemplates.splice(0, 1);
+
+            i += 1;
+        }
+
+        strRet = doT.template(
+            '{{##def.snippet:\n' +
+                    '    {{ var qs = GS.qryToJSON(GS.getQueryString()); }} {{# def.template }}\n' +
+                    '#}}\n' +
+                    '{{#def.snippet}}',
+            null,
+            {"template": templateElement.innerHTML}
+        )();
+
+        i = 0;
+        len = arrTemplateNames.length;
+        //for (strID in jsnTemplates) {
+        while (i < len) {
+            // DO NOT DELETE THE REPLACE, it allows single dollar signs to be inside dot notation
+            strRet = strRet.replace(
+                new RegExp(arrTemplateNames[i], 'g'),
+                jsnTemplates[arrTemplateNames[i]].replace(/\$/g, '$$$$')
+            );
+            i += 1;
+        }
+
+        return strRet;
+    }
+
+    function saveDefaultAttributes(element) {
+        var i;
+        var len;
+        var jsnAttr;
+
+        // we need a place to store the attributes
+        element.internal.defaultAttributes = {};
+
+        // loop through attributes and store them in the internal defaultAttributes object
+        i = 0;
+        len = element.attributes.length;
+        while (i < len) {
+            jsnAttr = element.attributes[i];
+
+            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
+
+            i += 1;
+        }
+    }
+
+    function pushReplacePopHandler(element) {
+        var i;
+        var len;
+        var strQS = GS.getQueryString();
+        var strQSCol = element.getAttribute('qs');
+        var strQSAttr;
+        var arrQSParts;
+        var arrAttrParts;
+        var arrPopKeys;
+        var currentValue;
+        var bolRefresh = false;
+        var strOperator;
+
+        if (strQSCol && strQSCol.indexOf('=') !== -1) {
+            arrAttrParts = strQSCol.split(',');
+            i = 0;
+            len = arrAttrParts.length;
+            while (i < len) {
+                strQSCol = arrAttrParts[i];
+
+                if (strQSCol.indexOf('!=') !== -1) {
+                    strOperator = '!=';
+                    arrQSParts = strQSCol.split('!=');
+                } else {
+                    strOperator = '=';
+                    arrQSParts = strQSCol.split('=');
+                }
+
+                strQSCol = arrQSParts[0];
+                strQSAttr = arrQSParts[1] || arrQSParts[0];
+
+                // if the key is not present or we've got the negator: go to the attribute's default or remove it
+                if (strOperator === '!=') {
+                    // if the key is not present: add the attribute
+                    if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
+                        element.setAttribute(strQSAttr, '');
+                    // else: remove the attribute
+                    } else {
+                        element.removeAttribute(strQSAttr);
+                    }
+                } else {
+                    // if the key is not present: go to the attribute's default or remove it
+                    if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
+                        if (element.internal.defaultAttributes[strQSAttr] !== undefined) {
+                            element.setAttribute(strQSAttr, (element.internal.defaultAttributes[strQSAttr] || ''));
+                        } else {
+                            element.removeAttribute(strQSAttr);
+                        }
+                    // else: set attribute to exact text from QS
+                    } else {
+                        element.setAttribute(strQSAttr, (
+                            GS.qryGetVal(strQS, strQSCol) ||
+                            element.internal.defaultAttributes[strQSAttr] ||
+                            ''
+                        ));
+                    }
+                }
+                i += 1;
+            }
+        }
+
+        // handle "refresh-on-querystring-values" and "refresh-on-querystring-change" attributes
+        if (element.internal.bolQSFirstRun === true) {
+            if (element.hasAttribute('refresh-on-querystring-values') || element.hasAttribute('qs')) {
+                if (element.getAttribute('refresh-on-querystring-values')) {
+                    arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
+                } else {
+                    arrPopKeys = [];
+                }
+
+                if (strQSCol) {
+                    GS.listAdd(arrPopKeys, strQSCol);
+                }
+
+                i = 0;
+                len = arrPopKeys.length;
+                //for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
+                while (i < len) {
+                    currentValue = GS.qryGetVal(strQS, arrPopKeys[i]);
+
+                    if (element.popValues[arrPopKeys[i]] !== currentValue) {
+                        bolRefresh = true;
+                    }
+
+                    element.popValues[arrPopKeys[i]] = currentValue;
+                    i += 1;
+                }
+
+            } else if (element.hasAttribute('refresh-on-querystring-change')) {
+                bolRefresh = true;
+            } else if (element.hasAttribute('template') || element.hasAttribute('value')) {
+                bolRefresh = true;
+            }
+
+            if (bolRefresh) {
+                // console.log(currentValue);
+                element.slide('right', currentValue, true);
+            }
+        } else {
+            if (element.hasAttribute('refresh-on-querystring-values')) {
+                arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
+
+                i = 0;
+                len = arrPopKeys.length;
+                //for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
+                while (i < len) {
+                    element.popValues[arrPopKeys[i]] = GS.qryGetVal(strQS, arrPopKeys[i]);
+                    i += 1;
+                }
+            }
+        }
+
+        element.internal.bolQSFirstRun = true;
+    }
+
+    // dont do anything that modifies the element here
+    function elementCreated(element) {
+        // if "created" hasn't been suspended: run created code
+        if (!element.hasAttribute('suspend-created')) {
+
+        }
+    }
+
+    function elementInserted(element) {
+        // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
+        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+            // if this is the first time inserted has been run: continue
+            if (!element.inserted) {
+                element.inserted = true;
+                // we can't reset this in case the element is added later
+                if (!window.slideIdNum) {
+                    window.slideIdNum = 0;
+                }
+
+                //must be for this element to prevent one element from clearing another
+                //    this is cleared to prevent really long obsolete stylesheets
+                var relatedStyleSheet = document.createElement('style');
+                document.head.appendChild(relatedStyleSheet);
+                element.relatedStyleSheet = relatedStyleSheet;
+
+
+                element.internal = {};
+                saveDefaultAttributes(element);
+
+                // Get templates and define some variables
+                var arrTemplate = xtag.queryChildren(element, 'template');
+                var i;
+                var len;
+                var attr_i;
+                var attr_len;
+                var arrAttrNames;
+                var arrAttrValues;
+                var strAttrName;
+                var template;
+
+                element.attributesFromTemplate = [];
+                element.templates = {};
+
+                //for (i = 0, len = arrTemplate.length; i < len; i += 1) {
+                i = 0;
+                len = arrTemplate.length;
+                while (i < len) {
+                    if (i === 0) {
+                        element.firstTemplate = arrTemplate[i].getAttribute('for') || arrTemplate[i].getAttribute('id');
+                    }
+
+                    arrAttrNames = [];
+                    arrAttrValues = [];
+
+                    attr_i = 0;
+                    attr_len = arrTemplate[i].attributes.length;
+                    //for (attr_i = 0, attr_len = arrTemplate[i].attributes.length; attr_i < attr_len; attr_i += 1) {
+                    while (attr_i < attr_len) {
+                        strAttrName = arrTemplate[i].attributes[attr_i].nodeName;
+
+                        if (strAttrName !== 'for' && strAttrName !== 'id') {
+                            arrAttrNames.push(strAttrName);
+                            arrAttrValues.push(arrTemplate[i].attributes[attr_i].value);
+                        }
+                        attr_i += 1;
+                    }
+
+                    template = arrTemplate[i];
+                    element.templates[template.getAttribute('for') || template.getAttribute('id')] = {
+                        'content': template.innerHTML,
+                        'arrAttrNames': arrAttrNames,
+                        'arrAttrValues': arrAttrValues,
+                        'templated': !(element.hasAttribute('static') || template.hasAttribute('static'))
+                    };
+                    if (!(element.hasAttribute('static') || template.hasAttribute('static')) &&
+                            (
+                        element.templates[template.getAttribute('for') || template.getAttribute('id')].content.indexOf('&gt;') > -1 ||
+                        element.templates[template.getAttribute('for') || template.getAttribute('id')].content.indexOf('&lt;') > -1
+                    )) {
+                        console.warn('GS-SLIDE WARNING: &gt; or &lt; detected in "' + (template.getAttribute('for') || template.getAttribute('id')) + '" template, this can have undesired effects on doT.js. Please use gt(x,y), gte(x,y), lt(x,y), or lte(x,y) to silence this warning.');
+                    }
+
+                    i += 1;
+                }
+
+                // Clear out the templates from the DOM
+                element.innerHTML = '';
+
+                element.arrQueryStringAttributes = [];
+                element.popValues = {};
+
+                if (
+                    (
+                        element.hasAttribute('template') &&
+                        element.getAttribute('template').indexOf('{{') > -1
+                    ) ||
+                    element.hasAttribute('qs') ||
+                    element.hasAttribute('refresh-on-querystring-values') ||
+                    element.hasAttribute('refresh-on-querystring-change')
+                ) {
+                    pushReplacePopHandler(element);
+                    window.addEventListener('pushstate', function () {
+                        pushReplacePopHandler(element);
+                    });
+                    window.addEventListener('replacestate', function () {
+                        pushReplacePopHandler(element);
+                    });
+                    window.addEventListener('popstate', function () {
+                        pushReplacePopHandler(element);
+                    });
+                }
+
+                // element.refresh();
+                // element.innerHTML = subsafeTemplate(arrTemplate[0].content);
+                // console.log(subsafeTemplate(arrTemplate[0].content), arrTemplate[0]);
+                element.slide('gs-slideStartFirstTemplate');
+            }
+        }
+    }
+
+    xtag.register('gs-slide', {
+        lifecycle: {
+            created: function () {
+                elementCreated(this);
+            },
+
+            inserted: function () {
+                elementInserted(this);
+            },
+
+            attributeChanged: function (strAttrName, oldValue, newValue) {
+                var element = this;
+                // if "suspend-created" has been removed: run created and inserted code
+                if (strAttrName === 'suspend-created' && newValue === null) {
+                    elementCreated(element);
+                    elementInserted(element);
+
+                // if "suspend-inserted" has been removed: run inserted code
+                } else if (strAttrName === 'suspend-inserted' && newValue === null) {
+                    elementInserted(element);
+
+                } else if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+                    if (strAttrName === 'value') {
+                        console.warn('gs-slide Warning: "value" attribute is not in use. Please use the "template" attribute instead.', element);
+                    } else if (strAttrName === 'template' && element.inserted === true) {
+                        element.slide('right', newValue);
+                    }
+                }
+            }
+        },
+        events: {},
+        accessors: {
+            // cannot set the template with an accessor
+            value: {
+                get: function () {
+                    var element = this;
+                    console.warn('gs-slide Warning: \'.value\' accessor is deprecated. Please use the \'.template\' accessor to replace the \'.value\' accessor.', element);
+                    return element.getAttribute('template');
+                }
+            },
+            template: {
+                get: function () {
+                    return this.getAttribute('template');
+                }
+            },
+            currentTemplate: {
+                get: function () {
+                    var templateName;
+                    var strQueryString = GS.getQueryString();
+                    var strQSAttribute = this.getAttribute('qs');
+                    var strValueAttribute = this.getAttribute('template') || this.getAttribute('value');
+                    if (strQSAttribute && GS.qryGetVal(strQueryString, strQSAttribute)) {
+                        templateName = GS.qryGetVal(strQueryString, strQSAttribute);
+                    } else if (strValueAttribute) {
+                        templateName = GS.templateWithQuerystring(strValueAttribute);
+                    }
+                    return templateName;
+                }
+            }
+        },
+        methods: {
+            'slide': function (direction, templateTo, bolqs) {
+                var element = this;
+                var strQueryString = GS.getQueryString();
+                var strQSAttribute = element.getAttribute('qs');
+                var strValueAttribute = templateTo;
+                var templateName;
+                var i;
+                var len;
+                var newHTML;
+                var offsetCSS;
+                var keyFrameCSS;
+                var newPageID = 'slideCont' + window.slideIdNum;
+                // window property to prevent duplicates
+                window.slideIdNum++;
+
+                if (direction !== 'gs-slideStartFirstTemplate' && !bolqs && (element.hasAttribute('refresh-on-querystring-change') || element.hasAttribute('refresh-on-querystring-values') || element.hasAttribute('qs'))) {
+                    element.slide((direction || 'right'), templateTo, true);
+                    console.warn('gs-slide Warning: \'Do not use element.slide on an element using querystring attributes, use GS.pushQueryString();\'');
+                    return;
+                }
+
+                // if we've been given a name: use that
+                if (templateTo) {
+                    templateName = templateTo;
+                // else: get a name
+                } else {
+                    if (strQSAttribute && GS.qryGetVal(strQueryString, strQSAttribute)) {
+                        templateName = GS.qryGetVal(strQueryString, strQSAttribute);
+                    } else if (strValueAttribute) {
+                        templateName = GS.templateWithQuerystring(strValueAttribute);
+                    }
+                }
+
+                templateName = templateName || element.firstTemplate;
+
+                if (element.templates[templateName] && element.templates[templateName].content) {
+                    // if there are values in element.attributesFromTemplate
+                    if (element.attributesFromTemplate.length > 0) {
+                        // loop through them
+                        i = 0;
+                        len = element.attributesFromTemplate.length;
+                        //for (i = 0, len = element.attributesFromTemplate.length; i < len; i += 1) {
+                        while (i < len) {
+                            // if attribute was initallySet: set it back to initalvalue
+                            if (element.attributesFromTemplate[i].initallySet) {
+                                element.setAttribute(element.attributesFromTemplate[i].name, element.attributesFromTemplate[i].initalValue);
+
+                            // else: remove it
+                            } else {
+                                element.removeAttribute(element.attributesFromTemplate[i].name);
+                            }
+                            i += 1;
+                        }
+                    }
+
+                    // clear element.attributesFromTemplate
+                    element.attributesFromTemplate = [];
+
+                    // if there are values in element.templates[templateName].arrAttrNames
+                    if (element.templates[templateName].arrAttrNames.length > 0) {
+                        // loop through them
+                        i = 0;
+                        len = element.templates[templateName].arrAttrNames.length;
+                        while (i < len) {
+                            // add to element.attributesFromTemplate
+                            element.attributesFromTemplate.push({
+                                'name': element.templates[templateName].arrAttrNames[i],
+                                'initallySet': element.hasAttribute(element.templates[templateName].arrAttrNames[i]),
+                                'initalValue': element.getAttribute(element.templates[templateName].arrAttrNames[i])
+                            });
+
+                            // set attribute
+                            element.setAttribute(element.templates[templateName].arrAttrNames[i], GS.templateWithQuerystring(element.templates[templateName].arrAttrValues[i]));
+                            i += 1;
+                        }
+                    }
+
+                    // if this isn't the first one
+                    if (direction !== 'gs-slideStartFirstTemplate') {
+                        // newhtml is added after the css is added
+                        if (element.templates[templateName].templated) {
+                            newHTML = '<div id="' + newPageID + '">' + subsafeTemplate(element.templates[templateName].content) + '</div>';
+                        } else {
+                            newHTML = '<div id="' + newPageID + '">' + element.templates[templateName].content + '</div>';
+                        }
+
+                        // create slide css
+                        // keyFrameCSS is added at the end
+                        offsetCSS = '#' + newPageID + ' {\n';
+                        if (direction === 'left') {
+                            offsetCSS += '    left: -100%;\n';
+                            keyFrameCSS = '@-webkit-keyframes slidein {\n' +
+                                    '    100% { left: 0; }\n' +
+                                    '}\n' +
+                                    '@keyframes slidein {\n' +
+                                    '    100% { left: 0; }\n' +
+                                    '}\n';
+
+                        } else if (direction === 'top') {
+                            offsetCSS += '    top: -100%;\n';
+                            keyFrameCSS = '@-webkit-keyframes slidein {\n' +
+                                    '    100% { top: 0; }\n' +
+                                    '}\n' +
+                                    '@keyframes slidein {\n' +
+                                    '    100% { top: 0; }\n' +
+                                    '}\n';
+
+                        } else if (direction === 'bottom') {
+                            offsetCSS += '    top: 100%;\n';
+                            keyFrameCSS = '@-webkit-keyframes slidein {\n' +
+                                    '    100% { top: 0; }\n' +
+                                    '}\n' +
+                                    '@keyframes slidein {\n' +
+                                    '    100% { top: 0; }\n' +
+                                    '}\n';
+
+                        //right should be the default
+                        } else {
+                            offsetCSS += '    left: 100%;\n';
+                            keyFrameCSS = '@-webkit-keyframes slidein {\n' +
+                                    '    100% { left: 0; }\n' +
+                                    '}\n' +
+                                    '@keyframes slidein {\n' +
+                                    '    100% { left: 0; }\n' +
+                                    '}\n';
+                        }
+
+                        offsetCSS += '    -webkit-animation: slidein 1s forwards;\n' +
+                                '    animation: slidein 1s forwards;\n' +
+                                '}\n';
+                        offsetCSS += keyFrameCSS;
+                        element.relatedStyleSheet.innerHTML = offsetCSS;
+                        element.innerHTML += newHTML;
+                        //remove previous template
+                        setTimeout(function () {
+                            element.removeChild(element.children[0]);
+                        }, 1000);
+                    // if this is the first one
+                    } else {
+                        if (element.templates[templateName].templated) {
+                            element.innerHTML = '<div id="' + newPageID + '">' + subsafeTemplate(element.templates[templateName].content); + '</div>'
+                        } else {
+                            element.innerHTML = '<div id="' + newPageID + '">' + element.templates[templateName].content; + '</div>'
+                        }
+                    }
+
+                    // if template is not native: handle templates inside the slide
+                    if (shimmed.HTMLTemplateElement) {
+                        window.HTMLTemplateElement.bootstrap(element);
+                    }
+                    console.log(templateName, newPageID);
+                    GS.triggerEvent(element, 'templatechange', {'templateName': templateName});
+                    GS.triggerEvent(element, 'template_change', {'templateName': templateName});
+                } else {
+                    element.innerHTML = '';
                 }
             }
         }
@@ -54623,7 +55343,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
             }
         }
-        console.log(element.internalDisplay.focus.selectionRange);
+        // console.log(element.internalDisplay.focus.selectionRange);
 
         // we want to either do a full re-render or a partial re-render
         if (intViewportHeight < 3 || intViewportWidth < 3) {
@@ -60432,8 +61152,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             } else {
                                 strNewRecord += strCell;
                             }
-                            console.log(strCell);
-                            console.log(intPastedColumn + intStart);
+                            // console.log(strCell);
+                            // console.log(intPastedColumn + intStart);
 
                         // else, replace the current cell with NULL
                         } else {
@@ -60869,6 +61589,24 @@ document.addEventListener('DOMContentLoaded', function () {
         tableElement = xtag.query(elementMaker.content, 'table')[0];
         tbodyElement = xtag.queryChildren(tableElement, 'tbody')[0];
 
+        // colspans cause data issues since they remove the
+        // cells in front of them, so we put them back
+        var colspans = xtag.query(tbodyElement, 'td[colspan]');
+        if (colspans.length > 0) {
+            var i = 0, len = colspans.length;
+            var int_i = 0, int_len, tdElem;
+            while (i < len) {
+                // there might be a cell with a colspan of fifteen
+                //   we would need to add 14 since there's already one
+                int_len = colspans[i].getAttribute('colspan') - 1;
+                while (int_i < int_len) {
+                    tdElem = document.createElement('td');
+                    GS.insertElementAfter(tdElem ,colspans[int_i]);
+                    int_i++;
+                }
+                i++;
+            }
+        }
         // if there's a TBODY, get records from within there
         if (tbodyElement) {
             arrRecord = xtag.queryChildren(tbodyElement, 'tr');
@@ -61988,7 +62726,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (bolRefresh && element.hasAttribute('src')) {
-                console.log('pushReplacePopHandler: refresh', element);
+                // console.log('pushReplacePopHandler: refresh', element);
                 element.refresh();
             } else if (bolRefresh && !element.hasAttribute('src')) {
                 console.warn('gs-table Warning: element has "refresh-on-querystring-values" or "refresh-on-querystring-change", but no "src".', element);
@@ -63175,7 +63913,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     //      changed
                     renderSelection(element);
                     GS.triggerEvent(element, 'selection_change');
-                    console.log('changed');
+                    // console.log('changed');
 
                     //console.log(element.internalSelection.ranges);
 
@@ -66345,13 +67083,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
 
 
-                    console.log('columnElement.value:',  columnElement.value);
-                    console.log('target.value:',  target.value);
-                    console.log('columnElement.checked:',  columnElement.checked);
-                    console.log('target.checked:',  target.checked);
-                    console.log('strColumn:', strColumn);
+                    // console.log('columnElement.value:',  columnElement.value);
+                    // console.log('target.value:',  target.value);
+                    // console.log('columnElement.checked:',  columnElement.checked);
+                    // console.log('target.checked:',  target.checked);
+                    // console.log('strColumn:', strColumn);
                     //console.log('intRecord:', intRecord);
-                    console.log('newValue:', newValue);
+                    // console.log('newValue:', newValue);
 
                     // call the update function
                     dataUPDATE(element, 'single-cell', {
@@ -66376,7 +67114,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //      focused way, with more room. so, we open the update dialog
         //      when an update dialog button is clicked.
         element.internalEvents.updateDialog = function (event) {
-            console.log(event);
+            // console.log(event);
             var target = event.target;
             var arrCol;
             var intRow;
@@ -66631,7 +67369,7 @@ document.addEventListener('DOMContentLoaded', function () {
         element.internalEvents.insertRecordBlur = function (event) {
             setTimeout(function()
             {
-                console.log(document.activeElement);
+                // console.log(document.activeElement);
                 var parentCell = GS.findParentTag(event.target, 'gs-cell');
                 var newParentCell = GS.findParentTag(
                     document.activeElement,
@@ -66652,7 +67390,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         totalValues += insertElements[i].value;
                     }
                     if (totalValues && totalValues !== 'false') {
-                        console.log('why:' + totalValues);
+                        // console.log('why:' + totalValues);
                         triggerRecordInsert(element);
                     }
                 }
@@ -66676,11 +67414,11 @@ document.addEventListener('DOMContentLoaded', function () {
         //      when we re-template the insert record on scroll, we can get
         //      the values back
         element.internalEvents.insertRecordValueRetain = function (event) {
-            console.log(event);
+            // console.log(event);
             if (event.type === 'keyup' && event.keyCode == 13) {
-                console.log('exit');
+                // console.log('exit');
                 return;
-                console.log(event.type);
+                // console.log(event.type);
             }
             var target = event.target;
             var parentCell = GS.findParentTag(target, 'gs-cell');

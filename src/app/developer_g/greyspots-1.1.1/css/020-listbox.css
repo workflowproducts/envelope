@@ -219,3 +219,22 @@ gs-listbox > .letter-scrollbar-container > .skipper:last-child {
 gs-listbox.blue > .letter-scrollbar-container > .skipper {
     border-color: #3B99BE;
 }
+
+/* #################################################### */
+/* ###################### HEADER ###################### */
+/* #################################################### */
+
+
+gs-listbox thead {
+	position: absolute;
+	width: 100% !important;
+}
+
+gs-listbox thead tr {
+	position: static;
+	width: 100% !important;
+}
+
+gs-listbox td, th {
+    border-right: none; 
+}

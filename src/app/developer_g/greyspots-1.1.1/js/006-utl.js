@@ -87,6 +87,19 @@ GS.hitLink = function (strLink) {
     document.body.appendChild(iframeElement);
 };
 
+GS.newDate = function (date) {
+    var strDate = '' + date + '';
+    // console.log(strDate.indexOf('-'), strDate.lastIndexOf('-'));
+    if (strDate.indexOf('-') !== strDate.lastIndexOf('-')) {
+        strDate = (
+            strDate
+                .replace(/\-/, '/')
+                .replace(/\-/, '/')
+        );
+    }
+    return new Date(strDate);
+}
+
 
 GS.log = function (bolsend, message) {
     "use strict";

@@ -1357,7 +1357,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     return formatDate(new Date(this.getAttribute('value')), this.getAttribute('format'));
                 },
                 set: function (newValue) {
-                    this.setAttribute('value', newValue);
+                    var newerValue = GS.newDate(newValue);
+                    this.setAttribute('value', newerValue);
                     this.innerText = formatDate(new Date(this.getAttribute('value')), this.getAttribute('format'));
                 }
             },
@@ -1369,7 +1370,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     return dteValue;
                 },
                 set: function (newValue) {
-                    this.value = formatDate(newValue, (this.hasDate ? 'yyyy/MM/dd' : '') + ' ' + (this.hasTime ? 'HH:mm:ss' : '').trim());
+                    var newerValue = GS.newDate(newValue);
+                    this.value = formatDate(newerValue, (this.hasDate ? 'yyyy/MM/dd' : '') + ' ' + (this.hasTime ? 'HH:mm:ss' : '').trim());
                 }
             }
         },

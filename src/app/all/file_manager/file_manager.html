@@ -19,6 +19,20 @@
 
             var bolWebSocket;
 
+            function selectAll(typeToSelect) {
+                var elemsToSelect = xtag.query(document.getElementById('file-list'), 'gs-checkbox[type=' + typeToSelect + ']');
+                // console.log(elemsToSelect);
+                var i = 0, len = elemsToSelect.length;
+                while (i < len) {
+                    if (elemsToSelect[i].textValue !== 'YES') {
+                        xtag.fireEvent(elemsToSelect[i], 'click', { bubbles: true, cancelable: true });
+                    }
+                    // elemsToSelect[i].value = 'true';
+                    i++;
+                }
+                // GS.triggerEvent(document.getElementById('file-list'), 'change');
+            }
+
             // update the querystring with the latest paths
             function updateQueryString() {
                 "use strict";
@@ -211,14 +225,12 @@
 
                                 arrFolder.sort();
                                 arrFile.sort();
-
                                 for (i = 0, len = arrFolder.length; i < len; i += 1) {
                                     strName = arrFolder[i];
 
                                     strCurrentPath = filePathPrefix(strName);
                                     strFolderHTML += folderLineHTML(strName, strCurrentPath);
                                 }
-
                                 for (i = 0, len = arrFile.length; i < len; i += 1) {
                                     strName = arrFile[i];
 
@@ -679,9 +691,9 @@
                 // one of the left side checkboxes are checked add the file or folder to the array of checked paths
                 //      else if the checkbox is unchecked than remove the path from the list
                 document.getElementById('file-list').addEventListener('change', function (event) {
+                    // console.log(event.target);
                     var path = event.target.parentNode.getAttribute('link');
 
-                    //console.log(event.target);
 
                     if (event.target.value === 'true') {
                         arrCheckedPaths.push(path);
@@ -1271,7 +1283,8 @@
                 <div flex-horizontal>
                     <h4 id="current-path" flex>File Manager</h4>
                     <gs-text id="current-path-edit" flex hidden></gs-text>
-                    <gs-button id="button-refresh" icononly icon="refresh" title="Refresh file list..." remove-right remove-margin-right></gs-button>
+                    <gs-button onclick="selectAll('file'); selectAll('folder');" remove-right remove-margin-right>Select All</gs-button>
+                    <gs-button id="button-refresh" icononly icon="refresh" title="Refresh file list..." remove-all remove-margin-horizontal disabled></gs-button>
                     <gs-button id="button-checked" icononly icon="check" title="Look at all checked files and folders" remove-all remove-margin-horizontal disabled></gs-button>
                     <gs-button id="button-search" target="_blank" icononly icon="search" title="Go to search page..." remove-left remove-margin-left></gs-button>
                 </div>

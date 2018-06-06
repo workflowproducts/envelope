@@ -562,23 +562,25 @@ document.addEventListener('DOMContentLoaded', function () {
         // set width and left variables
         // try regular
         if (scrollContainer.scrollWidth <= scrollContainer.offsetWidth) {
-            if (intComboWidth < 150) {
-                intNewWidth = (window.innerWidth - jsnComboOffset.left) - 20;
-
-                if (intNewWidth < 300) {
-                    strWidth = intNewWidth + 'px';
-                } else {
-                    strWidth = '300px';
-                }
-
-            } else {
-                strWidth = intComboWidth + 'px';
-            }
+            // Skipping the width allows the dropdown to resize to the content
+            //if (intComboWidth < 150) {
+            //    intNewWidth = (window.innerWidth - jsnComboOffset.left) - 20;
+            //
+            //    if (intNewWidth < 300) {
+            //        strWidth = intNewWidth + 'px';
+            //    } else {
+            //        strWidth = '300px';
+            //    }
+            //
+            //} else {
+            //    strWidth = intComboWidth + 'px';
+            //}
             strLeft = jsnComboOffset.left + 'px';
 
         // else full width
         } else {
-            strWidth = '100%';
+            // Skipping the width allows the dropdown to resize to the content
+            //strWidth = '100%';
             strLeft = '0px';
         }
 
@@ -587,7 +589,8 @@ document.addEventListener('DOMContentLoaded', function () {
         positioningContainer.style.left   = strLeft;
         positioningContainer.style.top    = strTop;
         positioningContainer.style.bottom = strBottom;
-        positioningContainer.style.width  = strWidth;
+        // Skipping the width allows the dropdown to resize to the content
+        //positioningContainer.style.width  = strWidth;
         positioningContainer.style.height = strHeight;
 
         if (strTop) {
