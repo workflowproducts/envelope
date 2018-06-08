@@ -1297,6 +1297,14 @@ void client_request_queue_cb(EV_P, ev_check *w, int revents) {
 				}
 				SINFO("%s", str_query);
 
+				if (client_request->int_req_type == ENVELOPE_REQ_BEGIN) {
+					SFREE(client_request->str_transaction_id);
+					SFINISH_SNCAT(
+						client_request->str_transaction_id, &client_request->int_transaction_id_len,
+						client_request->str_message_id, client_request->int_message_id_len
+					);
+				}
+
 				SFINISH_CHECK(
 					DB_exec(EV_A, client_request->parent->conn, client_request, str_query, client_cmd_cb), "DB_exec failed");
 
