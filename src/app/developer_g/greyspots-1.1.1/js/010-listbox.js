@@ -859,8 +859,9 @@ document.addEventListener('DOMContentLoaded', function () {
             
             if (element.tableTemplate) {// element.tableTemplateElement
                 strTemplate = element.tableTemplate;// element.tableTemplateElement
-                
+                console.log('srsly?');
             } else {
+                console.log('yeah');
                 // create an array of hidden column numbers
                 arrHide = (element.getAttribute('hide') || '').split(/[\s]*,[\s]*/);
                 
@@ -897,6 +898,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         '</tr>' +
                                     '</tbody>' +
                                 '</table>';
+                                
             }
             
             divElement = document.createElement('div');
@@ -905,6 +907,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tableElement = xtag.queryChildren(divElement, 'table')[0];
             theadElement = xtag.queryChildren(tableElement, 'thead')[0];
             tbodyElement = xtag.queryChildren(tableElement, 'tbody')[0];
+            
             
             // if there is a tbody
             if (tbodyElement) {
@@ -941,6 +944,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.internalData.records = data;
                 }
             }
+            
+            if (theadElement && tbodyElement && theadElement.children[0]) {
+                tbodyElement.innerHTML = theadElement.innerHTML + '' + tbodyElement.innerHTML;
+                var cols_i = 0, cols_len = theadElement.children[0].children.length;
+                element.tbodyheader = xtag.query(tbodyElement, 'tr:not([data-record_no])')[0];
+                element.tbodyElement = tbodyElement;
+                element.theadElement = theadElement;
+                console.log(element.tbodyheader);
+                while (cols_i < cols_len) {
+                    theadElement.children[0].children[cols_i].setAttribute('style', 'width: ' + element.tbodyheader.children[cols_i].clientWidth + 'px !important; padding-right: 0; padding-left: 0;');
+                    cols_i++;
+                }
+            }
+            //snapback
             
             //console.log('1***', bolInitalLoad, element.getAttribute('value'));
             
@@ -984,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function windowResizeHandler() {
-        var i, len, arrElement;
+        var i, len, arrElement, element;
         
         arrElement = document.getElementsByTagName('gs-listbox');
         
@@ -998,6 +1015,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 arrElement[i].letterScrollbarHandler();
                 this.oldWidth = this.offsetWidth;
+            }
+            element = arrElement[i];
+            if (element.theadElement && element.tbodyElement) {
+                var cols_i = 0, cols_len = element.theadElement.children[0].children.length;
+                while (cols_i < cols_len) {
+                    element.theadElement.children[0].children[cols_i].setAttribute('style', 'width: ' + element.tbodyheader.children[cols_i].clientWidth + 'px !important; padding-right: 0; padding-left: 0;');
+                    cols_i++;
+                }
             }
         }
     }
@@ -1412,6 +1437,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     } else {
                         element.tableElement = document.createElement('table');
                     }
+                    
+                    //snapback
                     //loop through and add the data-record_no attribute
                     //console.log(element.innerHTML);
                     var trSet = xtag.query(tableTemplateElement.content, 'tr');//:not(.divider)');
@@ -1420,7 +1447,22 @@ document.addEventListener('DOMContentLoaded', function () {
                         //console.log(trSet[i]);
                         trSet[i].setAttribute('data-record_no', i);
                     }
+                    
                     element.syncView();
+                    var theadElement = xtag.query(element.tableElement, 'thead')[0];
+                    var tbodyElement = xtag.query(element.tableElement, 'tbody')[0];
+                    if (theadElement && tbodyElement && theadElement.children[0]) {
+                        tbodyElement.innerHTML = theadElement.innerHTML + '' + tbodyElement.innerHTML;
+                        var cols_i_1 = 0, cols_len_1 = theadElement.children[0].children.length;
+                        element.tbodyheader = xtag.query(tbodyElement, 'tr[data-record_no="0"]')[0];
+                        element.tbodyheader.removeAttribute('data-record_no');
+                        element.tbodyElement = tbodyElement;
+                        element.theadElement = theadElement;
+                        while (cols_i_1 < cols_len_1) {
+                            theadElement.children[0].children[cols_i_1].setAttribute('style', 'width: ' + element.tbodyheader.children[cols_i_1].clientWidth + 'px !important; padding-right: 0; padding-left: 0;');
+                            cols_i_1++;
+                        }
+                    }
                 }
             }
         }

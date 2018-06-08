@@ -161,12 +161,48 @@ document.addEventListener('DOMContentLoaded', function () {
         updateFrameData = (strRoles + '\n' + strColumns + '\n' + updateFrameData);
         GS.triggerEvent(element, 'before_update');
         
+        element.saveState = 'saving';
+        if (element.saveTimeout) {
+            clearTimeout(element.saveTimeout);
+        }
+        //console.log('wait five seconds');
+        element.saveTimeout = setTimeout(function () {
+            //console.log('element.saveState', element.saveState);
+            if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
+                element.saveState = 'error';
+                var parentElement = document.createElement('center');
+                parentElement.setAttribute('class', 'saving-warning-parent');
+                
+                var warningElement = document.createElement('div');
+                warningElement.setAttribute('class', 'saving-warning');
+    
+                // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
+                warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />THE SAVE PROCESS IS HANGING WITH NO ERROR<br />IT MIGHT JUST TAKE A LONG TIME';
+    
+                parentElement.appendChild(warningElement);
+                element.insertBefore(parentElement, element.children[0]);
+                
+                // element.appendChild(parentElement);
+                /*
+                warningElement.addEventListener('click', function () {
+                    saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
+                });
+                */
+            }
+        }, /*30*/ 5 * 1000);
+        
         GS.requestUpdateFromSocket(
             GS.envSocket, strSchema, strObject
           , strReturnCols, strHashCols, updateFrameData
             
           , function (data, error, transactionID) {
                 if (error) {
+                    //console.log('error');
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'error';
+                    
                     getData(element);
                     GS.removeLoader(element);
                     GS.webSocketErrorDialog(data);
@@ -177,6 +213,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 if (!error) {
                     if (data === 'TRANSACTION COMPLETED') {
+                        //console.log('saved');
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.saveState = 'saved';
+                        
                         commitFunction();
                     } else {
                         var arrRecords, arrCells, i, len, cell_i, cell_len;
@@ -195,6 +237,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     
                 } else {
+                    //console.log('error');
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'error';
+                    
                     rollbackFunction();
                     getData(element);
                     GS.webSocketErrorDialog(data);
@@ -205,6 +253,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 if (!error) {
                     if (strAnswer === 'COMMIT') {
+                        //console.log('saved');
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.saveState = 'saved';
+                        
                         var idIndex, i, len;
                         
                         idIndex = element.lastSuccessData.arr_column.indexOf('id');
@@ -224,6 +278,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         getData(element);
                     }
                 } else {
+                    //console.log('error');
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'error';
+                    
                     getData(element);
                     GS.webSocketErrorDialog(data);
                 }

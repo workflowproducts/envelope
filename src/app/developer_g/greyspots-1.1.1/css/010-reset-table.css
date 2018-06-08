@@ -20,6 +20,11 @@ tr th:first-child {
     border-left: 0 none;
 }
 
+tr td:last-child,
+tr th:last-child {
+    border-right: 0 none;
+}
+
 table thead th {
     /*
     border-bottom: 2px solid #13AB13;

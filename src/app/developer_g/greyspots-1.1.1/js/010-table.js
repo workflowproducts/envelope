@@ -7344,7 +7344,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
             }
         }
-        console.log(element.internalDisplay.focus.selectionRange);
+        // console.log(element.internalDisplay.focus.selectionRange);
 
         // we want to either do a full re-render or a partial re-render
         if (intViewportHeight < 3 || intViewportWidth < 3) {
@@ -13153,8 +13153,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             } else {
                                 strNewRecord += strCell;
                             }
-                            console.log(strCell);
-                            console.log(intPastedColumn + intStart);
+                            // console.log(strCell);
+                            // console.log(intPastedColumn + intStart);
 
                         // else, replace the current cell with NULL
                         } else {
@@ -13590,6 +13590,24 @@ document.addEventListener('DOMContentLoaded', function () {
         tableElement = xtag.query(elementMaker.content, 'table')[0];
         tbodyElement = xtag.queryChildren(tableElement, 'tbody')[0];
 
+        // colspans cause data issues since they remove the
+        // cells in front of them, so we put them back
+        var colspans = xtag.query(tbodyElement, 'td[colspan]');
+        if (colspans.length > 0) {
+            var i = 0, len = colspans.length;
+            var int_i = 0, int_len, tdElem;
+            while (i < len) {
+                // there might be a cell with a colspan of fifteen
+                //   we would need to add 14 since there's already one
+                int_len = colspans[i].getAttribute('colspan') - 1;
+                while (int_i < int_len) {
+                    tdElem = document.createElement('td');
+                    GS.insertElementAfter(tdElem ,colspans[int_i]);
+                    int_i++;
+                }
+                i++;
+            }
+        }
         // if there's a TBODY, get records from within there
         if (tbodyElement) {
             arrRecord = xtag.queryChildren(tbodyElement, 'tr');
@@ -14709,7 +14727,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (bolRefresh && element.hasAttribute('src')) {
-                console.log('pushReplacePopHandler: refresh', element);
+                // console.log('pushReplacePopHandler: refresh', element);
                 element.refresh();
             } else if (bolRefresh && !element.hasAttribute('src')) {
                 console.warn('gs-table Warning: element has "refresh-on-querystring-values" or "refresh-on-querystring-change", but no "src".', element);
@@ -15896,7 +15914,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     //      changed
                     renderSelection(element);
                     GS.triggerEvent(element, 'selection_change');
-                    console.log('changed');
+                    // console.log('changed');
 
                     //console.log(element.internalSelection.ranges);
 
@@ -19066,13 +19084,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
 
 
-                    console.log('columnElement.value:',  columnElement.value);
-                    console.log('target.value:',  target.value);
-                    console.log('columnElement.checked:',  columnElement.checked);
-                    console.log('target.checked:',  target.checked);
-                    console.log('strColumn:', strColumn);
+                    // console.log('columnElement.value:',  columnElement.value);
+                    // console.log('target.value:',  target.value);
+                    // console.log('columnElement.checked:',  columnElement.checked);
+                    // console.log('target.checked:',  target.checked);
+                    // console.log('strColumn:', strColumn);
                     //console.log('intRecord:', intRecord);
-                    console.log('newValue:', newValue);
+                    // console.log('newValue:', newValue);
 
                     // call the update function
                     dataUPDATE(element, 'single-cell', {
@@ -19097,7 +19115,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //      focused way, with more room. so, we open the update dialog
         //      when an update dialog button is clicked.
         element.internalEvents.updateDialog = function (event) {
-            console.log(event);
+            // console.log(event);
             var target = event.target;
             var arrCol;
             var intRow;
@@ -19352,7 +19370,7 @@ document.addEventListener('DOMContentLoaded', function () {
         element.internalEvents.insertRecordBlur = function (event) {
             setTimeout(function()
             {
-                console.log(document.activeElement);
+                // console.log(document.activeElement);
                 var parentCell = GS.findParentTag(event.target, 'gs-cell');
                 var newParentCell = GS.findParentTag(
                     document.activeElement,
@@ -19373,7 +19391,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         totalValues += insertElements[i].value;
                     }
                     if (totalValues && totalValues !== 'false') {
-                        console.log('why:' + totalValues);
+                        // console.log('why:' + totalValues);
                         triggerRecordInsert(element);
                     }
                 }
@@ -19397,11 +19415,11 @@ document.addEventListener('DOMContentLoaded', function () {
         //      when we re-template the insert record on scroll, we can get
         //      the values back
         element.internalEvents.insertRecordValueRetain = function (event) {
-            console.log(event);
+            // console.log(event);
             if (event.type === 'keyup' && event.keyCode == 13) {
-                console.log('exit');
+                // console.log('exit');
                 return;
-                console.log(event.type);
+                // console.log(event.type);
             }
             var target = event.target;
             var parentCell = GS.findParentTag(target, 'gs-cell');

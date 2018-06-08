@@ -122,6 +122,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.recalculatePadding();
                 });
                 element.recalculatePadding();
+                if (element.parentNode.tagName.toLowerCase() === 'gs-dialog') {
+                    element.setAttribute('role', 'complementary');
+                }
             }
         }
     }
