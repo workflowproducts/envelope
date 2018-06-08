@@ -6997,8 +6997,8 @@ GS.normalUserLogin = function (loggedInCallback, strOldError, strDefaultSubDomai
                         //data = data.substring(data.indexOf('\n') + 1); // responsenumber
                     }
 
-                    console.log('INSERT DATA:', data);
-                    console.log('INSERT TRANSID:', transactionID);
+                    // console.log('INSERT DATA:', data);
+                    // console.log('INSERT TRANSID:', transactionID);
 
                     commitFunction = function () {
                         GS.requestCommit(socket, transactionID, function (data, error) {
@@ -18218,7 +18218,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // loops through the records and finds a record using the parameter (if bolPartialMatchAllowed === true then only search the first td text)
     function findRecordFromString(element, strSearchString, bolPartialMatchAllowed) {
         var i, len, matchedRecord, arrTrs = xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr');
-
+        // console.log(arrTrs[0]);
+        // console.log(arrTrs[0].children[0].nodeName.toUpperCase());
+        if (arrTrs[0].children[0].nodeName.toUpperCase() === 'TH') {
+            arrTrs.splice(0,1);
+        }
+        // console.log(arrTrs);
         // if bolPartialMatchAllowed is true: only search the first td text (case insensitive)
         if (bolPartialMatchAllowed === true) {
             strSearchString = strSearchString.toLowerCase();
@@ -18234,6 +18239,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // else: search exact text and search both the value attribute (if present) and the first td text
         } else {
             for (i = 0, len = arrTrs.length; i < len; i += 1) {
+                // console.log(arrTrs, i);
                 if (arrTrs[i].getAttribute('value') === strSearchString ||
                     xtag.queryChildren(arrTrs[i], 'td')[0].textContent === strSearchString) {
                     matchedRecord = arrTrs[i];
@@ -18469,8 +18475,25 @@ document.addEventListener('DOMContentLoaded', function () {
         observer.observe(scrollContainer, {childList: true, subtree: true});
 
         //console.log(scrollContainer);
-
         dropDownSize(element);
+        
+        
+        if (!element.theadElement && !element.tbodyElement) {
+            element.theadElement = xtag.queryChildren(element.dropDownTable, 'thead')[0];
+            element.tbodyElement = xtag.queryChildren(element.dropDownTable, 'tbody')[0];
+        }
+        if (element.theadElement && element.tbodyElement && element.theadElement.children[0]) {
+            element.tbodyElement.innerHTML = element.theadElement.innerHTML + '' + element.tbodyElement.innerHTML;
+            var cols_i = 0, cols_len = element.theadElement.children[0].children.length;
+            element.tbodyheader = xtag.query(element.tbodyElement, 'tr:not([data-record_no])')[0];
+            console.log(element.tbodyheader);
+            while (cols_i < cols_len) {
+                element.theadElement.children[0].children[cols_i].setAttribute('style', 'width: ' + element.tbodyheader.children[cols_i].clientWidth + 'px !important; padding-right: 0; padding-left: 0;');
+                console.log(element.tbodyheader.children[cols_i]);
+                console.log(element.tbodyheader.children[cols_i].clientWidth);
+                cols_i++;
+            }
+        }
     }
 
     function dropDownSize(element) {
@@ -19105,7 +19128,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 //console.log(theadElement, tbodyElement);
 
                 strTemplate = element.tableTemplate; //this.initalHTML;
-
             } else { // if (data.arr_column)
                 // create an array of hidden column numbers
                 arrHide = (element.getAttribute('hide') || '').split(/[\s]*,[\s]*/);
@@ -19142,6 +19164,8 @@ document.addEventListener('DOMContentLoaded', function () {
             tableElement = xtag.queryChildren(divElement, 'table')[0];
             theadElement = xtag.queryChildren(tableElement, 'thead')[0];
             tbodyElement = xtag.queryChildren(tableElement, 'tbody')[0];
+            element.theadElement = theadElement;
+            element.tbodyElement = tbodyElement;
 
             // if there is a tbody
             if (tbodyElement) {
@@ -19185,6 +19209,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.ready = true;
                 }
             }
+            
+            
 
             //if (data.arr_column) {
             if (bolInitalLoad && element.getAttribute('value')) {
@@ -21835,12 +21861,50 @@ document.addEventListener('DOMContentLoaded', function () {
             arrUpdateRecords[i].classList.add('bg-red');
         }
         
+        element.saveState = 'saving';
+        if (element.saveTimeout) {
+            clearTimeout(element.saveTimeout);
+        }
+        //console.log('wait five seconds');
+        element.saveTimeout = setTimeout(function () {
+            //console.log('element.saveState', element.saveState);
+            if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
+                element.saveState = 'error';
+                var parentElement = document.createElement('center');
+                parentElement.setAttribute('class', 'saving-warning-parent');
+                
+                var warningElement = document.createElement('div');
+                warningElement.setAttribute('class', 'saving-warning');
+    
+                // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
+                warningElement.innerHTML = 'YOUR CHANGES ARE NOT SAVED<br />WE HAVEN\'T HEARD BACK FROM THE SERVER<br />EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR';
+                
+                parentElement.appendChild(warningElement);
+                element.insertBefore(parentElement, element.children[0]);
+                
+                // element.appendChild(parentElement);
+                /*
+                warningElement.addEventListener('click', function () {
+                    saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
+                });
+                */
+            }
+        }, /*30*/ 5 * 1000);
+        
         // create transaction
         GS.addLoader(element, 'Creating Update Transaction...');
         GS.requestUpdateFromSocket(
             getSocket(element), strSchema, strObject, getReturn(element), strHashColumns, strUpdateData
             , function (data, error, transactionID) {
                 if (error) {
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'error';
+                    if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                        element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                    }
+                    
                     getData(element);
                     GS.removeLoader(element);
                     GS.webSocketErrorDialog(data);
@@ -21858,6 +21922,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         
                     // open confirm message box
                     } else {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.saveState = 'saved';
+                        if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                            element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                        }
+                        
                         if (bolDialog) {
                             templateElement = document.createElement('template');
                             templateElement.innerHTML = ml(function () {/*
@@ -21893,6 +21965,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     
                 } else {
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'error';
+                    if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                        element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                    }
+                    
                     rollbackFunction();
                     getData(element);
                     GS.webSocketErrorDialog(data);
@@ -21905,6 +21985,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 if (!error) {
                     if (strAnswer === 'COMMIT') {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.saveState = 'saved';
+                        if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                            element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                        }
+                        
                         clearRecordColor(element, 'bg-amber', true);
                         
                         // refresh internal data
@@ -21924,6 +22012,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         getData(element);
                     }
                 } else {
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'error';
+                    if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                        element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                    }
+                    
                     getData(element);
                     GS.webSocketErrorDialog(data);
                 }
@@ -31762,10 +31858,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         strUpdateData += CryptoJS.MD5(strHashData);
-
+        
+        element.saveState = 'saving';
+        if (element.saveTimeout) {
+            clearTimeout(element.saveTimeout);
+        }
+        //console.log('wait five seconds');
+        element.saveTimeout = setTimeout(function () {
+            //console.log('element.saveState', element.saveState);
+            if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
+                element.saveState = 'error';
+                var parentElement = document.createElement('center');
+                parentElement.setAttribute('class', 'saving-warning-parent');
+                
+                var warningElement = document.createElement('div');
+                warningElement.setAttribute('class', 'saving-warning');
+    
+                // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
+                warningElement.innerHTML = 'YOUR CHANGES ARE NOT SAVED<br />WE HAVEN\'T HEARD BACK FROM THE SERVER<br />EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR';
+                
+                parentElement.appendChild(warningElement);
+                element.insertBefore(parentElement, element.children[0]);
+                
+                // element.appendChild(parentElement);
+                /*
+                warningElement.addEventListener('click', function () {
+                    saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
+                });
+                */
+            }
+        }, /*30*/ 5 * 1000);
+        
         addLoader(element, 'Updating Record...');
         GS.requestUpdateFromSocket(GS.envSocket, strSchema, strObject, '*', strHashCols, strUpdateData, function (data, error, transactionID) {
             if (error) {
+                if (element.saveTimeout) {
+                    clearTimeout(element.saveTimeout);
+                }
+                element.saveState = 'error';
+                if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                    element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                }
+                
                 removeLoader(element);
                 GS.webSocketErrorDialog(data);
             }
@@ -31775,6 +31909,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!error) {
                 if (data !== 'TRANSACTION COMPLETED') {
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'saved';
+                    if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                        element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                    }
+                    
                     arrRecords = GS.trim(data, '\n').split('\n');
 
                     for (i = 0, len = arrRecords.length; i < len; i += 1) {
@@ -31792,6 +31934,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
             } else {
+                if (element.saveTimeout) {
+                    clearTimeout(element.saveTimeout);
+                }
+                element.saveState = 'error';
+                if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                    element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                }
+                
                 removeLoader(element);
                 rollbackFunction();
                 GS.webSocketErrorDialog(data);
@@ -31801,6 +31951,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!error) {
                 if (strAnswer === 'COMMIT') {
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'saved';
+                    if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                        element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                    }
+                    
                     callbackFunction({
                         detail: {
                             response: arrTotalRecords[0],
@@ -31810,6 +31968,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
             } else {
+                if (element.saveTimeout) {
+                    clearTimeout(element.saveTimeout);
+                }
+                element.saveState = 'error';
+                if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                    element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                }
+                
                 getData(element);
                 GS.webSocketErrorDialog(data);
             }
@@ -35355,8 +35521,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 warningElement.setAttribute('class', 'saving-warning');
     
                 // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
-                warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />THE SAVE PROCESS IS HANGING WITH NO ERROR<br />IT MIGHT JUST TAKE A LONG TIME';
-    
+                warningElement.innerHTML = 'YOUR CHANGES ARE NOT SAVED<br />WE HAVEN\'T HEARD BACK FROM THE SERVER<br />EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR';
+                
                 parentElement.appendChild(warningElement);
                 element.insertBefore(parentElement, element.children[0]);
                 
@@ -39672,7 +39838,10 @@ document.addEventListener('DOMContentLoaded', function () {
             //console.log('3***', xtag.queryChildren(xtag.queryChildren(element.tableElement, 'tbody')[0], 'tr'));
             arrTrs = xtag.queryChildren(xtag.queryChildren(element.tableElement, 'tbody')[0], 'tr');
             strSearchString = String(searchValue);
-
+            // ############################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################if this function is trying to find a td that doesn't exits uncomment the next three lines ###########################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+            // if (arrTrs[0].children[0].nodeName.toUpperCase() === 'TH') {
+            //     arrTrs.splice(0,1);
+            // }
             // search exact text and search both the value attribute (if present) and the first td text
             for (i = 0, len = arrTrs.length; i < len; i += 1) {
                 if (arrTrs[i].getAttribute('value') === strSearchString || xtag.queryChildren(arrTrs[i], 'td')[0].textContent === strSearchString) {
@@ -49603,7 +49772,6 @@ document.addEventListener('DOMContentLoaded', function () {
             strHeading = arrCell[i].getAttribute('header') || '';
             arrHeading.push(strHeading);
 
-            //console.log('cell: ', arrCell[i]);
 
             // we want to warn if the copy template has no "header" attributes
             //      so, if one of the cells has a "header" attribute: we'll
@@ -49656,6 +49824,7 @@ document.addEventListener('DOMContentLoaded', function () {
         while (i < len) {
             arrColumn.push(arrCell[i].textContent);
 
+            // ######################################## CAN THIS BE REMOVED?
             //// we clear out this variable so that if we don't find a column
             ////      name, we'll just add empty string to the column list
             //strColumn = '';
@@ -49691,9 +49860,6 @@ document.addEventListener('DOMContentLoaded', function () {
             ////                    // removes extra whitespace
             ////                    .trim();
             ////
-            ////        //console.log(strCell);
-            ////        //console.log(arrMatch);
-            ////        //console.log('########################');
             ////    } else {
             ////
             ////    }
@@ -50310,9 +50476,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //      selected column list will be added to the current
         //      list
         i = intStartColumn;
-        //console.log('forward start', i);
         while (i < 9999) {
-            //console.log('forward', i, arrSelection.indexOf(i));
             if (arrSelection.indexOf(i) > -1) {
                 arrCurrentColumns.push(i);
             } else {
@@ -50326,9 +50490,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //      selected column list will be added to the current
         //      list
         i = (intStartColumn - 1);
-        //console.log('backward start', i);
         while (i >= 0) {
-            //console.log('backward', i, arrSelection.indexOf(i));
             if (arrSelection.indexOf(i) > -1) {
                 arrCurrentColumns.push(i);
             } else {
@@ -50724,7 +50886,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        //console.log(intMouseX, intMouseY, row, column);
 
         return {
             "row": row,
@@ -52348,7 +52509,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // cache copy column template stringss for speed
         arrColumnTemplates = element.internalClip.columnList.slice(0);
-
         // convert the column template strings into dot.js functions for speed
         col_i = 0;
         col_len = arrColumnTemplates.length;
@@ -52691,6 +52851,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     headerMode === 'always' ||
                     arrSelectedStates.indexOf(strHeader[intSel]) > -1
                 ) {
+                    // console.log(arrHeaders[intCol], 0, 0);
                     handleCell(arrHeaders[intCol], 0, 0);
 
                 } else {
@@ -55651,6 +55812,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // we maintain the last focused control, if the last focused control
         //      is in the DOM, we want to focus it
+        console.log('element.internalDisplay.focus.latest:', element.internalDisplay.focus.latest);
+        console.log('!isNaN(element.internalDisplay.focus.row):', !isNaN(element.internalDisplay.focus.row));
+        console.log('!isNaN(element.internalDisplay.focus.column):', !isNaN(element.internalDisplay.focus.column));
+        console.log('element.internalDisplay.focus.row >= jsnRange.fromRecord:', element.internalDisplay.focus.row >= jsnRange.fromRecord);
+        console.log('element.internalDisplay.focus.row <= jsnRange.toRecord:', element.internalDisplay.focus.row <= jsnRange.toRecord);
+        console.log('element.internalDisplay.focus.column >= jsnRange.fromColumn:', element.internalDisplay.focus.column >= jsnRange.fromColumn);
+        console.log('element.internalDisplay.focus.column <= jsnRange.toColumn:', element.internalDisplay.focus.column <= jsnRange.toColumn);
         if (
             // this does two things for us:
             //      "latest" starts out null so this prevents us trying to
@@ -55686,6 +55854,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     ).toLowerCase()
                 )
             )[0];
+            console.log('element.internalDisplay.focus:', element.internalDisplay.focus);
+            console.log('focusElement:', focusElement);
 
             if (focusElement) {
                 focusElement.focus();
@@ -57638,12 +57808,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // gotta let the user know that an insert is in progress
             addLoader(element, 'data-insert', 'Inserting Data...');
-            console.log(strSchema,
-                strObject,
-                strReturn,
-                strPK,
-                strSeq,
-                strInsertData);
+            // console.log(strSchema,
+            //     strObject,
+            //     strReturn,
+            //     strPK,
+            //     strSeq,
+            //     strInsertData);
             // begin the websocket insert
             GS.requestInsertFromSocket(
                 getSocket(element),
@@ -58317,7 +58487,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // gotta let the user know that an update is in progress
             addLoader(element, 'data-update', 'Updating Data...');
-
+            
+            element.saveState = 'saving';
+            if (element.saveTimeout) {
+                clearTimeout(element.saveTimeout);
+            }
+            //console.log('wait five seconds');
+            element.saveTimeout = setTimeout(function () {
+                //console.log('element.saveState', element.saveState);
+                if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
+                    element.saveState = 'error';
+                    var parentElement = document.createElement('center');
+                    parentElement.setAttribute('class', 'saving-warning-parent');
+                    
+                    var warningElement = document.createElement('div');
+                    warningElement.setAttribute('class', 'saving-warning');
+        
+                    // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
+                    warningElement.innerHTML = 'YOUR CHANGES ARE NOT SAVED<br />WE HAVEN\'T HEARD BACK FROM THE SERVER<br />EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR';
+                    
+                    parentElement.appendChild(warningElement);
+                    element.insertBefore(parentElement, element.children[0]);
+                    
+                    // element.appendChild(parentElement);
+                    /*
+                    warningElement.addEventListener('click', function () {
+                        saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
+                    });
+                    */
+                }
+            }, /*30*/ 5 * 1000);
+            
             // begin the websocket update
             GS.requestUpdateFromSocket(
                 getSocket(element),
@@ -58331,8 +58531,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     // update failed: remove loader, popup an error
                     //      and reverse changes
                     if (error) {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.saveState = 'error';
+                        if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                            element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                        }
+                        
                         removeLoader(element, 'data-update', 'Change Failed');
                         GS.webSocketErrorDialog(data);
+                        // console.log(strSchema, strObject, strReturn, strHashColumns, strUpdateData);
                         //getData(element);
                     }
                 },
@@ -58343,6 +58552,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!error) {
                         // update made it through: commit the update
                         if (data === 'TRANSACTION COMPLETED') {
+                            if (element.saveTimeout) {
+                                clearTimeout(element.saveTimeout);
+                            }
+                            element.saveState = 'saved';
+                            if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                                element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                            }
+                            
                             commit();
 
                         // else: we've just received a data packet containing
@@ -58364,9 +58581,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     // update failed: popup an error, rollback and
                     //      reverse change
                     } else {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.saveState = 'error';
+                        if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                            element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                        }
+                        
+                        data.error_text = '\n\nYour unsaved value(s): ' + strUpdateData.substring(strUpdateData.indexOf('\n'), strUpdateData.length) + '\n\n' + data.error_text;
                         GS.webSocketErrorDialog(data);
                         rollback();
-                        //getData(element);
+                        dataSELECT(element);
+                        //renderScrollDimensions()
+                        // getData(element);
+                        
                     }
                 },
                 // transaction commit/rollback finished callback
@@ -58393,6 +58622,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         // update was successfully commited: update internal
                         //      data and re-render
                         if (strAnswer === 'COMMIT') {
+                            if (element.saveTimeout) {
+                                clearTimeout(element.saveTimeout);
+                            }
+                            element.saveState = 'saved';
+                            if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                                element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                            }
+                            
                             // refresh internal data by replace each internal
                             //      record that was affected with it's new
                             //      version
@@ -58424,8 +58661,17 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     // update failed: popup an error and reverse change
                     } else {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.saveState = 'error';
+                        if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                            element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                        }
+                        
                         GS.webSocketErrorDialog(data);
                         //getData(element);
+                        // console.log(strSchema, strObject, strReturn, strHashColumns, strUpdateData);
                     }
                 }
             );
@@ -62943,8 +63189,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         parentColumn.getAttribute('column')
                     );
                     element.internalDisplay.focus.nodeName = (
-                        active.nodeName
+                        (active.classList.contains('control') ? active.parentNode : active).nodeName
                     );
+                    element.internalDisplay.focus.selectionRange = GS.getInputSelection(active);
                     element.internalDisplay.focus.latest = true;
                 }
             } else {
@@ -68262,76 +68509,82 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function bindCopy(element) {
         element.internalEvents.copySelection = function (event) {
-            var jsnCopyString;
-            var focusedElement;
-            var arrCopyType = (element.getAttribute('copy-types') || 'text,html').split(',');
-            var i;
-            var len;
-            var beforeCopyEvent = GS.triggerEvent(element, 'before_copy', {
-                forceCopy: element.internalEvents.forceCopy
-            });
-            element.internalEvents.forceCopy = false;
-
-            i = 0;
-            len = arrCopyType.length;
-            while (i < len) {
-                arrCopyType[i] = arrCopyType[i].toLowerCase();
-                i += 1;
-            }
-
-            if (beforeCopyEvent.defaultPrevented) {
-                event.preventDefault(event);
-
-            } else {
-                // saving the currently focused element for easy/quick access
-                focusedElement = document.activeElement;
-
-                // if the focus is on the hidden focus control of if the text
-                //      selection of the currently focused element is not
-                //      selecting multiple characters
-                if (
-                    focusedElement.classList.contains('hidden-focus-control') ||
-                    focusedElement.selectionStart ===
-                    focusedElement.selectionEnd
-                ) {
-                    console.time('copy');
-
-                    // because copying a large amount of data takes time, add a
-                    //      loader to let the user know we're copying,
-                    //      just in case
-                    addLoader(element, 'copy-loader', 'Copying Data...');
-
-                    // focus the hidden focus control and select all of it's
-                    //      text so that Firefox will allow us to override
-                    //      the clipboard
-                    focusedElement = element.elems.hiddenFocusControl;
-                    focusedElement.focus();
-
-                    GS.setInputSelection(
-                        focusedElement,
-                        0,
-                        focusedElement.value.length
-                    );
-
-                    // we want to override the text and HTML mime type
-                    //      clipboards, so we get the copy text for both types
-                    jsnCopyString = getCopyStrings(element);
-                    // override clipboard (prevent event default if we are
-                    //      successful)
-                    if (arrCopyType.indexOf('text') > -1 &&
-                        handleClipboardData(event, jsnCopyString.text, 'text')) {
-                        event.preventDefault(event);
-                    }
-                    if (arrCopyType.indexOf('html') > -1 &&
-                        handleClipboardData(event, jsnCopyString.html, 'html')) {
-                        event.preventDefault(event);
-                    }
-
-                    // remove copying loader
-                    removeLoader(element, 'copy-loader', 'Data Copied');
-
-                    console.timeEnd('copy');
+            // if there is copy columns
+            if (element.internalClip.columnList.length > 0) {
+                var jsnCopyString;
+                var focusedElement;
+                var arrCopyType = (element.getAttribute('copy-types') || 'text,html').split(',');
+                var i;
+                var len;
+                var beforeCopyEvent = GS.triggerEvent(element, 'before_copy', {
+                    forceCopy: element.internalEvents.forceCopy
+                });
+                element.internalEvents.forceCopy = false;
+    
+                i = 0;
+                len = arrCopyType.length;
+                while (i < len) {
+                    arrCopyType[i] = arrCopyType[i].toLowerCase();
+                    i += 1;
                 }
+    
+                if (beforeCopyEvent.defaultPrevented) {
+                    event.preventDefault(event);
+    
+                } else {
+                    // saving the currently focused element for easy/quick access
+                    focusedElement = document.activeElement;
+    
+                    // if the focus is on the hidden focus control of if the text
+                    //      selection of the currently focused element is not
+                    //      selecting multiple characters
+                    if (
+                        focusedElement.classList.contains('hidden-focus-control') ||
+                        focusedElement.selectionStart ===
+                        focusedElement.selectionEnd
+                    ) {
+                        console.time('copy');
+    
+                        // because copying a large amount of data takes time, add a
+                        //      loader to let the user know we're copying,
+                        //      just in case
+                        addLoader(element, 'copy-loader', 'Copying Data...');
+    
+                        // focus the hidden focus control and select all of it's
+                        //      text so that Firefox will allow us to override
+                        //      the clipboard
+                        focusedElement = element.elems.hiddenFocusControl;
+                        focusedElement.focus();
+    
+                        GS.setInputSelection(
+                            focusedElement,
+                            0,
+                            focusedElement.value.length
+                        );
+    
+                        // we want to override the text and HTML mime type
+                        //      clipboards, so we get the copy text for both types
+                            jsnCopyString = getCopyStrings(element);
+                        // override clipboard (prevent event default if we are
+                        //      successful)
+                        if (arrCopyType.indexOf('text') > -1 &&
+                            handleClipboardData(event, jsnCopyString.text, 'text')) {
+                            event.preventDefault(event);
+                        }
+                        if (arrCopyType.indexOf('html') > -1 &&
+                            handleClipboardData(event, jsnCopyString.html, 'html')) {
+                            event.preventDefault(event);
+                        }
+    
+                        // remove copying loader
+                        removeLoader(element, 'copy-loader', 'Data Copied');
+    
+                        console.timeEnd('copy');
+                    }
+                }
+            } else {
+                addLoader(element, 'copy-loader', 'Unable to Copy');
+                removeLoader(element, 'copy-loader', 'Unable to Copy');
             }
         };
 
@@ -68600,8 +68853,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 jsnSelection.start,
                                 jsnSelection.end
                             );
-
-                            //console.log('substring', strSelection);
                         }
                     }
                 }
@@ -68925,18 +69176,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             }
                         }
 
-                        //console.log(event, buttonElement, targetElement);
 
                         // there's extra whitespace around the answer
                         strAnswer = strAnswer.trim();
 
-                        //console.log(
-                        //    parentCell,
-                        //    buttonElement,
-                        //    strAnswer,
-                        //    arrDataColumns,
-                        //    strColumn
-                        //);
 
                         if (
                             strAnswer === 'Sort A to Z' ||
@@ -68968,7 +69211,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         } else if (strAnswer === 'Fit To Content') {
                             var colsToResize = [];
-                            //console.log(arrSelectedColumns);
                             if (element.internalSelection.rows[0] ===
                                 'header'
                             ) {
@@ -69000,7 +69242,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 //  that was clicked
                                 colsToResize = arrSelectedColumns;
                             }
-                            //console.log(colsToResize);
                             resizeColumnsToContent(element, arrSelectedColumns);
 
                         } else if (strAnswer === 'Hide Column(s)') {
@@ -69841,7 +70082,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     jsnCache.elementHeight !== intHeight ||
                     jsnCache.fontSize !== intFontSize
                 ) {
-                    //console.log('test');
                     renderScrollDimensions(element);
                     GS.triggerEvent(window, 'resize');
                 }

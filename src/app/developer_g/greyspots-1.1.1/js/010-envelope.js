@@ -555,10 +555,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         strUpdateData += CryptoJS.MD5(strHashData);
-
+        
+        element.saveState = 'saving';
+        if (element.saveTimeout) {
+            clearTimeout(element.saveTimeout);
+        }
+        //console.log('wait five seconds');
+        element.saveTimeout = setTimeout(function () {
+            //console.log('element.saveState', element.saveState);
+            if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
+                element.saveState = 'error';
+                var parentElement = document.createElement('center');
+                parentElement.setAttribute('class', 'saving-warning-parent');
+                
+                var warningElement = document.createElement('div');
+                warningElement.setAttribute('class', 'saving-warning');
+    
+                // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
+                warningElement.innerHTML = 'YOUR CHANGES ARE NOT SAVED<br />WE HAVEN\'T HEARD BACK FROM THE SERVER<br />EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR';
+                
+                parentElement.appendChild(warningElement);
+                element.insertBefore(parentElement, element.children[0]);
+                
+                // element.appendChild(parentElement);
+                /*
+                warningElement.addEventListener('click', function () {
+                    saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
+                });
+                */
+            }
+        }, /*30*/ 5 * 1000);
+        
         addLoader(element, 'Updating Record...');
         GS.requestUpdateFromSocket(GS.envSocket, strSchema, strObject, '*', strHashCols, strUpdateData, function (data, error, transactionID) {
             if (error) {
+                if (element.saveTimeout) {
+                    clearTimeout(element.saveTimeout);
+                }
+                element.saveState = 'error';
+                if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                    element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                }
+                
                 removeLoader(element);
                 GS.webSocketErrorDialog(data);
             }
@@ -568,6 +606,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!error) {
                 if (data !== 'TRANSACTION COMPLETED') {
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'saved';
+                    if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                        element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                    }
+                    
                     arrRecords = GS.trim(data, '\n').split('\n');
 
                     for (i = 0, len = arrRecords.length; i < len; i += 1) {
@@ -585,6 +631,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
             } else {
+                if (element.saveTimeout) {
+                    clearTimeout(element.saveTimeout);
+                }
+                element.saveState = 'error';
+                if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                    element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                }
+                
                 removeLoader(element);
                 rollbackFunction();
                 GS.webSocketErrorDialog(data);
@@ -594,6 +648,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!error) {
                 if (strAnswer === 'COMMIT') {
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'saved';
+                    if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                        element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                    }
+                    
                     callbackFunction({
                         detail: {
                             response: arrTotalRecords[0],
@@ -603,6 +665,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
             } else {
+                if (element.saveTimeout) {
+                    clearTimeout(element.saveTimeout);
+                }
+                element.saveState = 'error';
+                if (xtag.query(element, '.saving-warning-parent').length > 0) {
+                    element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
+                }
+                
                 getData(element);
                 GS.webSocketErrorDialog(data);
             }
