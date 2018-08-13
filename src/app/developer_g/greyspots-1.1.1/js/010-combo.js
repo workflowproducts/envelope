@@ -231,7 +231,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // loops through the records and finds a record using the parameter (if bolPartialMatchAllowed === true then only search the first td text)
     function findRecordFromString(element, strSearchString, bolPartialMatchAllowed) {
         var i, len, matchedRecord, arrTrs = xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr');
-
+        // console.log(arrTrs[0]);
+        // console.log(arrTrs[0].children[0].nodeName.toUpperCase());
+        if (arrTrs[0].children[0].nodeName.toUpperCase() === 'TH') {
+            arrTrs.splice(0,1);
+        }
+        // console.log(arrTrs);
         // if bolPartialMatchAllowed is true: only search the first td text (case insensitive)
         if (bolPartialMatchAllowed === true) {
             strSearchString = strSearchString.toLowerCase();
@@ -247,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // else: search exact text and search both the value attribute (if present) and the first td text
         } else {
             for (i = 0, len = arrTrs.length; i < len; i += 1) {
+                // console.log(arrTrs, i);
                 if (arrTrs[i].getAttribute('value') === strSearchString ||
                     xtag.queryChildren(arrTrs[i], 'td')[0].textContent === strSearchString) {
                     matchedRecord = arrTrs[i];
@@ -482,8 +488,25 @@ document.addEventListener('DOMContentLoaded', function () {
         observer.observe(scrollContainer, {childList: true, subtree: true});
 
         //console.log(scrollContainer);
-
         dropDownSize(element);
+        
+        
+        if (!element.theadElement && !element.tbodyElement) {
+            element.theadElement = xtag.queryChildren(element.dropDownTable, 'thead')[0];
+            element.tbodyElement = xtag.queryChildren(element.dropDownTable, 'tbody')[0];
+        }
+        if (element.theadElement && element.tbodyElement && element.theadElement.children[0]) {
+            element.tbodyElement.innerHTML = element.theadElement.innerHTML + '' + element.tbodyElement.innerHTML;
+            var cols_i = 0, cols_len = element.theadElement.children[0].children.length;
+            element.tbodyheader = xtag.query(element.tbodyElement, 'tr:not([data-record_no])')[0];
+            console.log(element.tbodyheader);
+            while (cols_i < cols_len) {
+                element.theadElement.children[0].children[cols_i].setAttribute('style', 'width: ' + element.tbodyheader.children[cols_i].clientWidth + 'px !important; padding-right: 0; padding-left: 0;');
+                console.log(element.tbodyheader.children[cols_i]);
+                console.log(element.tbodyheader.children[cols_i].clientWidth);
+                cols_i++;
+            }
+        }
     }
 
     function dropDownSize(element) {
@@ -1118,7 +1141,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 //console.log(theadElement, tbodyElement);
 
                 strTemplate = element.tableTemplate; //this.initalHTML;
-
             } else { // if (data.arr_column)
                 // create an array of hidden column numbers
                 arrHide = (element.getAttribute('hide') || '').split(/[\s]*,[\s]*/);
@@ -1155,6 +1177,8 @@ document.addEventListener('DOMContentLoaded', function () {
             tableElement = xtag.queryChildren(divElement, 'table')[0];
             theadElement = xtag.queryChildren(tableElement, 'thead')[0];
             tbodyElement = xtag.queryChildren(tableElement, 'tbody')[0];
+            element.theadElement = theadElement;
+            element.tbodyElement = tbodyElement;
 
             // if there is a tbody
             if (tbodyElement) {
@@ -1198,6 +1222,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.ready = true;
                 }
             }
+            
+            
 
             //if (data.arr_column) {
             if (bolInitalLoad && element.getAttribute('value')) {

@@ -1304,6 +1304,7 @@ void client_request_queue_cb(EV_P, ev_check *w, int revents) {
 						client_request->str_message_id, client_request->int_message_id_len
 					);
 				}
+				SINFO("%s", client_request->str_transaction_id);
 
 				SFINISH_CHECK(
 					DB_exec(EV_A, client_request->parent->conn, client_request, str_query, client_cmd_cb), "DB_exec failed");

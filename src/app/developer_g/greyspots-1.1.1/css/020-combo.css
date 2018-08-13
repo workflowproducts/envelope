@@ -239,3 +239,23 @@ gs-combo.open .drop_down_button {
     -o-box-sizing: border-box;
     box-sizing: border-box;
 }
+
+
+/* #################################################### */
+/* ###################### HEADER ###################### */
+/* #################################################### */
+
+
+.gs-combo-dropdown-container thead {
+	position: absolute;
+	width: 100% !important;
+}
+
+.gs-combo-dropdown-container thead tr {
+	position: static;
+	width: 100% !important;
+}
+
+.gs-combo-dropdown-container td, th {
+    border-right: none; 
+}

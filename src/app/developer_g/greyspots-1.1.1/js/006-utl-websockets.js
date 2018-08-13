@@ -995,8 +995,8 @@
                         //data = data.substring(data.indexOf('\n') + 1); // responsenumber
                     }
 
-                    console.log('INSERT DATA:', data);
-                    console.log('INSERT TRANSID:', transactionID);
+                    // console.log('INSERT DATA:', data);
+                    // console.log('INSERT TRANSID:', transactionID);
 
                     commitFunction = function () {
                         GS.requestCommit(socket, transactionID, function (data, error) {

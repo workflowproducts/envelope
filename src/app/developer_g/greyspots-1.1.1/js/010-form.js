@@ -177,8 +177,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 warningElement.setAttribute('class', 'saving-warning');
     
                 // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
-                warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />THE SAVE PROCESS IS HANGING WITH NO ERROR<br />IT MIGHT JUST TAKE A LONG TIME';
-    
+                warningElement.innerHTML = 'YOUR CHANGES ARE NOT SAVED<br />WE HAVEN\'T HEARD BACK FROM THE SERVER<br />EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR';
+                
                 parentElement.appendChild(warningElement);
                 element.insertBefore(parentElement, element.children[0]);
                 
