@@ -1828,8 +1828,8 @@ error:
 
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 void client_close_cancel_query_cb(EV_P, ev_io *w, int revents);
-bool client_close_close_cnxn_cb(EV_P, void *cb_data, DB_result *res);
 #endif
+bool client_close_close_cnxn_cb(EV_P, void *cb_data, DB_result *res);
 
 void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 	if (revents != 0) {
@@ -1873,11 +1873,17 @@ void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 				SERROR_CHECK_NORESPONSE(DB_exec(global_loop, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
 			}
 		} else {
-#endif
-		SDEBUG("BEFORE client_close_immediate(%p)", client);
-		client_close_immediate(client);
-		SDEBUG("AFTER  client_close_immediate(%p)", client);
-#ifdef ENVELOPE_INTERFACE_LIBPQ
+			SDEBUG("BEFORE client_close_immediate(%p)", client);
+			client_close_immediate(client);
+			SDEBUG("AFTER  client_close_immediate(%p)", client);
+		}
+#else
+		if (client->bol_public == false && bol_global_set_user == true) {
+			SERROR_CHECK_NORESPONSE(DB_exec(global_loop, client->conn, client, "REVERT;", client_close_close_cnxn_cb), "DB_exec failed to revert session authorization");
+		} else {
+			SDEBUG("BEFORE client_close_immediate(%p)", client);
+			client_close_immediate(client);
+			SDEBUG("AFTER  client_close_immediate(%p)", client);
 		}
 #endif
 	}
@@ -1915,10 +1921,11 @@ void client_close_cancel_query_cb(EV_P, ev_io *w, int revents) {
 		SERROR_CHECK_NORESPONSE(DB_exec(global_loop, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
 	}
 }
+#endif
 bool client_close_close_cnxn_cb(EV_P, void *cb_data, DB_result *res) {
 	if (EV_A) { // for unused variable warning
 	}
-	SINFO("RESET SESSION AUTHORIZATION finished!");
+	SINFO("REVERT finished!");
 	struct sock_ev_client *client = cb_data;
 	DB_finish(client->conn);
 	client->conn = NULL;
@@ -1926,7 +1933,6 @@ bool client_close_close_cnxn_cb(EV_P, void *cb_data, DB_result *res) {
 	client_close_immediate(client);
 	return false;
 }
-#endif
 
 void client_close_immediate(struct sock_ev_client *client) {
 	SINFO("Client %p closing", client);

@@ -1,5 +1,10 @@
 #pragma once
 
+#ifndef ENVELOPE_INTERFACE_LIBPQ
+#include <windows.h>
+#include <WinBase.h>
+#endif
+
 #include "http_main.h"
 #include <openssl/md5.h>
 

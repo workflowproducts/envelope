@@ -360,7 +360,6 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 			str_uri_user_agent, int_uri_user_agent_len
 		);
 
-#ifdef ENVELOPE_INTERFACE_LIBPQ
 		SDEBUG("bol_global_set_user: %s", bol_global_set_user ? "true" : "false");
 		if (bol_global_set_user) {
 			// The only difference here is the callback and no user/pw
@@ -370,14 +369,11 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 				NULL, 0, NULL, 0,
 				str_context_data, connect_cb_env);
 		} else {
-#endif
 			SDEBUG("NORMAL CONN");
 			client->conn = DB_connect(global_loop, client, str_conn,
 				str_username, int_user_length, str_password, int_password_length,
 				str_context_data, connect_cb);
-#ifdef ENVELOPE_INTERFACE_LIBPQ
 		}
-#endif
 	}
 	SFREE_PWORD(str_password);
 	bol_error_state = false;
@@ -463,10 +459,38 @@ void connect_cb_env(EV_P, void *cb_data, DB_conn *conn) {
 
 	SFINISH_CHECK(conn->int_status == 1, "%s", conn->str_response);
 
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	str_user_ident = DB_escape_identifier(client->conn, client->str_username, client->int_username_len);
 	SFINISH_CHECK(str_user_ident != NULL, "DB_escape_identifier failed");
+#else
+	// SS uses a literal instead of an identifier
+	size_t int_user_temp_len = 0;
+	if (str_global_nt_domain[0] != 0 && client->bol_public == false) {
+		SFINISH_SNCAT(
+			str_user_ident, &int_user_temp_len,
+			"'", (size_t)1,
+			str_global_nt_domain, strlen(str_global_nt_domain),
+			"\\", (size_t)1,
+			client->str_username, client->int_username_len,
+			"'", (size_t)1
+		);
+	} else {
+		SFINISH_SNCAT(
+			str_user_ident, &int_user_temp_len,
+			"'", (size_t)1,
+			client->str_username, client->int_username_len,
+			"'", (size_t)1
+		);
+	}
+	SINFO("str_user_ident: %s", str_user_ident);
+#endif
 
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	char *str_temp1 = "SET SESSION AUTHORIZATION ";
+#else
+	// Permissions don't work if you do LOGIN
+	char *str_temp1 = "EXECUTE AS USER = ";
+#endif
 	SFINISH_SNCAT(
 		str_sql, &int_temp,
 		str_temp1, strlen(str_temp1),
@@ -475,7 +499,11 @@ void connect_cb_env(EV_P, void *cb_data, DB_conn *conn) {
 	);
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, connect_cb_env_step2), "DB_exec failed");
+#else
+	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, connect_cb_env_step3), "DB_exec failed");
+#endif
 
 	bol_error_state = false;
 finish:

@@ -71,8 +71,7 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 					"	LEFT JOIN pg_catalog.pg_roles u ON m.member = u.oid "
 					"	WHERE g.rolcanlogin = FALSE AND u.rolname = SESSION_USER::text AND g.rolname IS NOT NULL"));
 		} else {
-			SFINISH_SNCAT(str_sql, &int_sql_len,
-				"SELECT CAST(@@VERSION AS nvarchar(MAX)), '0' AS srt "
+			char *str_temp = "SELECT CAST(@@VERSION AS nvarchar(MAX)), '0' AS srt "
 				"UNION ALL "
 				"SELECT CAST(SYSTEM_USER AS nvarchar(MAX)) AS user_group_name, '1' AS srt "
 				"UNION ALL "
@@ -82,18 +81,8 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 				"			FROM [sys].[database_principals] "
 				"	) em "
 				"	WHERE [is_member] = 1 "
-				"	ORDER BY 2, 1",
-				strlen("SELECT CAST(@@VERSION AS nvarchar(MAX)), '0' AS srt "
-					"UNION ALL "
-					"SELECT CAST(SYSTEM_USER AS nvarchar(MAX)) AS user_group_name, '1' AS srt "
-					"UNION ALL "
-					"SELECT CAST([name] AS nvarchar(MAX)) AS user_group_name, '2' AS srt "
-					"	FROM ( "
-					"		SELECT *, is_member(name) AS [is_member] "
-					"			FROM [sys].[database_principals] "
-					"	) em "
-					"	WHERE [is_member] = 1 "
-					"	ORDER BY 2, 1"));
+				"	ORDER BY 2, 1";
+			SFINISH_SNCAT(str_sql, &int_sql_len, str_temp, strlen(str_temp));
 		}
 
 		SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, http_client_info_cb), "DB_exec failed");
@@ -240,7 +229,7 @@ bool http_client_info_cb(EV_P, void *cb_data, DB_result *res) {
 	DArray *arr_values = NULL;
 	int int_i = 0;
 	DB_fetch_status status = DB_FETCH_OK;
-	SDEFINE_VAR_ALL(str_conn_desc, str_conn_desc_enc, str_user, str_json_user, str_version, str_json_version, str_groups);
+	SDEFINE_VAR_ALL(str_json_item, str_conn_desc, str_conn_desc_enc, str_user, str_json_user, str_version, str_json_version, str_groups);
 
 	SFINISH_CHECK(res != NULL, "DB_exec failed");
 	SFINISH_CHECK(res->status == DB_RES_TUPLES_OK, "DB_exec failed");
@@ -251,6 +240,7 @@ bool http_client_info_cb(EV_P, void *cb_data, DB_result *res) {
 	size_t int_response_len = 0;
 	size_t int_json_version_len = 0;
 	size_t int_json_user_len = 0;
+	size_t int_json_item_len = 0;
 
 	SFINISH_SNCAT(str_groups, &int_groups_len,
 		"[", (size_t)1);
@@ -268,11 +258,12 @@ bool http_client_info_cb(EV_P, void *cb_data, DB_result *res) {
 			SFINISH_SNCAT(str_user, &int_user_len,
 				DArray_get(arr_values, 0), strlen(DArray_get(arr_values, 0)));
 		} else {
+			int_json_item_len = strlen(DArray_get(arr_values, 0));
+			SFINISH_CHECK((str_json_item = jsonify(DArray_get(arr_values, 0), &int_json_item_len)), "jsonify failed");
 			SFINISH_SNFCAT(str_groups, &int_groups_len,
 				int_i == 2 ? "" : ", ", strlen(int_i == 2 ? "" : ", "),
-				"\"", (size_t)1,
-				DArray_get(arr_values, 0), strlen(DArray_get(arr_values, 0)),
-				"\"", (size_t)1);
+				str_json_item, int_json_item_len);
+			SFREE(str_json_item);
 		}
 
 		DArray_clear_destroy(arr_values);

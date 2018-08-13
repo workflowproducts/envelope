@@ -158,7 +158,7 @@ var $ = {
             // console.log('P##########################', strArgs);
             var ajax = $.ajax(strLink, strArgs, 'POST', function (data) {
                 if (data.indexOf('<!DOCTYPE html>') !== 0) {
-                    data = data.replace(/c\:\\users\\nunzio\\repos\\postage\\/gi, '../');
+                    data = data.replace(/c\:\\users\\nunzio\\repos\\envelope\\/gi, '../');
                     data = data.replace(/\.\.\\\.\.\\/gi, '../');
                     data = data.replace(/\\(?![rnt])/gi, '/');
 					data = data.replace(' (0x0000274D/10061)', '');
@@ -287,7 +287,6 @@ var $ = {
                 }
                 //console.log(i, data);
                 if (data !== '\\.') {
-                    data = data.replace(/c\:\\users\\nunzio\\repos\\postage\\/gi, '../');
                     data = data.replace(/c\:\\users\\nunzio\\repos\\envelope\\/gi, '../');
 	                data = data.replace(/\.\.\\\.\.\\/g, '../');
                     data = data.replace(/\\(?![rnt])/g, '/');
@@ -301,8 +300,8 @@ var $ = {
 					data = data.replace(/\/Users\/super\//g, '/home/super/');
 					data = data.replace(/\/Users\/nunzio\//g, '/home/super/');
 					data = data.replace(/\/usr\/home\/super\//g, '/home/super/');
-					data = data.replace(/\/home\/super\/Desktop\/test\/test-envelope\/envelope-master\//g, '/home/super/Repos/postage/');
-					data = data.replace(/\/usr\/local\/etc\//g, '/home/super/Repos/postage/');
+					data = data.replace(/\/home\/super\/Desktop\/test\/test-envelope\/envelope-master\//g, '/home/super/Repos/envelope/');
+					data = data.replace(/\/usr\/local\/etc\//g, '/home/super/Repos/envelope/');
 					data = data.replace(/\\test/g, '/test');
 	                data = data.replace(/\/\//g, '\\\\');
 	                data = data.replace('CreateFile failed: 0x50 (The file exists.\r\n)', 'File already exists.');

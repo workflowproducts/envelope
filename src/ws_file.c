@@ -159,8 +159,8 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
 			client_file->str_partial_path);
 
-		SFINISH_CHECK(permissions_check(global_loop, client_request->parent->conn, client_file->str_input_path, client_request, ws_file_write_step2),
-			"permissions_check() failed");
+		SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path, client_request, ws_file_write_step2),
+			"permissions_write_check() failed");
 
 	} else if (strcmp(str_request_type, "MOVE") == 0 || strcmp(str_request_type, "COPY") == 0) {
 		client_file->file_type = strcmp(str_request_type, "MOVE") == 0 ? ENVELOPE_FILE_MOVE : ENVELOPE_FILE_COPY;
@@ -214,17 +214,9 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(access(client_file->str_path_to, F_OK) == -1, "File exists");
 		errno = 0;
 
-		if (client_file->file_type == ENVELOPE_FILE_MOVE) {
-			SDEBUG("client_file->str_path: %s", client_file->str_path);
-			SFINISH_CHECK(permissions_check(global_loop, client_request->parent->conn, client_file->str_input_path,
-							  client_request, ws_file_move_step2),
-				"permissions_check() failed");
-		} else {
-			SDEBUG("client_file->str_path: %s", client_file->str_path);
-			SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path,
-							  client_request, ws_file_move_step2),
-				"permissions_write_check() failed");
-		}
+		SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path,
+			client_request, ws_file_move_step2),
+			"permissions_write_check() failed");
 
 	} else if (strcmp(str_request_type, "DELETE") == 0) {
 		client_file->file_type = ENVELOPE_FILE_DELETE;
@@ -283,11 +275,6 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 							  client_request, ws_file_create_step2),
 				"permissions_write_check() failed");
 		} else {
-			SFREE(client_file->str_path);
-			client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "write_file");
-			SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
-				client_file->str_partial_path);
-
 			client_file->ptr_content = "";
 			SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path,
 							  client_request, ws_file_write_step2),
@@ -359,9 +346,9 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 			}
 		}
 
-		SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path,
+		SFINISH_CHECK(permissions_check(global_loop, client_request->parent->conn, client_file->str_input_path,
 						  client_request, ws_file_search_step2),
-			"permissions_write_check() failed");
+			"permissions_check() failed");
 
 	} else {
 		SFINISH("Unknown FILE request type %s", str_request_type);
@@ -981,6 +968,11 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 		if (client_file->h_file != INVALID_HANDLE_VALUE) {
 			CloseHandle(client_file->h_file);
 		}
+	} else if (client_file->file_type == ENVELOPE_FILE_CREATE_FILE) {
+		SFREE(client_file->str_path);
+		client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "write_file");
+		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
+			client_file->str_partial_path);
 	}
 #else
 	SFINISH_SALLOC(statdata, sizeof(struct stat));
@@ -1015,6 +1007,11 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 		}
 	} else if (client_file->file_type == ENVELOPE_FILE_CREATE_FILE) {
 		SFINISH_CHECK(int_status != 0, "File already exists.");
+
+		SFREE(client_file->str_path);
+		client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "write_file");
+		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
+			client_file->str_partial_path);
 	}
 #endif
 

@@ -15,6 +15,9 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 	SDEFINE_VAR_MORE(str_error, str_error_uri);
 	size_t int_error_len = 0;
 	size_t int_error_uri_len = 0;
+#ifndef ENVELOPE_INTERFACE_LIBPQ
+	LPSTR strErrorText = NULL;
+#endif
 
 	size_t int_query_length = 0;
 	size_t int_action_length = 0;
@@ -153,6 +156,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		SDEBUG("client_auth->parent: %p", client_auth->parent);
 		SDEBUG("str_conn: %s", str_conn);
 
+
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 		SDEBUG("bol_global_set_user: %s", bol_global_set_user ? "true" : "false");
 		if (bol_global_set_user) {
@@ -162,12 +166,35 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 				http_auth_login_step15)) != NULL,
 				"DB_connect failed");
 		} else {
-#endif
-		SFINISH_CHECK((client_auth->parent->conn = DB_connect(global_loop, client_auth, str_conn, client_auth->str_user,
-			client_auth->int_user_length, client_auth->str_password, client_auth->int_password_length, "",
-			http_auth_login_step2)) != NULL,
-			"DB_connect failed");
-#ifdef ENVELOPE_INTERFACE_LIBPQ
+			SFINISH_CHECK((client_auth->parent->conn = DB_connect(global_loop, client_auth, str_conn, client_auth->str_user,
+				client_auth->int_user_length, client_auth->str_password, client_auth->int_password_length, "",
+				http_auth_login_step2)) != NULL,
+				"DB_connect failed");
+		}
+#else
+		SDEBUG("bol_global_set_user: %s", bol_global_set_user ? "true" : "false");
+		if (bol_global_set_user) {
+			HANDLE hToken = NULL;
+			int ret = LogonUserA(client_auth->str_user, str_global_nt_domain, client_auth->str_password, LOGON32_LOGON_NETWORK, LOGON32_PROVIDER_DEFAULT, &hToken);
+
+			if (ret == 0) {
+				int int_err = GetLastError();
+				FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err,
+					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL);
+				SFINISH("Login failed: %s", strErrorText);
+			}
+			CloseHandle(hToken);
+
+			SFINISH_CHECK((client_auth->parent->conn = DB_connect(global_loop, client_auth, str_conn, NULL,
+				0, NULL, 0, "",
+				http_auth_login_step15)) != NULL,
+				"DB_connect failed");
+
+		} else {
+			SFINISH_CHECK((client_auth->parent->conn = DB_connect(global_loop, client_auth, str_conn, client_auth->str_user,
+				client_auth->int_user_length, client_auth->str_password, client_auth->int_password_length, "",
+				http_auth_login_step2)) != NULL,
+				"DB_connect failed");
 		}
 #endif
 
@@ -355,6 +382,12 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 	}
 	bol_error_state = false;
 finish:
+#ifndef ENVELOPE_INTERFACE_LIBPQ
+	if (strErrorText != NULL) {
+		LocalFree(strErrorText);
+		strErrorText = NULL;
+	}
+#endif
 	if (client_auth != NULL) {
 		SDEBUG("client_auth: %p", client_auth);
 		SDEBUG("client_auth->parent: %p", client_auth->parent);
@@ -417,6 +450,8 @@ void http_auth_login_step15(EV_P, void *cb_data, DB_conn *conn) {
 
 	SFINISH_CHECK(conn->int_status == 1, "%s", conn->str_response);
 
+
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	SFINISH_SNCAT(
 		str_password_temp, &int_temp,
 		client_auth->str_password, client_auth->int_password_length,
@@ -451,6 +486,12 @@ void http_auth_login_step15(EV_P, void *cb_data, DB_conn *conn) {
 		str_user_literal, strlen(str_user_literal),
 		";", (size_t)1
 	);
+#else
+	SFINISH_SNCAT(
+		str_sql, &int_temp,
+		"SELECT 'TRUE';", (size_t)14
+	);
+#endif
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 	SFINISH_CHECK(DB_exec(EV_A, client_auth->parent->conn, client_auth, str_sql, http_auth_login_step2_env), "DB_exec failed");
@@ -505,8 +546,30 @@ bool http_auth_login_step2_env(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(res != NULL, "DB_exec failed");
 	SFINISH_CHECK(res->status == DB_RES_TUPLES_OK, "DB_exec failed: %s", str_diag);
 
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 	str_user_ident = DB_escape_identifier(client_auth->parent->conn, client_auth->str_user, client_auth->int_user_length);
 	SFINISH_CHECK(str_user_ident != NULL, "DB_escape_identifier failed");
+#else
+	size_t int_user_temp_len = 0;
+	if (str_global_nt_domain[0] != 0) {
+		SFINISH_SNCAT(
+			str_user_ident, &int_user_temp_len,
+			"'", (size_t)1,
+			str_global_nt_domain, strlen(str_global_nt_domain),
+			"\\", (size_t)1,
+			client_auth->str_user, client_auth->int_user_length,
+			"'", (size_t)1
+		);
+	} else {
+		SFINISH_SNCAT(
+			str_user_ident, &int_user_temp_len,
+			"'", (size_t)1,
+			client_auth->str_user, client_auth->int_user_length,
+			"'", (size_t)1
+		);
+	}
+	SINFO("str_user_ident: %s", str_user_ident);
+#endif
 
 	status = DB_fetch_row(res);
 	if (status == DB_FETCH_END) {
@@ -522,7 +585,12 @@ bool http_auth_login_step2_env(EV_P, void *cb_data, DB_result *res) {
 		bol_error_state = false;
 
 		size_t int_temp = 0;
+#ifdef ENVELOPE_INTERFACE_LIBPQ
 		char *str_temp1 = "SET SESSION AUTHORIZATION ";
+#else
+		// Permissions don't work if you do LOGIN
+		char *str_temp1 = "EXECUTE AS USER = ";
+#endif
 		SFINISH_SNCAT(
 			str_sql, &int_temp,
 			str_temp1, strlen(str_temp1),
@@ -971,6 +1039,10 @@ finish:
 	if (bol_error_state == true) {
 		SDEBUG("str_response: %s", str_response);
 		char *_str_response = str_response;
+		str_response = DB_get_diagnostic(client_request->parent->conn, res);
+		int_response_len = strlen(_str_response);
+		SFINISH_SNFCAT(_str_response, &int_response_len, ":\n", (size_t)2, str_response, strlen(str_response));
+		SFREE(str_response);
 		char str_length[50];
 		snprintf(str_length, 50, "%zu", strlen(_str_response));
 		char *str_temp =

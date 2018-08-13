@@ -54,6 +54,10 @@ extern char cwd[1024];
 #ifdef _WIN32
 extern const char *VERSION;
 extern char *ENVELOPE_PREFIX;
+
+#ifndef ENVELOPE_INTERFACE_LIBPQ
+extern char *str_global_nt_domain;
+#endif
 #endif
 
 struct struct_connection {

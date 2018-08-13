@@ -888,7 +888,7 @@ ORDER BY	id DESC
 
 id	test_name	test_name2
 */
-			}) + createTestDataRequest('1', 200), createTestDataResponse('1', 200)],
+			}) + createTestDataRequest('', 200), createTestDataResponse('', 200)],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],

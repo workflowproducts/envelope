@@ -37,6 +37,9 @@ const char *VERSION =
 #include "../VERSION"
 	;
 char *ENVELOPE_PREFIX = NULL;
+#ifndef ENVELOPE_INTERFACE_LIBPQ
+char *str_global_nt_domain;
+#endif
 #endif
 
 // clang-format off
@@ -50,8 +53,8 @@ char *ENVELOPE_PREFIX = NULL;
 // str_global_port						envelope_port					p							envelope-port
 // bol_global_local_only				NULL							x							local-only
 // bol_global_super_only				super_only						s							super-only
-// str_global_set_uname				set_uname						e							set-uname
-// str_global_set_gname				set_gname						b							set-gname
+// str_global_set_uname				set_uname							e							set-uname
+// str_global_set_gname				set_gname							b							set-gname
 // bol_global_allow_custom_connections	allow_custom_connections		n							allow-custom-connections
 // int_global_login_timeout	 			login_timeout					t							login-timeout
 // str_global_log_level					log_level						l							log-level
@@ -59,6 +62,7 @@ char *ENVELOPE_PREFIX = NULL;
 // str_global_public_username			public_username					u							public-username
 // str_global_public_password			public_password					w							public-password
 // bol_global_allow_origin				allow_origin					i							allow-origin
+// str_global_nt_domain					nt_domain
 // clang-format on
 
 /*
@@ -98,6 +102,7 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 		SFREE(str_global_public_username);
 		SERROR_SNCAT(str_global_public_username, &int_len,
 			str_value, strlen(str_value));
+		SINFO("str_global_public_username: %s", str_global_public_username);
 
 	} else if (SMATCH("", "public_password")) {
 		SFREE(str_global_public_password);
@@ -156,6 +161,14 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 		SERROR_SNCAT(str_global_logfile, &int_len,
 			str_value, strlen(str_value));
 
+#ifndef ENVELOPE_INTERFACE_LIBPQ
+	} else if (SMATCH("", "nt_domain")) {
+		SFREE(str_global_nt_domain);
+		SERROR_SNCAT(str_global_nt_domain, &int_len,
+			str_value, strlen(str_value));
+		bol_global_set_user = true;
+
+#endif
 	} else {
 		SERROR("Unknown config section/name: %s %s", str_section, str_name);
 	}
