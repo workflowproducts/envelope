@@ -41,13 +41,13 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 		http_upload_step1(client);
 	} else if (strncmp(str_uri, "/env/action_ev", 15) == 0) {
 		http_ev_step1(client);
-	} else if (strncmp(str_uri, "/env/action_select", 19) == 0) {
+	} else if (strncmp(str_uri, "/env/action_select", 19) == 0 || strncmp(str_uri, "/env/actionnc_select", 21) == 0) {
 		http_select_step1(client);
-	} else if (strncmp(str_uri, "/env/action_insert", 19) == 0) {
+	} else if (strncmp(str_uri, "/env/action_insert", 19) == 0 || strncmp(str_uri, "/env/actionnc_insert", 21) == 0) {
 		http_insert_step1(client);
-	} else if (strncmp(str_uri, "/env/action_update", 19) == 0) {
+	} else if (strncmp(str_uri, "/env/action_update", 19) == 0 || strncmp(str_uri, "/env/actionnc_update", 21) == 0) {
 		http_update_step1(client);
-	} else if (strncmp(str_uri, "/env/action_delete", 19) == 0) {
+	} else if (strncmp(str_uri, "/env/action_delete", 19) == 0 || strncmp(str_uri, "/env/actionnc_delete", 21) == 0) {
 		http_delete_step1(client);
 	} else if (strncmp(str_uri, "/env/action_info", 17) == 0) {
 		if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
