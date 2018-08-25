@@ -614,7 +614,11 @@ window.addEventListener('design-register-element', function (event) {
             );
         });
 
-        addProp('No Resize Record', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-resize-record')) + '" mini></gs-checkbox>', function () {
+        addProp(
+            'No Resize Record',
+            true,
+            '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-resize-record')) + '" mini></gs-checkbox>',
+            function () {
             this.removeAttribute('no-resize-record');
             return setOrRemoveBooleanAttribute(
                 selectedElement,
@@ -624,7 +628,11 @@ window.addEventListener('design-register-element', function (event) {
             );
         });
 
-        addProp('No Resize Column', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-resize-column')) + '" mini></gs-checkbox>', function () {
+        addProp(
+            'No Resize Column',
+            true,
+            '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-resize-column')) + '" mini></gs-checkbox>',
+            function () {
             this.removeAttribute('no-resize-column');
             return setOrRemoveBooleanAttribute(
                 selectedElement,
@@ -634,7 +642,11 @@ window.addEventListener('design-register-element', function (event) {
             );
         });
 
-        addProp('No After Insert Scroll', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-insert-scroll')) + '" mini></gs-checkbox>', function () {
+        addProp(
+            'No After Insert Scroll',
+            true,
+            '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-insert-scroll')) + '" mini></gs-checkbox>',
+            function () {
             this.removeAttribute('no-insert-scroll');
             return setOrRemoveBooleanAttribute(
                 selectedElement,
@@ -739,10 +751,18 @@ window.addEventListener('design-register-element', function (event) {
             true,
             '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-quote-when') || '') + '" mini>' +
                 '<option value=""></option>' +
-                '<option value="never">Never</option>' +
-                '<option value="strings">Strings</option>' +
-                '<option value="always">Always</option>' +
-                '<option value="delimiter-in-content">Delimiter in Content</option>' +
+                '<option value="never">' +
+                    'Never' +
+                '</option>' +
+                '<option value="strings">' +
+                    'Strings' +
+                '</option>' +
+                '<option value="always">' +
+                    'Always' +
+                '</option>' +
+                '<option value="delimiter-in-content">' +
+                    'Delimiter in Content' +
+                '</option>' +
             '</gs-select>',
             function () {
                 return setOrRemoveTextAttribute(
@@ -788,26 +808,60 @@ window.addEventListener('design-register-element', function (event) {
 
         // visibility attributes
         var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden'))         {strVisibilityAttribute = 'hidden';}
-        if (selectedElement.hasAttribute('hide-on-desktop')){strVisibilityAttribute = 'hide-on-desktop';}
-        if (selectedElement.hasAttribute('hide-on-tablet')) {strVisibilityAttribute = 'hide-on-tablet';}
-        if (selectedElement.hasAttribute('hide-on-phone'))  {strVisibilityAttribute = 'hide-on-phone';}
-        if (selectedElement.hasAttribute('show-on-desktop')){strVisibilityAttribute = 'show-on-desktop';}
-        if (selectedElement.hasAttribute('show-on-tablet')) {strVisibilityAttribute = 'show-on-tablet';}
-        if (selectedElement.hasAttribute('show-on-phone'))  {strVisibilityAttribute = 'show-on-phone';}
+        if (selectedElement.hasAttribute('hidden')) {
+            strVisibilityAttribute = 'hidden';
+        }
+        if (selectedElement.hasAttribute('hide-on-desktop')) {
+            strVisibilityAttribute = 'hide-on-desktop';
+        }
+        if (selectedElement.hasAttribute('hide-on-tablet')) {
+            strVisibilityAttribute = 'hide-on-tablet';
+        }
+        if (selectedElement.hasAttribute('hide-on-phone')) {
+            strVisibilityAttribute = 'hide-on-phone';
+        }
+        if (selectedElement.hasAttribute('show-on-desktop')) {
+            strVisibilityAttribute = 'show-on-desktop';
+        }
+        if (selectedElement.hasAttribute('show-on-tablet')) {
+            strVisibilityAttribute = 'show-on-tablet';
+        }
+        if (selectedElement.hasAttribute('show-on-phone')) {
+            strVisibilityAttribute = 'show-on-phone';
+        }
 
         addProp(
             'Visibility',
             true,
-            '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                '<option value="">Visible</option>' +
-                '<option value="hidden">Invisible</option>' +
-                '<option value="hide-on-desktop">Invisible at desktop size</option>' +
-                '<option value="hide-on-tablet">Invisible at tablet size</option>' +
-                '<option value="hide-on-phone">Invisible at phone size</option>' +
-                '<option value="show-on-desktop">Visible at desktop size</option>' +
-                '<option value="show-on-tablet">Visible at tablet size</option>' +
-                '<option value="show-on-phone">Visible at phone size</option>' +
+            '<gs-select ' +
+                'class="target" ' +
+                'value="' + strVisibilityAttribute + '" ' +
+                'mini' +
+            '>' +
+                '<option value="">' +
+                    'Visible' +
+                '</option>' +
+                '<option value="hidden">' +
+                    'Invisible' +
+                '</option>' +
+                '<option value="hide-on-desktop">' +
+                    'Invisible at desktop size' +
+                '</option>' +
+                '<option value="hide-on-tablet">' +
+                    'Invisible at tablet size' +
+                '</option>' +
+                '<option value="hide-on-phone">' +
+                    'Invisible at phone size' +
+                '</option>' +
+                '<option value="show-on-desktop">' +
+                    'Visible at desktop size' +
+                '</option>' +
+                '<option value="show-on-tablet">' +
+                    'Visible at tablet size' +
+                '</option>' +
+                '<option value="show-on-phone">' +
+                    'Visible at phone size' +
+                '</option>' +
             '</gs-select>',
             function () {
                 selectedElement.removeAttribute('hidden');
@@ -859,7 +913,10 @@ window.addEventListener('design-register-element', function (event) {
         addProp(
             'suspend-inserted',
             true,
-            '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>',
+            '<gs-checkbox ' +
+                'class="target" ' +
+                'value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" ' +
+                'mini></gs-checkbox>',
             function () {
                 return setOrRemoveBooleanAttribute(
                     selectedElement,
@@ -873,9 +930,16 @@ window.addEventListener('design-register-element', function (event) {
 });
 
 window.addEventListener('load', function () {
+    "use strict";
     var tables = document.getElementsByTagName('gs-table');
-    for (var i = 0, len = tables.length; i < len; i++) {
+    var i = 0;
+    var len = tables.length;
+
+    i = 0;
+    len = tables.length;
+    while (i < len) {
         tables[i].render();
+        i += 1;
     }
 });
 
@@ -3775,6 +3839,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
 
                     arrColumnElements[i].classList.add('right-button');
+                    console.log(arrColumnElements[i]);
+                    // arrColumnElements[i].setAttribute('alt');
                     arrColumnElements[i].appendChild(
                         buttonElement.cloneNode(true)
                     );
@@ -6276,9 +6342,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     element,
                     (
                         'gs-cell' +
-                            '[data-col-number="' + jsnRange.start.column + '"]' +
-                            '[data-row-number="' + jsnRange.start.row + '"]' +
-                            ' input'
+                        '[data-col-number="' + jsnRange.start.column + '"]' +
+                        '[data-row-number="' + jsnRange.start.row + '"]' +
+                        ' input'
                     )
                 )[0];
 
@@ -7374,6 +7440,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var intColumnWidth;
         //var arrMinColumnWidths = element.internalDisplay.minColumnWidths;
 
+        var strNodeName;
         var arrColumnWidths = element.internalDisplay.columnWidths;
         var arrRecordHeights = element.internalDisplay.recordHeights;
         var columnBorderWidth = element.internalDisplay.columnBorderWidth;
@@ -7644,13 +7711,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // we maintain the last focused control, if the last focused control
         //      is in the DOM, we want to focus it
-        console.log('element.internalDisplay.focus.latest:', element.internalDisplay.focus.latest);
-        console.log('!isNaN(element.internalDisplay.focus.row):', !isNaN(element.internalDisplay.focus.row));
-        console.log('!isNaN(element.internalDisplay.focus.column):', !isNaN(element.internalDisplay.focus.column));
-        console.log('element.internalDisplay.focus.row >= jsnRange.fromRecord:', element.internalDisplay.focus.row >= jsnRange.fromRecord);
-        console.log('element.internalDisplay.focus.row <= jsnRange.toRecord:', element.internalDisplay.focus.row <= jsnRange.toRecord);
-        console.log('element.internalDisplay.focus.column >= jsnRange.fromColumn:', element.internalDisplay.focus.column >= jsnRange.fromColumn);
-        console.log('element.internalDisplay.focus.column <= jsnRange.toColumn:', element.internalDisplay.focus.column <= jsnRange.toColumn);
+        //console.log(
+        //    '1',
+        //    element.internalDisplay.focus.latest
+        //);
+        //console.log(
+        //    '2',
+        //    !isNaN(element.internalDisplay.focus.row)
+        //);
+        //console.log(
+        //    '3',
+        //    !isNaN(element.internalDisplay.focus.column)
+        //);
+        //console.log(
+        //    '4',
+        //    element.internalDisplay.focus.row >= jsnRange.fromRecord
+        //);
+        //console.log(
+        //    '5',
+        //    element.internalDisplay.focus.row <= jsnRange.toRecord
+        //);
+        //console.log(
+        //    '6',
+        //    element.internalDisplay.focus.column >= jsnRange.fromColumn
+        //);
+        //console.log(
+        //    '7',
+        //    element.internalDisplay.focus.column <= jsnRange.toColumn
+        //);
+
         if (
             // this does two things for us:
             //      "latest" starts out null so this prevents us trying to
@@ -7670,6 +7759,10 @@ document.addEventListener('DOMContentLoaded', function () {
             element.internalDisplay.focus.column >= jsnRange.fromColumn &&
             element.internalDisplay.focus.column <= jsnRange.toColumn
         ) {
+            strNodeName = (
+                element.internalDisplay.focus.nodeName ||
+                ''
+            );
             focusElement = xtag.query(
                 element.elems.dataViewport,
                 (
@@ -7680,14 +7773,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     '[data-row-number="' +
                         element.internalDisplay.focus.row +
                     '"] ' +
-                    (
-                        element.internalDisplay.focus.nodeName ||
-                        ''
-                    ).toLowerCase()
+                    strNodeName.toLowerCase()
                 )
             )[0];
-            console.log('element.internalDisplay.focus:', element.internalDisplay.focus);
-            console.log('focusElement:', focusElement);
 
             if (focusElement) {
                 focusElement.focus();
@@ -8692,7 +8780,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var strWhere;
         // Code related to strWhereAddendum was added because the moron
-        //      who wrote this code wasn't appending to strWhere, 
+        //      who wrote this code wasn't appending to strWhere,
         //      they were replacing it
         var strWhereAddendum;
         var strUserWhere;
@@ -8707,7 +8795,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // add in user filters, if any
         if (element.getAttribute('session-filter')) {
             // strWhere = '(' + element.getAttribute('session-filter') + ')';
-            strWhereAddendum = '(' + element.getAttribute('session-filter') + ')';
+            strWhereAddendum = (
+                '(' + element.getAttribute('session-filter') + ')'
+            );
+
             if (strWhereAddendum) {
                 strWhere += (
                     strWhere
@@ -9837,6 +9928,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var arrColumnNames;
         var strHashString;
         var strTemp;
+        var clearWarningFunction;
 
         // get schema and object attributes and get the return column list
         strSchema = GS.templateWithQuerystring(
@@ -10319,37 +10411,80 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // gotta let the user know that an update is in progress
             addLoader(element, 'data-update', 'Updating Data...');
-            
+
             element.saveState = 'saving';
             if (element.saveTimeout) {
                 clearTimeout(element.saveTimeout);
             }
-            //console.log('wait five seconds');
-            element.saveTimeout = setTimeout(function () {
-                //console.log('element.saveState', element.saveState);
-                if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
-                    element.saveState = 'error';
-                    var parentElement = document.createElement('center');
-                    parentElement.setAttribute('class', 'saving-warning-parent');
-                    
-                    var warningElement = document.createElement('div');
-                    warningElement.setAttribute('class', 'saving-warning');
-        
-                    // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
-                    warningElement.innerHTML = 'YOUR CHANGES ARE NOT SAVED<br />WE HAVEN\'T HEARD BACK FROM THE SERVER<br />EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR';
-                    
-                    parentElement.appendChild(warningElement);
-                    element.insertBefore(parentElement, element.children[0]);
-                    
-                    // element.appendChild(parentElement);
-                    /*
-                    warningElement.addEventListener('click', function () {
-                        saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
-                    });
-                    */
+
+            // wait five seconds to warn the user if the update is taking too
+            //      long.
+            element.saveTimeout = setTimeout(
+                function () {
+                    var arrParentElement;
+                    var parentElement;
+                    var warningElement;
+
+                    // we need to know if we've already opened a warning like
+                    //      this. So, we'll select for warnings that already
+                    //      exist.
+                    arrParentElement = xtag.query(
+                        element,
+                        '.saving-warning-parent'
+                    );
+
+                    if (
+                        // if we haven't saved and
+                        element.saveState !== 'saved' &&
+                        // there isn't already a warning
+                        arrParentElement.length === 0
+                    ) {
+                        element.saveState = 'error';
+
+                        parentElement = document.createElement('center');
+                        parentElement.setAttribute(
+                            'class',
+                            'saving-warning-parent'
+                        );
+
+                        warningElement = document.createElement('div');
+                        warningElement.setAttribute(
+                            'class',
+                            'saving-warning'
+                        );
+
+                        warningElement.innerHTML = (
+                            'YOUR CHANGES ARE NOT SAVED<br />' +
+                            'WE HAVEN\'T HEARD BACK FROM THE SERVER<br />' +
+                            'EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR'
+                        );
+
+                        parentElement.appendChild(warningElement);
+                        element.insertBefore(
+                            parentElement,
+                            element.children[0]
+                        );
+                    }
+                },
+                //10         // Uncomment to test
+                (5 * 1000) // Uncomment for live
+            );
+
+            clearWarningFunction = function () {
+                var arrErrorElement;
+
+                // gather warning elements
+                arrErrorElement = xtag.query(
+                    element,
+                    '.saving-warning-parent'
+                );
+
+                // if there is a warning element, remove it
+                if (arrErrorElement.length > 0) {
+                    element.removeChild(arrErrorElement[0]);
                 }
-            }, /*30*/ 5 * 1000);
-            
+            };
+
             // begin the websocket update
             GS.requestUpdateFromSocket(
                 getSocket(element),
@@ -10367,13 +10502,20 @@ document.addEventListener('DOMContentLoaded', function () {
                             clearTimeout(element.saveTimeout);
                         }
                         element.saveState = 'error';
-                        if (xtag.query(element, '.saving-warning-parent').length > 0) {
-                            element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
-                        }
-                        
+
+                        clearWarningFunction();
                         removeLoader(element, 'data-update', 'Change Failed');
                         GS.webSocketErrorDialog(data);
-                        // console.log(strSchema, strObject, strReturn, strHashColumns, strUpdateData);
+
+                        //console.log(
+                        //    strSchema,
+                        //    strObject,
+                        //    strReturn,
+                        //    strHashColumns,
+                        //    strUpdateData
+                        //);
+
+                        // request fresh data
                         //getData(element);
                     }
                 },
@@ -10388,10 +10530,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 clearTimeout(element.saveTimeout);
                             }
                             element.saveState = 'saved';
-                            if (xtag.query(element, '.saving-warning-parent').length > 0) {
-                                element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
-                            }
-                            
+
+                            clearWarningFunction();
                             commit();
 
                         // else: we've just received a data packet containing
@@ -10410,6 +10550,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             updatedRecords += data;
                             //console.log(updatedRecords, data);
                         }
+
                     // update failed: popup an error, rollback and
                     //      reverse change
                     } else {
@@ -10417,17 +10558,25 @@ document.addEventListener('DOMContentLoaded', function () {
                             clearTimeout(element.saveTimeout);
                         }
                         element.saveState = 'error';
-                        if (xtag.query(element, '.saving-warning-parent').length > 0) {
-                            element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
-                        }
-                        
-                        data.error_text = '\n\nYour unsaved value(s): ' + strUpdateData.substring(strUpdateData.indexOf('\n'), strUpdateData.length) + '\n\n' + data.error_text;
+
+                        data.error_text = (
+                            '\n\n' +
+                            'Your unsaved value(s): ' +
+                            strUpdateData.substring(
+                                strUpdateData.indexOf('\n'),
+                                strUpdateData.length
+                            ) +
+                            '\n\n' +
+                            data.error_text
+                        );
+
+                        clearWarningFunction();
                         GS.webSocketErrorDialog(data);
                         rollback();
                         dataSELECT(element);
-                        //renderScrollDimensions()
-                        // getData(element);
-                        
+
+                        //renderScrollDimensions();
+                        //getData(element);
                     }
                 },
                 // transaction commit/rollback finished callback
@@ -10458,10 +10607,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                 clearTimeout(element.saveTimeout);
                             }
                             element.saveState = 'saved';
-                            if (xtag.query(element, '.saving-warning-parent').length > 0) {
-                                element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
-                            }
-                            
+
+                            clearWarningFunction();
+
                             // refresh internal data by replace each internal
                             //      record that was affected with it's new
                             //      version
@@ -10497,13 +10645,18 @@ document.addEventListener('DOMContentLoaded', function () {
                             clearTimeout(element.saveTimeout);
                         }
                         element.saveState = 'error';
-                        if (xtag.query(element, '.saving-warning-parent').length > 0) {
-                            element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
-                        }
-                        
+
+                        clearWarningFunction();
                         GS.webSocketErrorDialog(data);
+
                         //getData(element);
-                        // console.log(strSchema, strObject, strReturn, strHashColumns, strUpdateData);
+                        //console.log(
+                        //    strSchema,
+                        //    strObject,
+                        //    strReturn,
+                        //    strHashColumns,
+                        //    strUpdateData
+                        //);
                     }
                 }
             );
@@ -12172,7 +12325,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function dataUPDATE(element, strMode, jsnUpdate) {
         if (!element.hasAttribute('no-update')) {
-            // because updates take time, we need to do this right before re-render - Nunzio on 2017-03-28
+            // because updates take time, we need to do this right before
+            //      re-render - Nunzio on 2017-03-28
             // // we want to save the text selection of the current
             // //      control before we do the update
             // element.internalDisplay.focus.selectionRange = null;
@@ -13069,7 +13223,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function insertPasteString(element, arrPaste, intMaxPasteColumn) {
         var templateElement;
         var search_div;
-        var enc_i
+        var enc_i;
         var enc_len;
         var enc_elems;
         var arr_encrypted_columns;
@@ -13211,9 +13365,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (strSelection[intPastedColumn + intStart] === 'F') {
                             // strNewRecord += strCell;
                             if (bol_encrypt) {
-                                if (arr_encrypted_columns.indexOf(
-                                    (intPastedColumn + intStart).toString()
-                                ) !== -1) {
+                                if (
+                                    arr_encrypted_columns.indexOf(
+                                        (intPastedColumn + intStart).toString()
+                                    ) !== -1
+                                ) {
                                     strNewRecord += CryptoJS.AES.encrypt(
                                         strCell
                                         , window[
@@ -13613,7 +13769,6 @@ document.addEventListener('DOMContentLoaded', function () {
     //      insert or update paste functions
     function usePasteString(element, strUnnormalizedPasteString) {
         var elementMaker = document.createElement('template');
-        //console.log('paste', strUnnormalizedPasteString);
         var tableElement;
         var tbodyElement;
         var arrRecord;
@@ -13624,19 +13779,24 @@ document.addEventListener('DOMContentLoaded', function () {
         var strCell;
         var intMaxUpdateRecord;
         var arrSelectedRows;
+        var arrColSpanCells;
 
         var rec_i;
         var rec_len;
-
         var col_i;
         var col_len;
+        var i;
+        var len;
+        var insert_i;
+        var insert_len;
+
+        //console.log('Paste String:', strUnnormalizedPasteString);
 
         // because pasting a large amount of data takes time, add a
         //      loader to let the user know we've started, just in case
         addLoader(element, 'paste-parse', 'Parsing Pasted Data...');
 
         // sometimes there's a whole page that contains the table HTML inside it
-        //strUnnormalizedPasteString =
         if (strUnnormalizedPasteString.substring(0, 6) === '<HTML>') {
             var extractorDiv = document.createElement('div');
             extractorDiv.innerHTML = strUnnormalizedPasteString;
@@ -13667,24 +13827,75 @@ document.addEventListener('DOMContentLoaded', function () {
         tableElement = xtag.query(elementMaker.content, 'table')[0];
         tbodyElement = xtag.queryChildren(tableElement, 'tbody')[0];
 
-        // colspans cause data issues since they remove the
-        // cells in front of them, so we put them back
-        var colspans = xtag.query(tbodyElement, 'td[colspan]');
-        if (colspans.length > 0) {
-            var i = 0, len = colspans.length;
-            var int_i = 0, int_len, tdElem;
+        // In MS Excel, if a cell bleeds over into another cell and the next
+        //      cell is empty, Excel will ignore the empty column and put a
+        //      colspan on the cell that bleeds over.
+        // So, it'll turn the record below
+        //      COL1 | COL2 | COL3 | COL4
+        //      test | test | test | test
+        //      test | testtesttesttest | EMPTY | test  <- this record
+        //      test | test | test | test
+        //
+        // into this
+        //      (
+        //          just the table portion of the paste string,
+        //          indented and cleaned for clarity
+        //      ):
+        //        <table>
+        //            <tr>
+        //                <td>COL1</td>
+        //                <td>COL2</td>
+        //                <td>COL3</td>
+        //                <td>COL4</td>
+        //            </tr>
+        //            <tr>
+        //                <td>test</td>
+        //                <td>test</td>
+        //                <td>test</td>
+        //                <td>test</td>
+        //            </tr>
+        //            <tr>
+        //                <td>test</td>
+        //                <td colspan="2">testtesttesttest</td>
+        //                // NO EMPTY FIELD HERE!! We add an empty field here
+        //                <td>test</td>
+        //            </tr>
+        //            <tr>
+        //                <td>test</td>
+        //                <td>test</td>
+        //                <td>test</td>
+        //                <td>test</td>
+        //            </tr>
+        //        </table>
+        //
+        // To solve this, we insert one cell for every cell that it covers
+        arrColSpanCells = xtag.query(tbodyElement, 'td[colspan]');
+
+        if (arrColSpanCells.length > 0) {
+            // loop through all cells that have a colspan
+            i = 0;
+            len = arrColSpanCells.length;
             while (i < len) {
-                // there might be a cell with a colspan of fifteen
-                //   we would need to add 14 since there's already one
-                int_len = colspans[i].getAttribute('colspan') - 1;
-                while (int_i < int_len) {
-                    tdElem = document.createElement('td');
-                    GS.insertElementAfter(tdElem ,colspans[int_i]);
-                    int_i++;
+                // for however many the colspan is (minus one), loop
+                insert_i = 0;
+                insert_len = arrColSpanCells[i].getAttribute('colspan') - 1;
+                while (insert_i < insert_len) {
+                    // insert cell after colspan cell
+                    GS.insertElementAfter(
+                        document.createElement('td'),
+                        arrColSpanCells[i]
+                    );
+
+                    // remove the colspan because it's no longer accurate
+                    arrColSpanCells[i].removeAttribute('colspan');
+
+                    insert_i += 1;
                 }
-                i++;
+
+                i += 1;
             }
         }
+
         // if there's a TBODY, get records from within there
         if (tbodyElement) {
             arrRecord = xtag.queryChildren(tbodyElement, 'tr');
@@ -14688,7 +14899,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // #############################################################################
 
     // ############# QS EVENTS #############
-    
+
     function saveDefaultAttributes(element) {
         var i;
         var len;
@@ -14698,19 +14909,22 @@ document.addEventListener('DOMContentLoaded', function () {
         // we need a place to store the attributes
         element.internalData.defaultAttributes = {};
 
-        // loop through attributes and store them in the internal defaultAttributes object
+        // loop through attributes and store them in the internal
+        //      defaultAttributes object
         i = 0;
         len = element.attributes.length;
         arrAttr = element.attributes;
         while (i < len) {
             jsnAttr = element.attributes[i];
 
-            element.internalData.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
+            element.internalData.defaultAttributes[jsnAttr.nodeName] = (
+                (jsnAttr.value || '')
+            );
 
             i += 1;
         }
     }
-    
+
     function pushReplacePopHandler(element) {
         var i;
         var len;
@@ -14724,8 +14938,11 @@ document.addEventListener('DOMContentLoaded', function () {
         var currentValue;
         var bolRefresh;
         var strOperator;
+        var jsnDefaultAttr
 
         if (strQSCol) {
+            jsnDefaultAttr = element.internalData.defaultAttributes;
+
             if (strQSCol.indexOf('=') !== -1) {
                 arrAttrParts = strQSCol.split(',');
                 i = 0;
@@ -14744,7 +14961,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     strQSCol = arrQSParts[0];
                     strQSAttr = arrQSParts[1] || arrQSParts[0];
 
-                    // if the key is not present or we've got the negator: go to the attribute's default or remove it
+                    // if the key is not present or we've got the negator:
+                    //      go to the attribute's default or remove it
                     if (strOperator === '!=') {
                         // if the key is not present: add the attribute
                         if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
@@ -14754,10 +14972,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             element.removeAttribute(strQSAttr);
                         }
                     } else {
-                        // if the key is not present: go to the attribute's default or remove it
+                        // if the key is not present:
+                        //      go to the attribute's default or remove it
                         if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
-                            if (element.internalData.defaultAttributes[strQSAttr] !== undefined) {
-                                element.setAttribute(strQSAttr, (element.internalData.defaultAttributes[strQSAttr] || ''));
+                            if (jsnDefaultAttr[strQSAttr] !== undefined) {
+                                element.setAttribute(
+                                    strQSAttr,
+                                    (jsnDefaultAttr[strQSAttr] || '')
+                                );
                             } else {
                                 element.removeAttribute(strQSAttr);
                             }
@@ -14765,7 +14987,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         } else {
                             element.setAttribute(strQSAttr, (
                                 GS.qryGetVal(strQS, strQSCol) ||
-                                element.internalData.defaultAttributes[strQSAttr] ||
+                                jsnDefaultAttr[strQSAttr] ||
                                 ''
                             ));
                         }
@@ -14785,12 +15007,19 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // handle "refresh-on-querystring-values" and "refresh-on-querystring-change" attributes
+        // handle
+        //      "refresh-on-querystring-values" and
+        //      "refresh-on-querystring-change" attributes
         if (element.internalData.bolQSFirstRun === true) {
             if (element.hasAttribute('refresh-on-querystring-values')) {
-                arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
+                arrPopKeys = (
+                    element.getAttribute('refresh-on-querystring-values')
+                        .split(/\s*,\s*/gim)
+                );
 
-                for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
+                i = 0;
+                len = arrPopKeys.length;
+                while (i < len) {
                     currentValue = GS.qryGetVal(strQS, arrPopKeys[i]);
 
                     if (element.popValues[arrPopKeys[i]] !== currentValue) {
@@ -14798,43 +15027,66 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     element.popValues[arrPopKeys[i]] = currentValue;
+                    i += 1;
                 }
+
             } else if (element.hasAttribute('refresh-on-querystring-change')) {
                 bolRefresh = true;
             }
 
             if (bolRefresh && element.hasAttribute('src')) {
-                // console.log('pushReplacePopHandler: refresh', element);
                 element.refresh();
+
             } else if (bolRefresh && !element.hasAttribute('src')) {
-                console.warn('gs-table Warning: element has "refresh-on-querystring-values" or "refresh-on-querystring-change", but no "src".', element);
+                console.warn(
+                    'gs-table Warning: ' +
+                        'element has "refresh-on-querystring-values" or ' +
+                        '"refresh-on-querystring-change", but no "src".',
+                    element
+                );
             }
         } else {
             if (element.hasAttribute('refresh-on-querystring-values')) {
-                arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
+                arrPopKeys = (
+                    element.getAttribute('refresh-on-querystring-values')
+                        .split(/\s*,\s*/gim)
+                );
 
-                for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
-                    element.popValues[arrPopKeys[i]] = GS.qryGetVal(strQS, arrPopKeys[i]);
+                i = 0;
+                len = arrPopKeys.length;
+                while (i < len) {
+                    element.popValues[arrPopKeys[i]] = (
+                        GS.qryGetVal(strQS, arrPopKeys[i])
+                    );
+                    i += 1;
                 }
             }
         }
 
         element.internalData.bolQSFirstRun = true;
     }
-    
+
     function bindQuerystringEvents(element) {
-        if (element.getAttribute('qs') ||
-                element.getAttribute('refresh-on-querystring-values') ||
-                element.hasAttribute('refresh-on-querystring-change')) {
+        if (
+            element.getAttribute('qs') ||
+            element.getAttribute('refresh-on-querystring-values') ||
+            element.hasAttribute('refresh-on-querystring-change')
+        ) {
             element.popValues = {};
 
             pushReplacePopHandler(element);
-            window.addEventListener('pushstate',    function () { pushReplacePopHandler(element); });
-            window.addEventListener('replacestate', function () { pushReplacePopHandler(element); });
-            window.addEventListener('popstate',     function () { pushReplacePopHandler(element); });
+            window.addEventListener('pushstate', function () {
+                pushReplacePopHandler(element);
+            });
+            window.addEventListener('replacestate', function () {
+                pushReplacePopHandler(element);
+            });
+            window.addEventListener('popstate', function () {
+                pushReplacePopHandler(element);
+            });
         }
     }
-    
+
     // ############# FOCUS EVENTS #############
     function unbindFocus(element) {
         element.removeEventListener(
@@ -14927,24 +15179,31 @@ document.addEventListener('DOMContentLoaded', function () {
         element.internalEvents.focusInViewport = function () {
             var active = document.activeElement;
             var parentCell = GS.findParentTag(active, 'gs-cell');
+            var parentTable;
+            var cell_row;
+            var cell_col;
+            var jsnRange;
 
             // if the focused element is inside a GS-CELL element
             if (parentCell && parentCell.nodeName === 'GS-CELL') {
                 // if the GS-CELL is not selected
                 if (!parentCell.hasAttribute('selected')) {
-                    // // focus hidden control
+                    // focus hidden control
                     // focusHiddenControl(element);
+
                     // select the cell
-                    var parentTable = GS.findParentTag(active, 'gs-table');
+                    parentTable = GS.findParentTag(active, 'gs-table');
                     if (parentTable && parentTable.nodeName === 'GS-TABLE') {
-                        var cell_row = parentCell.getAttribute('data-row-number');
-                        var cell_col = parentCell.getAttribute('data-col-number');
+                        cell_row = parentCell.getAttribute('data-row-number');
+                        cell_col = parentCell.getAttribute('data-col-number');
+
                         if (cell_row === 'insert') {
-                            cell_row = tableElem.internalData.records.length;
+                            cell_row = parentTable.internalData.records.length;
                         } else {
                             cell_row = parseInt(cell_row, 10);
                         }
-                        var jsnRange = {
+
+                        jsnRange = {
                             "start": {
                                 "row": cell_row,
                                 "column": cell_col
@@ -14955,6 +15214,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             },
                             "negator": false
                         };
+
                         parentTable.internalSelection.ranges = [jsnRange];
                         renderSelection(parentTable);
                         active = document.activeElement;
@@ -14980,7 +15240,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             element.internalDisplay.focus.latest = false;
 
-            //console.log(active, event.type, parentTable);
             if (
                 parentTable &&
                 parentTable.nodeName === 'GS-TABLE'
@@ -15021,9 +15280,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         parentColumn.getAttribute('column')
                     );
                     element.internalDisplay.focus.nodeName = (
-                        (active.classList.contains('control') ? active.parentNode : active).nodeName
+                        (
+                            active.classList.contains('control')
+                                ? active.parentNode
+                                : active
+                        ).nodeName
                     );
-                    element.internalDisplay.focus.selectionRange = GS.getInputSelection(active);
+                    element.internalDisplay.focus.selectionRange = (
+                        GS.getInputSelection(active)
+                    );
                     element.internalDisplay.focus.latest = true;
                 }
             } else {
@@ -15106,8 +15371,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 intStartScrollLeft = element.internalScroll.left;
                 intStartScrollTop = element.internalScroll.top;
 
-                event.preventDefault();
-                event.stopPropagation();
+                // event.preventDefault();
+                // event.stopPropagation();
 
                 document.body.addEventListener(
                     evt.mousemove,
@@ -19162,13 +19427,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
 
 
-                    // console.log('columnElement.value:',  columnElement.value);
-                    // console.log('target.value:',  target.value);
-                    // console.log('columnElement.checked:',  columnElement.checked);
-                    // console.log('target.checked:',  target.checked);
-                    // console.log('strColumn:', strColumn);
+                    //console.log('column value:', columnElement.value);
+                    //console.log('target value:', target.value);
+                    //console.log('column checked:', columnElement.checked);
+                    //console.log('target checked:', target.checked);
+                    //console.log('strColumn:', strColumn);
                     //console.log('intRecord:', intRecord);
-                    // console.log('newValue:', newValue);
+                    //console.log('newValue:', newValue);
 
                     // call the update function
                     dataUPDATE(element, 'single-cell', {
@@ -19446,34 +19711,56 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
         element.internalEvents.insertRecordBlur = function (event) {
-            setTimeout(function()
-            {
-                // console.log(document.activeElement);
-                var parentCell = GS.findParentTag(event.target, 'gs-cell');
-                var newParentCell = GS.findParentTag(
-                    document.activeElement,
-                    'gs-cell'
-                );
-                // we only want return to insert if the return occured inside
-                //      an insert cell
-                if (parentCell &&
-                    (
-                        (parentCell.classList.contains('table-insert') &&
-                        !newParentCell) ||
-                        (parentCell.classList.contains('table-insert') &&
-                        !newParentCell.classList.contains('table-insert')
-                    ))
-                ) {
-                    var totalValues = false, insertElements = xtag.query(element, '.table-insert input');
-                    for (var i = 0, len = insertElements.length; i < len; i++) {
-                        totalValues += insertElements[i].value;
+            setTimeout(
+                function() {
+                    var parentCell = GS.findParentTag(event.target, 'gs-cell');
+                    var newParentCell = GS.findParentTag(
+                        document.activeElement,
+                        'gs-cell'
+                    );
+                    var totalValues;
+                    var insertElements;
+                    var i;
+                    var len;
+
+                    element.internalEvents.insertRecordValueRetain(event);
+
+                    // we only want return to insert if the return occured
+                    //      inside an insert cell
+                    if (
+                        parentCell &&
+                        (
+                            (
+                                parentCell.classList.contains('table-insert') &&
+                                !newParentCell
+                            ) ||
+                            (
+                                parentCell.classList.contains('table-insert') &&
+                                !newParentCell
+                                    .classList.contains('table-insert')
+                            )
+                        )
+                    ) {
+                        totalValues = false;
+                        insertElements = xtag.query(
+                            element,
+                            '.table-insert input'
+                        );
+
+                        i = 0;
+                        len = insertElements.length;
+                        while (i < len) {
+                            totalValues += insertElements[i].value;
+                            i += 1;
+                        }
+
+                        if (totalValues && totalValues !== 'false') {
+                            triggerRecordInsert(element);
+                        }
                     }
-                    if (totalValues && totalValues !== 'false') {
-                        // console.log('why:' + totalValues);
-                        triggerRecordInsert(element);
-                    }
-                }
-            }, 1);
+                },
+                1
+            );
 
         };
 
@@ -19501,14 +19788,20 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             var target = event.target;
             var parentCell = GS.findParentTag(target, 'gs-cell');
-            var parentColumn = GS.findParentElement(target, '[column]');
+
+            // if (target.hasAttribute('column')) {
+            //     var parentColumn = event.target;
+            //     console.log(parentColumn, parentColumn.value);
+            // } else {
+                var parentColumn = GS.findParentElement(target, '[column]');
+            // }
             var strColumn = parentColumn.getAttribute('column');
+
             // this was commented out because it was grabbing the value
             // of the input wich means that for encrypted texts the
             // insert value was unencrypted. replacement below
             // var strValue = target.value;
             var strValue = parentColumn.value;
-            //console.log(strValue, parentCell);
             // we only want to retain the values of insert cells, so only do so
             //      if the parent cell has the insert cell class and has a
             //      [column=""] defined
@@ -20345,72 +20638,97 @@ document.addEventListener('DOMContentLoaded', function () {
             if (element.internalClip.columnList.length > 0) {
                 var jsnCopyString;
                 var focusedElement;
-                var arrCopyType = (element.getAttribute('copy-types') || 'text,html').split(',');
+                var strCopyType;
+                var arrCopyType;
                 var i;
                 var len;
-                var beforeCopyEvent = GS.triggerEvent(element, 'before_copy', {
+                var beforeCopyEvent;
+
+                strCopyType = (
+                    element.getAttribute('copy-types') ||
+                    'text,html'
+                );
+                arrCopyType = strCopyType.split(',')
+
+                beforeCopyEvent = GS.triggerEvent(element, 'before_copy', {
                     forceCopy: element.internalEvents.forceCopy
                 });
+
                 element.internalEvents.forceCopy = false;
-    
+
                 i = 0;
                 len = arrCopyType.length;
                 while (i < len) {
                     arrCopyType[i] = arrCopyType[i].toLowerCase();
                     i += 1;
                 }
-    
+
                 if (beforeCopyEvent.defaultPrevented) {
                     event.preventDefault(event);
-    
+
                 } else {
-                    // saving the currently focused element for easy/quick access
+                    // save the currently focused element for easy/quick access
                     focusedElement = document.activeElement;
-    
-                    // if the focus is on the hidden focus control of if the text
-                    //      selection of the currently focused element is not
-                    //      selecting multiple characters
+
+                    // if the focus is on the hidden focus control of if the
+                    //      text selection of the currently focused element is
+                    //      not selecting multiple characters
                     if (
-                        focusedElement.classList.contains('hidden-focus-control') ||
+                        focusedElement.classList
+                            .contains('hidden-focus-control') ||
                         focusedElement.selectionStart ===
                         focusedElement.selectionEnd
                     ) {
                         console.time('copy');
-    
-                        // because copying a large amount of data takes time, add a
-                        //      loader to let the user know we're copying,
+
+                        // because copying a large amount of data takes time,
+                        //      add a loader to let the user know we're copying,
                         //      just in case
                         addLoader(element, 'copy-loader', 'Copying Data...');
-    
+
                         // focus the hidden focus control and select all of it's
                         //      text so that Firefox will allow us to override
                         //      the clipboard
                         focusedElement = element.elems.hiddenFocusControl;
                         focusedElement.focus();
-    
+
                         GS.setInputSelection(
                             focusedElement,
                             0,
                             focusedElement.value.length
                         );
-    
+
                         // we want to override the text and HTML mime type
-                        //      clipboards, so we get the copy text for both types
-                            jsnCopyString = getCopyStrings(element);
+                        //      clipboards, so we get the copy text for both
+                        //      types
+                        jsnCopyString = getCopyStrings(element);
+
                         // override clipboard (prevent event default if we are
                         //      successful)
-                        if (arrCopyType.indexOf('text') > -1 &&
-                            handleClipboardData(event, jsnCopyString.text, 'text')) {
+                        if (
+                            arrCopyType.indexOf('text') > -1 &&
+                            handleClipboardData(
+                                event,
+                                jsnCopyString.text,
+                                'text'
+                            )
+                        ) {
                             event.preventDefault(event);
                         }
-                        if (arrCopyType.indexOf('html') > -1 &&
-                            handleClipboardData(event, jsnCopyString.html, 'html')) {
+                        if (
+                            arrCopyType.indexOf('html') > -1 &&
+                            handleClipboardData(
+                                event,
+                                jsnCopyString.html,
+                                'html'
+                            )
+                        ) {
                             event.preventDefault(event);
                         }
-    
+
                         // remove copying loader
                         removeLoader(element, 'copy-loader', 'Data Copied');
-    
+
                         console.timeEnd('copy');
                     }
                 }
@@ -21986,8 +22304,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 siphonElement(element);
                 renderHUD(element);
                 bindElement(element);
+
                 GS.addBeforeUnloadEvent(function () {
-                    if (element.internalData.insertRecordRetainedColumns && element.internalData.insertRecordRetainedColumns.length > 0) {
+                    if (
+                        element
+                            .internalData
+                            .insertRecordRetainedColumns &&
+                        element
+                            .internalData
+                            .insertRecordRetainedColumns
+                            .length > 0
+                    ) {
                         return 'There is data in the insert record.';
                     }
                 });
@@ -22137,7 +22464,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 dataDELETE(this, jsnDeleteData);
             },
             'render': function () {
-                if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
+                if (
+                    !this.hasAttribute('suspend-created') &&
+                    !this.hasAttribute('suspend-inserted')
+                ) {
                     renderScrollDimensions(this);
                     renderHUD(this);
                 }
@@ -22259,7 +22589,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.classList.contains('table-fullscreen')) {
                     GS.triggerEvent(element, 'closeFullScreen');
                     element.classList.remove('table-fullscreen');
-    
+
                     if (target.getAttribute('icon') === 'close') {
                         target.setAttribute('icon', 'arrows-alt');
                     }

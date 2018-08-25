@@ -22,6 +22,17 @@ window.addEventListener('design-register-element', function () {
             '        \n' +
             '        <script src="/js/greyspots.js" type="text/javascript"></script>\n' +
             '        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />\n' +
+            '        \n' +
+            '        <script>\n' +
+            '//global GS, ml, evt, document, window\n' +
+            '//jslint browser:true\n' +
+            '\n' +
+            '\n' +
+            '        </script>\n' +
+            '        \n' +
+            '        <style>\n' +
+            '\n' +
+            '        </style>\n' +
             '    </head>\n' +
             '    <body>\n' +
             '        $0\n' +
@@ -34,6 +45,29 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('Centered H4', 'Centered H4', '<center><h4>$0</h4></center>');
     registerDesignSnippet('Centered H5', 'Centered H5', '<center><h5>$0</h5></center>');
     registerDesignSnippet('Centered H6', 'Centered H6', '<center><h6>$0</h6></center>');
+
+
+    
+    registerDesignSnippet('Format JSON', 'JSON.stringify','JSON.stringify(${1:value}, ${2:replacer}, ${3:space});');
+
+
+    registerDesignSnippet('setInterval', 'setInterval',
+            'var ${1:intervalId} = setInterval(function(){\n' +
+            '    ${3}\n' +
+            '}, ${2:milliseconds});\n');
+            
+            
+    registerDesignSnippet('clearInterval', 'clearInterval','clearInterval(${1:intervalId});');
+    
+    
+    
+    registerDesignSnippet('setTimeout', 'setTimeout',
+            'var ${1:intervalId} = setTimeout(function(){\n' +
+            '    ${3}\n' +
+            '}, ${2:milliseconds});\n');
+            
+            
+    registerDesignSnippet('clearTimeout', 'clearTimeout','clearTimeout(${1:intervalId});');
 
     // javascript snippets
     registerDesignSnippet('Xtag Register', 'xtag.register',
@@ -116,6 +150,13 @@ window.addEventListener('design-register-element', function () {
             '    });\n' +
             '});');
     
+    registerDesignSnippet('While Loop', 'While Loop', 'var i = ${0:0);\n'
+        + 'var len = ${1:10);\n'
+        + 'while (i < len) {\n'
+        + '    $3\n'
+        + '    i++;\n'
+        + '}\n');
+    
     registerDesignSnippet('Window Load', 'window.addEventListener',
             'window.addEventListener(\'load\', function () {\n' +
             '    $0\n' +
@@ -137,6 +178,33 @@ window.addEventListener('design-register-element', function () {
             
     registerDesignSnippet('document.getElementsByTagName', 'document.getElementsByTagName',
             'document.getElementsByTagName(\'${1:tagname}\')');
+
+
+
+
+
+    registerDesignSnippet('.getElementById', '.getElementById',
+            '.getElementById(\'${1:id}\')');
+            
+    registerDesignSnippet('.getElementsByClassName', '.getElementsByClassName',
+            '.getElementsByClassName(\'${1:class}\')');
+            
+    registerDesignSnippet('.getElementsByName', '.getElementsByName',
+            '.getElementsByName(\'${1:name}\')');
+            
+    registerDesignSnippet('.getElementsByTagName', '.getElementsByTagName',
+            '.getElementsByTagName(\'${1:tagname}\')');
+
+
+
+    registerDesignSnippet('For loop', 'For loop',
+            ' (var ${1:i} = 0, ${2:len} = ${3:Things}.length; $1 < $2; $1++) {\n' +
+		    '    ${4:$3[$1]}$0\n' +
+	        '}');
+
+
+
+
 
     registerDesignSnippet('Xtag Query', 'xtag.query',
             'xtag.query(${1:element}, \'${2:selector}\');');

@@ -2,6 +2,39 @@
 
 window.addEventListener('design-register-element', function () {
     'use strict';
+    
+    registerDesignSnippet('Dialog From Coded Template', 'Dialog From Coded Template', 'var templateElement = document.createElement(\'template\');\n' +
+                                                                          '\n' +
+                                                                          'templateElement.setAttribute(\'data-max-width\', \'50em;\');\n' +
+                                                                          'templateElement.innerHTML = ml(function () {/*\n' +
+                                                                          '<gs-page>\n' +
+                                                                          '    <gs-header>\n' +
+                                                                          '        <center><h3>$1</h3></center>\n' +
+                                                                          '    </gs-header>\n' +
+                                                                          '    <gs-body padded>\n' +
+                                                                          '        $2\n' +
+                                                                          '    </gs-body>\n' +
+                                                                          '    <gs-footer>\n' +
+                                                                          '        <gs-grid gutter>\n' +
+                                                                          '            <gs-block>\n' +
+                                                                          '                <gs-button dialogclose>Cancel</gs-button>\n' +
+                                                                          '            </gs-block>\n' +
+                                                                          '            <gs-block>\n' +
+                                                                          '                <gs-button dialogclose bg-primary>Save</gs-button>\n' +
+                                                                          '            </gs-block>\n' +
+                                                                          '        </gs-grid>\n' +
+                                                                          '    </gs-footer>\n' +
+                                                                          '</gs-page>\n' +
+                                                                          '*/});\n' +
+                                                                          'GS.openDialog(\'${3:templateID}\', function () {\n' +
+                                                                          '    // after dialog open \n' +
+                                                                          '}, function (event, strAnswer) {\n' +
+                                                                          '    if (strAnswer === \'${4:Save}\') {\n' +
+                                                                          '        // before dialog close\n' +
+                                                                          '        $0\n' +
+                                                                          '    }\n' +
+                                                                          '});');
+    
     registerDesignSnippet('Dialog From Template', 'Dialog From Template', 'GS.openDialog(\'${1:templateID}\', function () {\n' +
                                                                           '    // after dialog open \n' +
                                                                           '}, function (event, strAnswer) {\n' +
@@ -23,6 +56,10 @@ window.addEventListener('design-register-element', function () {
     
     registerDesignSnippet('GS.closeDialog', 'GS.closeDialog', 'GS.closeDialog(${1:dialog}, ${2:\'Ok\'});');
     registerDesignSnippet('Close Dialog', 'Close Dialog', 'GS.closeDialog(${1:dialog}, ${2:\'Ok\'});');
+    
+    
+    
+    
     
     registerDesignSnippet('GS.msgbox', 'GS.msgbox', 'GS.msgbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, ' +
                                                                             '${3:[\'Cancel\', \'Ok\']}, function (strAnswer) {\n' +
@@ -457,6 +494,7 @@ GS.closeDialog = function (dialog, strAnswer) {
 
         // save and blur currently focused element
         refocusElement = document.activeElement;
+
         if (!template.hasAttribute('no-focus-lock')) {
             refocusElement.blur();
         }
@@ -854,6 +892,7 @@ GS.closeDialog = function (dialog, strAnswer) {
 
         // save and blur currently focused element
         refocusElement = document.activeElement;
+        
         if (!template.hasAttribute('no-focus-lock')) {
             refocusElement.blur();
         }

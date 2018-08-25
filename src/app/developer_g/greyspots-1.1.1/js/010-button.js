@@ -13,6 +13,32 @@
 
             designRegisterElement(strTagName, strDocLink);
 
+            registerDesignSnippet('<gs-dialog-button> With Template', '<gs-dialog-button>', '' +
+                  'template id="$1">\n' +
+                  '    <gs-page>\n' +
+                  '        <gs-header>\n' +
+                  '            <center><h3>$3</h3></center>\n' +
+                  '        </gs-header>\n' +
+                  '        <gs-body padded>\n' +
+                  '            $4\n' +
+                  '        </gs-body>\n' +
+                  '        <gs-footer>\n' +
+                  '            <gs-grid gutter>\n' +
+                  '                <gs-block>\n' +
+                  '                    <gs-button dialogclose>Cancel</gs-button>\n' +
+                  '                </gs-block>\n' +
+                  '                <gs-block>\n' +
+                  '                    <gs-button dialogclose bg-primary>Save</gs-button>\n' +
+                  '                </gs-block>\n' +
+                  '            </gs-grid>\n' +
+                  '        </gs-footer>\n' +
+                  '    </gs-page>\n' +
+                  '</template>\n' +
+                  '<gs-dialog-button template="$1" before-open="$5" after-open="$6" before-close="$7" after-close="$8">' +
+                  '$2' +
+                  '</gs-dialog-button>' +
+                  '\n\n');
+
             window['designElementProperty_' + strTagName.replace(/[^a-z0-9]/gi, '').toUpperCase()] = function (selectedElement) {
                 var strIconPos = '', strIconRotation = '', strVisibilityAttribute = '', strFontAttribute = '', strBackgroundAttribute = '';
 
@@ -743,7 +769,8 @@
                 window.open(' https://tools.usps.com/go/TrackConfirmAction?tLabels=' + strTrackingNumber);
                 
             } else if (element.hasAttribute('ups') === true) {
-                window.open('http://www.ups.com/WebTracking/processInputRequest?tracknum=' + strTrackingNumber);
+                // window.open('http://www.ups.com/WebTracking/processInputRequest?tracknum=' + strTrackingNumber);
+                window.open('https://www.ups.com/track?loc=en_US&tracknum=' + strTrackingNumber + '&requester=MB/trackdetails');
                 
             } else if (element.hasAttribute('fedex') === true) {
                 window.open('https://www.fedex.com/apps/fedextrack/index.html?tracknumbers=' + strTrackingNumber);

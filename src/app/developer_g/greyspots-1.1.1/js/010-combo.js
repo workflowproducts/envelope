@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var i, len, matchedRecord, arrTrs = xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr');
         // console.log(arrTrs[0]);
         // console.log(arrTrs[0].children[0].nodeName.toUpperCase());
-        if (arrTrs[0].children[0].nodeName.toUpperCase() === 'TH') {
+        if (arrTrs[0].children[0].nodeName.toUpperCase() === 'TH' && ((arrTrs[0].children[1]) ? arrTrs[0].children[1].nodeName.toUpperCase() === 'TH' : true)) {
             arrTrs.splice(0,1);
         }
         // console.log(arrTrs);
@@ -252,9 +252,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // else: search exact text and search both the value attribute (if present) and the first td text
         } else {
             for (i = 0, len = arrTrs.length; i < len; i += 1) {
-                // console.log(arrTrs, i);
                 if (arrTrs[i].getAttribute('value') === strSearchString ||
-                    xtag.queryChildren(arrTrs[i], 'td')[0].textContent === strSearchString) {
+                    xtag.queryChildren(arrTrs[i], 'td')[0].textContent === strSearchString
+                ) {
                     matchedRecord = arrTrs[i];
 
                     break;
@@ -279,6 +279,13 @@ document.addEventListener('DOMContentLoaded', function () {
     function selectRecordFromValue(element, strValue, bolChange) {
         var record = findRecordFromString(element, strValue, false);
 
+        //console.log(element.lastValue, strValue);
+        //console.log('bolChange', bolChange, '"' + element.lastValue + '"', '"' + strValue + '"');
+        if (bolChange === true) {
+            bolChange = (String(element.lastValue) !== String(strValue));
+        }
+        //console.log('bolChange', bolChange);
+
         // if a record was found: select it
         if (record) {
             selectRecord(element, record, bolChange);
@@ -286,7 +293,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // else if limit to list (and no record was found):
         } else if (element.hasAttribute('limit-to-list') && bolChange) {
             if (strValue === '' && element.hasAttribute('allow-empty')) {
+                console.log('before value: "' + element.control.value + '"', element.changeOccured);
+                clearSelection(element);
                 handleChange(element, bolChange);
+                console.log('after value: "' + element.control.value + '"', element.changeOccured);
 
             } else {
                 alert('The text you entered is not in the list');
@@ -308,8 +318,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function handleChange(element, bolChange) {
-        var arrSelectedTrs, strHiddenValue = '', strTextValue = '', beforechangeevent, oldRecord,
-            oldInnerValue = element.innerValue, oldControlValue = element.control.value;
+        var arrSelectedTrs;
+        var strHiddenValue = '';
+        var strTextValue = '';
+        var beforechangeevent;
+        var oldRecord;
+        var oldInnerValue = element.innerValue;
+        var oldControlValue = element.control.value;
 
         if (element.dropDownTable) {
             arrSelectedTrs = xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr[selected]');
@@ -332,6 +347,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } else {
             strTextValue = element.control.value;
+        }
+
+        if (bolChange) {
+            console.trace('test');
+            console.log('### arrSelectedTrs:', arrSelectedTrs);
+            console.log('### strHiddenValue:', strHiddenValue);
+            console.log('### strTextValue:  ', strTextValue);
+            console.log('### bolChange:     ', bolChange);
         }
 
         // set innervalue and control value using the values we gather from the record
@@ -489,21 +512,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
         //console.log(scrollContainer);
         dropDownSize(element);
-        
-        
+
+
         if (!element.theadElement && !element.tbodyElement) {
             element.theadElement = xtag.queryChildren(element.dropDownTable, 'thead')[0];
             element.tbodyElement = xtag.queryChildren(element.dropDownTable, 'tbody')[0];
         }
         if (element.theadElement && element.tbodyElement && element.theadElement.children[0]) {
-            element.tbodyElement.innerHTML = element.theadElement.innerHTML + '' + element.tbodyElement.innerHTML;
-            var cols_i = 0, cols_len = element.theadElement.children[0].children.length;
+            element.tbodyElement.innerHTML = (
+                element.theadElement.innerHTML + '' + element.tbodyElement.innerHTML
+            );
+
+            var cols_i = 0,
+                cols_len = element.theadElement.children[0].children.length;
+
             element.tbodyheader = xtag.query(element.tbodyElement, 'tr:not([data-record_no])')[0];
-            console.log(element.tbodyheader);
             while (cols_i < cols_len) {
-                element.theadElement.children[0].children[cols_i].setAttribute('style', 'width: ' + element.tbodyheader.children[cols_i].clientWidth + 'px !important; padding-right: 0; padding-left: 0;');
-                console.log(element.tbodyheader.children[cols_i]);
-                console.log(element.tbodyheader.children[cols_i].clientWidth);
+                element
+                    .theadElement
+                    .children[0]
+                    .children[cols_i]
+                    .setAttribute(
+                        'style',
+                        'width: ' + element.tbodyheader.children[cols_i].clientWidth + 'px !important; ' +
+                        'padding-right: 0; ' +
+                        'padding-left: 0;'
+                    );
                 cols_i++;
             }
         }
@@ -523,13 +557,9 @@ document.addEventListener('DOMContentLoaded', function () {
         intViewportHeight            = window.innerHeight;
         intViewportWidth             = window.innerWidth;
         jsnComboOffset               = GS.getElementOffset(element);
-        intContentHeight             = scrollContainer.scrollHeight;
+        intContentHeight             = (scrollContainer.scrollHeight + 2);
         intFromControlToBottomHeight = intViewportHeight - (jsnComboOffset.top + intComboHeight);
         intFromControlToTopHeight    = jsnComboOffset.top;
-
-
-        //console.log(intFromControlToBottomHeight, intFromControlToTopHeight);
-
 
         // set position, height and (top or bottom) variables
         // if desktop:
@@ -585,25 +615,23 @@ document.addEventListener('DOMContentLoaded', function () {
         // set width and left variables
         // try regular
         if (scrollContainer.scrollWidth <= scrollContainer.offsetWidth) {
-            // Skipping the width allows the dropdown to resize to the content
-            //if (intComboWidth < 150) {
-            //    intNewWidth = (window.innerWidth - jsnComboOffset.left) - 20;
-            //
-            //    if (intNewWidth < 300) {
-            //        strWidth = intNewWidth + 'px';
-            //    } else {
-            //        strWidth = '300px';
-            //    }
-            //
-            //} else {
-            //    strWidth = intComboWidth + 'px';
-            //}
+            if (intComboWidth < 150) {
+                intNewWidth = (window.innerWidth - jsnComboOffset.left) - 20;
+            
+                if (intNewWidth < 300) {
+                    strWidth = intNewWidth + 'px';
+                } else {
+                    strWidth = '300px';
+                }
+            
+            } else {
+                strWidth = intComboWidth + 'px';
+            }
             strLeft = jsnComboOffset.left + 'px';
 
         // else full width
         } else {
-            // Skipping the width allows the dropdown to resize to the content
-            //strWidth = '100%';
+            strWidth = '100%';
             strLeft = '0px';
         }
 
@@ -612,8 +640,8 @@ document.addEventListener('DOMContentLoaded', function () {
         positioningContainer.style.left   = strLeft;
         positioningContainer.style.top    = strTop;
         positioningContainer.style.bottom = strBottom;
-        // Skipping the width allows the dropdown to resize to the content
-        //positioningContainer.style.width  = strWidth;
+        // minWidth allows the dropdown to resize to the content
+        positioningContainer.style.minWidth  = strWidth;
         positioningContainer.style.height = strHeight;
 
         if (strTop) {
@@ -779,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // handle behaviours on keydown
     function handleKeyDown(element, event) {
-        var intKeyCode = event.keyCode || event.which, selectedTr, trs, i, len, selectedRecordIndex, firstTd, lastChild, strTextValue;
+        var intKeyCode = (event.keyCode || event.which), selectedTr, trs, i, len, selectedRecordIndex, firstTd, lastChild, strTextValue;
 
         if (!element.hasAttribute('disabled') && !element.hasAttribute('readonly')) {
             if ((intKeyCode === 40 || intKeyCode === 38) && !event.shiftKey && !event.metaKey && !event.ctrlKey && !element.error) {
@@ -852,7 +880,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 event.stopPropagation();
 
             } else if (event.keyCode === 13 || event.keyCode === 9) {
-                if (element.dropDownTable && xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr[selected]').length > 0) {
+                if (
+                    element.dropDownTable &&
+                    xtag.queryChildren(
+                        xtag.queryChildren(
+                            element.dropDownTable,
+                            'tbody'
+                        )[0],
+                        'tr[selected]'
+                    ).length > 0
+                ) {
                     selectRecordFromValue(element, element.control.value, true);
                     element.ignoreChange = true;
                 }
@@ -1247,6 +1284,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.setAttribute('disabled', '');
             }
         }
+        if (element.hasAttribute('value') && element.hasAttribute('limit-to-list')) {
+            if (findRecordFromString(element, element.getAttribute('value'), false) && findRecordFromString(element, element.getAttribute('value'), false).hasAttribute('value')) {
+                element.value = findRecordFromString(element, element.getAttribute('value'), false).getAttribute('value');
+                // console.log('run', findRecordFromString(element, element.getAttribute('value'), false), element, element.getAttribute('value'), false);
+            }
+        }
     }
 
     function refreshControl(element, bolspan) {
@@ -1292,12 +1335,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!bolspan) {
             element.root.innerHTML = (
                 '<input role="textbox" aria-autocomplete="none" gs-dynamic class="control" type="text" />' +
-                '<gs-button gs-dynamic aria-label="Open the Combo box" alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>'
+                '<gs-button gs-dynamic aria-label="Open the Combo box" alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down"></gs-button>'
             );
         } else {
             element.root.innerHTML = (
                 '<span gs-dynamic class="control" type="text" style="width: 100%;">' + ctrlValue + '</span>' +
-                '<gs-button gs-dynamic aria-label="Open the Combo box" alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down" no-focus></gs-button>'
+                '<gs-button gs-dynamic aria-label="Open the Combo box" alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down"></gs-button>'
             );
         }
 
@@ -1312,6 +1355,8 @@ document.addEventListener('DOMContentLoaded', function () {
             element.control.setAttribute('title', element.getAttribute('title'));
         }
         element.dropDownButton = xtag.query(element, '.drop_down_button')[0];
+        element.dropDownButton.removeAttribute('tabindex');
+        element.dropDownButton.savedTabIndex = false;
         
         if (element.hasAttribute('defer-insert')) {
             element.control.value = ctrlValue;
@@ -1340,6 +1385,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 selectRecordFromValue(element, this.value, true);
             }
             element.ignoreChange = false;
+            element.lastValue = element.control.value;
         });
 
         //  on safari the change event doesn't occur if you click out while the autocomplete has
@@ -1398,7 +1444,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (element.control.value !== element.lastValue) {
                     GS.triggerEvent(element.control, 'change');
                 }
-                
+
                 event.target.parentNode.parentNode.classList.remove('focus');
             });
         }
@@ -1770,7 +1816,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     refreshControl(element);
                     element.addEventListener('click', function (event) {
                         var clickHandler;
-                        
                         if (event.target.classList.contains('drop_down_button')) {
                             //console.log(element.dropdownOpen, element.error);
                             if (!element.dropdownOpen && !element.error) {

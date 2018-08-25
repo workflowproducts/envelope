@@ -2,6 +2,10 @@
 
 window.addEventListener('design-register-element', function () {
 
+    registerDesignSnippet('<gs-text>', '<gs-text>', 'gs-text column="${1:name}"></gs-text>');
+    registerDesignSnippet('<gs-text> With Label', '<gs-text>', 'label for="${1:text-insert-account-name}">${2:Account Name}:</label>\n' +
+                                                               '<gs-text id="${1:date-insert-account-name}" column="${3:account_name}"></gs-text>');
+    
     designRegisterElement('gs-text', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-text.html');
 
     window.designElementProperty_GSTEXT = function (selectedElement) {

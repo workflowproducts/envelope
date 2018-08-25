@@ -29,13 +29,13 @@ gs-optionbox:not([no-target]) gs-option {
 }
 
 gs-optionbox:not([no-target]) gs-option:after {
-    /* fa-circle-o */
-    content: '\f10c';
+    /* fa-circle */
+    content: '\f111';
 }
 
 gs-optionbox:not([no-target]) gs-option[selected]:after {
-    /* fa-dot-circle-o */
-    content: '\f192';
+    /* fa-circle-o */
+    content: '\f10c';
 }
 
 

@@ -558,7 +558,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
             
+            //console.log(element.children);
             element.innerHTML = dataTemplateRecords(element, data);
+            //console.log(element.children);
             
             // if template is not native: handle templates inside the form
             if (shimmed.HTMLTemplateElement) {
