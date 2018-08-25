@@ -83,12 +83,10 @@ finish:
 		SFINISH_SNCAT(str_response, &int_response_len,
 			"HTTP/1.1 500 Internal Server Error\015\012"
 			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012",
+			"Connection: close\015\012\015\012",
 			strlen("HTTP/1.1 500 Internal Server Error\015\012"
 				"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"),
-			bol_global_allow_origin ? "Access-Control-Allow-Origin: *\015\012\015\012" : "\015\012",
-			strlen(bol_global_allow_origin ? "Access-Control-Allow-Origin: *\015\012\015\012" : "\015\012"),
+			"Connection: close\015\012\015\012"),
 			_str_response, strlen(_str_response));
 		SFREE(_str_response);
 	}
@@ -161,12 +159,10 @@ finish:
 		SFINISH_SNCAT(str_response, &int_response_len,
 			"HTTP/1.1 500 Internal Server Error\015\012"
 			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012",
+			"Connection: close\015\012\015\012",
 			strlen("HTTP/1.1 500 Internal Server Error\015\012"
 				"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"),
-			bol_global_allow_origin ? "Access-Control-Allow-Origin: *\015\012\015\012" : "\015\012",
-			strlen(bol_global_allow_origin ? "Access-Control-Allow-Origin: *\015\012\015\012" : "\015\012"),
+			"Connection: close\015\012\015\012"),
 			_str_response, strlen(_str_response));
 		SFREE(_str_response);
 		_str_response = DB_get_diagnostic(client->conn, res);
@@ -252,12 +248,10 @@ finish:
 		SFINISH_SNCAT(str_response, &int_response_len,
 			"HTTP/1.1 500 Internal Server Error\015\012"
 			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012",
+			"Connection: close\015\012\015\012",
 			strlen("HTTP/1.1 500 Internal Server Error\015\012"
 				"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-				"Connection: close\015\012"),
-			bol_global_allow_origin ? "Access-Control-Allow-Origin: *\015\012\015\012" : "\015\012",
-			strlen(bol_global_allow_origin ? "Access-Control-Allow-Origin: *\015\012\015\012" : "\015\012"),
+				"Connection: close\015\012\015\012"),
 			_str_response, strlen(_str_response));
 		SFREE(_str_response);
 	}

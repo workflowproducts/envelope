@@ -24,8 +24,6 @@ char *str_global_public_username = NULL;
 char *str_global_public_password = NULL;
 bool bol_global_set_user = false;
 
-bool bol_global_allow_origin = false;
-
 char *str_global_app_path = NULL;
 char *str_global_role_path = NULL;
 
@@ -61,7 +59,6 @@ char *str_global_nt_domain;
 // str_global_logfile					log_file						o							log-file
 // str_global_public_username			public_username					u							public-username
 // str_global_public_password			public_password					w							public-password
-// bol_global_allow_origin				allow_origin					i							allow-origin
 // str_global_nt_domain					nt_domain
 // clang-format on
 
@@ -108,9 +105,6 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 		SFREE(str_global_public_password);
 		SERROR_SNCAT(str_global_public_password, &int_len,
 			str_value, strlen(str_value));
-
-	} else if (SMATCH("", "allow_origin")) {
-		bol_global_allow_origin = *str_value == 'T' || *str_value == 't';
 
 	} else if (SMATCH("", "mode")) {
 #ifdef ENVELOPE_ODBC
@@ -434,7 +428,6 @@ bool parse_options(int argc, char *const *argv) {
 		{"role-path",						required_argument,		NULL,	'z'},
 		{"public-username",					required_argument,		NULL,	'u'},
 		{"public-password",					required_argument,		NULL,	'w'},
-		{"allow-origin",					required_argument,		NULL,	'i'},
 		{"local-only",						required_argument,		NULL,	'x'},
 		{"web-root",						required_argument,		NULL,	'r'},
 		{"data-root",						required_argument,		NULL,	'a'},
@@ -451,7 +444,7 @@ bool parse_options(int argc, char *const *argv) {
 	};
 // clang-format on
 
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:i:x:r:p:j:k:s:t:l:o:a:e:b:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:p:j:k:s:t:l:o:a:e:b:", longopts, NULL)) != -1) {
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -475,7 +468,7 @@ bool parse_options(int argc, char *const *argv) {
 	char *str_config_empty = "";
 	ini_parse(str_global_config_file, handler, &str_config_empty);
 
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:i:x:r:p:j:k:s:t:l:o:a:e:b:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:p:j:k:s:t:l:o:a:e:b:", longopts, NULL)) != -1) {
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -514,8 +507,6 @@ bool parse_options(int argc, char *const *argv) {
 			SERROR_SNCAT(str_global_public_password, &int_global_len,
 				optarg, strlen(optarg));
 
-		} else if (ch == 'i') {
-			bol_global_allow_origin = *optarg == 'T' || *optarg == 't';
 		} else if (ch == 'x') {
 			bol_global_local_only = *optarg == 'T' || *optarg == 't';
 
