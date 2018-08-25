@@ -30491,16 +30491,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (intKeyCode === 13) {
                 GS.triggerEvent(element.control, 'change');
 
-            // esc resets the last valid date
-            } else if (intKeyCode === 27) {
-                element.internal.validDate = true;
-                strValue = formatDate(element.internal.lastValidDate, getFormatString(element));
-                getValueRanges();
-                GS.setInputSelection(element.control, 0, element.control.value.length);
-                insertText(strValue);
-                currentValueRange = currentValueRange === -1 ? 0 : currentValueRange;
-                GS.setInputSelection(element.control, arrValueRanges[currentValueRange].start, arrValueRanges[currentValueRange].end);
-
             } else if (intKeyCode === 32) {
                 event.preventDefault();
                 var d = newDateInCurrentTimeZone(element.control.value);
@@ -31301,7 +31291,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 //GS.triggerEvent(element, 'focus');
             },
 
-            // this function is where I lost it...
             removeControl: function () {
                 var element = this;
                 if (element.control) {
@@ -31311,17 +31300,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.internal.validDate = newDateInCurrentTimeZone(element.control.value).toString() !== 'Invalid Date';
                     if (element.internal.validDate) {
                         element.innerHTML = formatDateHTML(newDateInCurrentTimeZone(element.control.value), getFormatString(element));
-                        element.arrowElem.parentNode.removeChild(element.arrowElem);;
+                        if (element.arrowElem) {
+                            element.arrowElem.parentNode.removeChild(element.arrowElem);
+                        }
                     } else {
                         element.removeAttribute('value');
                     }
                     element.syncGetters();
                 } else if (element.hasAttribute('placeholder')) {
                     element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
-                    element.arrowElem.parentNode.removeChild(element.arrowElem);;
+                    if (element.arrowElem) {
+                        element.arrowElem.parentNode.removeChild(element.arrowElem);
+                    }
                 } else {
                     element.innerHTML = '';
-                    element.arrowElem.parentNode.removeChild(element.arrowElem);;
+                    if (element.arrowElem) {
+                        element.arrowElem.parentNode.removeChild(element.arrowElem);
+                    }
                 }
                 element.control = false;
             },
@@ -31361,13 +31356,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!(element.hasAttribute('disabled') || element.hasAttribute('readonly'))) {
                     element.innerHTML =
                         '<input class="control needsclick" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';// +
-                        // '<div class="dt-arrows">' +
-                        // //'<gs-button no-focus icononly icon="arrow-left" class="dt-arrow dt-arrow-left"></gs-button>' +
-                        // '<gs-button no-focus icononly icon="arrow-up" class="dt-arrow dt-arrow-up"></gs-button>' +
-                        // '<gs-button no-focus icononly icon="arrow-down" class="dt-arrow dt-arrow-down"></gs-button>' +
-                        // //'<gs-button no-focus icononly icon="arrow-right" class="dt-arrow dt-arrow-right"></gs-button>' +
-                        // '<gs-button no-focus icononly icon="undo" class="dt-arrow dt-reset"></gs-button>' +
-                        // '</div>';
                     element.control = element.children[0];
                     
                     element.control.addEventListener(evt.click, controlClickFunction);
@@ -31380,10 +31368,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (element.hasAttribute('title')) {
                         element.control.setAttribute('title', element.getAttribute('title'));
                     }
-                    
+
+                    // esc resets the value (the same as the reset button) (see issue #142)
+                    element.control.addEventListener('keydown', function (event) {
+                        event.preventDefault();
+                        element.control.focus();
+
+                        var intKeyCode = (event.keyCode || event.which);
+                        if (intKeyCode === 27) {
+                            element.internal.validDate = true;
+                            GS.setInputSelection(element.control, 0, element.control.value.length);
+                            insertText(elementValue);
+                            GS.setInputSelection(element.control, 0, element.control.value.length);
+                        }
+                    });
+
                     if (!element.hasAttribute('no-popup')) {
                         var arrowElem = document.createElement('div');
                         arrowElem.classList.add('dt-arrows');
+                        arrowElem.setAttribute('gs-dynamic', '');
                         arrowElem.innerHTML = '<gs-button no-focus icononly icon="arrow-up" class="dt-arrow dt-arrow-up"></gs-button>' +
                             '<gs-button no-focus icononly icon="arrow-down" class="dt-arrow dt-arrow-down"></gs-button>' +
                             '<gs-button no-focus icononly icon="undo" class="dt-arrow dt-reset"></gs-button>';
