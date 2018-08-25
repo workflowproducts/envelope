@@ -375,6 +375,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!element.inserted) {
                 element.inserted = true;
                 element.internal = {};
+                
 
                 if (element.hasAttribute('value')) {
                     // console.log(element.getAttribute('value'));
@@ -422,9 +423,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.value = element.getAttribute('value') || false;
                 }
 
-                // add a tabindex to allow focus
-                if (!element.hasAttribute('tabindex')) {
-                    element.tabIndex = 0;
+                // // add a tabindex to allow focus
+                // if (!element.hasAttribute('tabindex')) {
+                //     element.tabIndex = 0;
+                // }
+                // add a tabindex to allow focus (if allowed)
+                if (!element.hasAttribute('no-focus')) {
+                    if ((!element.tabIndex) || element.tabIndex === -1) {
+                        element.tabIndex = 0;
+                    }
+                } else {
+                    element.removeAttribute('tabindex');
                 }
             }
         }

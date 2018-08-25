@@ -471,33 +471,33 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.addEventListener('focus', function (event) {
                         element.classList.add('focus');
                     });
-                    
+
                     element.addEventListener('blur', function (event) {
                         element.classList.remove('focus');
                     });
-                    
+
                     element.addEventListener(evt.mousedown, function (event) {
                         element.classList.add('down');
                     });
-                    
+
                     element.addEventListener(evt.mouseout, function (event) {
                         element.classList.remove('down');
                         element.classList.remove('hover');
                     });
-                    
+
                     element.addEventListener(evt.mouseover, function (event) {
                         element.classList.remove('down');
                         element.classList.add('hover');
                     });
-                    
+
                     element.addEventListener('keydown', function (event) {
                         if (!element.hasAttribute('disabled') && !element.classList.contains('down') &&
                             (event.keyCode === 13 || event.keyCode === 32)) {
-                            
+
                             element.classList.add('down');
                         }
                     });
-                    
+
                     element.addEventListener('keyup', function (event) {
                         // if we are not disabled and we pressed return (13) or space (32): trigger click
                         if (!element.hasAttribute('disabled') && element.classList.contains('down') &&
@@ -506,7 +506,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     });
                 }
-                
 
                 // add a tabindex to allow focus
                 if (!element.hasAttribute('tabindex')) {
@@ -516,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (typeof element.getAttribute('value') === 'string') {
                     if (element.getAttribute('value') === 'true' || element.getAttribute('value') === '-1') {
                         element.setAttribute('selected', '');
-                        
+
                         element.setAttribute('aria-pressed', 'true');
                     } else {
                         element.setAttribute('aria-pressed', 'false');
@@ -539,7 +538,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
-    
+
     xtag.register('gs-toggle', {
         lifecycle: {
             created: function () {
@@ -551,24 +550,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     delete this.value;
                     //this.value = null;
                 }
-                
+
                 elementCreated(this);
             },
-            
+
             inserted: function () {
                 elementInserted(this);
             },
-            
+
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'suspend-created' && newValue === null) {
                     elementCreated(this);
                     elementInserted(this);
-                    
+
                 // if "suspend-inserted" has been removed: run inserted code
                 } else if (strAttrName === 'suspend-inserted' && newValue === null) {
                     elementInserted(this);
-                    
+
                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
                     // attribute code
                 }
@@ -578,30 +577,30 @@ document.addEventListener('DOMContentLoaded', function () {
             'click': function (event) {
                 if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
                     this.classList.remove('down');
-                    
+
                     if (this.hasAttribute('selected')) {
                         this.removeAttribute('selected');
-                        
+
                         if (this.getAttribute('value') === 'true') {
                             this.setAttribute('value', 'false');
                         } else if (this.getAttribute('value') === '-1') {
                             this.setAttribute('value', '0');
                         }
-                        
+
                         this.setAttribute('aria-pressed', 'false');
-                        
+
                     } else {
                         this.setAttribute('selected', '');
-                        
+
                         if (this.getAttribute('value') === 'false') {
                             this.setAttribute('value', 'true');
                         } else if (this.getAttribute('value') === '0') {
                             this.setAttribute('value', '-1');
                         }
-                        
+
                         this.setAttribute('aria-pressed', 'true');
                     }
-                    
+
                     xtag.fireEvent(this, 'change', {
                         bubbles: true,
                         cancelable: true
@@ -612,42 +611,43 @@ document.addEventListener('DOMContentLoaded', function () {
         accessors: {
             'value': {
                 'get': function () {
+                    // I don't know if the Boolean return is important, so for now, we'll put in a patch
+                    if (this.hasAttribute('attrvalue')) {
+                        return this.getAttribute('value');
+                    }
+
                     return this.hasAttribute('selected'); //this.classList.contains('down');
                 },
-                
+
                 'set': function (newValue) {
                     if (newValue === true || newValue === 'true') {
                         this.setAttribute('selected', '');
-                        
                         this.setAttribute('aria-pressed', 'true');
                     } else {
                         this.removeAttribute('selected');
-                        
                         this.setAttribute('aria-pressed', 'false');
                     }
                 }
             },
-            
+
             'textValue': {
                 'get': function () {
                     return this.hasAttribute('selected') ? 'YES' : 'NO';
                 },
-                
+
                 'set': function (newValue) {
                     if (newValue === true || newValue === 'true' || newValue === 'YES') {
                         this.setAttribute('selected', '');
-                        
                         this.setAttribute('aria-pressed', 'true');
                     } else {
                         this.removeAttribute('selected');
-                        
                         this.setAttribute('aria-pressed', 'false');
                     }
                 }
             }
         },
         methods: {
-            
+
         }
     });
 });

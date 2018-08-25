@@ -1496,6 +1496,8 @@ var Autocomplete = function() {
     };
 
     this.showPopup = function(editor) {
+        
+        
         if (this.editor)
             this.detach();
 
@@ -1517,6 +1519,41 @@ var Autocomplete = function() {
     };
 
     this.updateCompletions = function(keepPopupPosition) {
+        // HARK YE ONLOOKER: This code was written by joseph to close the autocomplete when it is at it's most annoying
+        var editor = this.editor;
+        var chrBefore = editor.session.getTextRange({
+            "start": {"row": editor.getSelectionRange().start.row
+                , "column": editor.getSelectionRange().start.column - 1}
+            , "end": editor.getSelectionRange().start
+        });
+        var chrAfter = editor.session.getTextRange({
+            "start": editor.getSelectionRange().start
+            , "end": {"row": editor.getSelectionRange().start.row
+                , "column": editor.getSelectionRange().start.column + 1}
+        });
+        //console.log('test autocompleter change >' + chrBefore + '|' + chrAfter + '<');
+        
+        var intKeyCode = chrBefore.charCodeAt(0);
+
+        // if non alpha before the cursor then detach completer
+        if (! (
+                (intKeyCode >= 65 && intKeyCode < 90)
+                || (intKeyCode >= 97 && intKeyCode < 122)
+                || (intKeyCode === 45) // dash
+            )) {
+            //console.log('detach completer nonalpha');
+            if (this.editor)
+                this.detach();
+            return;
+        //if not whitespace after the cursor then detach completer
+        } else if (chrAfter.length > 0 && (! /[ \f\n\r\t\v\u00A0\u2028\u2029]/.test(chrAfter) && /[a-zA-Z-_]/.test(chrAfter))) {
+            //console.log('detach completer nowhitespace');
+            if (this.editor)
+                this.detach();
+            return;
+        }
+        //////////////////////////////////////////////////////
+        
         if (keepPopupPosition && this.base && this.completions) {
             var pos = this.editor.getCursorPosition();
             var prefix = this.editor.session.getTextRange({start: this.base, end: pos});

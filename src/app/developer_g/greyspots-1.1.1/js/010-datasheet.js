@@ -2486,27 +2486,27 @@ document.addEventListener('DOMContentLoaded', function () {
                                     element.addEventListener('click', clickFunction, true);
                                     
                                 } else if (strAnswer.indexOf('Equals') === 0) {
-                                    addUserWhere('CAST(' + control.getAttribute('column') + 'AS ' + GS.database.type.text + ') ' +
+                                    addUserWhere('CAST(' + control.getAttribute('column') + ' AS ' + GS.database.type.text + ') ' +
                                                         '= $$' + strMatchText + '$$');
                                     
                                 } else if (strAnswer.indexOf('Doesn\'t Equal') === 0) {
-                                    addUserWhere('CAST(' + control.getAttribute('column') + 'AS ' + GS.database.type.text + ') ' +
+                                    addUserWhere('CAST(' + control.getAttribute('column') + ' AS ' + GS.database.type.text + ') ' +
                                                         '!= $$' + strMatchText + '$$');
                                     
                                 } else if (strAnswer.indexOf('Contains') === 0) {
-                                    addUserWhere('CAST(' + control.getAttribute('column') + 'AS ' + GS.database.type.text + ') ' +
+                                    addUserWhere('CAST(' + control.getAttribute('column') + ' AS ' + GS.database.type.text + ') ' +
                                                         'LIKE $$%' + strMatchText + '%$$');
                                     
                                 } else if (strAnswer.indexOf('Doesn\'t Contain') === 0) {
-                                    addUserWhere('CAST(' + control.getAttribute('column') + 'AS ' + GS.database.type.text + ') ' +
+                                    addUserWhere('CAST(' + control.getAttribute('column') + ' AS ' + GS.database.type.text + ') ' +
                                                         'NOT LIKE $$%' + strMatchText + '%$$');
                                     
                                 } else if (strAnswer.indexOf('Starts With') === 0) {
-                                    addUserWhere('CAST(' + control.getAttribute('column') + 'AS ' + GS.database.type.text + ') ' +
+                                    addUserWhere('CAST(' + control.getAttribute('column') + ' AS ' + GS.database.type.text + ') ' +
                                                         'LIKE $$' + strMatchText + '%$$');
                                     
                                 } else if (strAnswer.indexOf('Ends With') === 0) {
-                                    addUserWhere('CAST(' + control.getAttribute('column') + 'AS ' + GS.database.type.text + ') ' +
+                                    addUserWhere('CAST(' + control.getAttribute('column') + ' AS ' + GS.database.type.text + ') ' +
                                                         'LIKE $$%' + strMatchText + '$$');
                                 }
                             });

@@ -86,6 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
             tableElem.goToLine(intValue + 1);
             event.target.parentNode.refresh(event.target.parentNode);
         });
+        element.refresh(element);
     }
 
     function elementInserted(element) {
@@ -131,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 element.bolRefreshing = true;
                 var tableElem = element.forTable;
                 var intOriginRecord = (
-                    tableElem.internalSelection.originRecord
+                    tableElem.internalSelection.originRecord || 0
                 );
                 // we need the element that contains the selection status
                 var statusElement = element.firstChild;

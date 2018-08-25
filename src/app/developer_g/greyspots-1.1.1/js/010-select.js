@@ -1,6 +1,6 @@
 window.addEventListener('design-register-element', function () {
     registerDesignSnippet('<gs-select>', '<gs-select>', 'gs-select>\n' +
-                                                        '    <option>${0}</option>\n' +
+                                                        '    <option value="${0}">${1}</option>\n' +
                                                         '</gs-select>');
 
     designRegisterElement('gs-select', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-select.html');
@@ -478,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function () {
             refreshOptionList: function () {
                 var i, len, elementsToMove, oldvalue, arrChildren, controlElement;
 
-                console.log('refreshOptionList');
+                //console.log('refreshOptionList');
 
                 // remove invalid elements from immediate children
                 arrChildren = this.children;

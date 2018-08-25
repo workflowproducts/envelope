@@ -103,7 +103,7 @@
                 
                 <div class="doc-example-description" id="encrypted-example">
                     <span class="h3">Attribute <code>[encrypted="keyVariable"]</code>:</span>
-                    <p>When you have a database column that contains sensitive information use the <code>[encrypted]</code> attribute to encrypt the value. The column will be encrypted with AES using the global variable that matches the <code>[encrypted]</code> attribute. If the gs-text detects a bad password, it will emit a <code>password-error</code> event with the key variable in <code>event.keyVariable</code> and either 'bad' or 'no' in <code>event.reason</code> (). The password for this example is 'test'.</p>
+                    <p>When you have a database column that contains sensitive information use the <code>[encrypted]</code> attribute to encrypt the value. The column will be encrypted with AES using the global variable that matches the <code>[encrypted]</code> attribute. If the gs-text detects a bad password, it will emit a <code>password-error</code> event with the key variable in <code>event.keyVariable</code> and either 'bad' or 'no' in <code>event.reason</code>. The password for this example is 'test'.</p>
                 </div>
                 <gs-doc-example>
                     <template for="html" height="45">

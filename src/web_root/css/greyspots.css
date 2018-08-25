@@ -1341,6 +1341,7 @@ html body *[disabled],
     -ms-user-select: none;
     -o-user-select: none;
     user-select: none;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 }
 
 *[allow-text-selection] {
@@ -1351,6 +1352,7 @@ html body *[disabled],
     -ms-user-select: text;
     -o-user-select: text;
     user-select: text;
+    -webkit-tap-highlight-color: initial;
 }
 
 
@@ -1951,6 +1953,7 @@ gs-dialog-button {
     -khtml-user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
     
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -2051,6 +2054,11 @@ gs-dialog-button.blue {
     /*border-color: #3B99BE;*/
     /*color: #3B99BE;*/
     color: #1266AB;
+}
+
+/* override normal selection */
+gs-option[selected] {
+    background-color: white !important;
 }
 
 /* #################################################################################### */
@@ -2349,7 +2357,19 @@ gs-email-button[bg-primary],
 gs-tracking-button[bg-primary],
 gs-delete-button[bg-primary],
 gs-option[bg-primary],
-gs-dialog-button[bg-primary] {
+gs-dialog-button[bg-primary],
+gs-button.bg-primary,
+gs-toggle.bg-primary,
+gs-checkbox.bg-primary,
+gs-phone-button:not([not-supported]).bg-primary,
+gs-map-button.bg-primary,
+gs-skype-button.bg-primary,
+gs-facetime-button.bg-primary,
+gs-email-button.bg-primary,
+gs-tracking-button.bg-primary,
+gs-delete-button.bg-primary,
+gs-option.bg-primary,
+gs-dialog-button.bg-primary {
     color: #fff;
     background-color: #2828b9 !important;
     
@@ -2370,7 +2390,19 @@ gs-email-button[bg-success],
 gs-tracking-button[bg-success],
 gs-delete-button[bg-success],
 gs-option[bg-success],
-gs-dialog-button[bg-success] {
+gs-dialog-button[bg-success],
+gs-button.bg-success,
+gs-toggle.bg-success,
+gs-checkbox.bg-success,
+gs-phone-button:not([not-supported]).bg-success,
+gs-map-button.bg-success,
+gs-skype-button.bg-success,
+gs-facetime-button.bg-success,
+gs-email-button.bg-success,
+gs-tracking-button.bg-success,
+gs-delete-button.bg-success,
+gs-option.bg-success,
+gs-dialog-button.bg-success {
     color: #fff;
     background-color: #246424 !important;
     
@@ -2391,7 +2423,19 @@ gs-email-button[bg-info],
 gs-tracking-button[bg-info],
 gs-delete-button[bg-info],
 gs-option[bg-info],
-gs-dialog-button[bg-info] {
+gs-dialog-button[bg-info],
+gs-button.bg-info,
+gs-toggle.bg-info,
+gs-checkbox.bg-info,
+gs-phone-button:not([not-supported]).bg-info,
+gs-map-button.bg-info,
+gs-skype-button.bg-info,
+gs-facetime-button.bg-info,
+gs-email-button.bg-info,
+gs-tracking-button.bg-info,
+gs-delete-button.bg-info,
+gs-option.bg-info,
+gs-dialog-button.bg-info{
     color: #fff;
     background-color: #005f7d !important;
     
@@ -2412,9 +2456,21 @@ gs-email-button[bg-warning],
 gs-tracking-button[bg-warning],
 gs-delete-button[bg-warning],
 gs-option[bg-warning],
-gs-dialog-button[bg-warning] {
+gs-dialog-button[bg-warning],
+gs-button.bg-warning,
+gs-toggle.bg-warning,
+gs-checkbox.bg-warning,
+gs-phone-button:not([not-supported]).bg-warning,
+gs-map-button.bg-warning,
+gs-skype-button.bg-warning,
+gs-facetime-button.bg-warning,
+gs-email-button.bg-warning,
+gs-tracking-button.bg-warning,
+gs-delete-button.bg-warning,
+gs-option.bg-warning,
+gs-dialog-button.bg-warning {
     color: #fff;
-    background-color: #605918;
+    background-color: #605918 !important;
     
     border-color: #7E772F; /*#FFD8A0*/
     
@@ -2433,7 +2489,19 @@ gs-email-button[bg-danger],
 gs-tracking-button[bg-danger],
 gs-delete-button[bg-danger],
 gs-option[bg-danger],
-gs-dialog-button[bg-danger] {
+gs-dialog-button[bg-danger],
+gs-button.bg-danger,
+gs-toggle.bg-danger,
+gs-checkbox.bg-danger,
+gs-phone-button:not([not-supported]).bg-danger,
+gs-map-button.bg-danger,
+gs-skype-button.bg-danger,
+gs-facetime-button.bg-danger,
+gs-email-button.bg-danger,
+gs-tracking-button.bg-danger,
+gs-delete-button.bg-danger,
+gs-option.bg-danger,
+gs-dialog-button.bg-danger {
     color: #fff;
     background-color: #b30500 !important;
     
@@ -12549,6 +12617,22 @@ gs-combo.open .drop_down_button {
     box-shadow: 0 3px 0.2em 0.1em #C5C5C5;
 }
 
+
+/* ########################################################## */
+/* #################### DROP DOWN TABLE  #################### */
+/* ########################################################## */
+
+.gs-combo-dropdown-container tbody tr:first-child,
+.gs-combo-dropdown-container tbody tr:first-child td,
+.gs-combo-dropdown-container tbody tr:first-child th {
+    border-top: 0 none;
+}
+.gs-combo-dropdown-container tbody tr:last-child,
+.gs-combo-dropdown-container tbody tr:last-child td,
+.gs-combo-dropdown-container tbody tr:last-child th {
+    border-bottom: 0 none;
+}
+
 /* ########################################################## */
 /* ################# DROP DOWN TABLE REFLOW ################# */
 /* ########################################################## */
@@ -12644,6 +12728,7 @@ gs-combo.open .drop_down_button {
 /* #################################################### */
 /* ###################### HEADER ###################### */
 /* #################################################### */
+
 
 
 .gs-combo-dropdown-container thead {
@@ -16041,13 +16126,13 @@ gs-optionbox:not([no-target]) gs-option {
 }
 
 gs-optionbox:not([no-target]) gs-option:after {
-    /* fa-circle-o */
-    content: '\f10c';
+    /* fa-circle */
+    content: '\f111';
 }
 
 gs-optionbox:not([no-target]) gs-option[selected]:after {
-    /* fa-dot-circle-o */
-    content: '\f192';
+    /* fa-circle-o */
+    content: '\f10c';
 }
 
 

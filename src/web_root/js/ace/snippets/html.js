@@ -441,7 +441,7 @@ snippet hgroup.\n\
 snippet hr\n\
 	<hr />${1}\n\
 snippet html\n\
-	<html lang="en">\n\
+	<html lang=\"en\">\n\
 	${1}\n\
 	</html>\n\
 snippet xhtml\n\

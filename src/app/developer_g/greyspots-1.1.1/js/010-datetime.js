@@ -1354,12 +1354,17 @@ document.addEventListener('DOMContentLoaded', function () {
         accessors: {
             value: {
                 get: function () {
-                    return formatDate(new Date(this.getAttribute('value')), this.getAttribute('format'));
+                    return this.hasAttribute('value') && this.getAttribute('value') ? formatDate(new Date(this.getAttribute('value')), this.getAttribute('format')) : '';
                 },
                 set: function (newValue) {
-                    var newerValue = GS.newDate(newValue);
-                    this.setAttribute('value', newerValue);
-                    this.innerText = formatDate(new Date(this.getAttribute('value')), this.getAttribute('format'));
+                    if (newValue != null) {
+                        var newerValue = GS.newDate(newValue);
+                        this.setAttribute('value', newerValue);
+                        this.innerText = formatDate(new Date(this.getAttribute('value')), this.getAttribute('format'));
+                    } else {
+                        this.setAttribute('value', newValue || '');
+                        this.innerText = '';
+                    }
                 }
             },
             dteValue: {

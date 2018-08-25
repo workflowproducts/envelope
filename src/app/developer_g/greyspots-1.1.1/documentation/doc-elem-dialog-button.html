@@ -169,7 +169,41 @@
                     </center>
                 </template>
             </gs-doc-example>
-                
+            
+            
+            <div class="doc-example-description">
+                <span class="h3">Closing the dialog with the <code>&lt;template&gt;</code>'s "<code>id</code>":</span>
+                <p>The <code>&lt;template&gt;</code>'s "<code>id</code>" can be used in conjunction with <code>GS.closeDialog()</code> to close the dialog with javascript, allowing you to run code before the dialog closes.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="auto">
+                    <template id="dialog-example" data-max-width="4.2em">
+                        <h5>Example</h5>
+                        <gs-button dialogclose>Done</gs-button>
+                    </template>
+                    
+                    <gs-dialog-button>
+                        <template id="dialog-example">
+                            <gs-header>
+                                <center><h3>Example Dropdown</h3></center>
+                            </gs-header>
+                            <gs-body padded>
+                                This dialog allows you to run or cancel an alert.
+                            </gs-body>
+                            <gs-footer>
+                                <gs-grid widths="1,1">
+                                    <gs-block><gs-button dialogclose>Cancel</gs-button></gs-block>
+                                    <gs-block><gs-button bg-primary onclick="alert('This alert runs before the dialog closes.'); GS.closeDialog('dialog-example', 'Ok');">Run alert</gs-button></gs-block>
+                                </gs-grid>
+                            </gs-footer>
+                        </template>
+                        Add Dropdown
+                    </gs-dialog-button>
+                    <br /><br /><br />
+                </template>
+            </gs-doc-example>
+            
+            
             <div class="doc-example-description" id="qsattribute">
                 <span class="h3">Attribute <code>[qs=""]</code>:</span><br />
                 <p>The name <code>[qs]</code> stands for "querystring". The querystring is the part in the URL after the "?". The <code>[qs]</code> attribute has two formats, each with their own use.</p>
@@ -179,6 +213,7 @@
                     <li>qs="<i>key</i>". This format will update the <code>[value]</code> attribute with the querystring whenever the querystring changes.</li>
                 </ul>
             </div>
+            
             <gs-doc-example query-string="test1=test1&test2=test2">
                 <template for="html" height="35">
                     <gs-dialog-button qs="test1">Test 1</gs-dialog-button>

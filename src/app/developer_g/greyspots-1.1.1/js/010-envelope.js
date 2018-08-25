@@ -1212,9 +1212,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 GS.openDialog(templateElement, function () {
                     document.getElementById('order-by-dialog-add-column').addEventListener('click', function (event) {
-                        var dialog, dialogButtons, templateElement = document.createElement('template');
+                        var dialog, dialogButtons, templateElement2 = document.createElement('template');
 
-                        templateElement.innerHTML = ml(function () {/*
+                        templateElement2.innerHTML = ml(function () {/*
                             <gs-page gs-dynamic>
                                 <gs-header gs-dynamic>
                                     <center gs-dynamic><h3 gs-dynamic>Unsorted Columns</h3></center>
@@ -1228,14 +1228,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             </gs-page>
                         */});
 
-                        dialog = GS.openDialog(templateElement, function () {
+                        dialog = GS.openDialog(templateElement2, function () {
                                     var unusedColumnsContainer = document.getElementById('order-by-dialog-unused-columns'),
                                         unusedColumnTapHandler, columnElements, i, len, strHTML;
 
                                     for (i = 0, len = element.lastSuccessData.arr_column.length, strHTML = ''; i < len; i += 1) {
                                         if (jsnOrderByCopy.columns.indexOf(element.lastSuccessData.arr_column[i]) === -1) {
-                                            strHTML +=  '<div class="order_by_column" dialogclose data-column="' + element.lastSuccessData.arr_column[i] + '" gs-dynamic>' +
-                                                            '<div class="column_name" gs-dynamic>' + GS.strToTitle(element.lastSuccessData.arr_column[i]) + '</div>' +
+                                            strHTML +=  '<div class="order_by_column" data-column="' + element.lastSuccessData.arr_column[i] + '" gs-dynamic>' +
+                                                            '<gs-button mini style="padding: 0.25em;" dialogclose class="column_name" gs-dynamic>' + GS.strToTitle(element.lastSuccessData.arr_column[i]) + '</gs-button>' +
                                                         '</div>';
                                         }
                                     }
