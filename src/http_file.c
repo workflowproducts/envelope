@@ -102,13 +102,13 @@ void http_file_step1(struct sock_ev_client *client) {
 
 	str_uri_temp = client_http_file->str_uri_part;
 	client_http_file->str_uri_part = NULL;
-	if (strncmp(str_uri_temp, "download", 8) == 0) {
+	if (strncmp(str_uri_temp, "download/", 9) == 0) {
 		client_http_file->bol_download = true;
 		SFINISH_SNCAT(
 			client_http_file->str_uri_part, &client_http_file->int_uri_part_len,
 			str_uri_temp + 8, client_http_file->int_uri_part_len - 8
 		);
-	} else if (strncmp(str_uri_temp, "/download", 9) == 0) {
+	} else if (strncmp(str_uri_temp, "/download/", 10) == 0) {
 		client_http_file->bol_download = true;
 		SFINISH_SNCAT(
 			client_http_file->str_uri_part, &client_http_file->int_uri_part_len,
