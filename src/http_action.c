@@ -114,8 +114,8 @@ bool http_action_step2(EV_P, void *cb_data, DB_result *res) {
 		"HTTP/1.1 200 OK\015\012"
 		"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
 		"Content-Type: application/json; charset=UTF-8\015\012"
-		"Connection: close\015\012",
-		strlen("HTTP/1.1 200 OK\015\012\015\012"
+		"Connection: close\015\012\015\012",
+		strlen("HTTP/1.1 200 OK\015\012"
 			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
 			"Content-Type: application/json; charset=UTF-8\015\012"
 			"Connection: close\015\012\015\012"),
