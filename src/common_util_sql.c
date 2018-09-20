@@ -98,6 +98,83 @@ error:
 	return NULL;
 }
 
+char *get_table_alias_name(char *_str_query, size_t int_query_len, size_t *ptr_int_table_name_len) {
+	char *str_temp = NULL;
+	char *str_temp1 = NULL;
+	char *ptr_table_name = NULL;
+	char *ptr_end_table_name = NULL;
+	char *str_table_name = NULL;
+	char *str_query = NULL;
+
+	size_t int_temp_len = 0;
+
+	SERROR_SNCAT(
+		str_query, &int_query_len,
+		_str_query, int_query_len
+	);
+
+	ptr_table_name = str_query + 6;
+	SERROR_CHECK(*ptr_table_name == '\t', "Invalid request");
+	ptr_table_name += 1;
+	ptr_end_table_name = ptr_table_name + strncspn(ptr_table_name, int_query_len - (size_t)(ptr_table_name - str_query), "\t\012", (size_t)2);
+	bool bol_schema = *ptr_end_table_name == '\t';
+	*ptr_end_table_name = '\0';
+
+	SERROR_SNCAT(
+		str_temp, &int_temp_len,
+		ptr_table_name, ptr_end_table_name - ptr_table_name
+	);
+
+	SERROR_BREPLACE(str_temp, &int_temp_len, "\"", "\"\"", "g");
+
+	str_temp1 = bunescape_value(str_temp, &int_temp_len);
+	SERROR_CHECK(str_temp1 != NULL, "bunescape_value failed");
+	SFREE(str_temp);
+	str_temp = str_temp1;
+	str_temp1 = NULL;
+
+	SERROR_SNCAT(str_table_name, ptr_int_table_name_len,
+		"\"", (size_t)1,
+		str_temp, int_temp_len,
+		"\"", (size_t)1);
+	SFREE(str_temp);
+
+	if (bol_schema) {
+		ptr_table_name = ptr_end_table_name + 1;
+		ptr_end_table_name = bstrstr(ptr_table_name, int_query_len - (size_t)(ptr_table_name - str_query), "\012", (size_t)1);
+		SERROR_CHECK(ptr_end_table_name != NULL, "bstrstr failed");
+		*ptr_end_table_name = 0;
+
+		SERROR_SNCAT(str_temp, &int_temp_len, ptr_table_name, ptr_end_table_name - ptr_table_name);
+		SERROR_BREPLACE(str_temp, &int_temp_len, "\"", "\"\"", "g");
+
+		str_temp1 = bunescape_value(str_temp, &int_temp_len);
+		SERROR_CHECK(str_temp1 != NULL, "bunescape_value failed");
+		SFREE(str_temp);
+		str_temp = str_temp1;
+		str_temp1 = NULL;
+
+		SFREE(str_table_name);
+		SERROR_SNCAT(str_table_name, ptr_int_table_name_len,
+			"\"", (size_t)1,
+			str_temp, int_temp_len,
+			"\"", (size_t)1);
+		SFREE(str_temp);
+	}
+
+	SFREE(str_query);
+
+	return str_table_name;
+error:
+	SFREE(str_temp1);
+	SFREE(str_temp);
+	SFREE(str_query);
+	*ptr_int_table_name_len = 0;
+
+	SFREE(str_table_name);
+	return NULL;
+}
+
 bool get_schema_and_table_name(DB_conn *conn, char *_str_query, size_t int_query_len, char **ptr_str_schema_literal, char **ptr_str_table_literal) {
 	char *str_temp = NULL;
 	char *str_temp1 = NULL;
@@ -273,7 +350,7 @@ error:
 }
 
 #ifndef ENVELOPE_INTERFACE_LIBPQ
-char *get_return_escaped_columns(DB_driver driver, char *_str_query, size_t int_query_len, size_t *ptr_int_return_columns_len) {
+char *get_return_escaped_columns(DB_driver driver, char *_str_query, size_t int_query_len, char *str_table_name, size_t int_table_name_len, size_t *ptr_int_return_columns_len) {
 	char *str_temp = NULL;
 	char *str_temp1 = NULL;
 	char *ptr_return_columns = NULL;
@@ -305,24 +382,27 @@ char *get_return_escaped_columns(DB_driver driver, char *_str_query, size_t int_
 		str_temp = str_temp1;
 		str_temp1 = NULL;
 		if (driver == DB_DRIVER_POSTGRES) {
-			SERROR_BREPLACE(str_temp, &int_temp_len, "\t", "\"::text, '\\N'), '\\', '\\\\'), '\t', '\\t'), chr(10), '\\n'), chr(13), '\\r') || E'\\t' || replace(replace(replace(replace(COALESCE(\"", "g");
+			SERROR_BREPLACE(str_temp, &int_temp_len, "\t", "\"::text, '\\N'), '\\', '\\\\'), '\t', '\\t'), chr(10), '\\n'), chr(13), '\\r') || E'\\t' || replace(replace(replace(replace(COALESCE({{TABLE}}.\"", "g");
 		} else {
 			SERROR_BREPLACE(str_temp, &int_temp_len, "\t",
 				"\" AS nvarchar(MAX)), CAST('\\N' AS nvarchar(MAX))) AS nvarchar(MAX)), '\\', '\\\\'), '\t', '\\t'), CHAR(10), '\\n'), CHAR(13), '\\r') + "
-				"CAST('\t' AS nvarchar(MAX)) + replace(replace(replace(replace(CAST(COALESCE(CAST(\"", "g");
+				"CAST('\t' AS nvarchar(MAX)) + replace(replace(replace(replace(CAST(COALESCE(CAST({{TABLE}}.\"", "g");
 		}
 		SERROR_BREPLACE(str_temp, &int_temp_len, "TABHERE3141592653589793TABHERE", "\t", "g");
 		if (driver == DB_DRIVER_POSTGRES) {
 			SERROR_SNCAT(str_return_columns, ptr_int_return_columns_len,
-				"replace(replace(replace(replace(COALESCE(\"", (size_t)42,
+				"replace(replace(replace(replace(COALESCE({{TABLE}}.\"", (size_t)52,
 				str_temp, int_temp_len,
 				"\"::text, '\\N'), '\\', '\\\\'), '\t', '\\t'), chr(10), '\\n'), chr(13), '\\r') || E'\n'", (size_t)81);
 		} else {
 			SERROR_SNCAT(str_return_columns, ptr_int_return_columns_len,
-				"replace(replace(replace(replace(CAST(COALESCE(CAST(\"", (size_t)52,
+				"replace(replace(replace(replace(CAST(COALESCE(CAST({{TABLE}}.\"", (size_t)62,
 				str_temp, int_temp_len,
 				"\" AS nvarchar(MAX)), CAST('\\N' AS nvarchar(MAX))) AS nvarchar(MAX)), '\\', '\\\\'), '\t', '\\t'), CHAR(10), '\\n'), CHAR(13), '\\r') + CAST(CHAR(10) AS nvarchar(MAX))", (size_t)159);
 		}
+		SDEBUG("str_return_columns: >%s<", str_return_columns);
+		SERROR_BREPLACE(str_return_columns, ptr_int_return_columns_len, "{{TABLE}}", str_table_name, "g");
+		SDEBUG("str_return_columns: >%s<", str_return_columns);
 		SFREE(str_temp);
 	} else {
 		SERROR_SNCAT(str_return_columns, ptr_int_return_columns_len, str_temp, int_temp_len);

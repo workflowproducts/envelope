@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function startTests() {
     $.ajax('/env/auth', 'action=logout', 'POST', function (data) {
-        $.ajax('/env/auth', 'action=login&username=test1&password=456456', 'POST', function (data) {
+        $.ajax('/env/auth', 'action=login&username=test1&password=thisisatestpassword', 'POST', function (data) {
             $.ajax('/env/dbo.action_truncate_testing_tables', '', 'POST', function (data1) {
                 var i, len, key;
                 for (key in $.tests) {

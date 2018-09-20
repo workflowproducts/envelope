@@ -51,6 +51,7 @@ void ws_update_step1(struct sock_ev_client_request *client_request) {
 	client_update->str_return_escaped_columns = get_return_escaped_columns(
 		DB_connection_driver(client_request->parent->conn),
 		client_request->ptr_query, (size_t)(client_request->frame->int_length - (size_t)(client_request->ptr_query - client_request->frame->str_message)),
+		client_update->str_real_table_name, client_update->int_real_table_name_len,
 		&client_update->int_return_escaped_columns_len
 	);
 	SFINISH_ERROR_CHECK(client_update->str_return_escaped_columns != NULL, "Failed to get escaped return columns from query");

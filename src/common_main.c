@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+//#include <crtdbg.h>
 
 #ifndef EV_CONFIG_H
 #define EV_CONFIG_H "ev_config.h.win32"
@@ -223,6 +224,7 @@ void free_last_activity(EV_P, ev_periodic *w, int revents) {
 Program entry point
 */
 int main(int argc, char *const *argv) {
+	//_CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF);
 	memset(&sigint_watcher, 0, sizeof(ev_signal));
 	memset(&sigterm_watcher, 0, sizeof(ev_signal));
 	memset(&sigbreak_watcher, 0, sizeof(ev_signal));

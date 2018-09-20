@@ -20,6 +20,12 @@ This function takes a SELECT/INSERT/UPDATE/DELETE request and returns the table 
 char *get_table_name(char *_str_query, size_t int_query_len, size_t *ptr_int_table_name_len);
 
 /*
+This function takes a INSERT/UPDATE/DELETE request and returns the table name without the schema
+Note: doesn't support SELECT because it doesn't support subqueries (because they themselves have aliases)
+*/
+char *get_table_alias_name(char *_str_query, size_t int_query_len, size_t *ptr_int_table_name_len);
+
+/*
 This function takes an INSERT request and returns the schema and table names as literals
 */
 bool get_schema_and_table_name(DB_conn *conn, char *_str_query, size_t int_query_len, char **ptr_str_schema_literal, char **ptr_str_table_literal);
@@ -32,7 +38,7 @@ char *get_return_columns(char *_str_query, size_t int_query_len, char *str_table
 /*
 This function takes a SELECT/INSERT/UPDATE request and returns the return columns in a format that concatinates and escapes them
 */
-char *get_return_escaped_columns(DB_driver driver, char *_str_query, size_t int_query_len, size_t *ptr_int_return_columns_len);
+char *get_return_escaped_columns(DB_driver driver, char *_str_query, size_t int_query_len, char *str_table_name, size_t int_table_name_len, size_t *ptr_int_return_columns_len);
 #endif
 
 /*

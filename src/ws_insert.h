@@ -48,6 +48,9 @@ struct sock_ev_client_insert {
 	char *str_return_order_by;
 	size_t int_return_order_by_len;
 
+	char *str_table_alias;
+	size_t int_table_alias_len;
+
 	//variable lengths
 	size_t int_real_table_name_len;
 	size_t int_temp_table_name_len;

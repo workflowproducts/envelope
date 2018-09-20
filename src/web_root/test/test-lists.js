@@ -2051,7 +2051,7 @@ id
         tests: [
 			['SOCKET OPEN', 'websocket start'],
 
-			['APP DOWNLOAD FAIL', 'ajax', 404, '/env/app/download/all/test{{test_random1}}.sql', '',
+			['APP DOWNLOAD FAIL', 'ajax', 404, '/env/app/download/all/test{{test_random1}}.sql', 'asdf',
 				ml(function () {/*The file you are requesting is not here.*/})],
 			['APP UPLOAD FAIL 1', 'ajax', 500, '/env/upload', '',
 				ml(function () {/*FATAL
@@ -2065,7 +2065,8 @@ get_sun_upload failed*/})],
 File already exists.*/})],
 
 			['APP DOWNLOAD', 'ajax', 200, '/env/app/download/all/test{{test_random1}}.sql', '',
-				'SELECT \'This is \0some\n\n tesr\r\n\r\nt \r\rsql\';'],
+            binaryArray
+        ],
 
 			['APP UPLOAD CLEANUP', 'websocket', '', 'FILE	DELETE	/app/all/test{{test_random1}}.sql',
 			['OK']],

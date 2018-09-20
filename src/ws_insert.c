@@ -33,6 +33,12 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 		&client_insert->int_real_table_name_len
 	);
 	SFINISH_ERROR_CHECK(client_insert->str_real_table_name != NULL, "Query failed:\nFATAL\nerror_detail\tERROR: Failed to get table name from query.\n");
+
+	client_insert->str_table_alias = get_table_alias_name(
+		client_request->ptr_query, (size_t)(client_request->frame->int_length - (size_t)(client_request->ptr_query - client_request->frame->str_message)),
+		&client_insert->int_table_alias_len
+	);
+	SFINISH_ERROR_CHECK(client_insert->str_table_alias != NULL, "Query failed:\nFATAL\nerror_detail\tERROR: Failed to get table name from query.\n");
 	// DEBUG("client_insert->str_real_table_name: %s",
 	// client_insert->str_real_table_name);
 
@@ -59,9 +65,11 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 	client_insert->str_return_escaped_columns = get_return_escaped_columns(
 		DB_connection_driver(client_request->parent->conn),
 		client_request->ptr_query, (size_t)(client_request->frame->int_length - (size_t)(client_request->ptr_query - client_request->frame->str_message)),
+		client_insert->str_real_table_name, client_insert->int_real_table_name_len,
 		&client_insert->int_return_escaped_columns_len
 	);
 	SFINISH_ERROR_CHECK(client_insert->str_return_escaped_columns != NULL, "Failed to get escaped return columns from query");
+	SDEBUG("client_insert->str_return_escaped_columns: >%s<", client_insert->str_return_escaped_columns);
 #endif
 	// DEBUG("client_insert->str_return_columns:  %s",
 	// client_insert->str_return_columns);
@@ -1180,11 +1188,15 @@ bool ws_insert_view_step4(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_SNCAT(str_sql, &int_sql_len,
 		"COPY (SELECT ", (size_t)13,
 		client_insert->str_return_columns, client_insert->int_return_columns_len,
-		" FROM ", (size_t)6,
+		" FROM (SELECT ", (size_t)14,
+		client_insert->str_real_table_name, client_insert->int_real_table_name_len,
+		".* FROM ", (size_t)8,
 		client_insert->str_real_table_name, client_insert->int_real_table_name_len,
 		" INNER JOIN ", (size_t)12,
 		client_insert->str_temp_table_name, client_insert->int_temp_table_name_len,
 		"_2 ON ", (size_t)6,
+		") ", (size_t)2,
+		client_insert->str_table_alias, client_insert->int_table_alias_len,
 		client_insert->str_pk_return_where_clause, client_insert->int_pk_return_where_clause_len
 	);
 
@@ -1202,12 +1214,16 @@ bool ws_insert_view_step4(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_SNCAT(str_sql, &int_sql_len,
 		"SELECT ", (size_t)7,
 		client_insert->str_return_escaped_columns, client_insert->int_return_escaped_columns_len,
-		" FROM ", (size_t)6,
+		" FROM (SELECT ", (size_t)14,
 		client_insert->str_real_table_name, client_insert->int_real_table_name_len,
-		" LEFT JOIN ", (size_t)11,
+		".* FROM ", (size_t)8,
+		client_insert->str_real_table_name, client_insert->int_real_table_name_len,
+		" INNER JOIN ", (size_t)12,
 		client_insert->str_temp_table_name, client_insert->int_temp_table_name_len,
 		"_2 ON ", (size_t)6,
-		client_insert->str_pk_return_where_clause, client_insert->int_pk_return_where_clause_len
+		client_insert->str_pk_return_where_clause, client_insert->int_pk_return_where_clause_len,
+		") ", (size_t)2,
+		client_insert->str_table_alias, client_insert->int_table_alias_len
 	);
 	if (client_insert->str_return_order_by != NULL) {
 		SFINISH_SNFCAT(str_sql, &int_sql_len,

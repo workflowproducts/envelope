@@ -15,7 +15,6 @@ char *str_global_set_uname = NULL;
 char *str_global_set_gname = NULL;
 
 size_t int_global_login_timeout = 3600;
-size_t int_global_custom_connection_number = 0;
 uint64_t int_global_session_id = 0;
 
 DArray *darr_global_connection = NULL;
@@ -26,6 +25,9 @@ bool bol_global_set_user = false;
 
 char *str_global_app_path = NULL;
 char *str_global_role_path = NULL;
+
+char *str_global_log_queries_over = NULL;
+char *str_global_log_queries_over_action_name = NULL;
 
 // size_t int_global_cookie_timeout = 86400;
 char cwd[1024];
@@ -41,25 +43,27 @@ char *str_global_nt_domain;
 #endif
 
 // clang-format off
-// VAR									CONFIG NAME						COMMAND-LINE SHORT NAME		COMMAND-LINE FULL NAME
-// str_global_config_file				NULL							c							config-file
-// str_global_connection_file			connection_file					d							connection-file
-// str_global_login_group				login_group						g							login-group
-// str_global_app_path					app_path						y							app-path
-// str_global_role_path					role_path						z							role-path
-// str_global_web_root					web_root						r							web-root
-// str_global_port						envelope_port					p							envelope-port
-// bol_global_local_only				NULL							x							local-only
-// bol_global_super_only				super_only						s							super-only
-// str_global_set_uname				set_uname							e							set-uname
-// str_global_set_gname				set_gname							b							set-gname
-// bol_global_allow_custom_connections	allow_custom_connections		n							allow-custom-connections
-// int_global_login_timeout	 			login_timeout					t							login-timeout
-// str_global_log_level					log_level						l							log-level
-// str_global_logfile					log_file						o							log-file
-// str_global_public_username			public_username					u							public-username
-// str_global_public_password			public_password					w							public-password
-// str_global_nt_domain					nt_domain
+// VAR										CONFIG NAME						COMMAND-LINE SHORT NAME		COMMAND-LINE FULL NAME
+// str_global_config_file					NULL							c							config-file
+// str_global_connection_file				connection_file					d							connection-file
+// str_global_login_group					login_group						g							login-group
+// str_global_app_path						app_path						y							app-path
+// str_global_role_path						role_path						z							role-path
+// str_global_web_root						web_root						r							web-root
+// str_global_port							envelope_port					p							envelope-port
+// bol_global_local_only					NULL							x							local-only
+// bol_global_super_only					super_only						s							super-only
+// str_global_set_uname						set_uname						e							set-uname
+// str_global_set_gname						set_gname						b							set-gname
+// bol_global_allow_custom_connections		allow_custom_connections		n							allow-custom-connections
+// int_global_login_timeout	 				login_timeout					t							login-timeout
+// str_global_log_level						log_level						l							log-level
+// str_global_logfile						log_file						o							log-file
+// str_global_public_username				public_username					u							public-username
+// str_global_public_password				public_password					w							public-password
+// str_global_log_queries_over				log_queries_over				q							log-queries-over
+// str_global_log_queries_over_action_name	log_queries_over_action_name	a							log-queries-over-action-name
+// str_global_nt_domain						nt_domain
 // clang-format on
 
 /*
@@ -153,6 +157,16 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 	} else if (SMATCH("", "log_file")) {
 		SFREE(str_global_logfile);
 		SERROR_SNCAT(str_global_logfile, &int_len,
+			str_value, strlen(str_value));
+
+	} else if (SMATCH("", "queries_over")) {
+		SFREE(str_global_log_queries_over);
+		SERROR_SNCAT(str_global_log_queries_over, &int_len,
+			str_value, strlen(str_value));
+
+	} else if (SMATCH("", "log_queries_over_action_name")) {
+		SFREE(str_global_log_queries_over_action_name);
+		SERROR_SNCAT(str_global_log_queries_over_action_name, &int_len,
 			str_value, strlen(str_value));
 
 #ifndef ENVELOPE_INTERFACE_LIBPQ
@@ -328,8 +342,6 @@ bool parse_connection_file() {
 		}
 	}
 
-	int_global_custom_connection_number = DArray_end(darr_global_connection) + 1;
-
 	bol_error_state = false;
 	SFREE_ALL();
 	return true;
@@ -440,11 +452,13 @@ bool parse_options(int argc, char *const *argv) {
 		{"login-timeout",					required_argument,		NULL,	't'},
 		{"log-level",						required_argument,		NULL,	'l'},
 		{"log-file",						required_argument,		NULL,	'o'},
+		{"log-queries-over",				required_argument,		NULL,	'q'},
+		{"log-queries-over-action-name",	required_argument,		NULL,	'a'},
 		{NULL,								0,						NULL,	0}
 	};
-// clang-format on
+	// clang-format on
 
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:p:j:k:s:t:l:o:a:e:b:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:a:p:j:k:s:e:b:t:l:o:q:a:", longopts, NULL)) != -1) {
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -468,7 +482,7 @@ bool parse_options(int argc, char *const *argv) {
 	char *str_config_empty = "";
 	ini_parse(str_global_config_file, handler, &str_config_empty);
 
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:p:j:k:s:t:l:o:a:e:b:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:a:p:j:k:s:e:b:t:l:o:q:a:", longopts, NULL)) != -1) {
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;

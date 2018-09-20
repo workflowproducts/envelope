@@ -283,7 +283,6 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	} else {
 		SFINISH_SNCAT(str_password, &int_password_length,
 			str_global_public_password, strlen(str_global_public_password));
-		//SINFO("str_password: %s", str_password);
 	}
 
 
@@ -325,7 +324,7 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 
 	SFREE_PWORD(str_cookie_decrypted);
 
-	// client_cb sometimes calls this function and doesn't expect need us to
+	// client_cb sometimes calls this function and doesn't need us to
 	// connect to the database (because we are already connected)
 	if (connect_cb != NULL) {
 		str_uri_ip_address = snuri(client->str_client_ip, strlen(client->str_client_ip), &int_uri_ip_address_len);
@@ -370,6 +369,7 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 				str_context_data, connect_cb_env);
 		} else {
 			SDEBUG("NORMAL CONN");
+			SDEBUG("str_username: >%s<", str_username);
 			client->conn = DB_connect(global_loop, client, str_conn,
 				str_username, int_user_length, str_password, int_password_length,
 				str_context_data, connect_cb);

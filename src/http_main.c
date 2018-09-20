@@ -19,6 +19,7 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 	size_t int_sql_len = 0;
 	size_t int_response_len = 0;
 
+	SDEBUG("conn->str_response: >%s<", conn->str_response);
 	SFINISH_CHECK(conn->int_status == 1, "%s", conn->str_response);
 
 	str_uri = str_uri_path(client->str_request, client->int_request_len, &int_uri_len);

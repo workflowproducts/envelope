@@ -38,7 +38,7 @@ extern char *str_global_set_gname;
 
 extern DArray *darr_global_connection;
 extern size_t int_global_login_timeout;
-extern size_t int_global_custom_connection_number;
+extern uint64_t int_global_session_id;
 
 extern char *str_global_public_username;
 extern char *str_global_public_password;
@@ -46,7 +46,9 @@ extern bool bol_global_set_user;
 
 extern char *str_global_app_path;
 extern char *str_global_role_path;
-extern uint64_t int_global_session_id;
+
+extern char *str_global_log_queries_over;
+extern char *str_global_log_queries_over_action_name;
 
 extern char cwd[1024];
 #ifdef _WIN32

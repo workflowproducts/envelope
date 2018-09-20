@@ -128,25 +128,19 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		// done encrypting
 
 		// assemble connection string, get cnxn handle
-		SFINISH_CHECK(client_auth->str_conn != NULL || exists_connection_info(client_auth->str_connname),
-			"There is no connection info with that name.");
+		SFINISH_CHECK(exists_connection_info(client_auth->str_connname), "There is no connection info with that name.");
 
-		if (client_auth->str_conn != NULL) {
-			SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, client_auth->str_conn, client_auth->int_conn_length);
-			client_auth->int_connection_index = (int_global_custom_connection_number += 1);
-		} else {
-			char *str_temp = get_connection_info(client_auth->str_connname, &client_auth->int_connection_index);
-			size_t int_temp = strlen(str_temp);
+		char *str_temp = get_connection_info(client_auth->str_connname, &client_auth->int_connection_index);
+		size_t int_temp = strlen(str_temp);
 #ifdef ENVELOPE_INTERFACE_LIBPQ
-			if (client_auth->str_database != NULL) {
-				SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp, " dbname=", (size_t)8, client_auth->str_database, strlen(client_auth->str_database));
-			} else {
-				SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp);
-			}
-#else
+		if (client_auth->str_database != NULL) {
+			SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp, " dbname=", (size_t)8, client_auth->str_database, strlen(client_auth->str_database));
+		} else {
 			SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp);
-#endif
 		}
+#else
+		SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp);
+#endif
 		SFINISH_SALLOC(client_auth->str_int_connection_index, 20);
 		snprintf(client_auth->str_int_connection_index, 20, "%zu", client_auth->int_connection_index);
 
