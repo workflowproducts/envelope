@@ -9,6 +9,7 @@
 #include "../src/util_idle.h"
 #include "../src/util_salloc.h"
 #include "../src/util_string.h"
+#include "../src/util_list.h"
 #include <ev.h>
 #include <libpq-fe.h>
 #include <stdbool.h>
@@ -26,6 +27,11 @@ typedef void (*connect_cb_t)(EV_P, void *cb_data, DB_connp conn);
 
 typedef enum { DB_DRIVER_POSTGRES = 1, DB_DRIVER_SQL_SERVER = 2, DB_DRIVER_MSACCESS = 3 } DB_driver;
 #define DB_connection_driver(conn) conn->driver
+
+extern List *list_global_running_queries;
+
+extern size_t int_global_log_queries_over;
+extern char *str_global_log_queries_over_action_name;
 
 typedef struct DB_conn {
 	ev_check check;

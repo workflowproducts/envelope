@@ -47,9 +47,6 @@ extern bool bol_global_set_user;
 extern char *str_global_app_path;
 extern char *str_global_role_path;
 
-extern size_t int_global_log_queries_over;
-extern char *str_global_log_queries_over_action_name;
-
 extern char cwd[1024];
 #ifdef _WIN32
 extern const char *VERSION;

@@ -1,6 +1,10 @@
 #include "db_framework.h"
 
 const char *const WONT_GUESS = "____GS_YOU_WONT_GUESS_THIS_DATA_JHDFKSHDFURIHKSDJFHUIRSDJHF____";
+List *list_global_running_queries = NULL;
+
+size_t int_global_log_queries_over = 120;
+char *str_global_log_queries_over_action_name = NULL;
 
 bool DB_init_framework() {
 	PQinitOpenSSL(1, 0);
@@ -19,6 +23,13 @@ static void db_cnxn_cb(EV_P, ev_io *w, int revents);
 #define SUN_PROGRAM_LOWER_NAME "envelope"
 #define SUN_PROGRAM_WORD_NAME "Envelope"
 #define SUN_PROGRAM_UPPER_NAME "ENVELOPE"
+
+typedef struct {
+	char *str_query;
+	size_t int_query_len;
+	int int_pid;
+	time_t tim_start;
+} QueryInfo;
 
 void db_conn_error_cb(EV_P, ev_check *w, int revents) {
 	if (revents != 0) {
@@ -145,6 +156,15 @@ bool _DB_exec(
 	SERROR_CHECK(int_status == 1, "PQsendQuery failed %s", PQerrorMessage(conn->conn));
 
 	PQflush(conn->conn);
+
+	if (int_global_log_queries_over > 0) {
+		QueryInfo *query_info = NULL;
+		SERROR_SALLOC(query_info, sizeof(QueryInfo));
+		SERROR_SNCAT(query_info->str_query, &query_info->int_query_len, str_query, strlen(str_query));
+		query_info->int_pid = PQbackendPID(conn);
+		time(&query_info->tim_start);
+		List_push(list_global_running_queries, query_info);
+	}
 
 	// The EV_WRITE is because if you have a query longer than SSL allows, then you're going to have a bad time
 	ev_io_init(&res_poll->io, db_query_cb, conn->int_sock, EV_READ | EV_WRITE);

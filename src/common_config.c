@@ -26,9 +26,6 @@ bool bol_global_set_user = false;
 char *str_global_app_path = NULL;
 char *str_global_role_path = NULL;
 
-size_t int_global_log_queries_over = 120;
-char *str_global_log_queries_over_action_name = NULL;
-
 // size_t int_global_cookie_timeout = 86400;
 char cwd[1024];
 
@@ -753,6 +750,11 @@ bool parse_options(int argc, char *const *argv) {
 	printf("str_global_logfile: %s\n", str_global_logfile);
 	SDEBUG("str_global_logfile: %s", str_global_logfile);
 #endif
+
+	SERROR_CHECK(str_global_log_queries_over_action_name == NULL || str_global_public_username != NULL, " `log_queries_over_action_name` requires `public_user`");
+	if (int_global_log_queries_over > 0) {
+		list_global_running_queries = List_create();
+	}
 
 	SERROR_CHECK(parse_connection_file() == true, "Configuration failed");
 

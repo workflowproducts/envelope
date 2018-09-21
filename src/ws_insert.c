@@ -54,7 +54,7 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 
 	client_insert->str_return_columns = get_return_columns(
 		client_request->ptr_query, (size_t)(client_request->frame->int_length - (size_t)(client_request->ptr_query - client_request->frame->str_message)),
-		client_insert->str_real_table_name, client_insert->int_real_table_name_len,
+		client_insert->str_table_alias, client_insert->int_table_alias_len,
 		&client_insert->int_return_columns_len
 	);
 	SDEBUG("client_insert->str_return_columns: %s", client_insert->str_return_columns);
@@ -1479,6 +1479,8 @@ bool ws_insert_table_step3(EV_P, void *cb_data, DB_result *res) {
 		client_insert->str_return_columns, client_insert->int_return_columns_len,
 		" FROM ", (size_t)6,
 		client_insert->str_real_table_name, client_insert->int_real_table_name_len,
+		" ", (size_t)1,
+		client_insert->str_table_alias, client_insert->int_table_alias_len,
 		" WHERE ", (size_t)7,
 		client_insert->str_table_return_where, client_insert->int_table_return_where_len,
 		" AND xmin::text::bigint = txid_current()", (size_t)40
