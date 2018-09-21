@@ -169,7 +169,7 @@ SQL Injection detected*/})],
  				ml(function () {/*{"stat": true, "dat": "/env/app/all/index.html"}*/ })
  			],
 			['Download Fail', 'ajax', 404, '/postage/1/download/test_doesnt_exist.sql', '',
-				ml(function () {/*The file you are requesting is not here.*/})],
+                new Uint8Array([84, 104, 101, 32, 102, 105, 108, 101, 32, 121, 111, 117, 32, 97, 114, 101, 32, 114, 101, 113, 117, 101, 115, 116, 105, 110, 103, 32, 105, 115, 32, 110, 111, 116, 32, 104, 101, 114, 101, 46])],
  			[
  				'Login 5 *',
  				'ajax spam',
@@ -628,7 +628,7 @@ id	test_name
 {{test_random}}3	Eve
 */
 			}),
-			["FATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: COPY (SELECT \"rtesting_table\".\"\" FROM \"rtesting_table\" INNER...\\n                                      ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t31\n"]],
+			["FATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: COPY (SELECT \"rtesting_table\".\"\" FROM (SELECT \"rtesting_tabl...\\n                                      ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t31\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],

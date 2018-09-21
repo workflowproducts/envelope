@@ -26,7 +26,7 @@ bool bol_global_set_user = false;
 char *str_global_app_path = NULL;
 char *str_global_role_path = NULL;
 
-char *str_global_log_queries_over = NULL;
+size_t int_global_log_queries_over = 120;
 char *str_global_log_queries_over_action_name = NULL;
 
 // size_t int_global_cookie_timeout = 86400;
@@ -61,7 +61,7 @@ char *str_global_nt_domain;
 // str_global_logfile						log_file						o							log-file
 // str_global_public_username				public_username					u							public-username
 // str_global_public_password				public_password					w							public-password
-// str_global_log_queries_over				log_queries_over				q							log-queries-over
+// int_global_log_queries_over				log_queries_over				q							log-queries-over
 // str_global_log_queries_over_action_name	log_queries_over_action_name	a							log-queries-over-action-name
 // str_global_nt_domain						nt_domain
 // clang-format on
@@ -160,9 +160,7 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 			str_value, strlen(str_value));
 
 	} else if (SMATCH("", "queries_over")) {
-		SFREE(str_global_log_queries_over);
-		SERROR_SNCAT(str_global_log_queries_over, &int_len,
-			str_value, strlen(str_value));
+		int_global_log_queries_over = (size_t)strtol(str_value, NULL, 10);
 
 	} else if (SMATCH("", "log_queries_over_action_name")) {
 		SFREE(str_global_log_queries_over_action_name);
@@ -563,6 +561,14 @@ bool parse_options(int argc, char *const *argv) {
 		} else if (ch == 'o') {
 			SFREE(str_global_logfile);
 			SERROR_SNCAT(str_global_logfile, &int_global_logfile_len,
+				optarg, strlen(optarg));
+
+		} else if (ch == 'q') {
+			int_global_log_queries_over = (size_t)strtol(optarg, NULL, 10);
+
+		} else if (ch == 'a') {
+			SFREE(str_global_log_queries_over_action_name);
+			SERROR_SNCAT(str_global_log_queries_over_action_name, &int_global_len,
 				optarg, strlen(optarg));
 
 		} else if (ch == 0) {

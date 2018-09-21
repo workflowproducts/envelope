@@ -200,7 +200,6 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 			".", (size_t)1,
 			str_col_name, int_col_name_len);
 
-		SINFO("client_insert->str_pk_return_where_clause: %s", client_insert->str_pk_return_where_clause);
 		SFINISH_SNFCAT(client_insert->str_pk_return_where_clause, &client_insert->int_pk_return_where_clause_len,
 			int_i > 0 ? " AND " : "", strlen(int_i > 0 ? " AND " : ""),
 			client_insert->str_real_table_name, client_insert->int_real_table_name_len,
@@ -281,6 +280,7 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 					str_col_name, int_col_name_len,
 					" IS NOT NULL", (size_t)12);
 			}
+			SINFO("client_insert->str_pk_return_where_clause: %s", client_insert->str_pk_return_where_clause);
 		}
 
 		int_i += 1;
@@ -1195,9 +1195,9 @@ bool ws_insert_view_step4(EV_P, void *cb_data, DB_result *res) {
 		" INNER JOIN ", (size_t)12,
 		client_insert->str_temp_table_name, client_insert->int_temp_table_name_len,
 		"_2 ON ", (size_t)6,
+		client_insert->str_pk_return_where_clause, client_insert->int_pk_return_where_clause_len,
 		") ", (size_t)2,
-		client_insert->str_table_alias, client_insert->int_table_alias_len,
-		client_insert->str_pk_return_where_clause, client_insert->int_pk_return_where_clause_len
+		client_insert->str_table_alias, client_insert->int_table_alias_len
 	);
 
 	if (client_insert->str_return_order_by != NULL) {
