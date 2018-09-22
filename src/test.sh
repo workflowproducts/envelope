@@ -39,7 +39,7 @@ let window = null;
 
 electron.app.on('ready', function () {
         window = new electron.BrowserWindow();
-        window.loadURL('http://127.0.0.1:8888/test/index.html?http_export=false&ws_file_app=true&ws_file_role=true&ws_file_web_root=true&ws_delete=true&http_file=true&http_upload=true&ws_select=true&ws_insert=true&ws_update=true&_http_auth=true&http_action=true&ws_action=true&ws_info=true');
+        window.loadURL('http://127.0.0.1:8888/test/index.html?http_export=false&ws_file_app=true&ws_file_role=true&ws_file_web_root=true&ws_delete=true&http_file=true&http_upload=true&ws_select=true&ws_insert=true&ws_update=true&_http_auth=true&http_action=true&ws_action=true&ws_info=true&ws_long_queries=true');
 });
 
 
