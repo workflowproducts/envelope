@@ -55,18 +55,18 @@ function startTests() {
                         var arrCurrent = $.tests[key].tests[i];
                         var strName = arrCurrent[0];
                         strHTML +=
-                            '<div id="test' + key + i + '_label" class="test-block waiting">' + strName + '</div>';
+                            '<div id="test' + key + i + '_label" class="test-block waiting"></div>';
                     }
                     list.innerHTML =
-                        '<h3>' +
-                        key + '<br />' +
-                        '<small><b id="iterations-' + key + '">0</b> Iterations<br /><b id="status-note-' + key + '"></b></small>' +
-                        '</h3>' +
-                        strHTML +
-                        '<label for="actual-status-' + key + '">Actual Status</label>' +
-                        '<input id="actual-status-' + key + '" type="text" />' +
-                        '<label for="actual-output-' + key + '">Actual Output</label>' +
-                        '<textarea id="actual-output-' + key + '" autoresize rows="10"></textarea>';
+                        '<p>' +
+                        key +
+                        ' <small><b id="iterations-' + key + '">0</b> Iterations <b id="status-note-' + key + '"></b></small>' +
+                        '</p>' +
+                        strHTML + '<br />' +
+                        '<label style="display: none;" for="actual-status-' + key + '">Actual Status</label>' +
+                        '<input style="display: none;" id="actual-status-' + key + '" type="text" />' +
+                        '<label style="display: none;" for="actual-output-' + key + '">Actual Output</label>' +
+                        '<textarea style="display: none;" id="actual-output-' + key + '" autoresize rows="10"></textarea>';
                     document.getElementById('tests').appendChild(list);
 
                     if (qs[key] === 'true') {

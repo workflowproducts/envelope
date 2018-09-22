@@ -66,13 +66,13 @@ var $ = {
         objLabel.classList.remove(strOldClass);
         objLabel.classList.add(strNewClass);
         if (strNewClass === 'fail') {
-            document.getElementById('status-note-' + key).textContent = '(ERROR)';
+            document.getElementById('status-note-' + key).textContent = '(ERROR) ' + $.tests[key].tests[intCurrent][0];
 			$.tests[key].error = true;
 			$.ajax('https://www.sunnyserve.com/env/tst.acceptnc_test', 'action=fail&id=' + $.intID + '&fail_name=' + encodeURIComponent(document.getElementById('test' + key + intCurrent + '_label').innerText), 'POST', function (data) {
 
 			});
         } else {
-            document.getElementById('status-note-' + key).textContent = '(RUNNING)';
+            document.getElementById('status-note-' + key).textContent = '(RUNNING) ' + $.tests[key].tests[intCurrent][0];
         }
         objLabel.strStatus = strStatus;
         objLabel.strErrorText = strErrorText;
@@ -163,7 +163,7 @@ var $ = {
             $.changeStatus(key, intCurrent, 'waiting', 'running');
             // console.log('P##########################', strArgs);
             var ajax = $.ajax(strLink, strArgs, 'POST', function (data) {
-                console.log(data);
+                //console.log(data);
                 if (data.replace && data.indexOf('<!DOCTYPE html>') !== 0) {
                     data = data.replace('c:\\users\\nunzio\\repos\\envelope\\src\\', '');
                     data = data.replace(/c\:\\users\\nunzio\\repos\\envelope\\/gi, '../');
@@ -1034,7 +1034,7 @@ function ml(func) {
         };
 
         socket.onclose = function (event) {
-            console.log('SOCKET CLOSING', socket.stayClosed, socket.bolError, event);
+            //console.log('SOCKET CLOSING', socket.stayClosed, socket.bolError, event);
 
             // error closure dialog
             if (socket.bolError && arrWaitingCalls.length > 0) {
@@ -1056,15 +1056,15 @@ function ml(func) {
 
             if (!socket.stayClosed) {
                 setTimeout(function () {
-                    console.log('ATTEMPTING SOCKET RE-OPEN', socket);
+                    //console.log('ATTEMPTING SOCKET RE-OPEN', socket);
                     var key = socketKey;
                     $.tests[key].socket = WS.openSocket(key, key, $.tests[key].socket.WSSessionID, $.tests[key].socket.notifications);
                 }, 1000);
             } else {
                 if (socket.bolError) {
-                    console.log('SOCKET NOT RE-OPENING DUE TO ERROR');
+                    //console.log('SOCKET NOT RE-OPENING DUE TO ERROR');
                 } else {
-                    console.log('SOCKET NOT RE-OPENING DUE TO MANUAL CLOSE');
+                    //console.log('SOCKET NOT RE-OPENING DUE TO MANUAL CLOSE');
                 }
             }
         };

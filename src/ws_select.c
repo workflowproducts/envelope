@@ -36,7 +36,7 @@ void ws_select_step1(struct sock_ev_client_request *client_request) {
 
 	client_select->str_return_columns = get_return_columns(
 		client_request->ptr_query, (size_t)(client_request->frame->int_length - (size_t)(client_request->ptr_query - client_request->frame->str_message)),
-		client_select->str_real_table_name, client_select->int_real_table_name_len,
+		client_select->str_statement_name, client_select->int_statement_name_len,
 		&client_select->int_return_columns_len
 	);
 	SFINISH_ERROR_CHECK(client_select->str_return_columns != NULL, "Failed to get return columns from query");
@@ -63,8 +63,10 @@ void ws_select_step1(struct sock_ev_client_request *client_request) {
 	SFINISH_SNCAT(client_select->str_sql, &client_select->int_sql_len,
 		"SELECT ", (size_t)7,
 		client_select->str_return_columns, client_select->int_return_columns_len,
-		"\012   FROM ", (size_t)9,
+		"\012   FROM (SELECT * FROM ", (size_t)24,
 		client_select->str_real_table_name, client_select->int_real_table_name_len,
+		") ", (size_t)2,
+		client_select->str_statement_name, client_select->int_statement_name_len,
 		"\012", (size_t)1);
 
 	// Get start of the attr headers

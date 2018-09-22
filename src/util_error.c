@@ -21,6 +21,41 @@ void notice_root(char *str_file, int int_line_no, char *str_function, char *str_
 	sunlogf_root(str_file, int_line_no, str_function, 5, str_error, va_arg1);
 }
 
+void always_log_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...) {
+	size_t int_global_error_len = 0;
+	char *str_response = NULL;
+
+	va_list va_arg1;
+	va_start(va_arg1, str_error);
+	va_list va_arg2;
+	va_copy(va_arg2, va_arg1);
+	va_list va_arg3;
+	va_copy(va_arg3, va_arg1);
+
+	SERROR_SALLOC(str_response, 2);
+	size_t int_len = (size_t)vsnprintf(str_response, 1, str_error, va_arg2);
+	SERROR_SREALLOC(str_response, int_len + 2);
+	memset(str_response, 0, int_len + 2);
+	vsnprintf(str_response, int_len + 1, str_error, va_arg3);
+
+	SFREE(str_global_error);
+	SERROR_SNCAT(str_global_error, &int_global_error_len,
+		str_file, strlen(str_file),
+		":", (size_t)1,
+		str_function, strlen(str_function),
+		": ", (size_t)2,
+		str_response, strlen(str_response),
+		"\n", (size_t)1);
+
+	sunlogf_root(str_file, int_line_no, str_function, 0, str_error, va_arg1);
+	SFREE_PWORD(str_response);
+	return;
+error:
+	perror("TOTAL FAILURE! CANNOT EVEN ERROR CORRECTLY!");
+	SFREE_PWORD(str_response);
+	return;
+}
+
 void warn_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...) {
 	size_t int_global_error_len = 0;
 	char *str_response = NULL;
@@ -198,7 +233,7 @@ error:
 /*
 Logger function, send to STDERR.
 */
-static const char *str_date_format = "%a, %d %b %Y %H:%M:%S";
+static const char *str_date_format = "%Y/%m/%d %H:%M:%S";
 void sunlogf_root(
 	char *str_file, int int_line_no, char *str_function, int int_error_level, const char *str_format, va_list va_arg1) {
 	char str_new_format[512];
@@ -226,20 +261,21 @@ void sunlogf_root(
 	SERROR_CHECK_NORESPONSE(strftime(str_current_time, 255, str_date_format, &tm_timeinfo) != 0, "strftime() failed");
 
 	// str_pid format
-	char str_pid[256] = "0000000"; // was 4 but that seemed small- justin
-	char str_file_full[256];
+	char str_pid[256] = { 0 };
+	char str_file_full[128] = { 0 };
 	snprintf(str_file_full, 256, "%s:%d:%s()", str_file, int_line_no, str_function);
 	snprintf(str_pid, 256, "%s PID: %-7d FILE: %-55s", str_current_time, getpid(), str_file_full);
 
-	// all strings so no need to free
+	// all static strings so no need to free
 	// clang-format off
     char *log_level =
-            int_error_level == 1 ?  " ERROR      === " :
-            int_error_level == 2 ?  "    VAR     === " :
-            int_error_level == 3 ?  "   DEBUG    === " :
-            int_error_level == 4 ?  "     WARN   === " :
-            int_error_level == 5 ?  "    NOTICE  === " :
-                                    "       INFO === ";
+			int_error_level == 0 ? " INFO   === " :
+			int_error_level == 1 ? " ERROR  === " :
+            int_error_level == 2 ? " VAR    === " :
+            int_error_level == 3 ? " DEBUG  === " :
+            int_error_level == 4 ? " WARN   === " :
+            int_error_level == 5 ? " NOTICE === " :
+                                   " INFO   === ";
 	// clang-format on
 
 	snprintf(str_new_format, 512, "%s%s%s%s\012", str_pid, log_level, str_error, str_format);
@@ -270,7 +306,8 @@ void sunlogf_root(
 		(
 			str_global_log_level != NULL &&
 			strncmp(str_global_log_level, "none", 5) == 0 &&
-			int_error_level == 3 // debug
+			(int_error_level == 3 || // debug
+			int_error_level == 0) // always_log
 		)
 	) {
 #ifdef _WIN32

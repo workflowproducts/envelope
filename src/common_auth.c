@@ -199,12 +199,12 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	str_database = getpar(str_cookie_decrypted, "dbname", int_cookie_len, &client->int_database_len);
 	SFINISH_CHECK(str_database != NULL, "getpar failed");
 	//str_database = bstr_tolower(str_database, client->int_database_len);
-	SNOTICE("REQUEST USERNAME: %s", str_username);
+	SINFO("REQUEST USERNAME: %s", str_username);
 	if (str_database[0] == 0) {
 		SFREE(str_database);
 	}
 	if (str_database != NULL) {
-		SNOTICE("REQUEST DATABASE: %s", str_database);
+		SINFO("REQUEST DATABASE: %s", str_database);
 	}
 
 	if (client->bol_public) {

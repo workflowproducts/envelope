@@ -372,6 +372,20 @@ SQL Injection detected*/})],
 		    ['SOCKET CLOSE', 'websocket end']
 		]
 	},
+	ws_long_queries: {
+		tests: [
+			['SOCKET OPEN', 'websocket start'],
+
+            ['QUERY 1', 'websocket', '', ml(function () {/*SELECT	(SELECT 'test1'::text AS test1, pg_sleep(132)) em
+RETURN	test1
+
+ORDER BY
+test1 DESC*/}),
+			["test1\ntext\n", "test1\n", "TRANSACTION COMPLETED"]],
+
+		    ['SOCKET CLOSE', 'websocket end']
+		]
+	},
 	ws_select: {
 		tests: [
 			['SOCKET OPEN', 'websocket start'],

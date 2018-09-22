@@ -1058,7 +1058,7 @@ error:
 }
 
 static bool ddl_readable_done(EV_P, void *cb_data, DB_result *res) {
-	SINFO("SQL.C READABLE END");
+	SDEBUG("SQL.C READABLE END");
 	DB_readable_poll *readable_poll = cb_data;
 	DArray *arr_row_values = NULL;
 	DArray *arr_row_lengths = NULL;

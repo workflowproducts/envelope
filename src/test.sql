@@ -208,3 +208,18 @@ CREATE TABLE public.rtesting_table_with_sequence (
 );
 
 ALTER TABLE public.rtesting_table_with_sequence OWNER TO postgres;
+
+CREATE OR REPLACE FUNCTION public.test_long_query_function(str_args text)
+  RETURNS text AS
+$BODY$
+BEGIN
+
+RETURN '';
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+ALTER FUNCTION public.test_long_query_function(str_args text) OWNER TO postgres;
+GRANT EXECUTE ON FUNCTION public.test_long_query_function(str_args text) TO public_user;
+REVOKE ALL ON FUNCTION public.test_long_query_function(str_args text) FROM public;

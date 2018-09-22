@@ -27,20 +27,12 @@ small {
 
 #tests {
 	width: 100%;
-    display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	justify-content: flex-start;
-	align-items: flex-start;
 }
 
 #tests > .test-list {
 	padding: 0.5em;
-	box-sizing: border-box;
-	flex: 1;
-    flex-basis: auto;
-	min-width: 13em;
-	max-width: 15em;
+    box-sizing: border-box;
+    display: block;
 }
 
 .disabled {
@@ -49,8 +41,9 @@ small {
 
 .test-block {
     margin: 0;
-    box-sizing: border-box;
-    padding: 0.25em;
+    display: inline-block;
+    width: 0.75em;
+    height: 1em;
 }
 
 .test-list label,

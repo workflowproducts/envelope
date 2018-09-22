@@ -453,7 +453,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 			size_t int_ip_address_len = 0;
 			str_ip_address = request_header(client->str_request, client->int_request_len, "x-forwarded-for", &int_ip_address_len);
 			if (str_ip_address != NULL && int_ip_address_len < (INET_ADDRSTRLEN - 1)) {
-				SINFO("str_ip_address: %s", str_ip_address);
+				SDEBUG("str_ip_address: %s", str_ip_address);
 				memcpy(client->str_client_ip, str_ip_address, int_ip_address_len);
 
 				// IIS adds the client port to the X-Forwarded-For header
@@ -580,17 +580,17 @@ void client_cb(EV_P, ev_io *w, int revents) {
 							client->cur_request->parent = client;
 						}
 						session_client->cur_request = NULL;
-						SINFO("client->cur_request: %p", client->cur_request);
+						SDEBUG("client->cur_request: %p", client->cur_request);
 
-						SINFO("client: %p", client);
+						SDEBUG("client: %p", client);
 						client->que_request = session_client->que_request;
 						session_client->que_request = NULL;
 						if (client->que_request != NULL) {
 							QUEUE_FOREACH(client->que_request, node) {
 								struct sock_ev_client_request *client_request = (struct sock_ev_client_request *)node->value;
 								client_request->parent = client;
-								SINFO("client: %p", client);
-								SINFO("client_request->parent: %p", client_request->parent);
+								SDEBUG("client: %p", client);
+								SDEBUG("client_request->parent: %p", client_request->parent);
 							}
 						}
 
@@ -785,7 +785,7 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 	// opcode 0x08 is never more than one frame and is always less than 126
 	// characters
 	if (frame->int_opcode == 0x08) {
-		SINFO("Got close frame", client);
+		SDEBUG("Got close frame", client);
 #ifdef UTIL_DEBUG
 		if (frame->int_length > 2) {
 			unsigned short int_close_code =
@@ -794,7 +794,7 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 		}
 #endif // UTIL_DEBUG
 		while (client->que_message->first != NULL) {
-			SINFO("client->que_message->first: %p", client->que_message->first);
+			SDEBUG("client->que_message->first: %p", client->que_message->first);
 			struct sock_ev_client_message *client_message = client->que_message->first->value;
 			ev_io_stop(EV_A, &client_message->io);
 			WSFrame *frame_temp = client_message->frame;
@@ -806,7 +806,7 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 
 		if (client->bol_is_open) {
 			SERROR_CHECK(WS_sendFrame(EV_A, client, true, 0x08, frame->str_message, frame->int_length), "Failed to send message");
-			SINFO("Sent close frame", client);
+			SDEBUG("Sent close frame", client);
 
 			client->bol_is_open = false;
 		} else {
@@ -922,7 +922,7 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 		} else if (strcmp(str_first_word, "CANCEL") == 0) {
 			int int_ret_val = 0;
-			SINFO("==============================================CANCEL==============================================");
+			SDEBUG("==============================================CANCEL==============================================");
 			SDEBUG("client->conn->copy_check: %p", client->conn->copy_check);
 			SDEBUG("client->cur_request: %p", client->cur_request);
 
@@ -938,7 +938,7 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 			SFREE(str_temp1);
 
 			if (client->conn->copy_check != NULL) {
-				SINFO("copy_check branch");
+				SDEBUG("copy_check branch");
 				struct sock_ev_client_request *client_request = client->conn->copy_check->cb_data;
 
 				client_request->bol_cancel_return = true;
@@ -975,7 +975,7 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 			WS_freeFrame(frame);
 			SFREE(str_message_id);
 			SFREE(str_transaction_id);
-			SINFO("==============================================CANCEL==============================================");
+			SDEBUG("==============================================CANCEL==============================================");
 #endif
 
 		} else if (strcmp(str_first_word, "CONFIRM") == 0) {
@@ -1032,10 +1032,10 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 			SFREE(str_transaction_id);
 
 		} else if (strcmp(str_first_word, "SEND") == 0) {
-			SINFO("client: %p", client);
-			SINFO("client->cur_request: %p", client->cur_request);
+			SDEBUG("client: %p", client);
+			SDEBUG("client->cur_request: %p", client->cur_request);
 			if (client->cur_request != NULL && client->client_copy_check == NULL && strncmp(client->cur_request->str_message_id, str_message_id, strlen(str_message_id)) == 0) {
-				SINFO("client->cur_request->arr_response: %p", client->cur_request->arr_response);
+				SDEBUG("client->cur_request->arr_response: %p", client->cur_request->arr_response);
 				if (client->cur_request->arr_response != NULL) {
 					client_copy_check = NULL;
 					SERROR_SALLOC(client_copy_check, sizeof(struct sock_ev_client_copy_check));
@@ -1043,9 +1043,9 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 					ptr_query += strlen("SEND FROM") + 1;
 					client_copy_check->int_i = (size_t)strtol(ptr_query, NULL, 10);
 					client_copy_check->int_len = DArray_end(client->cur_request->arr_response) + 1;
-					SINFO("client_copy_check->int_i  : %d", client_copy_check->int_i);
-					SINFO("client_copy_check->int_len: %d", client_copy_check->int_len);
-					SINFO("client_request            : %p", client_request);
+					SDEBUG("client_copy_check->int_i  : %d", client_copy_check->int_i);
+					SDEBUG("client_copy_check->int_len: %d", client_copy_check->int_len);
+					SDEBUG("client_request            : %p", client_request);
 					client_copy_check->client_request = client->cur_request;
 					ev_check_init(&client_copy_check->check, client_send_from_cb);
 					ev_check_start(EV_A, &client_copy_check->check);
@@ -1134,7 +1134,7 @@ void client_send_from_cb(EV_P, ev_check *w, int revents) {
 				ev_io_start(EV_A, (ev_io *)client->client_paused_request->watcher);
 			}
 			ev_feed_event(EV_A, client->client_paused_request->watcher, client->client_paused_request->revents);
-			SINFO("client->client_paused_request->bol_free_watcher: %s", client->client_paused_request->bol_free_watcher ? "true" : "false");
+			SDEBUG("client->client_paused_request->bol_free_watcher: %s", client->client_paused_request->bol_free_watcher ? "true" : "false");
 			if (client->client_paused_request->bol_free_watcher) {
 				increment_idle(EV_A);
 			}
@@ -1295,7 +1295,7 @@ void client_request_queue_cb(EV_P, ev_check *w, int revents) {
 						));
 		  			//clang-format on
 				}
-				SINFO("%s", str_query);
+				SDEBUG("%s", str_query);
 
 				if (client_request->int_req_type == ENVELOPE_REQ_BEGIN) {
 					SFREE(client_request->str_transaction_id);
@@ -1304,7 +1304,7 @@ void client_request_queue_cb(EV_P, ev_check *w, int revents) {
 						client_request->str_message_id, client_request->int_message_id_len
 					);
 				}
-				SINFO("%s", client_request->str_transaction_id);
+				SDEBUG("%s", client_request->str_transaction_id);
 
 				SFINISH_CHECK(
 					DB_exec(EV_A, client_request->parent->conn, client_request, str_query, client_cmd_cb), "DB_exec failed");
@@ -1705,7 +1705,7 @@ bool client_close(struct sock_ev_client *client) {
 	struct sock_ev_client_last_activity *client_last_activity = NULL;
 	bool bol_authorized = false;
 
-	SINFO("Client %p closing", client);
+	SDEBUG("Client %p closing", client);
 	if (client->que_message != NULL && client->bol_handshake == true && client->bol_is_open == true) {
 		while (client->que_message->first != NULL) {
 			client_message = client->que_message->first->value;
@@ -1810,7 +1810,7 @@ bool client_close(struct sock_ev_client *client) {
 		} else {
 			if (client->client_timeout_prepare == NULL) {
 				SDEBUG("delay client_close_immediate");
-				SINFO("test1: %p", client);
+				SDEBUG("test1: %p", client);
 				SERROR_SALLOC(client->client_timeout_prepare, sizeof(struct sock_ev_client_timeout_prepare));
 				client->client_timeout_prepare->close_time = ev_now(global_loop);
 				client->client_timeout_prepare->parent = client;
@@ -1926,7 +1926,7 @@ void client_close_cancel_query_cb(EV_P, ev_io *w, int revents) {
 bool client_close_close_cnxn_cb(EV_P, void *cb_data, DB_result *res) {
 	if (EV_A) { // for unused variable warning
 	}
-	SINFO("REVERT finished!");
+	SDEBUG("REVERT finished!");
 	struct sock_ev_client *client = cb_data;
 	DB_finish(client->conn);
 	client->conn = NULL;
@@ -1936,7 +1936,7 @@ bool client_close_close_cnxn_cb(EV_P, void *cb_data, DB_result *res) {
 }
 
 void client_close_immediate(struct sock_ev_client *client) {
-	SINFO("Client %p closing", client);
+	SDEBUG("Client %p closing", client);
 	struct WSFrame *frame = NULL;
 	ev_io_stop(global_loop, &client->io);
 
@@ -2064,9 +2064,9 @@ void client_paused_request_free(struct sock_ev_client_paused_request *client_pau
 			} else {
 				ev_io_stop(global_loop, (ev_io *)client_paused_request->watcher);
 			}
-			SINFO("client_paused_request->revents: %x", client_paused_request->revents);
-			SINFO("client_paused_request: %p", client_paused_request);
-			SINFO("client_paused_request->watcher: %p", client_paused_request->watcher);
+			SDEBUG("client_paused_request->revents: %x", client_paused_request->revents);
+			SDEBUG("client_paused_request: %p", client_paused_request);
+			SDEBUG("client_paused_request->watcher: %p", client_paused_request->watcher);
 			SFREE(client_paused_request->watcher);
 		}
 	}

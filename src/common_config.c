@@ -4,7 +4,6 @@ char *str_global_config_file = NULL;
 char *str_global_connection_file = NULL;
 char *str_global_login_group = NULL;
 char *str_global_web_root = NULL;
-char *str_global_data_root = NULL;
 char *str_global_port = NULL;
 bool bol_global_local_only = false;
 
@@ -117,11 +116,6 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 	} else if (SMATCH("", "web_root")) {
 		SFREE(str_global_web_root);
 		SERROR_SNCAT(str_global_web_root, &int_len,
-			str_value, strlen(str_value));
-
-	} else if (SMATCH("", "data_root")) {
-		SFREE(str_global_data_root);
-		SERROR_SNCAT(str_global_data_root, &int_len,
 			str_value, strlen(str_value));
 
 	} else if (SMATCH("", "" SUN_PROGRAM_LOWER_NAME "_port")) {
@@ -524,11 +518,6 @@ bool parse_options(int argc, char *const *argv) {
 			SERROR_SNCAT(str_global_web_root, &int_global_len,
 				optarg, strlen(optarg));
 
-		} else if (ch == 'a') {
-			SFREE(str_global_data_root);
-			SERROR_SNCAT(str_global_data_root, &int_global_len,
-				optarg, strlen(optarg));
-
 		} else if (ch == 'p') {
 			SFREE(str_global_port);
 			SERROR_SNCAT(str_global_port, &int_global_len,
@@ -621,38 +610,6 @@ bool parse_options(int argc, char *const *argv) {
 #endif //_WIN32
 	}
 
-	if (str_global_data_root == NULL) {
-#ifdef _WIN32
-		char *str_app_data = getenv("AppData");
-		SERROR_CHECK(str_app_data != NULL, "getenv for AppData failed!");
-
-		size_t int_app_data_len = strlen(str_app_data);
-		SDEBUG("str_app_data: %s", str_app_data);
-		SERROR_SNCAT(str_global_data_root, &int_global_len,
-			((char *)str_app_data) + 2, int_app_data_len - 2,
-			str_app_data[int_app_data_len - 1] == '\\' ? "\\" SUN_PROGRAM_LOWER_NAME : "\\" SUN_PROGRAM_LOWER_NAME,
-				strlen(str_app_data[int_app_data_len - 1] == '\\' ? "\\" SUN_PROGRAM_LOWER_NAME : "\\" SUN_PROGRAM_LOWER_NAME));
-#else
-		// free MUST NOT be called on this struct
-		struct passwd pw_result;
-		struct passwd *pw = &pw_result;
-		bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
-
-		if (bufsize == -1) {
-			bufsize = 16384;
-		}
-		SERROR_SALLOC(str_temp, (size_t)bufsize + 1);
-		getpwuid_r(getuid(), pw, str_temp, (size_t)bufsize, &pw);
-
-		SERROR_SNCAT(str_global_data_root, &int_global_len,
-			pw->pw_dir, strlen(pw->pw_dir),
-			pw->pw_dir[strlen(pw->pw_dir) - 1] == '/' ? "." SUN_PROGRAM_LOWER_NAME : "/." SUN_PROGRAM_LOWER_NAME,
-				strlen(pw->pw_dir[strlen(pw->pw_dir) - 1] == '/' ? "." SUN_PROGRAM_LOWER_NAME : "/." SUN_PROGRAM_LOWER_NAME));
-		SFREE(str_temp);
-#endif
-	}
-
-
 #ifdef _WIN32
 #else
 	#ifdef CAP_SETUID
@@ -681,11 +638,6 @@ bool parse_options(int argc, char *const *argv) {
 		SERROR_CHECK(setuid(obj_uname->pw_uid) == 0, "setuid() failed!");
 	}
 #endif
-
-	// This is because if there is a symoblic link, we want the resolved path
-	SFREE(str_global_data_root);
-	str_global_data_root = str_temp;
-	str_temp = NULL;
 
 	if (str_global_web_root[0] != '/' && str_global_web_root[0] != '\\' && str_global_web_root[1] != ':') {
 		SERROR_SNCAT(str_temp, &int_temp_len,

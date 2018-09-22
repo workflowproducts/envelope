@@ -55,7 +55,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 
 	// LOGGING IN, SET COOKIE
 	if (strncmp(client_auth->str_action, "login", 6) == 0) {
-		SNOTICE("REQUEST TYPE: " SUN_PROGRAM_LOWER_NAME " LOGIN");
+		SINFO("REQUEST TYPE: " SUN_PROGRAM_LOWER_NAME " LOGIN");
 		client_auth->str_user = getpar(str_form_data, "username", int_query_length, &client_auth->int_user_length);
 #ifdef ENVELOPE_ODBC
 		if (strncmp(str_global_mode, "msaccess", 9) != 0) {
@@ -67,7 +67,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		//bstr_tolower(client_auth->str_user, client_auth->int_user_length);
 		//SFINISH_CHECK(client_auth->str_user != NULL, "str_tolower(client_auth->str_user) failed");
 
-		SNOTICE("REQUEST USERNAME: %s", client_auth->str_user);
+		SINFO("REQUEST USERNAME: %s", client_auth->str_user);
 
 		client_auth->str_password = getpar(str_form_data, "password", int_query_length, &client_auth->int_password_length);
 // The reason this was removed is because libpq will give an error if a password is required
@@ -198,7 +198,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		//////
 		// CHANGE PW, RESET COOKIE
 	} else if (strncmp(client_auth->str_action, "change_pw", 10) == 0) {
-		SNOTICE("REQUEST TYPE: PASSWORD CHANGE");
+		SINFO("REQUEST TYPE: PASSWORD CHANGE");
 		client_auth->str_new_password =
 			getpar(str_form_data, "password_new", int_query_length, &client_auth->int_new_password_length);
 		SFINISH_CHECK(client_auth->str_new_password != NULL, "getpar failed");
@@ -265,7 +265,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 
 		//bstr_tolower(client_auth->str_user, client_auth->int_user_length);
 
-		SNOTICE("REQUEST USERNAME: %s", client_auth->str_user);
+		SINFO("REQUEST USERNAME: %s", client_auth->str_user);
 
 		SFINISH_CHECK(client_auth->str_conn != NULL || exists_connection_info(client_auth->str_connname),
 			"There is no connection info with that name.");
@@ -306,7 +306,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 #endif
 
 	} else if (strncmp(client_auth->str_action, "logout", 7) == 0) {
-		SNOTICE("REQUEST TYPE: LOGOUT " SUN_PROGRAM_LOWER_NAME "");
+		SINFO("REQUEST TYPE: LOGOUT " SUN_PROGRAM_LOWER_NAME "");
 
 		str_error = getpar(str_form_data, "error", int_query_length, &int_error_len);
 		str_error_uri = snuri(str_error, int_error_len, &int_error_uri_len);
@@ -363,7 +363,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		);
 		SFREE_PWORD(str_form_data);
 	} else {
-		SNOTICE("REQUEST TYPE: Not a valid action.");
+		SINFO("REQUEST TYPE: Not a valid action.");
 
 		char *str_temp =
 			"HTTP/1.1 500 Internal Server Error\015\012"

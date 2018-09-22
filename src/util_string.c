@@ -253,7 +253,60 @@ error:
 		return NULL;
 }
 */
-// case uri with percent encoded hex to utf-8
+// string to percent encoded uri string
+const char *hex = "0123456789ABCDEF";
+char *cstr_to_uri(char *ptr_loop, size_t *int_inputstring_len) {
+	char *result_text = 0;
+	char *result_ptr;
+	size_t int_result_len = 0;
+	size_t int_chunk_len = 0;
+
+	// Dangerous loops ahead. We could go infinite if we aren't
+	//   careful. So lets check for interrupts.
+	SERROR_SALLOC(result_text, 1);
+
+	while (*int_inputstring_len > 0) {
+		int_chunk_len = 1;
+
+		// check for html5 unencoded characters. if found, just add to result_text
+		if (isalnum(*ptr_loop) || strncmp(ptr_loop, "*", 1) == 0 ||
+			strncmp(ptr_loop, "-", 1) == 0 || strncmp(ptr_loop, ".", 1) == 0 || strncmp(ptr_loop, "_", 1) == 0) {
+			SERROR_SREALLOC(result_text, int_result_len + 1);
+			result_text[int_result_len] = *ptr_loop;
+			int_result_len += 1;
+
+			// in case of everything else, percent encode
+		} else {
+			SERROR_SREALLOC(result_text, int_result_len + (int_chunk_len * 3));
+			result_ptr = result_text + int_result_len;
+
+			char *ptr = ptr_loop;
+			int i = 0;
+			while (i < int_chunk_len) {
+				result_ptr[0] = 37;                  // % in ascii
+				result_ptr[1] = hex[(*ptr >> 4) & 0xF];  // first hex digit
+				result_ptr[2] = hex[(*ptr) & 0xF];     // second hex digit
+				result_ptr = result_ptr + 3;
+				ptr = ptr + 1;
+				i += 1;
+			}
+			int_result_len += (int_chunk_len * 3);
+		}
+
+		// looping
+		ptr_loop += int_chunk_len;
+		*int_inputstring_len -= int_chunk_len;
+	}
+	SERROR_SREALLOC(result_text, int_result_len + 1);
+	result_text[int_result_len] = '\0';
+	*int_inputstring_len = int_result_len;
+	return result_text;
+error:
+	SFREE(result_text);
+	return NULL;
+}
+
+// uri with percent encoded hex to utf-8
 char *uri_to_cstr(char *ptr_loop, size_t *int_inputstring_len) {
 	char *result_text = NULL;
 	char *ptr_result;
@@ -271,9 +324,9 @@ char *uri_to_cstr(char *ptr_loop, size_t *int_inputstring_len) {
 	while (*int_inputstring_len > 0) {
 		int_chunk_len = 1;
 
-		// SDEBUG("ptr_loop: %s, chunk_len: %i, inputlen: %i", ptr_loop, chunk_len,
-		// inputstring_len );
-		// SDEBUG("ptr_result: %s, result_len: %i ", ptr_result, result_len );
+		// SDEBUG("ptr_loop: %s, int_chunk_len: %i, inputlen: %i", ptr_loop, int_chunk_len,
+		// int_inputstring_len );
+		// SDEBUG("ptr_result: %s, int_result_len: %i ", ptr_result, int_result_len );
 
 		// check for % characters
 		//   if found, decode as percent encoded hex
@@ -381,9 +434,9 @@ char *uri_to_cstr(char *ptr_loop, size_t *int_inputstring_len) {
 			int_result_len += int_chunk_len;
 		}
 		// to debug: uncomment these three lines at the same time:
-		// SFINISH_SREALLOC(result_text, result_len + 1);
-		// result_text[result_len] = 0;
-		// SDEBUG("result_len: %i, result_text: %s", result_len, result_text );
+		// SFINISH_SREALLOC(result_text, int_result_len + 1);
+		// result_text[int_result_len] = 0;
+		// SDEBUG("int_result_len: %i, result_text: %s", int_result_len, result_text );
 
 		// looping
 		ptr_loop += int_chunk_len;
@@ -542,9 +595,9 @@ char *jsonify(char *str_inputstring, size_t *ptr_int_result_len) {
 		}
 
 		// to debug: uncomment all three lines at the same time:
-		// SFINISH_SREALLOC(result_text, result_len + 1);
-		// result_text[result_len] = 0;
-		// SDEBUG("result_len: %i, result_text: %s", result_len, result_text);
+		// SFINISH_SREALLOC(result_text, int_result_len + 1);
+		// result_text[int_result_len] = 0;
+		// SDEBUG("int_result_len: %i, result_text: %s", int_result_len, result_text);
 
 		// looping
 		ptr_loop += int_chunk_len;

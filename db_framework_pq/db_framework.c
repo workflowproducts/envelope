@@ -10,9 +10,16 @@ bool DB_init_framework() {
 	PQinitOpenSSL(1, 0);
 	return true;
 }
-#define DB_res_poll_free(A)                                                                                                      \
-	if (A != NULL) {                                                                                                             \
-		SFREE(A);                                                                                                                \
+#define DB_res_poll_free(A)                                                                                                          \
+	if (A != NULL) {                                                                                                                 \
+		if (A->list_query_node != NULL) {                                                                                            \
+			QueryInfo *query_info = List_remove(list_global_running_queries, A->list_query_node);                                    \
+			if (query_info != NULL) {                                                                                                \
+				SFREE(query_info->str_query);                                                                                        \
+				SFREE(query_info);                                                                                                   \
+			}                                                                                                                        \
+		}                                                                                                                            \
+		SFREE(A);                                                                                                                    \
 	}
 
 char *_DB_get_diagnostic(DB_conn *conn, PGresult *res);
@@ -23,13 +30,6 @@ static void db_cnxn_cb(EV_P, ev_io *w, int revents);
 #define SUN_PROGRAM_LOWER_NAME "envelope"
 #define SUN_PROGRAM_WORD_NAME "Envelope"
 #define SUN_PROGRAM_UPPER_NAME "ENVELOPE"
-
-typedef struct {
-	char *str_query;
-	size_t int_query_len;
-	int int_pid;
-	time_t tim_start;
-} QueryInfo;
 
 void db_conn_error_cb(EV_P, ev_check *w, int revents) {
 	if (revents != 0) {
@@ -140,6 +140,7 @@ bool _DB_exec(
 	SDEBUG("DB_exec");
 	// Send the sql
 	DB_result_poll *res_poll = NULL;
+	QueryInfo *query_info = NULL;
 
 	SERROR_SALLOC(res_poll, sizeof(DB_result_poll));
 
@@ -158,20 +159,22 @@ bool _DB_exec(
 	PQflush(conn->conn);
 
 	if (int_global_log_queries_over > 0) {
-		QueryInfo *query_info = NULL;
 		SERROR_SALLOC(query_info, sizeof(QueryInfo));
 		SERROR_SNCAT(query_info->str_query, &query_info->int_query_len, str_query, strlen(str_query));
-		query_info->int_pid = PQbackendPID(conn);
-		time(&query_info->tim_start);
-		List_push(list_global_running_queries, query_info);
+		query_info->int_pid = PQbackendPID(conn->conn);
+		query_info->tim_start = ev_now(EV_A);
+		SERROR_CHECK(List_push(list_global_running_queries, query_info), "List_push failed");
+		res_poll->list_query_node = list_global_running_queries->last;
 	}
 
-	// The EV_WRITE is because if you have a query longer than SSL allows, then you're going to have a bad time
+	// The EV_WRITE is because if you have a query longer than SSL allows in one packet, then you're going to have a bad time
 	ev_io_init(&res_poll->io, db_query_cb, conn->int_sock, EV_READ | EV_WRITE);
 	ev_io_start(EV_A, &res_poll->io);
 
 	return true;
 error:
+	SFREE(query_info->str_query);
+	SFREE(query_info);
 	conn->res_poll = NULL;
 	DB_res_poll_free(res_poll);
 	return false;

@@ -93,6 +93,8 @@ void notice_root(char *str_file, int int_line_no, char *str_function, char *str_
 #define SNOTICE(M, ...) notice_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
 void warn_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...);
 #define SWARN_NORESPONSE(M, ...) warn_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__);
+void always_log_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...);
+#define SALWAYS_LOG(M, ...) always_log_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__);
 
 void error_noresponse_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...);
 #define SERROR_NORESPONSE(M, ...) error_noresponse_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__);

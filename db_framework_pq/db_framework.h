@@ -89,6 +89,13 @@ typedef struct DB_poll {
 	connect_cb_t connect_cb;
 } DB_poll;
 
+typedef struct {
+	char *str_query;
+	size_t int_query_len;
+	int int_pid;
+	ev_tstamp tim_start;
+} QueryInfo;
+
 DB_conn *DB_connect(EV_P, void *cb_data, char *str_connstring, char *str_user, size_t int_user_length, char *str_password,
 	size_t int_password_length, char *str_context_data, connect_cb_t connect_cb);
 
@@ -125,6 +132,7 @@ typedef struct DB_result_poll {
 	DB_result *res;
 	char *str_data;
 	int int_len;
+	ListNode *list_query_node;
 } DB_result_poll;
 typedef struct DB_copy_check {
 	ev_check check;

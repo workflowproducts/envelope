@@ -31,9 +31,11 @@
 SOCKET int_sock = INVALID_SOCKET;
 
 ev_periodic last_activity_free_timer;
+ev_periodic check_running_queries_timer;
 ev_signal sigint_watcher;
 ev_signal sigterm_watcher;
 ev_signal sigbreak_watcher;
+DB_conn *log_queries_over_conn = NULL;
 
 /*
 This function is run when the program exits
@@ -46,6 +48,12 @@ void program_exit() {
 		ev_io_stop(global_loop, &_server.io);
 		if (int_global_login_timeout > 0) {
 			ev_periodic_stop(global_loop, &last_activity_free_timer);
+		}
+		if (int_global_log_queries_over > 0) {
+			if (log_queries_over_conn != NULL) {
+				DB_finish(log_queries_over_conn);
+			}
+			ev_periodic_stop(global_loop, &check_running_queries_timer);
 		}
 		ev_signal_stop(global_loop, &sigint_watcher);
 		ev_signal_stop(global_loop, &sigterm_watcher);
@@ -80,7 +88,6 @@ void program_exit() {
 		SFREE(str_global_public_username);
 		SFREE(str_global_public_password);
 		SFREE(str_global_web_root);
-		SFREE(str_global_data_root);
 		SFREE(str_global_log_level);
 #ifdef _WIN32
 
@@ -146,20 +153,18 @@ void free_last_activity(EV_P, ev_periodic *w, int revents) {
 			if (client_last_activity != NULL &&
 				(ev_now(global_loop) - client_last_activity->last_activity_time) >= int_global_login_timeout) {
 				bol_no_clients = true;
-				{
-					LIST_FOREACH(_server.list_client, first, next, node) {
-						client = node->value;
-						SDEBUG("client: %p", client);
-						SDEBUG("client->bol_request_in_progress: %s",
-							client != NULL ? (client->bol_request_in_progress ? "true" : "false") : "(null)");
-						if (client != NULL && (ssize_t)int_i == client->int_last_activity_i &&
-							client->bol_request_in_progress == false) {
-							bol_no_clients = false;
-						} else if (client != NULL && (ssize_t)int_i == client->int_last_activity_i &&
-								   client->bol_request_in_progress == true) {
-							bol_skip = true;
-							break;
-						}
+				LIST_FOREACH(_server.list_client, first, next, node) {
+					client = node->value;
+					SDEBUG("client: %p", client);
+					SDEBUG("client->bol_request_in_progress: %s",
+						client != NULL ? (client->bol_request_in_progress ? "true" : "false") : "(null)");
+					if (client != NULL && (ssize_t)int_i == client->int_last_activity_i &&
+						client->bol_request_in_progress == false) {
+						bol_no_clients = false;
+					} else if (client != NULL && (ssize_t)int_i == client->int_last_activity_i &&
+								client->bol_request_in_progress == true) {
+						bol_skip = true;
+						break;
 					}
 				}
 
@@ -220,11 +225,108 @@ void free_last_activity(EV_P, ev_periodic *w, int revents) {
 	}
 }
 
+static const char *str_postgres_timestamp_format = "%Y/%m/%d %H:%M:%S";
+void connect_cb_log_queries_over(EV_P, void *cb_data, DB_conn *conn) {
+	SERROR_CHECK(conn->int_status == 1, "%s", conn->str_response);
+	
+	return;
+error:
+	ev_break(EV_A, EVBREAK_ALL);
+}
+
+bool log_queries_over_query_cb(EV_P, void *cb_data, DB_result *res) {
+	SDEBUG("connect_cb_env_step2");
+	SDEFINE_VAR_ALL(str_diag);
+	str_diag = DB_get_diagnostic(log_queries_over_conn, res);
+
+	SERROR_CHECK(res != NULL, "DB_exec failed");
+	SERROR_CHECK(res->status == DB_RES_TUPLES_OK, "DB_exec failed: %s", str_diag);
+
+error:
+	DB_free_result(res);
+	bol_error_state = false;
+	SFREE_ALL();
+	return true;
+}
+
+void check_running_queries(EV_P, ev_periodic *w, int revents) {
+	QueryInfo *query_info = NULL;
+	char *str_sql = NULL;
+	size_t int_sql_len = 0;
+	char *str_qs = NULL;
+	size_t int_qs_len = 0;
+	char *str_query_enc = NULL;
+	size_t int_query_enc_len = 0;
+	LIST_FOREACH(list_global_running_queries, first, next, node) {
+		query_info = node->value;
+		if (query_info != NULL) {
+			ev_tstamp now = ev_now(EV_A);
+			if ((now - query_info->tim_start) > int_global_log_queries_over && (now - query_info->tim_start) < (int_global_log_queries_over * 2)) {
+				SALWAYS_LOG("Query has been running for %zu seconds!", (size_t)(now - query_info->tim_start));
+				SALWAYS_LOG("Pid: %d", query_info->int_pid);
+				time_t tim_rawtime = query_info->tim_start;
+				struct tm tm_timeinfo;
+#ifdef _WIN32
+				SERROR_CHECK(localtime_s(&tm_timeinfo, &tim_rawtime) == 0, "localtime_s %d (%s)", errno, strerror(errno));
+#else
+				SERROR_CHECK(localtime_r(&tim_rawtime, &tm_timeinfo) != NULL, "localtime_r %d (%s)", errno, strerror(errno));
+#endif
+				char str_started[256] = { 0 };
+				SERROR_CHECK(strftime(str_started, 255, str_postgres_timestamp_format, &tm_timeinfo) != 0, "strftime() failed");
+				SALWAYS_LOG("Query started: %s", str_started);
+				SALWAYS_LOG("Query: %s", query_info->str_query);
+				SALWAYS_LOG("str_global_log_queries_over_action_name: %s", str_global_log_queries_over_action_name);
+
+				if (str_global_log_queries_over_action_name != NULL) {
+					int_query_enc_len = strlen(query_info->str_query);
+					str_query_enc = cstr_to_uri(query_info->str_query, &int_query_enc_len);
+					SALWAYS_LOG("str_query_enc: %s", str_query_enc);
+					SALWAYS_LOG("int_query_enc_len: %zu", int_query_enc_len);
+					SERROR_CHECK(str_query_enc != NULL, "cstr_to_uri failed");
+					char str_pid[256] = { 0 };
+					// the int type can't be long enough for this to overrun
+					sprintf(str_pid, "%d", query_info->int_pid);
+					SERROR_SNCAT(str_sql, &int_qs_len,
+						"pid=", (size_t)4,
+						str_pid, strlen(str_pid),
+						"&started=", (size_t)9,
+						str_started, strlen(str_started),
+						"&query=", (size_t)7,
+						str_query_enc, int_query_enc_len
+					);
+					str_qs = DB_escape_literal(log_queries_over_conn, str_sql, int_qs_len);
+					SERROR_CHECK(str_qs != NULL, "DB_escape_literal failed");
+					SFREE(str_sql);
+					SERROR_SNCAT(str_sql, &int_qs_len,
+						"SELECT ", (size_t)7,
+						str_global_log_queries_over_action_name, strlen(str_global_log_queries_over_action_name),
+						"(", (size_t)1,
+						str_qs, strlen(str_qs),
+						");", (size_t)2
+					);
+                    SERROR_CHECK(DB_exec(EV_A, log_queries_over_conn, NULL, str_sql, log_queries_over_query_cb), "DB_exec failed");
+					SINFO("str_sql: %s", str_sql);
+					SFREE(str_qs);
+					SFREE(str_sql);
+				}
+			}
+		}
+	}
+	SFREE(str_sql);
+	SFREE(str_qs);
+	SFREE(str_query_enc);
+	return;
+error:
+	SFREE(str_sql);
+	SFREE(str_qs);
+	SFREE(str_query_enc);
+	SERROR_NORESPONSE("MUCH BADNESS!");
+}
+
 /*
 Program entry point
 */
 int main(int argc, char *const *argv) {
-	//_CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF);
 	memset(&sigint_watcher, 0, sizeof(ev_signal));
 	memset(&sigterm_watcher, 0, sizeof(ev_signal));
 	memset(&sigbreak_watcher, 0, sizeof(ev_signal));
@@ -260,6 +362,18 @@ int main(int argc, char *const *argv) {
 		memset(&last_activity_free_timer, 0, sizeof(ev_periodic));
 		ev_periodic_init(&last_activity_free_timer, free_last_activity, 0, (ev_tstamp)(int_global_login_timeout) / 10, NULL);
 		ev_periodic_start(global_loop, &last_activity_free_timer);
+	}
+
+	if (int_global_log_queries_over > 0) {
+		if (str_global_log_queries_over_action_name != NULL) {
+			log_queries_over_conn = DB_connect(global_loop, NULL, get_connection_info("", NULL),
+				str_global_public_username, strlen(str_global_public_username),
+				str_global_public_password, strlen(str_global_public_password),
+				"", connect_cb_log_queries_over);
+		}
+		memset(&check_running_queries_timer, 0, sizeof(ev_periodic));
+		ev_periodic_init(&check_running_queries_timer, check_running_queries, 0, (ev_tstamp)(int_global_log_queries_over) / 10, NULL);
+		ev_periodic_start(global_loop, &check_running_queries_timer);
 	}
 
 	ev_signal_init(&sigint_watcher, sigint_cb, SIGINT);
@@ -337,6 +451,7 @@ int main(int argc, char *const *argv) {
 
 	ev_run(global_loop, 0);
 
+	program_exit();
 	return 0;
 error:
 	if (global_loop != NULL) {

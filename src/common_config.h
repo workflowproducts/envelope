@@ -29,7 +29,6 @@ extern char *str_global_config_file;
 extern char *str_global_connection_file;
 extern char *str_global_login_group;
 extern char *str_global_web_root;
-extern char *str_global_data_root;
 extern char *str_global_port;
 extern bool bol_global_local_only;
 extern bool bol_global_super_only;
