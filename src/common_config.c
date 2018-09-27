@@ -25,6 +25,9 @@ bool bol_global_set_user = false;
 char *str_global_app_path = NULL;
 char *str_global_role_path = NULL;
 
+char *str_global_api_referer_list = NULL;
+char *str_global_public_api_referer_list = NULL;
+
 // size_t int_global_cookie_timeout = 86400;
 char cwd[1024];
 
@@ -59,6 +62,8 @@ char *str_global_nt_domain;
 // str_global_public_password				public_password					w							public-password
 // int_global_log_queries_over				log_queries_over				q							log-queries-over
 // str_global_log_queries_over_action_name	log_queries_over_action_name	a							log-queries-over-action-name
+// str_global_api_referer_list				api_referer_list				f							api-referer-list
+// str_global_public_api_referer_list		public_api_referer_list			j							public-api-referer-list
 // str_global_nt_domain						nt_domain
 // clang-format on
 
@@ -156,6 +161,16 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 	} else if (SMATCH("", "log_queries_over_action_name")) {
 		SFREE(str_global_log_queries_over_action_name);
 		SERROR_SNCAT(str_global_log_queries_over_action_name, &int_len,
+			str_value, strlen(str_value));
+
+	} else if (SMATCH("", "api_referer_list")) {
+		SFREE(str_global_api_referer_list);
+		SERROR_SNCAT(str_global_api_referer_list, &int_len,
+			str_value, strlen(str_value));
+
+	} else if (SMATCH("", "public_api_referer_list")) {
+		SFREE(str_global_public_api_referer_list);
+		SERROR_SNCAT(str_global_public_api_referer_list, &int_len,
 			str_value, strlen(str_value));
 
 #ifndef ENVELOPE_INTERFACE_LIBPQ
@@ -443,11 +458,13 @@ bool parse_options(int argc, char *const *argv) {
 		{"log-file",						required_argument,		NULL,	'o'},
 		{"log-queries-over",				required_argument,		NULL,	'q'},
 		{"log-queries-over-action-name",	required_argument,		NULL,	'a'},
+		{"api-referer-list",				required_argument,		NULL,	'f'},
+		{"public-api-referer-list",			required_argument,		NULL,	'j'},
 		{NULL,								0,						NULL,	0}
 	};
 	// clang-format on
 
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:a:p:j:k:s:e:b:t:l:o:q:a:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:a:p:j:k:s:e:b:t:l:o:q:a:f:j:", longopts, NULL)) != -1) {
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -471,7 +488,7 @@ bool parse_options(int argc, char *const *argv) {
 	char *str_config_empty = "";
 	ini_parse(str_global_config_file, handler, &str_config_empty);
 
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:a:p:j:k:s:e:b:t:l:o:q:a:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:a:p:j:k:s:e:b:t:l:o:q:a:f:j:", longopts, NULL)) != -1) {
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -557,6 +574,16 @@ bool parse_options(int argc, char *const *argv) {
 			SERROR_SNCAT(str_global_log_queries_over_action_name, &int_global_len,
 				optarg, strlen(optarg));
 
+		} else if (ch == 'f') {
+			SFREE(str_global_api_referer_list);
+			SERROR_SNCAT(str_global_api_referer_list, &int_global_len,
+				optarg, strlen(optarg));
+
+		} else if (ch == 'j') {
+			SFREE(str_global_public_api_referer_list);
+			SERROR_SNCAT(str_global_public_api_referer_list, &int_global_len,
+				optarg, strlen(optarg));
+
 		} else if (ch == 0) {
 			fprintf(stderr, "no options");
 			goto error;
@@ -564,6 +591,12 @@ bool parse_options(int argc, char *const *argv) {
 			usage();
 			goto error;
 		}
+	}
+
+	SERROR_CHECK(str_global_api_referer_list != NULL, "api_referer_list is a required parameter");
+	if (str_global_public_api_referer_list == NULL) {
+		SERROR_SNCAT(str_global_public_api_referer_list, &int_global_len,
+			str_global_api_referer_list, strlen(str_global_api_referer_list));
 	}
 
 	char *str_temp = NULL;

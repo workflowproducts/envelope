@@ -204,6 +204,78 @@ error:
 	return NULL;
 }
 
+bool check_referer(char *_str_referer, size_t _int_referer_len, char *str_referer_list) {
+	// Use this for testing:
+	// fprintf(stderr, "check_referer(\"localhost\", 9, \"localhost\"): %i\012", check_referer("localhost", 9, strdup("localhost")));
+	// fprintf(stderr, "check_referer(\"localhost\", 9, \"loCAlhost\"): %i\012", check_referer("localhost", 9, strdup("loCAlhost")));
+	// fprintf(stderr, "check_referer(\"localhost\", 9, \"*\"): %i\012", check_referer("localhost", 9, strdup("*")));
+	// fprintf(stderr, "check_referer(\"localhost\", 9, \"test,asdf\"): %i\012", check_referer("localhost", 9, strdup("test,asdf")));
+	// fprintf(stderr, "check_referer(\"test\", 4, \"test,asdf\"): %i\012", check_referer("test", 9, strdup("test,asdf")));
+	// fprintf(stderr, "check_referer(\"asdfa\", 5, \"test,asdf\"): %i\012", check_referer("asdfa", 9, strdup("test,asdf")));
+	// fprintf(stderr, "check_referer(\"asdf\", 4, \"testa,asdf\"): %i\012", check_referer("asdf", 9, strdup("testa,asdf")));
+	// fprintf(stderr, "check_referer(\"te.stasdf\", 9, \"test,*.stasdf\"): %i\012", check_referer("te.stasdf", 9, strdup("test,*.stasdf")));
+	// fprintf(stderr, "check_referer(\"https://te.stasdf/test\", 23, \"test,*.stasdf\"): %i\012", check_referer("https://te.stasdf/test", 23, strdup("test,*.stasdf")));
+	// fprintf(stderr, "check_referer(\"https://tea.stasdf/test\", 24, \"test,*.stasdf\"): %i\012", check_referer("https://tea.stasdf/test", 24, strdup("test,*.stasdf")));
+	// fprintf(stderr, "check_referer(\"https://te.satasdf/test\", 24, \"test,*.stasdf\"): %i\012", check_referer("https://te.satasdf/test", 24, strdup("test,*.stasdf")));
+
+	char *str_referer = NULL;
+	char *ptr_referer_end = NULL;
+	char *ptr_tok = NULL;
+	char *ptr_tok_cmp = NULL;
+	char *ptr_cmp = NULL;
+	size_t int_cmp_len = 0;
+	size_t int_referer_len = 0;
+	if (strncmp(str_referer_list, "*", 2) == 0) {
+		return true;
+	}
+
+	if (strncmp(_str_referer, "http", 4) == 0) {
+		ptr_referer_end = strstr(_str_referer, "://") + 3;
+	} else {
+		ptr_referer_end = _str_referer;
+	}
+	SDEBUG("ptr_referer_end: %s", ptr_referer_end);
+	SERROR_SNCAT(
+		str_referer, &int_referer_len,
+		ptr_referer_end, _int_referer_len - (ptr_referer_end - _str_referer)
+	);
+	SDEBUG("str_referer: %s", str_referer);
+	ptr_referer_end = strstr(str_referer, "/");
+	if (ptr_referer_end != NULL) {
+		*ptr_referer_end = 0;
+		int_referer_len = (ptr_referer_end - str_referer);
+	}
+	SDEBUG("str_referer: %s", str_referer);
+
+	// strtok is not thread-safe, but we aren't using multiple threads
+	// if we end up using threads at some point, we will need to write
+	// a thread-safe version of this loop
+	ptr_tok = strtok(str_referer_list, ",");
+	while (ptr_tok != NULL) {
+		SDEBUG("ptr_tok: %s", ptr_tok);
+		if (ptr_tok[0] == '*') {
+			ptr_tok_cmp = ptr_tok + 1;
+			ptr_cmp = str_referer + int_referer_len - strlen(ptr_tok_cmp);
+			int_cmp_len = int_referer_len - strlen(ptr_tok_cmp);
+		} else {
+			ptr_tok_cmp = ptr_tok;
+			ptr_cmp = str_referer;
+			int_cmp_len = int_referer_len;
+		}
+		SDEBUG("ptr_cmp: %s", ptr_cmp);
+		SDEBUG("ptr_tok_cmp: %s", ptr_tok_cmp);
+		if (strncasecmp(ptr_cmp, ptr_tok_cmp, int_cmp_len) == 0) {
+			return true;
+		}
+
+		ptr_tok = strtok(NULL, ",");
+	}
+
+	return false;
+error:
+	return false;
+}
+
 sun_upload *get_sun_upload(char *str_request, size_t int_request_len) {
 	sun_upload *sun_return = NULL;
 	char *boundary_ptr = NULL;

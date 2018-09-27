@@ -468,8 +468,12 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				bol_error_state = false;
 				SFREE(str_global_error);
 			}
-
-
+			client->str_referer = request_header(client->str_request, client->int_request_len, "Referer", &client->int_referer_len);
+			if (client->str_referer == NULL) {
+				client->str_referer = request_header(client->str_request, client->int_request_len, "Origin", &client->int_referer_len);
+			}
+			SINFO("client->str_referer: %s", client->str_referer);
+			
 			size_t int_i = 0, int_header_len = client->int_request_len;
 			SDEBUG("client->bol_upload: %s", client->bol_upload ? "true" : "false");
 			if (client->bol_upload) {
@@ -479,6 +483,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 
 				ptr_temp_unix = ptr_temp_unix != NULL ? ptr_temp_unix : client->str_request + client->int_request_len;
 				ptr_temp_dos = ptr_temp_dos != NULL ? ptr_temp_dos : client->str_request + client->int_request_len;
+
 				ptr_temp_mac = ptr_temp_mac != NULL ? ptr_temp_mac : client->str_request + client->int_request_len;
 
 				char *ptr_temp = ptr_temp_unix < ptr_temp_dos ? ptr_temp_unix : ptr_temp_dos;
