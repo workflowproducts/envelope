@@ -21,7 +21,8 @@ envelope
        [-t <login-timeout> | --login-timeout=<login-timeout>]
        [-u <public-username> | --public-username=<public-username>]
        [-w <public-password> | --public-password=<public-password>]
-       [-x <local-only> | --local-only=<local-only>]
+       [-q <log-queries-over> | --log-queries-over=<log-queries-over>]
+       [-a <log-queries-over-action-name> | --log-queries-over-action-name=<log-queries-over-action-name>]
 ```
 
 ## DESCRIPTION
@@ -98,6 +99,12 @@ The following options can be specified on the command line or in the configurati
        `String;` no defaults
        This option tells `envelope` than public actions should use these credentials, if they are unset, then public actions are disabled.
 
+`-q` or `--log-queries-over=` or `log_queries_over=`  
+       `Integer;` 120  
+`-a` or `--log-queries-over-action-name=` or `log_queries_over_action_name=`  
+       `String;` no default
+       `log_queries_over` will tell `envelope` to check every `log_queries_over` / 10 seconds for queries (run by `envelope`) that have been running longer than `log_queries_over` seconds. If you have `log_queries_over_action_name` set as well, then it will run the PostgreSQL function named. Note: `log_queries_over_action_name` requires a public user to be setup, `envelope` uses the public user to connect at startup and runs the action for every query it detects.
+
 ## SETTING UP A CONNECTION TO A POSTGRESQL SERVER
 
 Envelope requires at least one PostgreSQL server be listed in the envelope-connections.conf file. This version of Envelope doesn't allow you to specify a server from the command line. Enter only one PostgreSQL server per line. For envelope, only the first server is used.
@@ -141,7 +148,7 @@ Try accessing your database through psql. If you can, double check your connecti
 
 
 ## AUTHOR
-Copyright (c) 2017 Workflow Products, LLC
+Copyright (c) 2018 Workflow Products, LLC
 
 Created by Annunziato Tocci
 

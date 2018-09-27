@@ -1,9 +1,9 @@
-.TH "ENVELOPE" "1" "February 2018" "" ""
+.TH "ENVELOPE" "1" "September 2018" "" ""
 .SH "NAME"
 \fBenvelope\fR \- PostgreSQL Interface for the web
 .SH FULL PATH
 .P
-This instance of envelope was installed as \fB\fP (Usually \fB\fP)
+This instance of envelope was installed as \fB@prefix@/sbin/envelope\fP (Usually \fB/usr/local/sbin/envelope\fP)
 .SH SYNOPSIS
 .P
 .RS 2
@@ -23,113 +23,123 @@ envelope
        [\-t <login\-timeout> | \-\-login\-timeout=<login\-timeout>]
        [\-u <public\-username> | \-\-public\-username=<public\-username>]
        [\-w <public\-password> | \-\-public\-password=<public\-password>]
-       [\-x <local\-only> | \-\-local\-only=<local\-only>]
+       [\-q <log\-queries\-over> | \-\-log\-queries\-over=<log\-queries\-over>]
+       [\-a <log\-queries\-over\-action\-name> | \-\-log\-queries\-over\-action\-name=<log\-queries\-over\-action\-name>]
 .fi
 .RE
 .SH DESCRIPTION
 .P
-The \fB\fP utility is  a tool to make using your PostgreSQL database fast and easy\. It provides web access and can be used on a tablet, or even on a phone\.
+The \fBenvelope\fP utility is  a tool to make using your PostgreSQL database fast and easy\. It provides web access and can be used on a tablet, or even on a phone\.
 .P
-All log output is pushed to stderr, if you are pushing that to a file, then you must handle rotating the file yourself or it will get large and slow \fB\fP down\.
+All log output is pushed to stderr, if you are pushing that to a file, then you must handle rotating the file yourself or it will get large and slow \fBenvelope\fP down\.
 .SH OPTIONS
 .P
-\fB\fP or \fB\fP
+\fB\-h\fP or \fB\-\-help\fP
 .br
        Print usage and exit
 .P
-\fB\fP or \fB\fP
+\fB\-v\fP or \fB\-\-version\fP
 .br
        Print version information and exit
 .P
-\fB\fP or \fB\fP
+\fB\-c\fP or \fB\-\-config\-file=\fP
 .br
-       \fB\fP defaults to @prefix@/etc/envelope/envelope\.conf
+       \fBString;\fP defaults to @prefix@/etc/envelope/envelope\.conf
 .br
        You can use this option to tell Envelope where to look for the configuration file\. A sample configuration file is provided in @prefix@/etc/envelope\. If there is no file specified Envelope will look in the current directory for a config file\. If no config file is found Envelope will proceed with default values\.
 .P
 The following options can be specified on the command line or in the configuration file\. In the event a value is specified on the command line and in the config file, Envelope will always use the command line option\. Note that if no option is specified then some options will be set to a default value\.
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB[command line short]\fP or \fB[command line long]\fP or \fB[config file]\fP
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB\-d\fP or \fB\-\-connection\-file=\fP or \fBconnection_file=\fP
 .br
-       \fB\fP defaults to @prefix@/etc/envelope/envelope\-connections\.conf
+       \fBString;\fP defaults to @prefix@/etc/envelope/envelope\-connections\.conf
 .br
        When you install Envelope, the Makefile will generate a path to the sample envelope\-connections\.conf file and put it in the sample config file\. Use this option to tell Envelope where your connection list is located\.
 .br
        If not specified, Envelope looks in the same folder as the config file for a file named envelope\-connections\.conf\. If Envelope can't find a connection file, it will error\.
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB\-s\fP or \fB\-\-super\-only=\fP or \fBsuper_only=\fP
 .br
-       \fB\fP defaults to false
+       \fBBoolean;\fP defaults to false
 .br
        This tells Envelope whether or not to only allow super users to login\. The recommended value is true and will restrict users who are not super users from logging in to any PostgreSQL instance through Envelope\. Note that a connection will be made to PostgreSQL in order to test if the user is a superuser\.  
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB\-g\fP or \fB\-\-login\-group=\fP or \fBlogin_group=\fP
 .br
-       \fB\fP no default
+       \fBString;\fP no default
 .br
        This tells Envelope to only allow users in a certain PostgreSQL group to login to Envelope\. Note that a connection will be made to PostgreSQL in order to test if the user is a member of the login group\.
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB\-r\fP or \fB\-\-web\-root=\fP or \fBweb_root=\fP
 .br
-       \fB\fP Defaults to @prefix@/etc/envelope/web_root
+       \fBString;\fP Defaults to @prefix@/etc/envelope/web_root
 .br
        This tells Envelope where the HTML files have been installed to\.
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB\-y\fP or \fB\-\-app\-path=\fP or \fBapp_path=\fP
 .br
-       \fB\fP defaults to @prefix@/etc/envelope/app
+       \fBString;\fP defaults to @prefix@/etc/envelope/app
 .br
        This tells Envelope where the app HTML files have been installed to\.
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB\-z\fP or \fB\-\-role\-path=\fP or \fBrole_path=\fP
 .br
-       \fB\fP defaults to @prefix@/etc/envelope/role
+       \fBString;\fP defaults to @prefix@/etc/envelope/role
 .br
        This tells Envelope where the role DATA files have been installed to\.
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB\-p\fP or \fB\-\-envelope\-port=\fP or \fBenvelope_port=\fP
 .br
-       \fB\fP defaults to 8888
+       \fBInteger;\fP defaults to 8888
 .br
        This tells Envelope what port to listen on for browser requests\.
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB\-j\fP or \fB\-\-tls\-cert=\fP or \fBtls_cert=\fP
 .br
-\fB\fP or \fB\fP or \fB\fP
+\fB\-k\fP or \fB\-\-tls\-key=\fP or \fBtls_key=\fP
 .br
-       \fB\fP no defaults
+       \fBString;\fP no defaults
 .br
        These options tell Envelope where the TLS Certificate and Key files reside\. If you use these options then you'll only be able to access Envelope through a secure TLS connection\.
 .br
        These options are only necessary if you wish to connect directly to Envelope using a secure TLS connection\. As an alternative, you can set up Envelope in a reverse proxy configuration\. This allows your web server to terminate the secure connection and pass on the request to Envelope\. You can find help to set up this configuration in the INSTALL_NGINX file that came with your distribution\.
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB\-n\fP or \fB\-\-allow\-custom\-connections=\fP or \fBallow_custom_connections=\fP
 .br
-       \fB\fP defaults to false
+       \fBBoolean;\fP defaults to false
 .br
        This tells Envelope whether or not to allow anyone to use a custom connection from the login screen\.
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB\-l\fP or \fB\-\-log\-level=\fP or \fBlog_level=\fP
 .br
-       \fB\fP defaults to error
+       \fBString;\fP defaults to error
 .br
        This option regulates the frequency and verbosity of log messages\. Possible values are none, error, warn, notice and info\.
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB\-t\fP or \fB\-\-login\-timeout=\fP or \fBlogin_timeout=\fP
 .br
-       \fB\fP defaults to 3600
+       \fBInteger;\fP defaults to 3600
 .br
        This option regulates the login timeout (in seconds) after the last activity on a session\.
        If 0, no timeout is enforced\.
 .P
-\fB\fP or \fB\fP or \fB\fP
+\fB\-u\fP or \fB\-\-public\-username=\fP or \fBpublic_username=\fP
 .br
-\fB\fP or \fB\fP or \fB\fP
+\fB\-w\fP or \fB\-\-public\-password=\fP or \fBpublic_password=\fP
 .br
-       \fB\fP no defaults
-       This option tells \fB\fP than public actions should use these credentials, if they are unset, then public actions are disabled\.
+       \fBString;\fP no defaults
+       This option tells \fBenvelope\fP than public actions should use these credentials, if they are unset, then public actions are disabled\.
+.P
+\fB\-q\fP or \fB\-\-log\-queries\-over=\fP or \fBlog_queries_over=\fP
+.br
+       \fBInteger;\fP 120
+.br
+\fB\-a\fP or \fB\-\-log\-queries\-over\-action\-name=\fP or \fBlog_queries_over_action_name=\fP
+.br
+       \fBString;\fP no default
+       \fBlog_queries_over\fP will tell \fBenvelope\fP to check every \fBlog_queries_over\fP / 10 seconds for queries (run by \fBenvelope\fP) that have been running longer than \fBlog_queries_over\fP seconds\. If you have \fBlog_queries_over_action_name\fP set as well, then it will run the PostgreSQL function named\. Note: \fBlog_queries_over_action_name\fP requires a public user to be setup, \fBenvelope\fP uses the public user to connect at startup and runs the action for every query it detects\.
 .SH SETTING UP A CONNECTION TO A POSTGRESQL SERVER
 .P
 Envelope requires at least one PostgreSQL server be listed in the envelope\-connections\.conf file\. This version of Envelope doesn't allow you to specify a server from the command line\. Enter only one PostgreSQL server per line\. For envelope, only the first server is used\.
@@ -167,7 +177,7 @@ mini\-server: hostaddr=127\.0\.0\.1 port=5432 dbname=postgres sslmode=require
 .RE
 .SH EXAMPLES
 .P
-Run \fB\fP (short argument):
+Run \fBenvelope\fP (short argument):
 .P
 .RS 2
 .nf
@@ -175,7 +185,7 @@ Run \fB\fP (short argument):
 .fi
 .RE
 .P
-Run \fB\fP (long argument):
+Run \fBenvelope\fP (long argument):
 .P
 .RS 2
 .nf
