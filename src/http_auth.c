@@ -189,7 +189,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 				client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
 				"; path=/; expires=", (size_t)18,
 				str_expires, strlen(str_expires),
-				str_temp2, strlen(str_temp2),
+				str_temp2, strlen(str_temp2)
 			);
 
 			struct sock_ev_client *client = client_auth->parent;
