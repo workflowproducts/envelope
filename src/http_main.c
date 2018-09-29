@@ -181,7 +181,8 @@ void http_main(struct sock_ev_client *client) {
 	SDEBUG("#################################################################################################");
 
 	SDEBUG("str_uri: %s", str_uri);
-	if (strncmp(str_uri, "/env/auth", 10) == 0 || strncmp(str_uri, "/env/auth/", 11) == 0) {
+	if (strncmp(str_uri, "/env/auth", 10) == 0 || strncmp(str_uri, "/env/auth/", 11) == 0 ||
+		strncmp(str_uri, "/env/authnc", 12) == 0 || strncmp(str_uri, "/env/authnc/", 13) == 0) {
 		SDEBUG("str_uri: %s", str_uri);
 
 		struct sock_ev_client_auth *client_auth;

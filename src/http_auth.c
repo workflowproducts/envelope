@@ -83,7 +83,6 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		SFINISH_CHECK(
 			bstrstr(client_auth->str_password, client_auth->int_password_length, ";", 1) == NULL, "no semi-colons allowed");
 
-		SFINISH_SNCAT(client_auth->str_connname, &client_auth->int_conn_length, "", (size_t)0);
 		// cookie expiration
 		str_expires = str_expire_two_day();
 		SFINISH_CHECK(str_expires != NULL, "str_expire_two_day failed");
@@ -127,10 +126,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		SFREE_PWORD(str_cookie_decrypted);
 		// done encrypting
 
-		// assemble connection string, get cnxn handle
-		SFINISH_CHECK(exists_connection_info(client_auth->str_connname), "There is no connection info with that name.");
-
-		char *str_temp = get_connection_info(client_auth->str_connname, &client_auth->int_connection_index);
+		char *str_temp = get_connection_info("", &client_auth->int_connection_index);
 		size_t int_temp = strlen(str_temp);
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 		if (client_auth->str_database != NULL) {
@@ -220,7 +216,6 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		client_auth->str_password = getpar(str_cookie_decrypted, "password", int_cookie_len, &client_auth->int_password_length);
 		str_expiration = getpar(str_cookie_decrypted, "expiration", int_cookie_len, &int_expiration_len);
 
-		SFINISH_SNCAT(client_auth->str_connname, &client_auth->int_conn_length, "", (size_t)0);
 		SFREE_PWORD(str_cookie_decrypted);
 
 		str_uri_new_password = snuri(client_auth->str_new_password, client_auth->int_new_password_length, &int_uri_new_password_len);
@@ -232,8 +227,6 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 			"valid=true", (size_t)10,
 			"&username=", (size_t)10,
 			client_auth->str_user, client_auth->int_user_length,
-			"&connname=", (size_t)10,
-			client_auth->str_connname, client_auth->int_connname_length,
 			"&password=", (size_t)10,
 			str_uri_new_password, int_uri_new_password_len,
 			"&expiration=", (size_t)12,
@@ -243,10 +236,6 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 			"&sessionid=", (size_t)11,
 			str_session_id, strlen(str_session_id)
 		);
-
-		if (client_auth->str_conn != NULL) {
-			SFINISH_SNFCAT(str_new_cookie, &int_cookie_len, "&conn=", (size_t)6, client_auth->str_conn, client_auth->int_conn_length);
-		}
 
 		// **** WARNING ****
 		// DO NOT UNCOMMENT THE NEXT LINE! THAT WILL PUT THE NEW PASSWORD IN THE
@@ -267,26 +256,19 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 
 		SINFO("REQUEST USERNAME: %s", client_auth->str_user);
 
-		SFINISH_CHECK(client_auth->str_conn != NULL || exists_connection_info(client_auth->str_connname),
-			"There is no connection info with that name.");
-
-		if (client_auth->str_conn != NULL) {
-			SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, client_auth->str_conn, client_auth->int_conn_length);
-		} else {
-			char *str_temp = get_connection_info(client_auth->str_connname, &client_auth->int_connection_index);
-			size_t int_temp = strlen(str_temp);
+		char *str_temp = get_connection_info("", &client_auth->int_connection_index);
+		size_t int_temp = strlen(str_temp);
 #ifdef ENVELOPE_INTERFACE_LIBPQ
-			if (client_auth->str_database != NULL) {
-				SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp, " dbname=", (size_t)8, client_auth->str_database, strlen(client_auth->str_database));
-			} else {
-				SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp);
-			}
-#else
+		if (client_auth->str_database != NULL) {
+			SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp, " dbname=", (size_t)8, client_auth->str_database, strlen(client_auth->str_database));
+		} else {
 			SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp);
-#endif
-			SFINISH_SALLOC(client_auth->str_int_connection_index, 20);
-			snprintf(client_auth->str_int_connection_index, 20, "%zu", client_auth->int_connection_index);
 		}
+#else
+		SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp);
+#endif
+		SFINISH_SALLOC(client_auth->str_int_connection_index, 20);
+		snprintf(client_auth->str_int_connection_index, 20, "%zu", client_auth->int_connection_index);
 
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 		if (bol_global_set_user) {
