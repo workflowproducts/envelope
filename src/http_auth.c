@@ -163,10 +163,6 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		SFINISH_SNFCAT(str_cookie_decrypted, &int_cookie_len, "&timeout=", (size_t)9, str_uri_timeout, strlen(str_uri_timeout));
 		SFREE(str_uri_timeout);
 
-		if (strncmp(str_uri, "/env/authnc", 12) == 0 || strncmp(str_uri, "/env/authnc/", 13) == 0) {
-			SINFO("str_cookie_decrypted: %s", str_cookie_decrypted);
-		}
-
 		// encrypt
 		SFREE(str_uri_expires);
 		SFREE_PWORD(str_form_data);
