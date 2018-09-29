@@ -28,6 +28,12 @@ Returns the uri for a request.
 */
 char *str_uri_path(char *str_request, size_t int_request_length, size_t *int_uri_length);
 
+
+/*
+Checks referer header against list.
+*/
+bool check_referer(char *str_referer, size_t int_referer_len, char *str_referer_list);
+
 typedef struct {
 	char *str_name;
 	char *str_file_content;

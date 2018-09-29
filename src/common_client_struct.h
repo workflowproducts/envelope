@@ -120,12 +120,14 @@ struct sock_ev_client {
 	char *str_cookie;
 	char *str_cookie_name;
 	char *str_session_id;
+	char *str_referer;
 
 	size_t int_username_len;
 	size_t int_database_len;
 	size_t int_connname_len;
 	size_t int_connname_folder_len;
 	size_t int_conn_len;
+	size_t int_referer_len;
 
 	ListNode *node;
 	ssize_t int_last_activity_i;

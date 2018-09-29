@@ -1,5 +1,5 @@
 BINARY = envelope
-CONFIGS = -c config/envelope.conf -t 300 -i t
+CONFIGS = -c config/envelope.conf -t 300 -f 127.0.0.1:8888
 WEBROOTS = -r ./web_root/ -z ./role -y ./app
 INSTALL_DEPS = @prefix@/sbin/ @prefix@/etc/envelope/ \
 @prefix@/etc/envelope/envelope.conf @prefix@/etc/envelope/envelope-connections.conf \
@@ -169,38 +169,38 @@ test-common:
 	sleep 3
 
 test: test-common
-	./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 || \
+	./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function || \
 	{ kill `cat postgres.pid`; rm postgres.pid; rm -rf data_test; exit 1; }
 
 test-set-user: test-common
-	PGPASSFILE=./config/pgpass-test ./$(BINARY) $(CONFIGS) -d config/envelope-connections-set-user-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 || \
+	PGPASSFILE=./config/pgpass-test ./$(BINARY) $(CONFIGS) -d config/envelope-connections-set-user-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function || \
 	{ kill `cat postgres.pid`; rm postgres.pid; rm -rf data_test; exit 1; }
 
 test-ssl: test-common
-	./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -j ../ssl/self.crt -k ../ssl/self.key -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 || \
+	./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -j ../ssl/self.crt -k ../ssl/self.key -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function || \
 	{ kill `cat postgres.pid`; rm postgres.pid; rm -rf data_test; exit 1; }
 
 gdb: test-common
 	echo "run" > temp_gdb_commands
-	gdb -x temp_gdb_commands --args ./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 || \
+	gdb -x temp_gdb_commands --args ./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function || \
 	{ kill `cat postgres.pid`; rm postgres.pid; rm -rf data_test; exit 1; }
 	rm temp_gdb_commands
 
 gdb-set-user: test-common
 	echo "run" > temp_gdb_commands
-	PGPASSFILE=./config/pgpass-test gdb -x temp_gdb_commands --args ./$(BINARY) $(CONFIGS) -d config/envelope-connections-set-user-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 || \
+	PGPASSFILE=./config/pgpass-test gdb -x temp_gdb_commands --args ./$(BINARY) $(CONFIGS) -d config/envelope-connections-set-user-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function || \
 	{ kill `cat postgres.pid`; rm postgres.pid; rm -rf data_test; exit 1; }
 	rm temp_gdb_commands
 
 gdb-ssl: test-common
 	echo "run" > temp_gdb_commands
-	gdb -x temp_gdb_commands --args ./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -j ../ssl/self.crt -k ../ssl/self.key -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 || \
+	gdb -x temp_gdb_commands --args ./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -j ../ssl/self.crt -k ../ssl/self.key -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function || \
 	{ kill `cat postgres.pid`; rm postgres.pid; rm -rf data_test; exit 1; }
 	rm temp_gdb_commands
 
 lldb: test-common
 	echo "run" > temp_lldb_commands
-	lldb -s temp_lldb_commands -- ./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 || \
+	lldb -s temp_lldb_commands -- ./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function || \
 	{ kill `cat postgres.pid`; rm postgres.pid; rm -rf data_test; exit 1; }
 	rm temp_lldb_commands
 

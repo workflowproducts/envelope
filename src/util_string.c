@@ -281,7 +281,7 @@ char *cstr_to_uri(char *ptr_loop, size_t *int_inputstring_len) {
 			result_ptr = result_text + int_result_len;
 
 			char *ptr = ptr_loop;
-			int i = 0;
+			size_t i = 0;
 			while (i < int_chunk_len) {
 				result_ptr[0] = 37;                  // % in ascii
 				result_ptr[1] = hex[(*ptr >> 4) & 0xF];  // first hex digit

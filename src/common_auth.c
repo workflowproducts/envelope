@@ -181,14 +181,15 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	SFINISH_CHECK(str_cookie_decrypted != NULL, "aes_decrypt failed");
 
 	if (client->bol_public == false && int_cookie_len > 0) {
+		// **** WARNING ****
+		// DO NOT UNCOMMENT THE NEXT LINE! THAT WILL PUT THE FULL COOKIE IN THE CLEAR
+		// IN THE LOG!!!!
+		// SDEBUG("str_cookie_decrypted: >%s<", str_cookie_decrypted);
+		// **** WARNING ****
 
-	// **** WARNING ****
-	// DO NOT UNCOMMENT THE NEXT LINE! THAT WILL PUT THE FULL COOKIE IN THE CLEAR
-	// IN THE LOG!!!!
-	// SDEBUG("str_cookie_decrypted: >%s<", str_cookie_decrypted);
-	// **** WARNING ****
-
-	SFINISH_CHECK(strncmp(str_cookie_decrypted, "valid=true&", 11) == 0, "Session expired");
+		// sometimes the cookie decrypts without error but you get garbage back
+		// I think this has something to do with the midnight key change?
+		SFINISH_CHECK(strncmp(str_cookie_decrypted, "valid=true&", 11) == 0, "Session expired");
 	}
 
 	////GET THINGS FOR CONNECTION STRING
@@ -205,6 +206,12 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	}
 	if (str_database != NULL) {
 		SINFO("REQUEST DATABASE: %s", str_database);
+	}
+
+	// check Referer for sockets
+	if (client->client_request_watcher) {
+		SFINISH_CHECK(client->str_referer != NULL, "Referer header required for websockets");
+		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 	}
 
 	if (client->bol_public) {

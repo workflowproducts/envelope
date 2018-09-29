@@ -32,6 +32,7 @@ extern char *str_global_web_root;
 extern char *str_global_port;
 extern bool bol_global_local_only;
 extern bool bol_global_super_only;
+extern bool bol_global_allow_public_login;
 extern char *str_global_set_uname;
 extern char *str_global_set_gname;
 
@@ -45,6 +46,9 @@ extern bool bol_global_set_user;
 
 extern char *str_global_app_path;
 extern char *str_global_role_path;
+
+extern char *str_global_api_referer_list;
+extern char *str_global_public_api_referer_list;
 
 extern char cwd[1024];
 #ifdef _WIN32

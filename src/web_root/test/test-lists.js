@@ -188,8 +188,29 @@ Old password does not match.*/})],
 				ml(function () {/*{"stat": true, "dat": "OK"}*/})],
 		 ]
 	},
-    http_file: {
+    http_authnc: {
         tests: [
+            ['AUTHNC', 'ajax', 200, '/env/authnc', 'action=login',
+            ml(function () {/*{"stat": true, "dat": "/env/app/all/index.html"}*/})],
+			['ROLE DOWNLOAD FAIL', 'ajax', 404, '/env/role/download/all/test{{test_random1}}.sql', 'asdf',
+				ml(function () {/*The file you are requesting is not here.*/})],
+			['ROLE UPLOAD FAIL 1', 'ajax', 500, '/env/upload', '',
+				ml(function () {/*FATAL
+util_request.c:get_sun_upload: Cannot find boundary for request
+get_sun_upload failed*/})],
+			['ROLE UPLOAD', 'upload', 200, '/env/upload', '/role/all/test{{test_random1}}.sql',
+				ml(function () {/*Upload Succeeded
+*/})],
+			['ROLE UPLOAD FAIL 2', 'upload', 500, '/env/upload', '/role/all/test{{test_random1}}.sql',
+				ml(function () {/*FATAL
+File already exists.*/})],
+
+			['ROLE DOWNLOAD', 'ajax', 200, '/env/role/download/all/test{{test_random1}}.sql', '',
+            binaryArray]
+        ]
+   },
+   http_file: {
+       tests: [
             ['File Read Fail 1', 'ajax', 404, '/test200.txt', '',
 		        ml(function () {/*The file you are requesting is not here.*/
 		        })],
