@@ -1,3 +1,4 @@
+#define UTIL_DEBUG
 #include "ws_file.h"
 
 static const char *str_date_format = "%Y-%m-%d %H:%M:%S";
@@ -1660,6 +1661,8 @@ bool ws_file_copy_step4(EV_P, void *cb_data, char *str_path) {
 	if (*(client_file->str_partial_path_to + strlen(client_file->str_partial_path_to) - 1) == '/') {
 		*(client_file->str_partial_path_to + strlen(client_file->str_partial_path_to) - 1) = '\0';
 	}
+	SDEBUG("client_file->str_partial_path: %s", client_file->str_partial_path);
+	SDEBUG("client_file->str_partial_path_to: %s", client_file->str_partial_path_to);
 	size_t int_new_path_len = 0;
 	size_t int_new_path_to_len = 0;
 	if (*str_path == '/') {
@@ -1670,7 +1673,7 @@ bool ws_file_copy_step4(EV_P, void *cb_data, char *str_path) {
 		);
 		SFINISH_SNCAT(
 			str_new_path_to, &int_new_path_to_len,
-			client_file->str_partial_path_to, strlen(client_file->str_partial_path),
+			client_file->str_partial_path_to, strlen(client_file->str_partial_path_to),
 			str_path, strlen(str_path)
 		);
 	} else {
@@ -1682,11 +1685,13 @@ bool ws_file_copy_step4(EV_P, void *cb_data, char *str_path) {
 		);
 		SFINISH_SNCAT(
 			str_new_path_to, &int_new_path_to_len,
-			client_file->str_partial_path_to, strlen(client_file->str_partial_path),
+			client_file->str_partial_path_to, strlen(client_file->str_partial_path_to),
 			"/", (size_t)1,
 			str_path, strlen(str_path)
 		);
 	}
+	SDEBUG("str_new_path: %s", str_new_path);
+	SDEBUG("str_new_path_to: %s", str_new_path_to);
 
 	str_result_path = canonical(client_file->str_canonical_start, str_new_path, "read_file");
 	if (str_result_path != NULL) {
