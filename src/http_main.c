@@ -115,8 +115,8 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 			strncmp(str_uri, "/env/accept_", 12) == 0 ||
 			strncmp(str_uri, "/env/acceptnc_", 14) == 0
 		) {
-			SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
-			SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
+			SFINISH_CHECK(client->bol_public || client->str_referer != NULL, "Referer header required for this request");
+			SFINISH_CHECK(client->bol_public || check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 			http_accept_step1(client);
 		} else {
 			http_file_step1(client);
