@@ -210,7 +210,7 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 
 	// check Referer for sockets
 	if (client->client_request_watcher) {
-		SFINISH_CHECK(client->str_referer != NULL, "Referer header required for websockets");
+		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for websockets");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 	}
 

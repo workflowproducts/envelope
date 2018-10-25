@@ -39,31 +39,31 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 	SDEBUG("str_uri: %s", str_uri);
 
 	if (strncmp(str_uri, "/env/upload", 12) == 0) {
-		SFINISH_CHECK(client->str_referer != NULL, "Referer header required for this request");
+		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		http_upload_step1(client);
 	} else if (strncmp(str_uri, "/env/action_ev", 15) == 0) {
-		SFINISH_CHECK(client->str_referer != NULL, "Referer header required for this request");
+		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		http_ev_step1(client);
 	} else if (strncmp(str_uri, "/env/action_select", 19) == 0 || strncmp(str_uri, "/env/actionnc_select", 21) == 0) {
-		SFINISH_CHECK(client->str_referer != NULL, "Referer header required for this request");
+		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		http_select_step1(client);
 	} else if (strncmp(str_uri, "/env/action_insert", 19) == 0 || strncmp(str_uri, "/env/actionnc_insert", 21) == 0) {
-		SFINISH_CHECK(client->str_referer != NULL, "Referer header required for this request");
+		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		http_insert_step1(client);
 	} else if (strncmp(str_uri, "/env/action_update", 19) == 0 || strncmp(str_uri, "/env/actionnc_update", 21) == 0) {
-		SFINISH_CHECK(client->str_referer != NULL, "Referer header required for this request");
+		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		http_update_step1(client);
 	} else if (strncmp(str_uri, "/env/action_delete", 19) == 0 || strncmp(str_uri, "/env/actionnc_delete", 21) == 0) {
-		SFINISH_CHECK(client->str_referer != NULL, "Referer header required for this request");
+		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		http_delete_step1(client);
 	} else if (strncmp(str_uri, "/env/action_info", 17) == 0) {
-		SFINISH_CHECK(client->str_referer != NULL, "Referer header required for this request");
+		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
 			SFINISH_SNCAT(str_sql, &int_sql_len,
@@ -115,7 +115,7 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 			strncmp(str_uri, "/env/accept_", 12) == 0 ||
 			strncmp(str_uri, "/env/acceptnc_", 14) == 0
 		) {
-			SFINISH_CHECK(client->str_referer != NULL, "Referer header required for this request");
+			SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 			SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 			http_accept_step1(client);
 		} else {
@@ -134,7 +134,7 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 			strncmp(str_uri, "/env/action_", 12) == 0 ||
 			strncmp(str_uri, "/env/actionnc_", 14) == 0
 		) {
-			SFINISH_CHECK(client->str_referer != NULL, "Referer header required for this request");
+			SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 			SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 			http_action_step1(client);
 		} else {
@@ -200,7 +200,7 @@ void http_main(struct sock_ev_client *client) {
 
 	if (strncmp(str_uri, "/env/auth", 10) == 0 || strncmp(str_uri, "/env/auth/", 11) == 0 ||
 		((strncmp(str_uri, "/env/authnc", 12) == 0 || strncmp(str_uri, "/env/authnc/", 13) == 0) && bol_global_allow_public_login)) {
-		SFINISH_CHECK(client->str_referer != NULL, "Referer header required for this request");
+		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		SDEBUG("str_uri: %s", str_uri);
 
