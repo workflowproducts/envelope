@@ -16,6 +16,14 @@ void http_file_step1(struct sock_ev_client *client) {
 	SDEFINE_VAR_ALL(str_temp, str_temp1, str_uri_temp, str_canonical_start, str_uri_for_permission_check);
 	size_t int_uri_for_permission_check_len = 0;
 
+	if (strncmp(client->str_request, "GET ", 4) == 0 || strncmp(client->str_request, "POST ", 5) == 0 || strncmp(client->str_request, "HEAD ", 5) == 0) {
+		// We are good
+	} else {
+		char _str_temp[11] = { 0 };
+		memcpy(_str_temp, client->str_request, 10);
+		SFINISH("unknown request type, first ten chars of request: %s", _str_temp);
+	}
+
 	SFINISH_SALLOC(client_http_file, sizeof(struct sock_ev_client_http_file));
 	client_http_file->parent = client;
 	client_http_file->str_uri_part = NULL;

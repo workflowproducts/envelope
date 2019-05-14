@@ -491,34 +491,6 @@ void client_cb(EV_P, ev_io *w, int revents) {
 
 				int_header_len = (size_t)(ptr_temp - client->str_request);
 			}
-			SDEBUG("int_header_len: %d", int_header_len);
-			while (int_i < int_header_len) {
-				// Check if the character is not printable
-				if ((unsigned char)(client->str_request[int_i]) != 9 && (unsigned char)(client->str_request[int_i]) != 10 &&
-					(unsigned char)(client->str_request[int_i]) != 13 && (unsigned char)(client->str_request[int_i]) < 32) {
-					char str_int_code[4] = {0};
-					snprintf(str_int_code, 4, "%d", (unsigned char)(client->str_request[int_i]));
-					SERROR_SNCAT(str_response, &int_response_len,
-						"HTTP/1.1 400 Bad Request\015\012Connection: close\015\012\015\012An invalid character with the code '", (size_t)83,
-						str_int_code, strlen(str_int_code),
-						"' was found", (size_t)11);
-
-					SBFREE_PWORD(str_upper_request, client->int_request_len);
-
-					if ((int_len = write(client->int_sock, str_response, strlen(str_response))) < 0) {
-						SERROR_NORESPONSE("write() failed");
-					}
-
-					SERROR_CLIENT_CLOSE(client);
-
-					SFREE(str_request);
-					SFREE(str_buffer);
-					SFREE_PWORD_ALL();
-					bol_error_state = false;
-					return;
-				}
-				int_i += 1;
-			}
 			if (str_upper_request == NULL) {
 				SERROR_SALLOC(str_upper_request, client->int_request_len + 1);
 				memcpy(str_upper_request, client->str_request, client->int_request_len);

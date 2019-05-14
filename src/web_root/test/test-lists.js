@@ -353,6 +353,34 @@ error_position	8
 common_util_sql.c:query_is_safe: SQL Injection detected!
 SQL Injection detected*/})],
 			['ACTIONNC', 'ajax', 200, '/env/public.actionnc_testing', 'testingnitset', '{"stat":true, "dat": "testingnitset"}'],
+			['CGI FAIL 1', 'ajax', 500, '/env/public.cgi_testing1', 'testingnitset', ml(function () {/*FATAL
+DB_exec failed:
+FATAL
+error_text	ERROR:  function public.cgi_testing1(unknown) does not exist\nLINE 1: SELECT public.cgi_testing1('POST /env/public.cgi_testing1 HT...\n               ^\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\n
+error_detail	*/ }) + ml(function () {/*
+error_hint	No function matches the given name and argument types. You might need to add explicit type casts.
+error_query	*/ }) + ml(function () {/*
+error_context	*/ }) + ml(function () {/*
+error_position	8
+*/ })],
+			['CGI FAIL 2', 'ajax', 500, '/env/public.cgi_testing;', 'testingnitset', ml(function () {/*FATAL
+common_util_sql.c:query_is_safe: SQL Injection detected!
+SQL Injection detected*/})],
+			['CGI', 'ajax', 200, '/env/public.cgi_testing', 'testingnitset', 'testingnitset'],
+			['CGINC FAIL 1', 'ajax', 500, '/env/public.cginc_testing1', 'testingnitset', ml(function () {/*FATAL
+DB_exec failed:
+FATAL
+error_text	ERROR:  function public.cginc_testing1(unknown) does not exist\nLINE 1: SELECT public.cginc_testing1('POST /env/public.cginc_testing...\n               ^\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\n
+error_detail	*/ }) + ml(function () {/*
+error_hint	No function matches the given name and argument types. You might need to add explicit type casts.
+error_query	*/ }) + ml(function () {/*
+error_context	*/ }) + ml(function () {/*
+error_position	8
+*/})],
+			['CGINC FAIL 2', 'ajax', 500, '/env/public.cginc_testing;', 'testingnitset', ml(function () {/*FATAL
+common_util_sql.c:query_is_safe: SQL Injection detected!
+SQL Injection detected*/})],
+			['CGINC', 'ajax', 200, '/env/public.cginc_testing', 'testingnitset', 'testingnitset'],
 			['action_info', 'ajax', 200, '/env/action_info', '', '']
 		]
 	},

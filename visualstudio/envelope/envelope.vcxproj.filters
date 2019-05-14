@@ -198,6 +198,9 @@
     <ClCompile Include="..\..\src\ws_action.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\http_cgi.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\db_framework_pq\db_framework.h">
@@ -369,6 +372,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\ws_action.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\http_cgi.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

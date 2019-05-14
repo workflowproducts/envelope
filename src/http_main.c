@@ -129,14 +129,33 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 				(
 					strncmp(ptr_dot + 1, "action_", 7) == 0 ||
 					strncmp(ptr_dot + 1, "actionnc_", 9) == 0
-				)
-			) ||
+					)
+				) ||
 			strncmp(str_uri, "/env/action_", 12) == 0 ||
 			strncmp(str_uri, "/env/actionnc_", 14) == 0
-		) {
+			) {
 			SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 			SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 			http_action_step1(client);
+		} else {
+			http_file_step1(client);
+		}
+	} else if (strstr(str_uri, "cgi_") != NULL || strstr(str_uri, "cginc_") != NULL) {
+		char *ptr_dot = strstr(str_uri, ".");
+		if (
+			(
+				ptr_dot != NULL &&
+				(
+					strncmp(ptr_dot + 1, "cgi_", 4) == 0 ||
+					strncmp(ptr_dot + 1, "cginc_", 6) == 0
+					)
+				) ||
+			strncmp(str_uri, "/env/cgi_", 9) == 0 ||
+			strncmp(str_uri, "/env/cginc_", 11) == 0
+			) {
+			SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
+			SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
+			http_cgi_step1(client);
 		} else {
 			http_file_step1(client);
 		}

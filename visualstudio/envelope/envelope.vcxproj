@@ -181,6 +181,7 @@
     <ClCompile Include="..\..\src\http_accept.c" />
     <ClCompile Include="..\..\src\http_action.c" />
     <ClCompile Include="..\..\src\http_auth.c" />
+    <ClCompile Include="..\..\src\http_cgi.c" />
     <ClCompile Include="..\..\src\http_delete.c" />
     <ClCompile Include="..\..\src\http_ev.c" />
     <ClCompile Include="..\..\src\http_export.c" />
@@ -241,6 +242,7 @@
     <ClInclude Include="..\..\src\http_accept.h" />
     <ClInclude Include="..\..\src\http_action.h" />
     <ClInclude Include="..\..\src\http_auth.h" />
+    <ClInclude Include="..\..\src\http_cgi.h" />
     <ClInclude Include="..\..\src\http_delete.h" />
     <ClInclude Include="..\..\src\http_ev.h" />
     <ClInclude Include="..\..\src\http_export.h" />

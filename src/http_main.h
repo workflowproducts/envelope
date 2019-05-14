@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include "http_accept.h"
 #include "http_action.h"
+#include "http_cgi.h"
 #include "http_delete.h"
 #include "http_insert.h"
 #include "http_select.h"

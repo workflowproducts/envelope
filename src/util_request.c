@@ -179,15 +179,17 @@ char *str_uri_path(char *str_request, size_t int_request_length, size_t *int_uri
 	SERROR_CHECK(int_request_length >= 5, "request too short to parse;");
 
 	// find uri start character
-	if (strncmp(str_request, "GET ", 4) == 0) {
-		ptr_uri = str_request + 4;
-	} else if (strncmp(str_request, "HEAD ", 5) == 0 || strncmp(str_request, "POST ", 5) == 0) {
-		ptr_uri = str_request + 5;
-	} else {
-		char str_temp[11] = {0};
-		memcpy(str_temp, str_request, 10);
-		SERROR("unknown request type, first ten chars of request: %s", str_temp);
-	}
+	//if (strncmp(str_request, "GET ", 4) == 0) {
+	//	ptr_uri = str_request + 4;
+	//} else if (strncmp(str_request, "HEAD ", 5) == 0 || strncmp(str_request, "POST ", 5) == 0) {
+	//	ptr_uri = str_request + 5;
+	//} else {
+	//	char str_temp[11] = {0};
+	//	memcpy(str_temp, str_request, 10);
+	//	SERROR("unknown request type, first ten chars of request: %s", str_temp);
+	//}
+	// I'm putting this into http_file, that's the only place we need it. - Nunzio on 2019-05-40 at 5:42 PM
+	ptr_uri = strchr(str_request, ' ') + 1;
 
 	// return just the Request-URI
 	ptr_uri_end = bstrstr(ptr_uri, (int_request_length - (size_t)(ptr_uri - str_request)), " ", 1);

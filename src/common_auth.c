@@ -52,6 +52,17 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 			) {
 			client->bol_public = true;
 		}
+	} else if (strstr(str_uri_temp, "cginc_") != NULL) {
+		char *ptr_dot = strstr(str_uri_temp, ".");
+		if (
+			(
+				ptr_dot != NULL &&
+				strncmp(ptr_dot + 1, "cginc_", 6) == 0
+				) ||
+			strncmp(str_uri_temp, "/env/cginc_", 11) == 0
+			) {
+			client->bol_public = true;
+		}
 	}
 	SDEBUG("client->bol_public: %s", client->bol_public ? "true" : "false");
 
