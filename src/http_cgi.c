@@ -1,7 +1,7 @@
 #include "http_cgi.h"
 
 void http_cgi_step1(struct sock_ev_client *client) {
-	SDEFINE_VAR_ALL(str_uri, str_uri_temp, str_action_name, str_sql, str_args);
+	SDEFINE_VAR_ALL(str_uri, str_uri_temp, str_uri_temp2, str_action_name, str_sql, str_args);
 	char *str_response = NULL;
 	char *str_temp = NULL;
 	char *ptr_end_uri = NULL;
@@ -26,6 +26,20 @@ void http_cgi_step1(struct sock_ev_client *client) {
 
 	SFINISH_SNCAT(str_action_name, &int_action_name_len,
 		str_uri + strlen("/env/"), strlen(str_uri + strlen("/env/")));
+	char *ptr_end_action_name = strchr(str_action_name, '/');
+	if (ptr_end_action_name != NULL) {
+		int_action_name_len = (size_t)(ptr_end_action_name - str_action_name);
+		*ptr_end_action_name = 0;
+		SFINISH_SNCAT(str_uri_temp2, &int_temp_len,
+			"/", (size_t)1,
+			ptr_end_action_name + 1, strlen(ptr_end_action_name + 1));
+		str_uri_temp = snuri(str_uri_temp2, int_temp_len, &int_temp_len);
+		SFINISH_CHECK(str_uri_temp != NULL, "snuri failed");
+		SFINISH_SNFCAT(str_args, &int_args_len,
+			"&path=", (size_t)6,
+			str_uri_temp, int_temp_len);
+		SFREE(str_uri_temp2);
+	}
 
 	int_args_len = client->int_request_len;
 	str_temp = client->str_request;
