@@ -58,42 +58,20 @@ error:
 
 char *request_header(char *str_request, size_t int_request_len, char *str_header_name, size_t *int_header_value_len) {
 	char *str_return = NULL;
-	size_t int_upper_header_name_len = 0;
-	size_t int_upper_request_len = 0;
+    size_t int_header_name_len = strlen(str_header_name);
 
-	SDEFINE_VAR_ALL(str_upper_header_name, str_upper_request);
+	// Find the header in the request
+	char *ptr_header = bstrstri(str_request, int_request_len, str_header_name, int_header_name_len);
 
-	SERROR_SNCAT(
-		str_upper_header_name, &int_upper_header_name_len,
-		str_header_name, strlen(str_header_name)
-	);
-	SERROR_SNCAT(
-		str_upper_request, &int_upper_request_len,
-		str_request, int_request_len
-	);
-
-	bstr_toupper(str_upper_header_name, int_upper_header_name_len);
-	bstr_toupper(str_upper_request, int_upper_request_len);
-
-	// Find the uppercased header in the uppercased request
-	char *ptr_upper_header = bstrstr(str_upper_request, int_upper_request_len, str_upper_header_name, int_upper_header_name_len);
-
-	SWARN_CHECK(ptr_upper_header != NULL, "bstrstr failed");
-	ptr_upper_header += int_upper_header_name_len;
-
-	// Use the offset of the uppercased header in the uppercased request to find
-	// it in the real
-	// request
-	char *ptr_header = str_request + (ptr_upper_header - str_upper_request);
+	SWARN_CHECK(ptr_header != NULL, "bstrstr failed");
+    ptr_header += int_header_name_len;
 
 	while (*ptr_header != ':' && !isspace(*ptr_header)) {
-		ptr_upper_header = bstrstr(ptr_upper_header, (int_upper_request_len - (size_t)(ptr_upper_header - str_upper_request)), str_upper_header_name, int_upper_header_name_len);
+        ptr_header = bstrstri(str_request, (int_request_len - (size_t)(ptr_header - str_request)), str_header_name, int_header_name_len);
 
-		SWARN_CHECK(ptr_upper_header != NULL, "bstrstr failed");
-		ptr_upper_header += int_upper_header_name_len;
-
-		ptr_header = str_request + (ptr_upper_header - str_upper_request);
-	}
+		SWARN_CHECK(ptr_header != NULL, "bstrstr failed");
+        ptr_header += int_header_name_len;
+    }
 
 	ptr_header = strchr(ptr_header, ':');
 	SWARN_CHECK(ptr_header != NULL, "strchr failed");
@@ -111,11 +89,9 @@ char *request_header(char *str_request, size_t int_request_len, char *str_header
 	SDEBUG("str_return: %s", str_return);
 	SDEBUG("*int_header_value_len: %d", *int_header_value_len);
 
-	SFREE_ALL();
 	return str_return;
 error:
 
-	SFREE_ALL();
 	SFREE(str_return);
 	return NULL;
 }

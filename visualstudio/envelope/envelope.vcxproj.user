@@ -6,7 +6,7 @@
     <LocalDebuggerEnvironment>PATH=%PATH%;..\lib\x86</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LocalDebuggerCommandArguments>-f * -p 8888 -c ..\..\src\config\envelope.conf -d ..\..\src\config\envelope-connections-test.conf -r ..\..\src\web_root -z ..\..\src\role -y ..\..\src\app -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function -i t</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-f * -p 8888 -c ..\..\src\config\envelope.conf -d ..\..\src\config\envelope-connections-test.conf -r ..\..\src\web_root -z ..\..\src\role -y ..\..\src\app -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -i t</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=%PATH%;..\lib\x86</LocalDebuggerEnvironment>
   </PropertyGroup>

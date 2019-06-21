@@ -739,6 +739,29 @@ char *bstrstr(char *buff1, size_t len1, char *buff2, size_t len2) {
 	return (char *)NULL;
 }
 
+// case-insensitive version of bstrstr
+char *bstrstri(char *buff1, size_t len1, char *buff2, size_t len2) {
+	// WE RETURN THE FIRST ARGUMENT, USER NEEDS TO FREE BOTH BUFFERS THEMSELVES
+	if (!buff1)
+		return (char *)NULL;
+	if (!buff2)
+		return (char *)NULL;
+	if (len1 == 0)
+		return (char *)NULL;
+	if (len2 == 0)
+		return (char *)NULL;
+	if (len1 < len2)
+		return (char *)NULL;
+	size_t i;
+	for (i = 0; i <= (len1 - len2); i++) {
+		if (strncasecmp(buff1 + i, buff2, len2) == 0) {
+			return buff1 + i;
+		}
+	}
+
+	return (char *)NULL;
+}
+
 char *hexencode(unsigned char *str_to_encode, size_t *ptr_int_len) {
 	size_t int_i, int_in_len = *ptr_int_len, int_out_len = *ptr_int_len * 2;
 	char *str_out = NULL;

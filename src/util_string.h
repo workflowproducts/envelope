@@ -140,6 +140,10 @@ Same as the standard function strstr, but you send the lengths too. This makes
 it binary compatible.
 */
 char *bstrstr(char *buff1, size_t len1, char *buff2, size_t len2);
+/*
+case-insensitive version of bstrstr
+*/
+char *bstrstri(char *buff1, size_t len1, char *buff2, size_t len2);
 
 /*
 Encode a string to hex.

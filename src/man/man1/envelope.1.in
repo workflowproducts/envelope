@@ -1,4 +1,4 @@
-.TH "ENVELOPE" "1" "September 2018" "" ""
+.TH "ENVELOPE" "1" "May 2019" "" ""
 .SH "NAME"
 \fBenvelope\fR \- PostgreSQL Interface for the web
 .SH FULL PATH
@@ -207,7 +207,7 @@ Run \fBenvelope\fP (long argument):
 Try accessing your database through psql\. If you can, double check your connection string parameters\. If you can't connect, you may have a firewall problem\.
 .SH AUTHOR
 .P
-Copyright (c) 2018 Workflow Products, LLC
+Copyright (c) 2019 Workflow Products, LLC
 .P
 Created by Annunziato Tocci
 .P

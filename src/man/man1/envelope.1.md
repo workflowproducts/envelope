@@ -156,7 +156,7 @@ Try accessing your database through psql. If you can, double check your connecti
 
 
 ## AUTHOR
-Copyright (c) 2018 Workflow Products, LLC
+Copyright (c) 2019 Workflow Products, LLC
 
 Created by Annunziato Tocci
 
