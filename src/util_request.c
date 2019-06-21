@@ -286,7 +286,7 @@ sun_upload *get_sun_upload(char *str_request, size_t int_request_len) {
 
 	////GET FILE NAME
 	// get file name
-	char *ptr_name = bstrstr(str_request, int_request_len, "CONTENT-DISPOSITION: FORM-DATA; NAME=\"FILE_NAME\"", 48);
+	char *ptr_name = bstrstri(str_request, int_request_len, "CONTENT-DISPOSITION: FORM-DATA; NAME=\"FILE_NAME\"", 48);
 	SERROR_CHECK(ptr_name != NULL, "No Content Disposition for File Name, (Maybe there is no file name?)");
 	ptr_name += 48;
 
