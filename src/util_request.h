@@ -36,7 +36,7 @@ bool check_referer(char *str_referer, size_t int_referer_len, char *str_referer_
 
 typedef struct {
 	char *str_name;
-	char *str_file_content;
+	char *ptr_file_content;
 	
 	//variable lengths
 	size_t int_name_len;

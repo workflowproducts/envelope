@@ -25,8 +25,8 @@ void http_upload_step1(struct sock_ev_client *client) {
 	SFINISH_CHECK(client_upload->sun_current_upload != NULL, "get_sun_upload failed");
 	SDEBUG("upload length: %i", client_upload->sun_current_upload->int_file_content_len);
 
-	client_upload->ptr_content = client_upload->sun_current_upload->str_file_content;
-	SDEBUG("upload contents: %s", client_upload->ptr_content);
+	client_upload->ptr_content = client_upload->sun_current_upload->ptr_file_content;
+	SDEBUG("upload contents: %p", client_upload->ptr_content);
 
 	SFINISH_SNCAT(client_upload->str_file_name, &client_upload->int_file_name_len,
 		client_upload->sun_current_upload->str_name, strlen(client_upload->sun_current_upload->str_name));

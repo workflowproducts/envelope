@@ -260,7 +260,7 @@ sun_upload *get_sun_upload(char *str_request, size_t int_request_len) {
 	char *boundary_end_ptr = NULL;
 	char *boundary_end_ptr_cr = NULL;
 	size_t int_boundary_len = 0;
-	SDEFINE_VAR_ALL(str_boundary, str_content_type, str_name, str_file_content);
+	SDEFINE_VAR_ALL(str_boundary, str_content_type, str_name);
 
     ////GET BOUNDARY
 	boundary_ptr = bstrstri(str_request, int_request_len, "CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=", 44);
@@ -353,22 +353,9 @@ sun_upload *get_sun_upload(char *str_request, size_t int_request_len) {
             ptr_file_content_dos  > ptr_file_content_mac    ? 2 :
 															  1;
 	// clang-format on
-	SERROR_SALLOC(str_file_content, int_file_content_len + 1);
-	memcpy(str_file_content, ptr_file_content, int_file_content_len);
-	str_file_content[int_file_content_len] = '\0';
-	SDEBUG(">FILE CONTENT|%s<", str_file_content);
-	SDEBUG(">FILE CONTENT LENGTH|%i<", int_file_content_len);
+    sun_return->ptr_file_content = ptr_file_content;
+    sun_return->int_file_content_len = int_file_content_len;
 
-	////RETURN
-	SERROR_SALLOC(sun_return, sizeof(sun_upload));
-	SFREE(str_boundary);
-	sun_return->str_name = str_name;
-	str_name = NULL;
-	sun_return->int_name_len = int_name_len;
-
-	sun_return->str_file_content = str_file_content;
-	str_file_content = NULL;
-	sun_return->int_file_content_len = int_file_content_len;
 
 	SFREE_ALL();
 	return sun_return;
@@ -380,6 +367,5 @@ error:
 
 void free_sun_upload(sun_upload *sun_current_upload) {
 	SFREE(sun_current_upload->str_name);
-	SFREE(sun_current_upload->str_file_content);
 	SFREE(sun_current_upload);
 }
