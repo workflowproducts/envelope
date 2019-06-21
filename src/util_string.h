@@ -141,6 +141,10 @@ it binary compatible.
 */
 char *bstrstr(char *buff1, size_t len1, char *buff2, size_t len2);
 /*
+bstrstr starting from the end of the string
+*/
+char *brstrstr(char *buff1, size_t len1, char *buff2, size_t len2);
+/*
 case-insensitive version of bstrstr
 */
 char *bstrstri(char *buff1, size_t len1, char *buff2, size_t len2);

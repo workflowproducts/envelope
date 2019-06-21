@@ -342,7 +342,7 @@ sun_upload *get_sun_upload(char *str_request, size_t int_request_len) {
 
 	// copy file content
 	size_t int_file_content_len =
-		(size_t)(bstrstr(ptr_file_content, (size_t)((str_request + int_request_len) - ptr_file_content), str_boundary,
+		(size_t)(brstrstr(ptr_file_content, (size_t)((str_request + int_request_len) - ptr_file_content), str_boundary,
 					 int_boundary_len) -
 				 ptr_file_content);
 	// clang-format off

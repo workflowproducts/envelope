@@ -718,25 +718,47 @@ error:
 
 // binary version of strstr
 char *bstrstr(char *buff1, size_t len1, char *buff2, size_t len2) {
-	// WE RETURN THE FIRST ARGUMENT, USER NEEDS TO FREE BOTH BUFFERS THEMSELVES
-	if (!buff1)
-		return (char *)NULL;
-	if (!buff2)
-		return (char *)NULL;
-	if (len1 == 0)
-		return (char *)NULL;
-	if (len2 == 0)
-		return (char *)NULL;
-	if (len1 < len2)
-		return (char *)NULL;
-	size_t i;
-	for (i = 0; i <= (len1 - len2); i++) {
-		if (memcmp(buff1 + i, buff2, len2) == 0) {
-			return buff1 + i;
-		}
-	}
+    // WE RETURN THE FIRST ARGUMENT, USER NEEDS TO FREE BOTH BUFFERS THEMSELVES
+    if (!buff1)
+        return (char *)NULL;
+    if (!buff2)
+        return (char *)NULL;
+    if (len1 == 0)
+        return (char *)NULL;
+    if (len2 == 0)
+        return (char *)NULL;
+    if (len1 < len2)
+        return (char *)NULL;
+    size_t i;
+    for (i = 0; i <= (len1 - len2); i++) {
+        if (memcmp(buff1 + i, buff2, len2) == 0) {
+            return buff1 + i;
+        }
+    }
 
-	return (char *)NULL;
+    return (char *)NULL;
+}
+// bstrstr starting at the end of the string
+char *brstrstr(char *buff1, size_t len1, char *buff2, size_t len2) {
+    // WE RETURN THE FIRST ARGUMENT, USER NEEDS TO FREE BOTH BUFFERS THEMSELVES
+    if (!buff1)
+        return (char *)NULL;
+    if (!buff2)
+        return (char *)NULL;
+    if (len1 == 0)
+        return (char *)NULL;
+    if (len2 == 0)
+        return (char *)NULL;
+    if (len1 < len2)
+        return (char *)NULL;
+    size_t i;
+    for (i = (len1 - len2); i >= 0; i--) {
+        if (memcmp(buff1 + i, buff2, len2) == 0) {
+            return buff1 + i;
+        }
+    }
+
+    return (char *)NULL;
 }
 
 // case-insensitive version of bstrstr
