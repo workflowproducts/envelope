@@ -260,20 +260,12 @@ sun_upload *get_sun_upload(char *str_request, size_t int_request_len) {
 	char *boundary_end_ptr = NULL;
 	char *boundary_end_ptr_cr = NULL;
 	size_t int_boundary_len = 0;
-	SDEFINE_VAR_ALL(str_boundary, str_content_type, str_name, str_file_content, str_upper_request);
-	SERROR_SALLOC(str_upper_request, int_request_len + 1);
-	memcpy(str_upper_request, str_request, int_request_len);
-	str_upper_request[int_request_len] = 0;
-	// str_toupper operates in place
-	bstr_toupper(str_upper_request, int_request_len);
+	SDEFINE_VAR_ALL(str_boundary, str_content_type, str_name, str_file_content);
 
-	SDEBUG("str_request: %s", str_request);
-	SDEBUG("str_upper_request: %s", str_upper_request);
-
-	////GET BOUNDARY
-	boundary_ptr = strstr(str_upper_request, "CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=");
+    ////GET BOUNDARY
+	boundary_ptr = bstrstri(str_request, int_request_len, "CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=", 44);
 	SERROR_CHECK(boundary_ptr != NULL, "Cannot find boundary for request");
-	boundary_ptr = str_request + 44 + (boundary_ptr - str_upper_request);
+    boundary_ptr += 44;
 
 	boundary_end_ptr_cr = strchr(boundary_ptr, 13);
 	boundary_end_ptr = boundary_end_ptr_cr != 0 ? boundary_end_ptr_cr : strchr(boundary_ptr, 10);
@@ -294,10 +286,9 @@ sun_upload *get_sun_upload(char *str_request, size_t int_request_len) {
 
 	////GET FILE NAME
 	// get file name
-	char *ptr_name = bstrstr(str_upper_request, int_request_len, "CONTENT-DISPOSITION: FORM-DATA; NAME=\"FILE_NAME\"", 48);
+	char *ptr_name = bstrstr(str_request, int_request_len, "CONTENT-DISPOSITION: FORM-DATA; NAME=\"FILE_NAME\"", 48);
 	SERROR_CHECK(ptr_name != NULL, "No Content Disposition for File Name, (Maybe there is no file name?)");
-	ptr_name = str_request + (ptr_name - str_upper_request);
-	ptr_name = ptr_name + 48;
+	ptr_name += 48;
 
 	char *ptr_name_dos = strstr(ptr_name, "\015\012\015\012");
 	char *ptr_name_unix = strstr(ptr_name, "\012\012");
@@ -329,13 +320,11 @@ sun_upload *get_sun_upload(char *str_request, size_t int_request_len) {
 	// get file content
 	SDEBUG("str_request: %20.20s", str_request);
 
-	char *ptr_file_content =
-		bstrstr(str_upper_request, int_request_len, "CONTENT-DISPOSITION: FORM-DATA; NAME=\"FILE_CONTENT\"", 51);
+	char *ptr_file_content = bstrstri(str_request, int_request_len, "CONTENT-DISPOSITION: FORM-DATA; NAME=\"FILE_CONTENT\"", 51);
 	SERROR_CHECK(ptr_file_content != NULL, "No Content Disposition for File "
 										   "Content, (Maybe there is no file "
 										   "content?)");
-	ptr_file_content = ptr_file_content + 51;
-	ptr_file_content = str_request + (ptr_file_content - str_upper_request);
+	ptr_file_content += 51;
 
 	SDEBUG("str_request + int_request_len d: %d", str_request + int_request_len);
 	SDEBUG("ptr_file_content: %20.20s", ptr_file_content);
