@@ -353,6 +353,10 @@ sun_upload *get_sun_upload(char *str_request, size_t int_request_len) {
             ptr_file_content_dos  > ptr_file_content_mac    ? 2 :
 															  1;
 	// clang-format on
+    SERROR_SALLOC(sun_return, sizeof(sun_upload));
+    sun_return->str_name = str_name;
+    str_name = NULL;
+    sun_return->int_name_len = int_name_len;
     sun_return->ptr_file_content = ptr_file_content;
     sun_return->int_file_content_len = int_file_content_len;
 
