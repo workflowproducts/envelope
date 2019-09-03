@@ -670,6 +670,7 @@ bool http_auth_login_step2_env(EV_P, void *cb_data, DB_result *res) {
 		SFINISH_CHECK(DB_exec(EV_A, client_auth->parent->conn, client_auth, str_sql, http_auth_login_step3_env), "DB_exec failed");
 	}
 
+    bol_error_state = false;
 finish:
 	DB_free_result(res);
 	if (arr_row_values != NULL) {
@@ -683,6 +684,7 @@ finish:
 	ssize_t int_len = 0;
 
 	if (bol_error_state == true) {
+        SERROR_NORESPONSE("Login failed from ip: %s", client_auth->parent->str_client_ip);
 		SDEBUG("str_response: %s", str_response);
 		char *_str_response = str_response;
 		char str_length[50];
