@@ -733,7 +733,7 @@ bool http_auth_login_step3_env(EV_P, void *cb_data, DB_result *res) {
 	str_diag = DB_get_diagnostic(client_auth->parent->conn, res);
 
 	SFINISH_CHECK(res != NULL, "DB_exec failed");
-	SFINISH_CHECK(res->status == DB_RES_COMMAND_OK, "DB_exec failed: %s", str_diag);
+    SFINISH_CHECK(res->status == DB_RES_COMMAND_OK, "DB_exec failed: %s", str_diag);
 
 	bol_error_state = false;
 	SDEBUG("client_auth->str_action: %s", client_auth->str_action);
@@ -918,7 +918,8 @@ finish:
 	SFREE(conn->str_response);
 	ssize_t int_len = 0;
 	if (bol_error_state == true) {
-		SDEBUG("str_response: %s", str_response);
+        SDEBUG("str_response: %s", str_response);
+        SERROR_NORESPONSE("Login failed from ip: %s", client_auth->parent->str_client_ip);
 		char *_str_response = str_response;
 		char str_length[50];
 		snprintf(str_length, 50, "%zu", (int_response_len != 0 ? int_response_len : strlen(_str_response)));
