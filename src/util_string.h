@@ -148,6 +148,10 @@ char *brstrstr(char *buff1, size_t len1, char *buff2, size_t len2);
 case-insensitive version of bstrstr
 */
 char *bstrstri(char *buff1, size_t len1, char *buff2, size_t len2);
+/*
+bstrstri starting from the end of the string
+*/
+char *brstrstri(char *buff1, size_t len1, char *buff2, size_t len2);
 
 /*
 Encode a string to hex.

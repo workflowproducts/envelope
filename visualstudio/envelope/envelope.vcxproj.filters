@@ -378,4 +378,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\web_root\test\test-lists.js">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

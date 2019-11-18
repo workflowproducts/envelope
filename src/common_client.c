@@ -341,7 +341,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 	char *str_temp = NULL;
 	SDEFINE_VAR_ALL(str_response, str_conninfo, str_query);
 	SDEFINE_VAR_MORE(str_session_id, str_client_cookie, str_session_client_cookie);
-	SDEFINE_VAR_MORE(str_ip_address, str_upper_request, str_conn_index, str_uri_temp);
+	SDEFINE_VAR_MORE(str_ip_address, str_conn_index, str_uri_temp);
 
 	SERROR_SALLOC(str_buffer, MAX_BUFFER + 1);
 
@@ -374,28 +374,20 @@ void client_cb(EV_P, ev_io *w, int revents) {
 		}
 
 		if (client->bol_upload == false) {
-			SERROR_SALLOC(str_upper_request, client->int_request_len + 1);
-			memcpy(str_upper_request, client->str_request, client->int_request_len);
-			bstr_toupper(str_upper_request, client->int_request_len);
 			client->bol_upload =
-				(bstrstr(str_upper_request, client->int_request_len, "CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=",
+				(bstrstri(client->str_request, client->int_request_len, "CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=",
 					 strlen("CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=")) != NULL);
 		}
 
 		char *ptr_content_length =
-			bstrstr(str_upper_request, client->int_request_len, "CONTENT-LENGTH", strlen("CONTENT-LENGTH"));
+			bstrstri(client->str_request, client->int_request_len, "CONTENT-LENGTH", strlen("CONTENT-LENGTH"));
 		if (client->bol_upload == true) {
-			if (str_upper_request == NULL) {
-				SERROR_SALLOC(str_upper_request, client->int_request_len + 1);
-				memcpy(str_upper_request, client->str_request, client->int_request_len);
-				bstr_toupper(str_upper_request, client->int_request_len);
-			}
 			if (client->str_boundary == NULL) {
 				char *boundary_ptr =
-					bstrstr(str_upper_request, client->int_request_len, "CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=",
+					bstrstri(client->str_request, client->int_request_len, "CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=",
 						strlen("CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=")) +
 					44;
-				boundary_ptr = client->str_request + (boundary_ptr - str_upper_request);
+				boundary_ptr = client->str_request + (boundary_ptr - client->str_request);
 				char *boundary_end_ptr =
 					strchr(boundary_ptr, 13) != 0 ? strchr(boundary_ptr, '\015') : strchr(boundary_ptr, '\012');
 				if (boundary_end_ptr != NULL) {
@@ -420,7 +412,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				}
 			}
 
-		} else if (bstrstr(str_upper_request, client->int_request_len, "CONTENT-LENGTH", strlen("CONTENT-LENGTH")) != NULL) {
+		} else if (ptr_content_length != NULL) {
 			ptr_content_length += 14;
 			while (*ptr_content_length != 0 && (*ptr_content_length < '0' || *ptr_content_length > '9')) {
 				ptr_content_length += 1;
@@ -491,12 +483,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 
 				int_header_len = (size_t)(ptr_temp - client->str_request);
 			}
-			if (str_upper_request == NULL) {
-				SERROR_SALLOC(str_upper_request, client->int_request_len + 1);
-				memcpy(str_upper_request, client->str_request, client->int_request_len);
-				bstr_toupper(str_upper_request, client->int_request_len);
-			}
-			if (bstrstr(str_upper_request, client->int_request_len, "SEC-WEBSOCKET-KEY", strlen("SEC-WEBSOCKET-KEY")) != NULL) {
+			if (bstrstri(client->str_request, client->int_request_len, "SEC-WEBSOCKET-KEY", strlen("SEC-WEBSOCKET-KEY")) != NULL) {
 				str_uri_temp = str_uri_path(client->str_request, client->int_request_len, &int_uri_length);
 				SERROR_CHECK(str_uri_temp != NULL, "str_uri_path failed");
 				SERROR_SNCAT(client->str_cookie_name, &int_cookie_name_len,
@@ -645,7 +632,6 @@ void client_cb(EV_P, ev_io *w, int revents) {
 					"envelope", (size_t)8);
 				SDEBUG("http request");
 				ev_io_stop(EV_A, &client->io);
-				SBFREE_PWORD(str_upper_request, client->int_request_len);
 				http_main(client);
 				client = NULL; // it is http_main's responsibility now.
 			}
@@ -661,9 +647,6 @@ void client_cb(EV_P, ev_io *w, int revents) {
 
 	SFREE(str_request);
 	SFREE(str_buffer);
-	if (client != NULL) {
-		SBFREE_PWORD(str_upper_request, client->int_request_len);
-	}
 	SFREE_PWORD_ALL();
 	bol_error_state = false;
 	return;
@@ -679,9 +662,6 @@ error:
 	}
 	SFREE(str_request);
 	SFREE(str_buffer);
-	if (client != NULL) {
-		SBFREE_PWORD(str_upper_request, client->int_request_len);
-	}
 	SFREE_PWORD_ALL();
 }
 

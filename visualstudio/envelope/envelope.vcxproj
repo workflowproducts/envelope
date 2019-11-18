@@ -277,6 +277,9 @@
     <ClInclude Include="..\..\src\ws_select.h" />
     <ClInclude Include="..\..\src\ws_update.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\web_root\test\test-lists.js" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
