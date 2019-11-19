@@ -56,9 +56,20 @@ error:
 	return NULL;
 }
 
-char *request_header(char *str_request, size_t int_request_len, char *str_header_name, size_t *int_header_value_len) {
+char *request_header(char *str_request, size_t _int_request_len, char *str_header_name, size_t *int_header_value_len) {
 	char *str_return = NULL;
+	size_t int_request_len = _int_request_len;
     size_t int_header_name_len = strlen(str_header_name);
+	char *ptr_end = bstrstr(str_request, int_request_len, "\015\012\015\012", 4);
+	if (ptr_end == NULL) { ptr_end = bstrstr(str_request, int_request_len, "\015\015", 2); }
+	if (ptr_end == NULL) { ptr_end = bstrstr(str_request, int_request_len, "\012\012", 2); }
+	SFREE(str_global_error);
+	if (ptr_end == NULL) { return NULL; }
+
+	int_request_len = (ptr_end + 1) - str_request;
+	SDEBUG("str_request: %s", str_request);
+	SDEBUG("ptr_end: %s", ptr_end);
+	SDEBUG("int_request_len: %d", int_request_len);
 
 	// Find the header in the request
 	char *ptr_header = bstrstri(str_request, int_request_len, str_header_name, int_header_name_len);
