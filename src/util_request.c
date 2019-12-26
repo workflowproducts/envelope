@@ -282,7 +282,6 @@ sun_upload *get_sun_upload(char *str_request, size_t int_request_len) {
 	boundary_end_ptr = boundary_end_ptr_cr != 0 ? boundary_end_ptr_cr : strchr(boundary_ptr, 10);
 	int_boundary_len = (size_t)((boundary_end_ptr - boundary_ptr) + 2);
 
-	int_boundary_len = int_boundary_len + 1; // newline
 	SERROR_SALLOC(str_boundary, int_boundary_len + 1); // null byte
 	memcpy(str_boundary + 2, boundary_ptr, int_boundary_len - 2);
 	// This was adding two dashes to the end, but that was actually not working
@@ -292,8 +291,8 @@ sun_upload *get_sun_upload(char *str_request, size_t int_request_len) {
 	// - Nunzio on Wed Feb 17 at 2:26 PM
 	str_boundary[0] = '-';
 	str_boundary[1] = '-';
-	str_boundary[int_boundary_len] = '\012';
-	str_boundary[int_boundary_len + 1] = '\0';
+	//str_boundary[int_boundary_len] = '\012';
+	str_boundary[int_boundary_len] = '\0';
 
 	SDEBUG(">BOUNDARY|%s<", str_boundary);
 
