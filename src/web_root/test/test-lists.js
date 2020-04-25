@@ -445,7 +445,7 @@ ORDER BY
 id DESC
 */
 			}),
-			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  column rtesting_table.test_full does not exist\\nLINE 1: ...esting_table\".\"id\", \"rtesting_table\".\"test_name\", \"rtesting_...\\n                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t61\n"]],
+			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  column rtesting_table.test_full does not exist\\nLINE 1: rtesting_table.\"id\", rtesting_table.\"test_name\", rtesting_table                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t77\n"]],
 			['SELECT FAIL 2', 'websocket', '', ml(function () {/*SELECT	*/}) + ml(function () {/*
 RETURN	*
 

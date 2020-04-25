@@ -17,13 +17,23 @@ extern char *str_global_error;
 #define strerror_r(errno, buf, len) strerror_s(buf, len, errno)
 #endif
 
+#ifdef UTIL_DEBUG
+#ifdef _WIN32
+#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+#else
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#endif
+#else
+#define __FILENAME__ __FILE__
+#endif
+
 // These are for developers and must be compiled in by adding "-DUTIL_DEBUG" to
 // the compile options
 // or by adding #define UTIL_DEBUG before including this file
 void debug_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...);
 #ifdef UTIL_DEBUG
-#define SDEBUG(M, ...) debug_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
-#define SVAR(M, ...) var_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
+#define SDEBUG(M, ...) debug_root(__FILENAME__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
+#define SVAR(M, ...) var_root(__FILENAME__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
 #else
 #define SDEBUG(M, ...)
 #define SVAR(M, ...)
@@ -88,16 +98,16 @@ DO NOT USE VAR() THAT WILL BE DONE AUTOMATICALLY WITH SFREE_ALL()!
 // There are the user configurable debug options
 void var_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...);
 void info_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...);
-#define SINFO(M, ...) info_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
+#define SINFO(M, ...) info_root(__FILENAME__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
 void notice_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...);
-#define SNOTICE(M, ...) notice_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
+#define SNOTICE(M, ...) notice_root(__FILENAME__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
 void warn_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...);
-#define SWARN_NORESPONSE(M, ...) warn_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__);
+#define SWARN_NORESPONSE(M, ...) warn_root(__FILENAME__, __LINE__, (char *)__func__, M, ##__VA_ARGS__);
 void always_log_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...);
-#define SALWAYS_LOG(M, ...) always_log_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__);
+#define SALWAYS_LOG(M, ...) always_log_root(__FILENAME__, __LINE__, (char *)__func__, M, ##__VA_ARGS__);
 
 void error_noresponse_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...);
-#define SERROR_NORESPONSE(M, ...) error_noresponse_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__);
+#define SERROR_NORESPONSE(M, ...) error_noresponse_root(__FILENAME__, __LINE__, (char *)__func__, M, ##__VA_ARGS__);
 #define SERROR(M, ...)                                                                                                           \
 	bol_error_state = true;                                                                                                      \
 	SERROR_NORESPONSE(M, ##__VA_ARGS__);                                                                                         \
@@ -108,9 +118,9 @@ void error_noresponse_root(char *str_file, int int_line_no, char *str_function, 
 	goto error;
 
 char *error_response_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...);
-#define SERROR_RESPONSE(M, ...) error_response_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
+#define SERROR_RESPONSE(M, ...) error_response_root(__FILENAME__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
 char *warn_response_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...);
-#define SWARN_RESPONSE(M, ...) warn_response_root(__FILE__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
+#define SWARN_RESPONSE(M, ...) warn_response_root(__FILENAME__, __LINE__, (char *)__func__, M, ##__VA_ARGS__)
 //#define FINISH(M, ...)  bol_error_state = true; ERROR_RESPONSE(M,
 //##__VA_ARGS__); goto finish;
 #define SFINISH(M, ...)                                                                                                          \

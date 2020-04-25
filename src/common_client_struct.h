@@ -118,9 +118,14 @@ struct sock_ev_client {
 	char *str_connname_folder;
 	char *str_conn;
 	char *str_cookie;
-	char *str_cookie_name;
+	char *str_all_cookie;
+	size_t int_all_cookie_len;
 	char *str_session_id;
 	char *str_referer;
+	char *str_host;
+	char *str_user_agent;
+	char *str_if_modified_since;
+	char *str_websocket_key;
 
 	size_t int_username_len;
 	size_t int_database_len;
@@ -139,7 +144,7 @@ struct sock_ev_client {
 
 	bool bol_upload;
 	char *str_boundary;
-	size_t int_boundary_length;
+	size_t int_boundary_len;
 
 	char *str_request;
 	char *str_response;
@@ -171,7 +176,17 @@ struct sock_ev_client {
 	struct sock_ev_client_notify_watcher *notify_watcher;
 	struct sock_ev_client_cnxn *reconnect_watcher;
 
+	bool bol_full_request;
+	bool bol_headers_parsed;
+	bool bol_headers_evaluated;
+	size_t int_current_header_start;
+	size_t int_form_data_start;
+	size_t int_form_data_length;
+	DArray *darr_str_header_name;
+	DArray *darr_str_header_value;
+
 	size_t int_request_len;
+	size_t int_request_full_len;
 };
 
 enum {

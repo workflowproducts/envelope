@@ -325,7 +325,9 @@ var $ = {
                     data = data.replace(/\.\.\/src\//gi, '');
                     data = data.replace('C:', '');
 				}
-                arrStrActualOutput.push(data.replace(/transactionid = .*\n/gim, ''));
+                arrStrActualOutput.push(data.replace(/transactionid = .*\n/gim, '').replace(/temp_select_0x[^.]*\./gim, 'rtesting_table.')
+                    .replace(/\.\.\.[^.]*\./gi, 'rtesting_table.')
+                    .replace(/temp_.*\b/gi, 'rtesting_table'));
                 i += 1;
                 if (i === arrStrExpectedOutput.length || data === 'TRANSACTION COMPLETED' || error) {
                     //console.log(i, data);

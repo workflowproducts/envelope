@@ -1,11 +1,12 @@
 #include "common_websocket.h"
 
-char *WS_handshakeResponse(char *str_request, size_t int_request_len, size_t *int_response_len) {
+char *WS_handshakeResponse(char *str_request, size_t int_request_len, size_t *int_response_len, char *str_websocket_key) {
 	char *str_response = NULL;
 	char *str_temp = NULL;
 	char *str_temp1 = NULL;
+	size_t int_temp1_len;
 
-	SDEFINE_VAR_ALL(str_websocket_key, str_websocket_accept);
+	SDEFINE_VAR_ALL(str_websocket_accept);
 
 	SERROR_SNCAT(str_response, int_response_len, "HTTP/1.1 101 Switching Protocols\015\012", (size_t)34,
 		"Upgrade: websocket\015\012", (size_t)20,
@@ -18,14 +19,12 @@ char *WS_handshakeResponse(char *str_request, size_t int_request_len, size_t *in
 	// "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" together
 	// (it's a "magic string"), take the SHA-1 hash of the result, and return the
 	// base64 encoding of the hash.
-
-	// Copy the request
-	size_t int_temp1_len = 0;
-	str_websocket_key = request_header(str_request, int_request_len, "Sec-WebSocket-Key", &int_temp1_len);
-	SERROR_CHECK(str_websocket_key != NULL, "get_header(\"Sec-WebSocket-Key\") failed!");
+	// - The above was taken from a Mozilla guide years ago.
+	//		Basically, this is a challenge-response protocol so the browser can send an HTTP/1.1
+	//		request that turns into a websocket while not breaking a normal HTTP server.
 
 	// Concat
-	SERROR_SNCAT(str_temp1, &int_temp1_len, str_websocket_key, int_temp1_len, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", (size_t)36);
+	SERROR_SNCAT(str_temp1, &int_temp1_len, str_websocket_key, strlen(str_websocket_key), "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", (size_t)36);
 
 	// SHA and b64
 	SERROR_SALLOC(str_websocket_accept, 20);

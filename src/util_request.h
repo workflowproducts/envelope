@@ -5,6 +5,7 @@
 
 #include "util_salloc.h"
 #include "util_string.h"
+#include "common_client_struct.h"
 
 /*
 Gets the request data.
@@ -14,14 +15,9 @@ If the request is a POST then is grabs the main body.
 char *query(char *str_request, size_t int_request_length, size_t *int_query_length);
 
 /*
-Returns the value for a header in the request.
-*/
-char *request_header(char *str_request, size_t int_request_len, char *str_header_name, size_t *int_header_value_len);
-
-/*
 Returns the value for a cookie in the request.
 */
-char *str_cookie(char *str_request, size_t int_request_len, char *str_cookie_name, size_t *int_cookie_value_len);
+char *get_cookie(char *str_request, size_t int_request_len, char *str_cookie_name, size_t *int_cookie_value_len);
 
 /*
 Returns the uri for a request.
@@ -46,7 +42,7 @@ typedef struct {
 /*
 Returns a struct with all of the relevent information for an upload.
 */
-sun_upload *get_sun_upload(char *str_request, size_t int_request_length);
+sun_upload *get_sun_upload(struct sock_ev_client *client);
 
 /*
 Free a upload struct.

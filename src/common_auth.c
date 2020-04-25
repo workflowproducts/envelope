@@ -9,7 +9,7 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	char *str_response = NULL;
 	SDEFINE_VAR_ALL(str_cookie_encrypted, str_cookie_decrypted, str_password, str_uri, str_temp, str_conn_index);
 	SDEFINE_VAR_MORE(str_conn_debug, str_username, str_connname, str_database, str_uri_temp, str_context_data);
-	SDEFINE_VAR_MORE(str_host, str_uri_ip_address, str_uri_host, str_user_agent, str_uri_user_agent);
+	SDEFINE_VAR_MORE(str_uri_ip_address, str_uri_host, str_uri_user_agent);
 	char *str_conn = NULL;
 	ssize_t int_i = 0;
 	ssize_t int_len = 0;
@@ -67,8 +67,7 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	SDEBUG("client->bol_public: %s", client->bol_public ? "true" : "false");
 
 	////DECRYPT
-	SDEBUG("client->str_cookie_name: %s", client->str_cookie_name);
-	str_cookie_encrypted = str_cookie(client->str_request, client->int_request_len, client->str_cookie_name, &int_cookie_len);
+	str_cookie_encrypted = get_cookie(client->str_all_cookie, client->int_all_cookie_len, "envelope", &int_cookie_len);
 	if (str_cookie_encrypted == NULL || int_cookie_len <= 0) {
 		if (client->bol_handshake && strncmp(str_uri_temp, "/envnc", 6) == 0) {
 			client->bol_public = true;
@@ -348,25 +347,11 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 		str_uri_ip_address = snuri(client->str_client_ip, strlen(client->str_client_ip), &int_uri_ip_address_len);
 		SFINISH_CHECK(str_uri_ip_address != NULL, "snuri failed on string \"%s\"", client->str_client_ip);
 
-		str_host = request_header(client->str_request, client->int_request_len, "Host", &int_host_len);
-		if (str_host == NULL) {
-			SFINISH_SNCAT(
-				str_host, &int_host_len,
-				"", (size_t)0
-			);
-		}
-		str_uri_host = snuri(str_host, int_host_len, &int_uri_host_len);
-		SFINISH_CHECK(str_uri_host != NULL, "snuri failed on string \"%s\"", str_host);
+		str_uri_host = snuri((client->str_host != NULL ? client->str_host : ""), int_host_len, &int_uri_host_len);
+		SFINISH_CHECK(str_uri_host != NULL, "snuri failed on string \"%s\"", (client->str_host != NULL ? client->str_host : ""));
 
-		str_user_agent = request_header(client->str_request, client->int_request_len, "User-Agent", &int_user_agent_len);
-		if (str_user_agent == NULL) {
-			SFINISH_SNCAT(
-				str_user_agent, &int_user_agent_len,
-				"", (size_t)0
-			);
-		}
-		str_uri_user_agent = snuri(str_user_agent, int_user_agent_len, &int_uri_user_agent_len);
-		SFINISH_CHECK(str_uri_user_agent != NULL, "snuri failed on string \"%s\"", str_user_agent);
+		str_uri_user_agent = snuri((client->str_user_agent != NULL ? client->str_user_agent : ""), int_user_agent_len, &int_uri_user_agent_len);
+		SFINISH_CHECK(str_uri_user_agent != NULL, "snuri failed on string \"%s\"", (client->str_user_agent != NULL ? client->str_user_agent : ""));
 
 		SFINISH_SNCAT(str_context_data, &int_context_data_len,
 			"request_ip_address=", (size_t)19,
@@ -415,7 +400,7 @@ finish:
 			"Connection: close\015\012"
 				"Set-Cookie: "
 			),
-			client->str_cookie_name, strlen(client->str_cookie_name),
+			"envelope", 8,
 			"=; path=/; expires=Tue, 01 Jan 1990 00:00:00 GMT", (size_t)48,
 			"; HttpOnly\015\012", (size_t)12
 		);

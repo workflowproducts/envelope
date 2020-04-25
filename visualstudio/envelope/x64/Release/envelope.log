@@ -1,0 +1,14 @@
+﻿  common_main.c
+c:\users\nunzio\repos\envelope\dependencies\libev\ev.c(205): warning C4005: 'WIN32_LEAN_AND_MEAN': macro redefinition
+  c:\users\nunzio\repos\envelope\src\common_main.c: note: see previous definition of 'WIN32_LEAN_AND_MEAN'
+c:\users\nunzio\repos\envelope\dependencies\libev\ev.c(1063): warning C4244: 'function': conversion from 'uint64_t' to 'uint32_t', possible loss of data
+c:\users\nunzio\repos\envelope\dependencies\libev\ev.c(2091): warning C4101: 'arg': unreferenced local variable
+c:\users\nunzio\repos\envelope\dependencies\libev\ev.c(2289): warning C4244: '=': conversion from '__int64' to 'int', possible loss of data
+c:\users\nunzio\repos\envelope\dependencies\libev\ev.c(2476): warning C4133: '=': incompatible types - from 'WSABUF *' to 'CHAR *'
+c:\users\nunzio\repos\envelope\dependencies\libev\ev_select.c(200): warning C4244: 'initializing': conversion from 'ev_tstamp' to 'unsigned long', possible loss of data
+  Warning, overriding WinCrypt defines
+c:\users\nunzio\repos\envelope\src\common_main.c(242): warning C4003: not enough arguments for function-like macro invocation '__SUN__REPEAT'
+c:\users\nunzio\repos\envelope\src\common_main.c(285): warning C4013: 'cstr_to_uri' undefined; assuming extern returning int
+c:\users\nunzio\repos\envelope\src\common_main.c(285): warning C4047: '=': 'char *' differs in levels of indirection from 'int'
+c:\users\nunzio\repos\envelope\src\common_main.c(270): warning C4244: 'initializing': conversion from 'ev_tstamp' to 'time_t', possible loss of data
+LINK : fatal error LNK1104: cannot open file '../lib/x64/libpq.lib'

@@ -62,7 +62,7 @@ void server_cb(EV_P, ev_io *w, int revents) {
 		client->bol_socket_is_open = true;
 		client->bol_upload = false;
 		client->str_boundary = NULL;
-		client->int_boundary_length = 0;
+		client->int_boundary_len = 0;
 		client->conn = NULL;
 		client->bol_is_open = true;
 		SERROR_SNCAT(client->str_request, &client->int_request_len,
@@ -80,6 +80,12 @@ void server_cb(EV_P, ev_io *w, int revents) {
 		client->notify_watcher = NULL;
 		client->int_request_len = 0;
 		client->bol_ssl_handshake = false;
+		client->int_current_header_start = 0;
+		client->bol_full_request = false;
+		client->bol_headers_parsed = false;
+		client->bol_headers_evaluated = false;
+		client->darr_str_header_name = DArray_create(sizeof(char *), 25);
+		client->darr_str_header_value = DArray_create(sizeof(char *), 25);
 
 		if (inet_ntop(AF_INET, &client_address.sin_addr.s_addr, client->str_client_ip, sizeof(client->str_client_ip)) != NULL) {
 			SDEBUG("Got connection from %s:%d", client->str_client_ip, ntohs(client_address.sin_port));

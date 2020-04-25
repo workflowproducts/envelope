@@ -400,10 +400,8 @@ void http_file_step2(EV_P, ev_check *w, int revents) {
 	SERROR_SALLOC(str_last_modified, 101)
 	SERROR_CHECK(strftime(str_last_modified, 100, str_date_format, tm_change_stamp) != 0, "strftime() failed");
 
-	size_t int_if_modified_since_len = 0;
-	str_if_modified_since = request_header(client->str_request, client->int_request_len, "If-Modified-Since", &int_if_modified_since_len);
-	if (str_if_modified_since != NULL) {
-		bol_modified = strncmp(str_last_modified, str_if_modified_since, int_if_modified_since_len) != 0;
+	if (client->str_if_modified_since != NULL) {
+		bol_modified = strncmp(str_last_modified, client->str_if_modified_since, strlen(client->str_if_modified_since)) != 0;
 	} else {
 		SFREE(str_global_error);
 	}

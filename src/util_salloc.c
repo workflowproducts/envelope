@@ -36,7 +36,7 @@ void *srealloc(void *void_ptr, size_t size) {
 	}
 
 	// Oh come on, it seems we have some serious problems
-	SERROR_NORESPONSE("Out of memory.");
+	SERROR_NORESPONSE("Out of memory, tried to allocate %zu bytes.", size);
 	return NULL;
 }
 
@@ -46,6 +46,6 @@ void *srealloc(void *void_ptr, size_t size) {
 */
 void bfree_pword(char volatile *str_pword, size_t int_len) {
 	memset((char *)str_pword, 0, int_len);
-	// SERROR_NORESPONSE("secure free: >%s<", (char *)pword);
+	// fprintf(stderr, "secure free: >%s<\n", (char *)str_pword);
 	free((char *)str_pword);
 }

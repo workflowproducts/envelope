@@ -264,7 +264,7 @@ void sunlogf_root(
 	char str_pid[256] = { 0 };
 	char str_file_full[128] = { 0 };
 	snprintf(str_file_full, 256, "%s:%d:%s()", str_file, int_line_no, str_function);
-	snprintf(str_pid, 256, "%s PID: %-7d FILE: %-55s", str_current_time, getpid(), str_file_full);
+	snprintf(str_pid, 256, "%s PID: %-7d FILE: %-25s", str_current_time, getpid(), str_file_full);
 
 	// all static strings so no need to free
 	// clang-format off

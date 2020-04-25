@@ -1,5 +1,51 @@
 #include "util_string.h"
 
+// 0 = no line end found
+size_t find_next_line(char *str, size_t int_len) {
+	size_t int_ret = 0;
+
+	while (str[int_ret] != '\015'
+		&& str[int_ret] != '\012'
+		&& int_ret < int_len) {
+		int_ret = int_ret + 1;
+	}
+
+	if (int_ret == int_len) {
+		int_ret = 0;
+		return int_ret;
+	}
+
+	// These were combined, but it was skipping the two lines at the end.
+	// They have to be in this order if both are used anyway, so this isn't any slower.
+	while (str[int_ret] == '\015') {
+		int_ret = int_ret + 1;
+	}
+	while (str[int_ret] == '\012') {
+		int_ret = int_ret + 1;
+	}
+
+	return int_ret;
+}
+
+// same as above, it just doesn't advance past the newline chars
+// 0 = no line end found
+size_t find_line_len(char *str, size_t int_len) {
+	size_t int_ret = 0;
+
+	while (str[int_ret] != '\015'
+		&& str[int_ret] != '\012'
+		&& int_ret < int_len) {
+		int_ret += 1;
+	}
+
+	if (int_ret == int_len) {
+		int_ret = 0;
+		return int_ret;
+	}
+
+	return int_ret;
+}
+
 // This is based on OpenBSD strcspn
 size_t strncspn(const char *str_search, size_t int_search_len, const char *str_chars, size_t int_chars_len) {
 	const char *p, *spanp;
@@ -14,6 +60,33 @@ size_t strncspn(const char *str_search, size_t int_search_len, const char *str_c
 		int_j = 0;
 		do {
 			if ((sc = *spanp++) == c) {
+				return (size_t)(p - 1 - str_search);
+			}
+			int_j += 1;
+		} while (int_j < int_chars_len);
+	}
+	return int_search_len;
+}
+
+// This is based on OpenBSD strcspn
+size_t strnspn(const char *str_search, size_t int_search_len, const char *str_chars, size_t int_chars_len) {
+	const char *p, *spanp;
+	char c, sc;
+	size_t int_i = 0;
+	size_t int_j = 0;
+	bool bol_match = false;
+
+	// Stop as soon as we find any character from str_chars
+	for (p = str_search; int_i < int_search_len; int_i += 1) {
+		c = *p++;
+		spanp = str_chars;
+		int_j = 0;
+		bol_match = false;
+		do {
+			if ((sc = *spanp++) == c) {
+				bol_match = true;
+			}
+			if (!bol_match) {
 				return (size_t)(p - 1 - str_search);
 			}
 			int_j += 1;

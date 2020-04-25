@@ -56,63 +56,14 @@ error:
 	return NULL;
 }
 
-char *request_header(char *str_request, size_t _int_request_len, char *str_header_name, size_t *int_header_value_len) {
-	char *str_return = NULL;
-	size_t int_request_len = _int_request_len;
-    size_t int_header_name_len = strlen(str_header_name);
-	char *ptr_end = bstrstr(str_request, int_request_len, "\015\012\015\012", 4);
-	if (ptr_end == NULL) { ptr_end = bstrstr(str_request, int_request_len, "\015\015", 2); }
-	if (ptr_end == NULL) { ptr_end = bstrstr(str_request, int_request_len, "\012\012", 2); }
-	SFREE(str_global_error);
-	if (ptr_end == NULL) { return NULL; }
-
-	int_request_len = (ptr_end + 1) - str_request;
-	SDEBUG("str_request: %s", str_request);
-	SDEBUG("ptr_end: %s", ptr_end);
-	SDEBUG("int_request_len: %d", int_request_len);
-
-	// Find the header in the request
-	char *ptr_header = bstrstri(str_request, int_request_len, str_header_name, int_header_name_len);
-
-	SWARN_CHECK(ptr_header != NULL, "bstrstr failed");
-    ptr_header += int_header_name_len;
-
-	while (*ptr_header != ':' && !isspace(*ptr_header)) {
-        ptr_header = bstrstri(str_request, (int_request_len - (size_t)(ptr_header - str_request)), str_header_name, int_header_name_len);
-
-		SWARN_CHECK(ptr_header != NULL, "bstrstr failed");
-        ptr_header += int_header_name_len;
-    }
-
-	ptr_header = strchr(ptr_header, ':');
-	SWARN_CHECK(ptr_header != NULL, "strchr failed");
-	ptr_header += 1;
-	while (isspace(*ptr_header)) {
-		ptr_header += 1;
-	}
-	while (ptr_header[*int_header_value_len] != '\015' && ptr_header[*int_header_value_len] != '\012') {
-		*int_header_value_len += 1;
-	}
-
-	SERROR_SALLOC(str_return, *int_header_value_len + 1);
-	memcpy(str_return, ptr_header, *int_header_value_len);
-	str_return[*int_header_value_len] = '\0';
-	SDEBUG("str_return: %s", str_return);
-	SDEBUG("*int_header_value_len: %d", *int_header_value_len);
-
-	return str_return;
-error:
-
-	SFREE(str_return);
-	return NULL;
-}
-
-char *str_cookie(char *str_request, size_t int_request_len, char *str_cookie_name, size_t *int_cookie_value_len) {
+char *get_cookie(char *str_all_cookie, size_t int_all_cookie_len, char *str_cookie_name, size_t *int_cookie_value_len) {
 	char *str_return = NULL;
 	char *ptr_cookie_end_semi = NULL;
 	size_t int_cookie_end_semi = 0;
 	size_t int_full_cookie_len = 0;
-	SDEFINE_VAR_ALL(str_cookie, str_full_cookie);
+	SDEFINE_VAR_ALL(str_full_cookie);
+
+	SERROR_CHECK(str_all_cookie != NULL, "cookie is required");
 
 	SDEBUG("str_cookie 1");
 
@@ -123,9 +74,8 @@ char *str_cookie(char *str_request, size_t int_request_len, char *str_cookie_nam
 	SDEBUG("str_cookie 2");
 
 	// find the cookie
-	str_cookie = request_header(str_request, int_request_len, "Cookie", int_cookie_value_len);
-	SWARN_CHECK(str_cookie != NULL, "no cookie found");
-	char *ptr_cookie = bstrstr(str_cookie, *int_cookie_value_len, str_full_cookie, int_full_cookie_len);
+	SDEBUG("str_all_cookie: >%s<", str_all_cookie);
+	char *ptr_cookie = bstrstr(str_all_cookie, int_all_cookie_len, str_full_cookie, int_full_cookie_len);
 	SWARN_CHECK(ptr_cookie != NULL, "no cookie found");
 	ptr_cookie = ptr_cookie + int_full_cookie_len; // advance cursor past cookie=
 	SFREE(str_full_cookie);
@@ -133,9 +83,9 @@ char *str_cookie(char *str_request, size_t int_request_len, char *str_cookie_nam
 	SDEBUG("str_cookie 3");
 
 	// get cookie length
-	ptr_cookie_end_semi = bstrstr(ptr_cookie, (*int_cookie_value_len) - (size_t)(ptr_cookie - str_cookie), ";", (size_t)1);
+	ptr_cookie_end_semi = bstrstr(ptr_cookie, int_all_cookie_len - int_full_cookie_len, ";", (size_t)1);
 	int_cookie_end_semi = (size_t)(ptr_cookie_end_semi - ptr_cookie);
-	*int_cookie_value_len = (*int_cookie_value_len) - (size_t)(ptr_cookie - str_cookie);
+	*int_cookie_value_len = int_all_cookie_len - (size_t)(ptr_cookie - str_all_cookie);
 	*int_cookie_value_len = ptr_cookie_end_semi != NULL && int_cookie_end_semi < (*int_cookie_value_len) ? int_cookie_end_semi : (*int_cookie_value_len);
 
 	SDEBUG("str_cookie 4 *int_cookie_value_len: %d", *int_cookie_value_len);
@@ -265,122 +215,164 @@ error:
 	return false;
 }
 
-sun_upload *get_sun_upload(char *str_request, size_t int_request_len) {
+sun_upload *get_sun_upload(struct sock_ev_client *client) {
 	sun_upload *sun_return = NULL;
-	char *boundary_ptr = NULL;
-	char *boundary_end_ptr = NULL;
-	char *boundary_end_ptr_cr = NULL;
-	size_t int_boundary_len = 0;
-	SDEFINE_VAR_ALL(str_boundary, str_content_type, str_name);
+	//SDEFINE_VAR_ALL(str_name);
+	SERROR_SALLOC(sun_return, sizeof(sun_upload));
+	char *ptr_request = NULL;
+	char *ptr_request_end = client->str_request + client->int_request_len;
+	char *ptr_name = NULL;
+	char *ptr_file_content = NULL;
+	char *ptr_file_content_end = NULL;
+	char *ptr_name_end = NULL;
+	size_t int_temp = 0;
+	size_t int_next_line = 0;
+	size_t int_name_len = 0;
 
-    ////GET BOUNDARY
-	boundary_ptr = bstrstri(str_request, int_request_len, "CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=", 44);
-	SERROR_CHECK(boundary_ptr != NULL, "Cannot find boundary for request");
-    boundary_ptr += 44;
+	SERROR_CHECK(client->str_boundary != NULL, "boundary is null");
 
-	boundary_end_ptr_cr = strchr(boundary_ptr, 13);
-	boundary_end_ptr = boundary_end_ptr_cr != 0 ? boundary_end_ptr_cr : strchr(boundary_ptr, 10);
-	int_boundary_len = (size_t)((boundary_end_ptr - boundary_ptr) + 2);
+	// get first content chunk
+	ptr_request = bstrstr(
+		client->str_request + client->int_form_data_start, client->int_request_len - client->int_form_data_start
+		, client->str_boundary, client->int_boundary_len
+	);
+	SERROR_CHECK(ptr_request != NULL, "couldn't find boundary in string");
+	int_temp = find_next_line(ptr_request, ptr_request_end - ptr_request);
+	SERROR_CHECK(int_temp > 0, "malformed upload request");
 
-	SERROR_SALLOC(str_boundary, int_boundary_len + 1); // null byte
-	memcpy(str_boundary + 2, boundary_ptr, int_boundary_len - 2);
-	// This was adding two dashes to the end, but that was actually not working
-	// (the file name was coming in after the file content),
-	// and now I found out that you need them at the beginning instead (they are
-	// added to the the end as well, but only for the last boundary)
-	// - Nunzio on Wed Feb 17 at 2:26 PM
-	str_boundary[0] = '-';
-	str_boundary[1] = '-';
-	//str_boundary[int_boundary_len] = '\012';
-	str_boundary[int_boundary_len] = '\0';
+	// is it the file name?
+	ptr_name = bstrstr(
+		ptr_request, ptr_request_end - ptr_request
+		, "name=\"", 6
+	);
+	SERROR_CHECK(ptr_name != NULL, "malformed upload request");
+	ptr_name = ptr_name + 6;
 
-	SDEBUG(">BOUNDARY|%s<", str_boundary);
+	ptr_name_end = bstrstr(
+		ptr_name, ptr_request_end - ptr_name
+		, "\"", 1
+	);
+	SERROR_CHECK(ptr_name_end != NULL, "malformed upload request");
 
-	////GET FILE NAME
-	// get file name
-	char *ptr_name = bstrstri(str_request, 4192, "CONTENT-DISPOSITION: FORM-DATA; NAME=\"FILE_NAME\"", 48);
-	if (ptr_name == NULL) {
-		ptr_name = brstrstri(str_request, int_request_len, "CONTENT-DISPOSITION: FORM-DATA; NAME=\"FILE_NAME\"", 48);
+	if (strncmp(ptr_name, "file_name", 9) == 0) {
+		// grab file name
+		int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_name);
+		ptr_file_content = ptr_name;
+		while (int_next_line > 0) {
+			ptr_name = ptr_name + int_next_line;
+			if (int_next_line < 3) {
+				// this is the name length
+				int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_name);
+				while (ptr_name[int_next_line - 1] == '\015' || ptr_name[int_next_line - 1] == '\012') {
+					int_next_line = int_next_line - 1;
+				}
+				SERROR_SNCAT(sun_return->str_name, &sun_return->int_name_len, ptr_name, int_next_line);
+				SINFO("sun_return->int_name_len: %d", sun_return->int_name_len);
+				SINFO("sun_return->str_name: %s", sun_return->str_name);
+
+				break;
+			}
+			int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_name);
+		}
+		// get next chunk, make sure it's the content, then store the pointer/length
+	} else {
+		// make sure its the content, then store the pointer/length
+		SERROR_CHECK(strncmp(ptr_name, "file_content", 12) == 0, "malformed upload request");
+		int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_file_content);
+		ptr_file_content = ptr_name;
+		while (int_next_line > 0) {
+			ptr_file_content = ptr_file_content + int_next_line;
+			if (int_next_line < 3) {
+				// we're here
+				sun_return->ptr_file_content = ptr_file_content;
+
+				ptr_file_content_end = brstrstr(
+					client->str_request, client->int_request_len,
+					client->str_boundary, client->int_boundary_len
+				);
+				SERROR_CHECK(ptr_file_content_end != NULL, "malformed upload request");
+
+				ptr_file_content_end = brstrstr(
+					client->str_request, ptr_file_content_end - client->str_request,
+					client->str_boundary, client->int_boundary_len
+				);
+				SERROR_CHECK(ptr_file_content_end != NULL, "malformed upload request");
+
+				while (*ptr_file_content_end == '\015' || *ptr_file_content_end == '\012') {
+					ptr_file_content_end = ptr_file_content_end - 1;
+				}
+
+				sun_return->int_file_content_len = ptr_file_content_end - ptr_file_content;
+
+				break;
+			}
+			int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_file_content);
+		}
+
+		// search from end for file name
+		// get last content chunk
+		ptr_request_end = brstrstr(
+			client->str_request, client->int_request_len
+			, client->str_boundary, client->int_boundary_len
+		);
+		SERROR_CHECK(ptr_request_end != NULL, "malformed upload request");
+		ptr_request = brstrstr(
+			client->str_request, ptr_request_end - client->str_request
+			, client->str_boundary, client->int_boundary_len
+		);
+		SERROR_CHECK(ptr_request != NULL, "malformed upload request");
+		int_temp = find_next_line(ptr_request, ptr_request_end - ptr_request);
+		SERROR_CHECK(int_temp > 0, "malformed upload request");
+
+		// is it the file name?
+		ptr_name = bstrstr(
+			ptr_request, ptr_request_end - ptr_request
+			, "name=\"", 6
+		);
+		SERROR_CHECK(ptr_name != NULL, "malformed upload request");
+		ptr_name = ptr_name + 6;
+
+		ptr_name_end = bstrstr(
+			ptr_name, ptr_request_end - ptr_name
+			, "\"", 1
+		);
+		SERROR_CHECK(ptr_name_end != NULL, "malformed upload request");
+
+		if (strncmp(ptr_name, "file_name", 9) == 0) {
+			// grab file name
+			int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_name);
+			ptr_file_content = ptr_name;
+			while (int_next_line > 0) {
+				ptr_name = ptr_name + int_next_line;
+				if (int_next_line < 3) {
+					// this is the name length
+					int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_name);
+					while (ptr_name[int_next_line - 1] == '\015' || ptr_name[int_next_line - 1] == '\012') {
+						int_next_line = int_next_line - 1;
+					}
+					SERROR_SNCAT(sun_return->str_name, &sun_return->int_name_len, ptr_name, int_next_line);
+					SINFO("sun_return->int_name_len: %d", sun_return->int_name_len);
+					SINFO("sun_return->str_name: %s", sun_return->str_name);
+
+					break;
+				}
+				int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_name);
+			}
+		}
 	}
 
-	SERROR_CHECK(ptr_name != NULL, "No Content Disposition for File Name, (Maybe there is no file name?)");
-	ptr_name += 48;
-
-	char *ptr_name_dos = strstr(ptr_name, "\015\012\015\012");
-	char *ptr_name_unix = strstr(ptr_name, "\012\012");
-	char *ptr_name_mac = strstr(ptr_name, "\015\015");
-	// clang-format off
-	ptr_name =
-		ptr_name_dos > ptr_name_unix	? ptr_name_dos  + 4 :
-		ptr_name_dos > ptr_name_mac		? ptr_name_dos  + 4 :
-		ptr_name_unix > ptr_name_mac	? ptr_name_unix + 2 :
-											ptr_name_mac  + 2;
-	// clang-format on
-
-	// copy file name
-	char *str_name_carriage = strchr(ptr_name, '\015');
-	char *str_name_newline = strchr(ptr_name, '\012');
-	char *str_name_boundary = strstr(ptr_name, str_boundary);
-	// clang-format off
-	size_t int_name_len =
-		(str_name_carriage < str_name_newline ? str_name_carriage :
-		str_name_carriage < str_name_boundary ? str_name_carriage :
-		str_name_boundary) - ptr_name;
-	// clang-format on
-	SERROR_SALLOC(str_name, int_name_len + 1);
-	memcpy(str_name, ptr_name, int_name_len);
-	str_name[int_name_len] = '\0';
-	SDEBUG(">FILE NAME|%s<", str_name);
-
-	////GET FILE
-	// get file content
-	SDEBUG("str_request: %20.20s", str_request);
-
-	char *ptr_file_content = bstrstri(str_request, int_request_len, "CONTENT-DISPOSITION: FORM-DATA; NAME=\"FILE_CONTENT\"", 51);
-	SERROR_CHECK(ptr_file_content != NULL, "No Content Disposition for File "
-										   "Content, (Maybe there is no file "
-										   "content?)");
-	ptr_file_content += 51;
-
-	SDEBUG("str_request + int_request_len d: %d", str_request + int_request_len);
-	SDEBUG("ptr_file_content: %20.20s", ptr_file_content);
-
-	char *ptr_file_content_dos = strstr(ptr_file_content, "\015\012\015\012");
-	char *ptr_file_content_unix = strstr(ptr_file_content, "\012\012");
-	char *ptr_file_content_mac = strstr(ptr_file_content, "\015\015");
-	// clang-format off
-    ptr_file_content =
-            ptr_file_content_dos  > ptr_file_content_unix   ? ptr_file_content_dos  + 4 :
-            ptr_file_content_dos  > ptr_file_content_mac    ? ptr_file_content_dos  + 4 :
-            ptr_file_content_unix > ptr_file_content_mac    ? ptr_file_content_unix + 2 :
-                                                              ptr_file_content_mac  + 2;
-	// clang-format on
-
-	// copy file content
-	size_t int_file_content_len =
-		(size_t)(brstrstr(ptr_file_content, (size_t)((str_request + int_request_len) - ptr_file_content), str_boundary,
-					 int_boundary_len) -
-				 ptr_file_content);
-	// clang-format off
-    // This is because the browser sends a newline after the file content
-    // - Nunzio on Wed Feb 17 at 2:26 PM
-    int_file_content_len -=
-            ptr_file_content_dos  > ptr_file_content_unix   ? 2 :
-            ptr_file_content_dos  > ptr_file_content_mac    ? 2 :
-															  1;
-	// clang-format on
-    SERROR_SALLOC(sun_return, sizeof(sun_upload));
-    sun_return->str_name = str_name;
-    str_name = NULL;
-    sun_return->int_name_len = int_name_len;
-    sun_return->ptr_file_content = ptr_file_content;
-    sun_return->int_file_content_len = int_file_content_len;
+	//SERROR_SALLOC(sun_return, sizeof(sun_upload));
+    //sun_return->str_name = str_name;
+    //str_name = NULL;
+    //sun_return->int_name_len = int_name_len;
+    //sun_return->ptr_file_content = ptr_file_content;
+    //sun_return->int_file_content_len = int_file_content_len;
 
 
-	SFREE_ALL();
+	//SFREE_ALL();
 	return sun_return;
 error:
-	SFREE_ALL();
+	//SFREE_ALL();
 	SFREE(sun_return);
 	return NULL;
 }

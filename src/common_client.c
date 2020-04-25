@@ -330,18 +330,20 @@ void client_cb(EV_P, ev_io *w, int revents) {
 	struct sock_ev_client *client = (struct sock_ev_client *)w;
 
 	unsigned char *str_request = NULL;
-	bool bol_request_finished = false;
 	char *str_buffer = NULL;
 	ssize_t int_len = 0;
-	size_t int_content_length = 0;
 	size_t int_response_len = 0;
 	size_t int_uri_length = 0;
-	size_t int_cookie_name_len = 0;
+	size_t int_start = 0;
+	size_t int_next_line = 0;
+	size_t int_header_name_len = 0;
+	size_t int_temp_len = 0;
+	size_t int_current_header = 0;
 
 	char *str_temp = NULL;
 	SDEFINE_VAR_ALL(str_response, str_conninfo, str_query);
 	SDEFINE_VAR_MORE(str_session_id, str_client_cookie, str_session_client_cookie);
-	SDEFINE_VAR_MORE(str_ip_address, str_conn_index, str_uri_temp);
+	SDEFINE_VAR_MORE(str_header_name, str_header_value, str_boundary_temp);
 
 	SERROR_SALLOC(str_buffer, MAX_BUFFER + 1);
 
@@ -365,7 +367,12 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				SERROR("Someone is trying to connect with TLS!");
 			}
 
-			SERROR_SREALLOC(client->str_request, (size_t)((ssize_t)client->int_request_len + int_len + 1));
+			if (client->int_form_data_length > 0 && client->int_request_full_len == 0) {
+				client->int_request_full_len = client->int_form_data_start + client->int_form_data_length;
+				SERROR_SREALLOC(client->str_request, client->int_request_full_len);
+			} else if (client->int_form_data_length == 0) {
+				SERROR_SREALLOC(client->str_request, (size_t)((ssize_t)client->int_request_len + int_len + 1));
+			}
 			memcpy(client->str_request + client->int_request_len, str_buffer, (size_t)int_len);
 			client->int_request_len += (size_t)int_len;
 			client->str_request[client->int_request_len] = '\0';
@@ -373,122 +380,180 @@ void client_cb(EV_P, ev_io *w, int revents) {
 			SERROR("read() failed");
 		}
 
-		if (client->bol_upload == false) {
-			client->bol_upload =
-				(bstrstri(client->str_request, client->int_request_len, "CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=",
-					 strlen("CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=")) != NULL);
+		// find start of first header
+		if (client->int_current_header_start == 0) {
+			client->int_current_header_start = find_next_line(client->str_request, client->int_request_len);
+			SDEBUG("client->str_request + client->int_current_header_start: >%s<", client->str_request + client->int_current_header_start);
+
 		}
 
-		char *ptr_content_length =
-			bstrstri(client->str_request, client->int_request_len, "CONTENT-LENGTH", strlen("CONTENT-LENGTH"));
-		if (client->bol_upload == true) {
-			if (client->str_boundary == NULL) {
-				char *boundary_ptr =
-					bstrstri(client->str_request, client->int_request_len, "CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=",
-						strlen("CONTENT-TYPE: MULTIPART/FORM-DATA; BOUNDARY=")) +
-					44;
-				boundary_ptr = client->str_request + (boundary_ptr - client->str_request);
-				char *boundary_end_ptr =
-					strchr(boundary_ptr, 13) != 0 ? strchr(boundary_ptr, '\015') : strchr(boundary_ptr, '\012');
-				if (boundary_end_ptr != NULL) {
-					client->int_boundary_length = (size_t)(boundary_end_ptr - boundary_ptr);
-					SERROR_SALLOC(client->str_boundary, (size_t)client->int_boundary_length + 3); // extra and null byte
-					memcpy(client->str_boundary, boundary_ptr, client->int_boundary_length);
-					client->str_boundary[client->int_boundary_length + 0] = '-';
-					client->str_boundary[client->int_boundary_length + 1] = '-';
-					client->str_boundary[client->int_boundary_length + 2] = '\0';
-					client->int_boundary_length += 2;
-				} else {
-					bol_request_finished = false;
+		SDEBUG("client->int_current_header_start: %d", client->int_current_header_start);
+		if (client->int_current_header_start > 0 && client->bol_headers_parsed == false) {
+			// we can start looking for headers
+			int_start = client->int_current_header_start;
+			int_next_line = find_next_line(client->str_request + int_start, client->int_request_len - int_start);
+			SDEBUG("client->str_request: >%s<", client->str_request);
+			while (int_next_line > 0) {
+				client->int_current_header_start = int_start;
+
+				// we can't do anything until we have the name and the value
+				int_next_line = find_next_line(client->str_request + int_start, client->int_request_len - int_start);
+				SDEBUG("int_next_line: %d", int_next_line);
+				if (int_next_line == 0) {
+					break;
+				} else if (int_next_line < 3) {
+					client->bol_headers_parsed = true;
+					while (client->str_request[client->int_current_header_start] == '\015'
+						|| client->str_request[client->int_current_header_start] == '\012') {
+						client->int_current_header_start = client->int_current_header_start + 1;
+					}
+					client->int_form_data_start = client->int_current_header_start;
+					break;
 				}
-			}
 
-			if (client->str_boundary != NULL) {
-				if (bstrstr(client->str_request + client->int_request_len - int_len, (size_t)int_len, client->str_boundary,
-						client->int_boundary_length) == NULL) {
-					bol_request_finished = false;
-				} else {
-					bol_request_finished = true;
+				// find end of name
+				int_header_name_len = strncspn(client->str_request + int_start, client->int_request_len - int_start, ": ", 2);
+				if (int_header_name_len == (client->int_request_len - int_start)) {
+					break;
 				}
-			}
 
-		} else if (ptr_content_length != NULL) {
-			ptr_content_length += 14;
-			while (*ptr_content_length != 0 && (*ptr_content_length < '0' || *ptr_content_length > '9')) {
-				ptr_content_length += 1;
-			}
-			int_content_length = (size_t)strtol(ptr_content_length, NULL, 10);
-			char *ptr_temp_unix = bstrstr(client->str_request, client->int_request_len, "\012\012", 2);
-			char *ptr_temp_dos = bstrstr(client->str_request, client->int_request_len, "\015\012\015\012", 4);
-			char *ptr_temp_mac = bstrstr(client->str_request, client->int_request_len, "\015\015", 2);
+				// copy to name array
+				SERROR_SNCAT(str_header_name, &int_temp_len, client->str_request + int_start, int_header_name_len);
+				DArray_push(client->darr_str_header_name, str_header_name);
+				SDEBUG("str_header_name: >%s<", str_header_name);
+				str_header_name = NULL;
 
-			char *ptr_temp = ptr_temp_unix != NULL ? ptr_temp_unix : ptr_temp_dos != NULL ? ptr_temp_dos : ptr_temp_mac;
-			if (ptr_temp == NULL) {
-				bol_request_finished = false;
-			} else {
-				while (*ptr_temp != 0 && (*ptr_temp == '\012' || *ptr_temp == '\015')) {
-					ptr_temp += 1;
+				// move past name
+				int_start = int_start + int_header_name_len;
+				int_next_line = int_next_line - int_header_name_len;
+
+				// this is the length until the start of the value
+				int_temp_len = strnspn(client->str_request + int_start, client->int_request_len - int_start, ": ", 2);
+				if (int_temp_len == (client->int_request_len - int_start)) {
+					break;
 				}
-				bol_request_finished = (client->int_request_len - (size_t)(ptr_temp - client->str_request)) == int_content_length;
+				// advance past the seperator
+				int_temp_len = int_temp_len + 1;
+				int_start = int_start + int_temp_len;
+
+				// fix length of the value, recede before the newline
+				int_next_line = int_next_line - int_temp_len;
+				int_temp_len = int_next_line;
+				while (client->str_request[int_start + int_temp_len - 1] == '\015'
+					|| client->str_request[int_start + int_temp_len - 1] == '\012') {
+					int_temp_len = int_temp_len - 1;
+				}
+
+				// ok, int_next_line is now our value int_temp_len
+				// copy it to the array
+				SERROR_SNCAT(str_header_value, &int_temp_len, client->str_request + int_start, int_temp_len);
+				DArray_push(client->darr_str_header_value, str_header_value);
+				SDEBUG("str_header_value: >%s<", str_header_value);
+				str_header_value = NULL;
+
+				int_start = int_start + int_next_line;
 			}
-
-		} else {
-			char *ptr_temp_unix = bstrstr(client->str_request, client->int_request_len, "\012\012", 2);
-			char *ptr_temp_dos = bstrstr(client->str_request, client->int_request_len, "\015\012\015\012", 4);
-			char *ptr_temp_mac = bstrstr(client->str_request, client->int_request_len, "\015\015", 2);
-
-			char *ptr_temp = ptr_temp_unix != NULL ? ptr_temp_unix : ptr_temp_dos != NULL ? ptr_temp_dos : ptr_temp_mac;
-			bol_request_finished = ptr_temp != NULL;
 		}
 
-		if (bol_request_finished) {
-			size_t int_ip_address_len = 0;
-			str_ip_address = request_header(client->str_request, client->int_request_len, "x-forwarded-for", &int_ip_address_len);
-			if (str_ip_address != NULL && int_ip_address_len < (INET_ADDRSTRLEN - 1)) {
-				SDEBUG("str_ip_address: %s", str_ip_address);
-				memcpy(client->str_client_ip, str_ip_address, int_ip_address_len);
+		if (client->bol_headers_parsed == true && client->bol_headers_evaluated == false) {
+			int_current_header = 0;
+			while (int_current_header < DArray_end(client->darr_str_header_name)) {
+				str_header_name = DArray_get(client->darr_str_header_name, int_current_header);
+				str_header_value = DArray_get(client->darr_str_header_value, int_current_header);
 
-				// IIS adds the client port to the X-Forwarded-For header
-				// we need to remove it because of the client_last_activity checks later on
-				char *ptr_temp = bstrstr(client->str_client_ip, int_ip_address_len, ":", 1);
-				if (ptr_temp != NULL) {
-					*ptr_temp = 0;
-					int_ip_address_len = ptr_temp - client->str_client_ip;
+				if (strncasecmp(str_header_name, "Content-Type", 12) == 0) {
+					if (strncasecmp(str_header_value, "multipart/form-data; boundary=", 30) == 0) {
+						client->bol_upload = true;
+
+						char *boundary_ptr = str_header_value + 30;
+						client->int_boundary_len = strlen(str_header_value) - (boundary_ptr - str_header_value);
+						SERROR_SALLOC(client->str_boundary, (size_t)client->int_boundary_len + 3); // extra and null byte
+						memcpy(client->str_boundary + 2, boundary_ptr, client->int_boundary_len);
+						client->str_boundary[0] = '-';
+						client->str_boundary[1] = '-';
+						client->str_boundary[client->int_boundary_len + 2] = '\0';
+						client->int_boundary_len += 2;
+					}
 				}
-				SFREE(str_ip_address);
-			} else {
-				bol_error_state = false;
-				SFREE(str_global_error);
+				if (strncasecmp(str_header_name, "Content-Length", 14) == 0) {
+					client->int_form_data_length = (size_t)strtol(str_header_value, NULL, 10);
+					client->bol_full_request = client->int_request_len == (client->int_form_data_start + client->int_form_data_length);
+				}
+				if (strncasecmp(str_header_name, "X-Forwarded-For", 15) == 0) {
+					size_t int_ip_address_len = strlen(str_header_value);
+					memcpy(client->str_client_ip, str_header_value, int_ip_address_len);
+
+					// IIS adds the client port to the X-Forwarded-For header
+					// we need to remove it because of the client_last_activity checks later on
+					char *ptr_temp = bstrstr(client->str_client_ip, int_ip_address_len, ":", 1);
+					if (ptr_temp != NULL) {
+						*ptr_temp = 0;
+						int_ip_address_len = ptr_temp - client->str_client_ip;
+					}
+				}
+				if (strncasecmp(str_header_name, "Referer", 7) == 0) {
+					SFREE(client->str_referer);
+					SERROR_SNCAT(client->str_referer, &int_temp_len, str_header_value, strlen(str_header_value));
+				}
+				if (strncasecmp(str_header_name, "Origin", 6) == 0) {
+					if (client->str_referer == NULL) {
+						SERROR_SNCAT(client->str_referer, &int_temp_len, str_header_value, strlen(str_header_value));
+					}
+				}
+				if (strncasecmp(str_header_name, "Sec-Websocket-Key", 17) == 0) {
+					SFREE(client->str_websocket_key);
+					SERROR_SNCAT(client->str_websocket_key, &int_temp_len, str_header_value, strlen(str_header_value));
+				}
+				if (strncasecmp(str_header_name, "Cookie", 6) == 0) {
+					SFREE(client->str_all_cookie);
+					SERROR_SNCAT(client->str_all_cookie, &client->int_all_cookie_len, str_header_value, strlen(str_header_value));
+				}
+				if (strncasecmp(str_header_name, "Host", 4) == 0) {
+					SFREE(client->str_host);
+					SERROR_SNCAT(client->str_host, &int_temp_len, str_header_value, strlen(str_header_value));
+				}
+				if (strncasecmp(str_header_name, "User-Agent", 10) == 0) {
+					SFREE(client->str_user_agent);
+					SERROR_SNCAT(client->str_user_agent, &int_temp_len, str_header_value, strlen(str_header_value));
+				}
+				if (strncasecmp(str_header_name, "If-Modified-Since", 17) == 0) {
+					SFREE(client->str_if_modified_since);
+					SERROR_SNCAT(client->str_if_modified_since, &int_temp_len, str_header_value, strlen(str_header_value));
+				}
+
+				int_current_header = int_current_header + 1;
+
+				// These variables get free()d at the end of this function, we don't want that.
+				str_header_name = NULL;
+				str_header_value = NULL;
 			}
-			client->str_referer = request_header(client->str_request, client->int_request_len, "Referer", &client->int_referer_len);
-			if (client->str_referer == NULL) {
-				client->str_referer = request_header(client->str_request, client->int_request_len, "Origin", &client->int_referer_len);
+
+			if (client->int_form_data_length == 0 && !client->bol_upload) {
+				// If we got here, then we don't have a content length and can't know if we have everything anyway.
+				client->bol_full_request = true;
 			}
-			SINFO("client->str_referer: %s", client->str_referer);
-			
-			size_t int_i = 0, int_header_len = client->int_request_len;
-			SDEBUG("client->bol_upload: %s", client->bol_upload ? "true" : "false");
-			if (client->bol_upload) {
-				char *ptr_temp_unix = bstrstr(client->str_request, client->int_request_len, "\012\012", 2);
-				char *ptr_temp_dos = bstrstr(client->str_request, client->int_request_len, "\015\012\015\012", 4);
-				char *ptr_temp_mac = bstrstr(client->str_request, client->int_request_len, "\015\015", 2);
 
-				ptr_temp_unix = ptr_temp_unix != NULL ? ptr_temp_unix : client->str_request + client->int_request_len;
-				ptr_temp_dos = ptr_temp_dos != NULL ? ptr_temp_dos : client->str_request + client->int_request_len;
+			client->bol_headers_evaluated = true;
+		}
 
-				ptr_temp_mac = ptr_temp_mac != NULL ? ptr_temp_mac : client->str_request + client->int_request_len;
-
-				char *ptr_temp = ptr_temp_unix < ptr_temp_dos ? ptr_temp_unix : ptr_temp_dos;
-				ptr_temp = ptr_temp < ptr_temp_mac ? ptr_temp : ptr_temp_mac;
-
-				int_header_len = (size_t)(ptr_temp - client->str_request);
+		if (client->bol_upload == true && client->str_boundary != NULL) {
+			SINFO("client->int_request_len: %zu", client->int_request_len);
+			SINFO("client->int_request_full_len: %zu", client->int_request_full_len);
+			SINFO("client->str_request + (client->int_request_len - 4): %s", client->str_request + (client->int_request_len - 4));
+			if (strncmp(client->str_request + (client->int_request_len - 4), "--\015\012", 4) == 0
+				|| strncmp(client->str_request + (client->int_request_len - 3), "--\015", 3) == 0
+				|| strncmp(client->str_request + (client->int_request_len - 3), "--\012", 3) == 0) {
+				if (strncmp(client->str_request + (client->int_request_len - (client->int_boundary_len + 4)), client->str_boundary, client->int_boundary_len) == 0
+					|| strncmp(client->str_request + (client->int_request_len - (client->int_boundary_len + 3)), client->str_boundary, client->int_boundary_len) == 0) {
+					client->bol_full_request = true;
+				} else {
+					client->bol_full_request = false;
+				}
 			}
-			if (bstrstri(client->str_request, client->int_request_len, "SEC-WEBSOCKET-KEY", strlen("SEC-WEBSOCKET-KEY")) != NULL) {
-				str_uri_temp = str_uri_path(client->str_request, client->int_request_len, &int_uri_length);
-				SERROR_CHECK(str_uri_temp != NULL, "str_uri_path failed");
-				SERROR_SNCAT(client->str_cookie_name, &int_cookie_name_len,
-					"envelope", (size_t)8);
+		}
 
+		if (client->bol_full_request && client->bol_headers_evaluated == true) {
+			if (client->str_websocket_key != NULL) {
 				SDEBUG("websocket request");
 				size_t int_query_length = 0, int_session_id_length = 0;
 				str_query = query(client->str_request, client->int_request_len, &int_query_length);
@@ -499,6 +564,9 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				bol_error_state = false;
 				SFREE(str_query);
 
+				// ***************************************************
+				// BEGIN REQUEST RESUME
+				// ***************************************************
 				struct sock_ev_client *session_client = NULL;
 				ListNode *other_client_node = NULL;
 				if (str_session_id != NULL) {
@@ -517,8 +585,8 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				if (other_client_node != NULL) {
 					size_t int_current_cookie_len = 0;
 					size_t int_session_cookie_len = 0;
-					str_client_cookie = str_cookie(client->str_request, client->int_request_len, client->str_cookie_name, &int_current_cookie_len);
-					str_session_client_cookie = str_cookie(session_client->str_request, session_client->int_request_len, client->str_cookie_name, &int_session_cookie_len);
+					str_client_cookie = get_cookie(client->str_all_cookie, client->int_all_cookie_len, "envelope", &int_current_cookie_len);
+					str_session_client_cookie = get_cookie(client->str_all_cookie, client->int_all_cookie_len, "envelope", &int_session_cookie_len);
 
 					// clang-format off
                     if (
@@ -570,6 +638,9 @@ void client_cb(EV_P, ev_io *w, int revents) {
 						SFREE(str_session_id);
 					}
 				}
+				// ***************************************************
+				// END REQUEST RESUME
+				// ***************************************************
 
 				if (client->que_message == NULL) {
 					client->que_message = Queue_create();
@@ -590,7 +661,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 
 				////HANDSHAKE
 				SERROR_CHECK(
-					(str_response = WS_handshakeResponse(client->str_request, client->int_request_len, &int_response_len)) != NULL, "Error getting handshake response");
+					(str_response = WS_handshakeResponse(client->str_request, client->int_request_len, &int_response_len, client->str_websocket_key)) != NULL, "Error getting handshake response");
 
 				SDEBUG("str_response       : %s", str_response);
 				SDEBUG("client->str_request: %s", client->str_request);
@@ -628,8 +699,6 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				}
 
 			} else {
-				SERROR_SNCAT(client->str_cookie_name, &int_cookie_name_len,
-					"envelope", (size_t)8);
 				SDEBUG("http request");
 				ev_io_stop(EV_A, &client->io);
 				http_main(client);
@@ -647,13 +716,25 @@ void client_cb(EV_P, ev_io *w, int revents) {
 
 	SFREE(str_request);
 	SFREE(str_buffer);
+
+	if (client != NULL && client->bol_headers_parsed == true) {
+		str_header_name = NULL;
+		str_header_value = NULL;
+	}
+
 	SFREE_PWORD_ALL();
 	bol_error_state = false;
 	return;
 
 error:
 	bol_error_state = false;
+
 	if (client != NULL) {
+		if (client->bol_headers_parsed == true) {
+			str_header_name = NULL;
+			str_header_value = NULL;
+		}
+
 		// This prevents an infinite loop if SERROR_CLIENT_CLOSE fails
 		struct sock_ev_client *_client = client;
 		client = NULL;
@@ -1921,6 +2002,19 @@ void client_close_immediate(struct sock_ev_client *client) {
 		DB_finish(client->conn);
 	}
 
+	if (client->darr_str_header_name != NULL) {
+		DArray_clear_destroy(client->darr_str_header_name);
+		client->darr_str_header_name = NULL;
+	}
+	if (client->darr_str_header_value != NULL) {
+		DArray_clear_destroy(client->darr_str_header_value);
+		client->darr_str_header_value = NULL;
+	}
+	SFREE(client->str_host);
+	SFREE(client->str_user_agent);
+	SFREE(client->str_if_modified_since);
+	SFREE(client->str_websocket_key);
+
 	if (client->bol_socket_is_open == true) {
 		if (client->que_message != NULL) {
 			while (client->que_message->first != NULL) {
@@ -1994,7 +2088,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 	SFREE(client->str_connname_folder);
 	// DEBUG("%p->str_cookie: %p", client, client->str_cookie);
 	SFREE_PWORD(client->str_cookie);
-	SFREE_PWORD(client->str_cookie_name);
+	SFREE_PWORD(client->str_all_cookie);
 
 	// DEBUG("Client %p closed", client);
 	List_remove(client->server->list_client, client->node);

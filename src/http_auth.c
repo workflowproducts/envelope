@@ -299,7 +299,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		SFINISH_SNCAT(str_cookie_name, &int_temp, "envelope", (size_t)8);
 
 		SFREE_PWORD(str_form_data);
-		client_auth->str_cookie_encrypted = str_cookie(client_auth->parent->str_request, client_auth->parent->int_request_len, str_cookie_name, &client_auth->int_cookie_encrypted_len);
+		client_auth->str_cookie_encrypted = get_cookie(client_auth->parent->str_all_cookie, client_auth->parent->int_all_cookie_len, str_cookie_name, &client_auth->int_cookie_encrypted_len);
 		SFINISH_CHECK(client_auth->str_cookie_encrypted != NULL, "str_cookie failed");
 		int_cookie_len = client_auth->int_cookie_encrypted_len;
 		str_cookie_decrypted = aes_decrypt(client_auth->str_cookie_encrypted, &int_cookie_len);
@@ -388,7 +388,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		size_t int_temp = 0;
 		SFINISH_SNCAT(str_cookie_name, &int_temp, "envelope", 8);
 
-		client_auth->str_cookie_encrypted = str_cookie(client_auth->parent->str_request, client_auth->parent->int_request_len, str_cookie_name, &client_auth->int_cookie_encrypted_len);
+		client_auth->str_cookie_encrypted = get_cookie(client_auth->parent->str_all_cookie, client_auth->parent->int_all_cookie_len, str_cookie_name, &client_auth->int_cookie_encrypted_len);
 		if (client_auth->str_cookie_encrypted != NULL) {
 			ListNode *node = client_auth->parent->server->list_client->first;
 			for (; node != NULL;) {
@@ -685,6 +685,7 @@ finish:
 
 	if (bol_error_state == true) {
         SERROR_NORESPONSE("Login failed from ip: %s", client_auth->parent->str_client_ip);
+		SFREE(str_global_error);
 		SDEBUG("str_response: %s", str_response);
 		char *_str_response = str_response;
 		char str_length[50];
@@ -922,6 +923,7 @@ finish:
 	if (bol_error_state == true) {
         SDEBUG("str_response: %s", str_response);
         SERROR_NORESPONSE("Login failed from ip: %s", client_auth->parent->str_client_ip);
+		SFREE(str_global_error);
 		char *_str_response = str_response;
 		char str_length[50];
 		snprintf(str_length, 50, "%zu", (int_response_len != 0 ? int_response_len : strlen(_str_response)));

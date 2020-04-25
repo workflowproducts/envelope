@@ -45,10 +45,17 @@
 #include "util_error.h"
 #include "util_salloc.h"
 
+size_t find_next_line(char *str, size_t int_len);
+
 /*
 Check str_search for characters from str_chars
 */
 size_t strncspn(const char *str_search, size_t int_search_len, const char *str_chars, size_t int_chars_len);
+
+/*
+Check str_search for characters NOT from str_chars
+*/
+size_t strnspn(const char *str_search, size_t int_search_len, const char *str_chars, size_t int_chars_len);
 
 /*
 Check to see if a string needs to be escaped as either an identifier or a literal
