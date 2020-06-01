@@ -537,9 +537,9 @@ void client_cb(EV_P, ev_io *w, int revents) {
 		}
 
 		if (client->bol_upload == true && client->str_boundary != NULL) {
-			SINFO("client->int_request_len: %zu", client->int_request_len);
-			SINFO("client->int_request_full_len: %zu", client->int_request_full_len);
-			SINFO("client->str_request + (client->int_request_len - 4): %s", client->str_request + (client->int_request_len - 4));
+			SDEBUG("client->int_request_len: %zu", client->int_request_len);
+			SDEBUG("client->int_request_full_len: %zu", client->int_request_full_len);
+			SDEBUG("client->str_request + (client->int_request_len - 4): %s", client->str_request + (client->int_request_len - 4));
 			if (strncmp(client->str_request + (client->int_request_len - 4), "--\015\012", 4) == 0
 				|| strncmp(client->str_request + (client->int_request_len - 3), "--\015", 3) == 0
 				|| strncmp(client->str_request + (client->int_request_len - 3), "--\012", 3) == 0) {

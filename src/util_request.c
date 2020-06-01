@@ -276,13 +276,18 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		}
 
 		// get last chunk, make sure it's the content, then store the pointer/length
-		ptr_request_end = brstrstr(
+		ptr_request = bstrstr(
 			client->str_request, client->int_request_len
 			, client->str_boundary, client->int_boundary_len
 		);
 		SERROR_CHECK(ptr_request_end != NULL, "malformed upload request");
-		ptr_request = brstrstr(
-			client->str_request, ptr_request_end - client->str_request
+		ptr_request = bstrstr(
+			ptr_request, client->int_request_len - (ptr_request - client->str_request)
+			, client->str_boundary, client->int_boundary_len
+		);
+		SERROR_CHECK(ptr_request_end != NULL, "malformed upload request");
+		ptr_request_end = brstrstr(
+			client->str_request, client->int_request_len
 			, client->str_boundary, client->int_boundary_len
 		);
 		SERROR_CHECK(ptr_request != NULL, "malformed upload request");
