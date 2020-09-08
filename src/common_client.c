@@ -1,4 +1,5 @@
 // Hark ye onlooker: Adding UTIL_DEBUG to this file slows it down considerably. You have been warned.
+#define UTIL_DEBUG
 #include "common_client.h"
 
 #ifdef _WIN32
@@ -185,9 +186,8 @@ static void cnxn_reset_cb(EV_P, ev_io *w, int revents) {
 		cnxn_cb(EV_A, client_cnxn->parent, client_cnxn->parent->conn);
 		if (client_cnxn->parent->client_reconnect_timer != NULL) {
 			ev_prepare_stop(EV_A, &client_cnxn->parent->client_reconnect_timer->prepare);
+			ev_idle_stop(EV_A, &client_cnxn->parent->client_reconnect_timer->idle);
 			SFREE(client_cnxn->parent->client_reconnect_timer);
-
-			decrement_idle(EV_A);
 		}
 
 	} else if (status == PGRES_POLLING_FAILED) {
@@ -225,9 +225,9 @@ finish:
 		SFREE(client_cnxn);
 
 		ev_prepare_stop(EV_A, &client->client_reconnect_timer->prepare);
+		ev_idle_stop(EV_A, &client_cnxn->parent->client_reconnect_timer->idle);
 		SFREE(client->client_reconnect_timer);
-		decrement_idle(EV_A);
-
+		
 		cnxn_cb(EV_A, client, client->conn);
 	}
 }
@@ -244,9 +244,8 @@ void client_reconnect_timer_cb(EV_P, ev_prepare *w, int revents) {
 
 		if (client->client_reconnect_timer != NULL) {
 			ev_prepare_stop(EV_A, &client->client_reconnect_timer->prepare);
+			ev_idle_stop(EV_A, &client->client_reconnect_timer->idle);
 			SFREE(client->client_reconnect_timer);
-
-			decrement_idle(EV_A);
 		}
 
 		client_close(client);
@@ -295,9 +294,10 @@ void client_notify_cb(EV_P, ev_io *w, int revents) {
 		SERROR_SALLOC(client->client_reconnect_timer, sizeof(struct sock_ev_client_reconnect_timer));
 		ev_prepare_init(&client->client_reconnect_timer->prepare, client_reconnect_timer_cb);
 		ev_prepare_start(EV_A, &client->client_reconnect_timer->prepare);
+		ev_idle_init(&client->client_reconnect_timer->idle, idle_cb);
+		ev_idle_start(EV_A, &client->client_reconnect_timer->idle);
 		client->client_reconnect_timer->parent = client;
 		client->client_reconnect_timer->close_time = ev_now(EV_A);
-		increment_idle(EV_A);
 
 		// set up cnxn socket
 		SERROR_SET_CONN_PQ_SOCKET(client->conn);
@@ -1087,7 +1087,8 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 					client_copy_check->client_request = client->cur_request;
 					ev_check_init(&client_copy_check->check, client_send_from_cb);
 					ev_check_start(EV_A, &client_copy_check->check);
-					increment_idle(EV_A);
+					ev_idle_init(&client_copy_check->idle, idle_cb);
+					ev_idle_start(EV_A, &client_copy_check->idle);
 					client->client_copy_check = client_copy_check;
 				}
 			}
@@ -1117,7 +1118,8 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 		if (client_request != NULL) {
 			SDEBUG("Queue_send(%p, %p);", client->que_request, client_request);
 			Queue_send(client->que_request, client_request);
-			increment_idle(EV_A);
+			ev_idle_init(&client->idle_request_queue, idle_cb);
+			ev_idle_start(EV_A, &client->idle_request_queue);
 		}
 	}
 	bol_error_state = false;
@@ -1174,12 +1176,13 @@ void client_send_from_cb(EV_P, ev_check *w, int revents) {
 			ev_feed_event(EV_A, client->client_paused_request->watcher, client->client_paused_request->revents);
 			SDEBUG("client->client_paused_request->bol_free_watcher: %s", client->client_paused_request->bol_free_watcher ? "true" : "false");
 			if (client->client_paused_request->bol_free_watcher) {
-				increment_idle(EV_A);
+				ev_idle_init(&client->client_paused_request->idle, idle_cb);
+				ev_idle_start(EV_A, &client->client_paused_request->idle);
 			}
 			SFREE(client->client_paused_request);
 		}
 		ev_check_stop(EV_A, w);
-		decrement_idle(EV_A);
+		ev_idle_stop(EV_A, &client_copy_check->idle);
 		client->client_copy_check = NULL;
 		SFREE(client_copy_check);
 	}
@@ -1279,12 +1282,14 @@ void client_request_queue_cb(EV_P, ev_check *w, int revents) {
 		// SDEBUG("Queue_count(%p->que_request): %d", client, int_len);
 		// SDEBUG("%p->bol_request_in_progress: %s", client, client->bol_request_in_progress ? "true" : "false");
 	}
+	if (int_len == 0) {
+		ev_idle_stop(EV_A, &client->idle_request_queue);
+	}
+
 	if (client->bol_connected && client->bol_request_in_progress == false && int_len > 0) {
 		struct sock_ev_client_request *client_request = (struct sock_ev_client_request *)Queue_recv(client->que_request);
 		client->cur_request = client_request;
 		SDEBUG("client->cur_request: %p", client->cur_request);
-
-		decrement_idle(EV_A);
 
 		switch (client_request->int_req_type) {
 			case ENVELOPE_REQ_SELECT:
@@ -1691,8 +1696,7 @@ error:
 
 // **************************************************************************************
 // **************************************************************************************
-// ********************************** CLOSING A CLIENT
-// **********************************
+// ********************************** CLOSING A CLIENT **********************************
 // **************************************************************************************
 // **************************************************************************************
 
@@ -1786,8 +1790,8 @@ bool client_close(struct sock_ev_client *client) {
 
 	if (client->client_reconnect_timer != NULL) {
 		ev_prepare_stop(global_loop, &client->client_reconnect_timer->prepare);
+		ev_idle_stop(global_loop, &client->client_reconnect_timer->idle);
 		SFREE(client->client_reconnect_timer);
-		decrement_idle(global_loop);
 	}
 
 	LIST_FOREACH(client->server->list_client, first, next, node) {
@@ -1984,7 +1988,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 	}
 	if (client->client_copy_check != NULL) {
 		ev_check_stop(global_loop, &client->client_copy_check->check);
-		decrement_idle(global_loop);
+		ev_idle_stop(global_loop, &client->client_copy_check->idle);
 		DB_free_result(client->client_copy_check->res);
 		SFREE(client->client_copy_check->str_response);
 		SFREE(client->client_copy_check);
@@ -1993,10 +1997,6 @@ void client_close_immediate(struct sock_ev_client *client) {
 		client->client_paused_request->watcher = NULL;
 	}
 
-	if (client->client_paused_request != NULL && client->client_paused_request->bol_increment_watcher) {
-		// this won't effect the event loop, because DB_finish will have the decrement_idle
-		increment_idle(global_loop);
-	}
 	if (client->conn != NULL) {
 		SDEBUG("DB_conn %p closing", client->conn);
 		DB_finish(client->conn);
@@ -2050,9 +2050,8 @@ void client_close_immediate(struct sock_ev_client *client) {
 			struct sock_ev_client_request *client_request = node->value;
 			client_request->parent = NULL;
 			client_request_free(client_request);
-			// This is because we increment idle when we push to this queue
-			decrement_idle(global_loop);
 		}
+		ev_idle_stop(global_loop, &client->idle_request_queue);
 		Queue_destroy(client->que_request);
 		client->que_request = NULL;
 	}
@@ -2065,7 +2064,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 	}
 	if (client->client_request_watcher_search != NULL) {
 		ev_check_stop(global_loop, &client->client_request_watcher_search->check);
-		decrement_idle(global_loop);
+		ev_idle_stop(global_loop, &client->client_request_watcher_search->idle);
 		SFREE(client->client_request_watcher_search);
 	}
 	if (client->client_copy_io != NULL) {

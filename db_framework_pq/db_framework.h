@@ -35,6 +35,7 @@ extern char *str_global_log_queries_over_action_name;
 
 typedef struct DB_conn {
 	ev_check check;
+	ev_idle idle;
 	int int_status;
 	char *str_response;
 	char *str_literal_context_data;

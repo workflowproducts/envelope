@@ -195,9 +195,7 @@ Old password does not match.*/})],
 			['ROLE DOWNLOAD FAIL', 'ajax', 404, '/env/role/download/all/test{{test_random1}}.sql', 'asdf',
 				ml(function () {/*The file you are requesting is not here.*/})],
 			['ROLE UPLOAD FAIL 1', 'ajax', 500, '/env/upload', '',
-				ml(function () {/*FATAL
-util_request.c:get_sun_upload: Cannot find boundary for request
-get_sun_upload failed*/})],
+                "FATAL\nutil_request.c:get_sun_upload: boundary is null\nget_sun_upload failed"],
 			['ROLE UPLOAD', 'upload', 200, '/env/upload', '/role/all/test{{test_random1}}.sql',
 				ml(function () {/*Upload Succeeded
 */})],
@@ -390,7 +388,14 @@ SQL Injection detected*/})],
 
 			['ACTION FAIL 1', 'websocket', '', ml(function () {/*ACTION	public	action_testing1	testingnitset
 */}),
-			["FATAL\nerror_text\tERROR:  function public.action_testing1(unknown) does not exist\\nLINE 1: COPY (SELECT \"public\".\"action_testing1\"('testingnitset')) TO...\\n                     ^\\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\\n\nerror_detail\t\nerror_hint\tNo function matches the given name and argument types. You might need to add explicit type casts.\nerror_query\t\nerror_context\t\nerror_position\t14\n"]],
+                [ml(function(){/*FATAL
+error_text	ERROR:  function public.action_testing1(unknown) does not exist\nLINE 1: COPY (SELECT "public"."action_testing1"('testingnitset')) TOrtesting_table. You might need to add explicit type casts.\n
+error_detail	
+error_hint	No function matches the given name and argument types. You might need to add explicit type casts.
+error_query	
+error_context	
+error_position	14
+*/})]],
 			['ACTION FAIL 2', 'websocket', '', ml(function () {/*ACTION	public	actiont_testing1	testingnitset
 */}),
 			["Invalid action name, action function names must begin with \"action_\" or \"actionnc_\""]],
@@ -445,7 +450,7 @@ ORDER BY
 id DESC
 */
 			}),
-			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  column rtesting_table.test_full does not exist\\nLINE 1: rtesting_table.\"id\", rtesting_table.\"test_name\", rtesting_table                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t77\n"]],
+			["db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  column rtesting_table.test_full does not exist\\nLINE 1: rtesting_table.\"id\", rtesting_table.\"test_name\", rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t77\n"]],
 			['SELECT FAIL 2', 'websocket', '', ml(function () {/*SELECT	*/}) + ml(function () {/*
 RETURN	*
 
@@ -453,7 +458,7 @@ ORDER BY	LIMIT
 1 ASC	10
 */
 			}),
-			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 2:    FROM \"\"\\n                ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t18\n"]],
+                ["db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 2:    FROM (SELECT * FROM \"\") rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t33\n"]],
 			['SELECT FAIL 3', 'websocket', '', ml(function () {/*SELECT
 RETURN	*
 
@@ -469,7 +474,7 @@ ORDER BY	LIMIT
 1 ASC	10
 */
 }),
-			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT \"rtesting_table\".\"\"\\n                                ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t25\n"]],
+                ["db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT rtesting_table.\"\"\\n                                        ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t33\n"]],
 			['SELECT FAIL 5', 'websocket', '', ml(function () {/*SELECT	rtesting_table
 RETURN
 
@@ -485,7 +490,7 @@ ORDER BY	LIMIT
 1 ASC	10
 */
 }),
-			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT \"rtesting_table\".\"\"\\n                                ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t25\n"]],
+                ["db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT rtesting_table.\"\"\\n                                        ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t33\n"]],
 			['SELECT FAIL 7', 'websocket', '', new Blob([ml(function () {/*SELECT	rtesting_table
 RETURN	*/
 			}) + ml(function () {/*
@@ -494,7 +499,7 @@ ORDER BY	LIMIT
 1 ASC	10
 */
             })], {type: 'application/x-binary'}),
-			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT \"rtesting_table\".\"\"\\n                                ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t25\n"]],
+                ["db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT rtesting_table.\"\"\\n                                        ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t33\n"]],
 			['SELECT FAIL 8', 'websocket', '', ml(function () {/*SELECT	(SELECT * FROM rtesting_table) em) TO STDOUT; --
 RETURN	*/
 			}) + ml(function () {/*
@@ -508,10 +513,10 @@ ORDER BY	LIMIT
 RETURN	datname	datistemplate
 
 ORDER BY	LIMIT
-oid ASC	10
+datname ASC	10
 */
 			}),
-			["datname\tdatistemplate\nname\tboolean\n","template1\tt\ntemplate0\tt\npostgres\tf\n","TRANSACTION COMPLETED"]],
+			["datname\tdatistemplate\nname\tboolean\n","postgres\tf\ntemplate0\tt\ntemplate1\tt\n","TRANSACTION COMPLETED"]],
 			['SELECT 2', 'websocket', '', ml(function () {/*SELECT	pg_enum
 RETURN	enumtypid	enumsortorder	enumlabel
 */

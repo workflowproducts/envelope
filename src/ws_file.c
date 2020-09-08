@@ -681,7 +681,8 @@ bool ws_file_read_step2(EV_P, void *cb_data, bool bol_group) {
 	client_file->int_read = 0;
 	ev_check_init(&client_request->check, ws_file_read_step3);
 	ev_check_start(EV_A, &client_request->check);
-	increment_idle(EV_A);
+	ev_idle_init(&client_request->idle, idle_cb);
+	ev_idle_start(EV_A, &client_request->idle);
 
 finish:
 #ifdef _WIN32
@@ -765,7 +766,7 @@ void ws_file_read_step3(EV_P, ev_check *w, int revents) {
 
 	if (int_temp <= 0 || client_file->int_read == client_file->int_length) {
 		ev_check_stop(EV_A, &client_request->check);
-		decrement_idle(EV_A);
+		ev_idle_stop(EV_A, &client_request->idle);
 		ws_file_read_step4(EV_A, client_request);
 	}
 
@@ -1046,7 +1047,8 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 
 	ev_check_init(&client_request->check, ws_file_write_step3);
 	ev_check_start(EV_A, &client_request->check);
-	increment_idle(EV_A);
+	ev_idle_init(&client_request->idle, idle_cb);
+	ev_idle_start(EV_A, &client_request->idle);
 
 	bol_error_state = false;
 finish:
@@ -1133,7 +1135,7 @@ void ws_file_write_step3(EV_P, ev_check *w, int revents) {
 
 	if ((size_t)client_file->int_written == strlen(client_file->ptr_content)) {
 		ev_check_stop(EV_A, &client_request->check);
-		decrement_idle(EV_A);
+		ev_idle_stop(EV_A, &client_request->idle);
 		ws_file_write_step4(EV_A, client_request);
 	}
 
@@ -2305,9 +2307,10 @@ bool ws_file_search_step2(EV_P, void *cb_data, bool bol_group) {
 		SFINISH_SALLOC(client_request_watcher, sizeof(struct sock_ev_client_request_watcher));
 		client_request_watcher->parent = client_request->parent;
 
-		increment_idle(EV_A);
 		ev_check_init(&client_request_watcher->check, ws_file_search_step5);
 		ev_check_start(EV_A, &client_request_watcher->check);
+		ev_idle_init(&client_request_watcher->idle, idle_cb);
+		ev_idle_start(EV_A, &client_request_watcher->idle);
 	}
 
 	bol_error_state = false;
@@ -2422,9 +2425,10 @@ bool ws_file_search_step4(EV_P, void *cb_data, bool bol_success) {
 	client_request_watcher->parent = client_request->parent;
 	client_request->parent->client_request_watcher_search = client_request_watcher;
 
-	increment_idle(EV_A);
 	ev_check_init(&client_request_watcher->check, ws_file_search_step5);
 	ev_check_start(EV_A, &client_request_watcher->check);
+	ev_idle_init(&client_request_watcher->idle, idle_cb);
+	ev_idle_start(EV_A, &client_request_watcher->idle);
 
 finish:
 	if (str_response != NULL) {
@@ -2494,8 +2498,8 @@ void ws_file_search_step5(EV_P, ev_check *w, int revents) {
 		DArray_push(client_request->arr_response, str_response);
 		str_response = NULL;
 
-		decrement_idle(EV_A);
 		ev_check_stop(EV_A, w);
+		ev_idle_stop(EV_A, &client_request_watcher->idle);
 		client_request->parent->client_request_watcher_search = NULL;
 		SFREE(client_request_watcher);
 
@@ -2612,8 +2616,8 @@ finish:
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 		DArray_push(client_request->arr_response, str_response);
 
-		decrement_idle(EV_A);
 		ev_check_stop(EV_A, w);
+		ev_idle_stop(EV_A, &client_request_watcher->idle);
 		client_request->parent->client_request_watcher_search = NULL;
 		SFREE(client_request_watcher);
 	}

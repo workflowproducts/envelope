@@ -122,8 +122,9 @@ bool http_accept_step2(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(arr_row_lengths != NULL, "DB_get_row_lengths failed");
 
 	str_response = DArray_get(arr_row_values, 0);
+	SFINISH_CHECK(str_response != NULL, "Function returned null");
 	SDEBUG("str_response: %s", str_response);
-	SFINISH_CHECK(strncmp(str_response, "HTTP", 4) == 0, "create_request failed!");
+	SFINISH_CHECK(strncmp(str_response, "HTTP", 4) == 0, "Bad accept_ output: %s", str_response);
 
 	client->cur_request = create_request(client, NULL, NULL, NULL, NULL, 0, ENVELOPE_REQ_ACCEPT, NULL);
 	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");

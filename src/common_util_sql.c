@@ -576,9 +576,9 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 				SDEBUG("client_request->parent->conn: %p", client_request->parent->conn);
 				SDEBUG("client_request->parent->cur_request: %p", client_request->parent->cur_request);
 				ev_check_stop(EV_A, &client_request->parent->conn->copy_check->check);
+				ev_idle_stop(EV_A, &client_request->parent->conn->idle);
 				client_request->parent->client_paused_request->bol_free_watcher = true;
 				client_request->parent->client_paused_request->bol_increment_watcher = true;
-				decrement_idle(EV_A);
 				SFREE(str_response);
 				return false;
 			}

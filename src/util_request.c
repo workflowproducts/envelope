@@ -333,11 +333,14 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		);
 		SERROR_CHECK(ptr_file_content_end != NULL, "malformed upload request");
 
+		ptr_file_content_end = ptr_file_content_end - 1;
 		while (*ptr_file_content_end == '\015' || *ptr_file_content_end == '\012') {
 			ptr_file_content_end = ptr_file_content_end - 1;
 		}
 
 		sun_return->int_file_content_len = ptr_file_content_end - ptr_file_content;
+		SDEBUG("ptr_file_content_end: %s", ptr_file_content_end);
+		SDEBUG("sun_return->int_file_content_len: %d", sun_return->int_file_content_len);
 
 	} else {
 		// make sure its the content, then store the pointer/length
@@ -365,11 +368,14 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		);
 		SERROR_CHECK(ptr_file_content_end != NULL, "malformed upload request");
 
+		ptr_file_content_end = ptr_file_content_end - 1;
 		while (*ptr_file_content_end == '\015' || *ptr_file_content_end == '\012') {
 			ptr_file_content_end = ptr_file_content_end - 1;
 		}
 
 		sun_return->int_file_content_len = ptr_file_content_end - ptr_file_content;
+		SDEBUG("ptr_file_content_end: %s", ptr_file_content_end);
+		SDEBUG("sun_return->int_file_content_len: %d", sun_return->int_file_content_len);
 
 		// search from end for file name
 		// get last content chunk

@@ -4,6 +4,7 @@
 
 typedef struct {
 	ev_check check;
+	ev_idle idle;
 	void *cb_data;
 	char *str_current_response;
 	size_t int_current_response_len;
@@ -64,7 +65,7 @@ void sunny_exec_output_cb(EV_P, ev_check *w, int revents) {
 			}
 
 			ev_check_stop(EV_A, &exec_cb_data->check);
-			decrement_idle(EV_A);
+			ev_idle_stop(EV_A, &exec_cb_data->idle);
 			SFREE(exec_cb_data);
 		}
 	}
@@ -96,7 +97,7 @@ error:
 	}
 
 	ev_check_stop(EV_A, &exec_cb_data->check);
-	decrement_idle(EV_A);
+	ev_idle_stop(EV_A, &exec_cb_data->idle);
 	SFREE(exec_cb_data->str_current_response);
 	SFREE(exec_cb_data);
 	return;
@@ -287,7 +288,8 @@ bool s_exec(EV_P, int int_num_args, void *cb_data, exec_callback_t exec_callback
 
 	ev_check_init(&exec_cb_data->check, sunny_exec_output_cb);
 	ev_check_start(EV_A, &exec_cb_data->check);
-	increment_idle(EV_A);
+	ev_idle_init(&exec_cb_data->idle, idle_cb);
+	ev_idle_start(EV_A, &exec_cb_data->idle);
 	exec_cb_data = NULL;
 
 #else

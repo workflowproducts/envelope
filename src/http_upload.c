@@ -1,4 +1,3 @@
-#define UTIL_DEBUG
 #include "http_upload.h"
 
 void http_upload_step1(struct sock_ev_client *client) {
@@ -138,9 +137,10 @@ bool http_upload_step2(EV_P, void *cb_data, bool bol_group) {
 	SFINISH_CHECK(client_upload->int_fd >= 0, "open() failed!");
 #endif
 
-	increment_idle(EV_A);
 	ev_check_init(&client_upload->check, http_upload_step3);
 	ev_check_start(EV_A, &client_upload->check);
+	ev_idle_init(&client_upload->idle, idle_cb);
+	ev_idle_start(EV_A, &client_upload->idle);
 
 finish:
 #ifdef _WIN32
@@ -240,8 +240,8 @@ void http_upload_step3(EV_P, ev_check *w, int revents) {
 		}
 		SFREE(str_response);
 
-		decrement_idle(EV_A);
 		ev_check_stop(EV_A, &client_upload->check);
+		ev_idle_stop(EV_A, &client_upload->idle);
 		http_upload_free(client_upload);
 		SERROR_CLIENT_CLOSE_NORESPONSE(client);
 	}
@@ -269,8 +269,8 @@ finish:
 		if (write(client->int_sock, str_response, int_response_len) < 0) {
 			SERROR_NORESPONSE("write() failed");
 		}
-		decrement_idle(EV_A);
 		ev_check_stop(EV_A, &client_upload->check);
+		ev_idle_stop(EV_A, &client_upload->idle);
 		http_upload_free(client_upload);
 		SFREE(str_response);
 		SERROR_CLIENT_CLOSE_NORESPONSE(client);

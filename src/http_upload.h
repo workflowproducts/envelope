@@ -6,6 +6,7 @@
 
 struct sock_ev_client_upload {
 	ev_check check;
+	ev_idle idle;
 
 #ifdef _WIN32
 	HANDLE h_file;

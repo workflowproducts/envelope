@@ -399,8 +399,6 @@ char *cb_to_name(void *cb) {
 		: (cb == DB_connect) ? "DB_connect"
 		: (cb == DB_get_column_types_for_query) ? "DB_get_column_types_for_query"
 		: (cb == DB_get_column_types) ? "DB_get_column_types"
-		: (cb == _increment_idle) ? "_increment_idle"
-		: (cb == _decrement_idle) ? "_decrement_idle"
 		: (cb == idle_cb) ? "idle_cb"
 		: (cb == ddl_readable) ? "ddl_readable"
 		: (cb == ev_now) ? "ev_now"

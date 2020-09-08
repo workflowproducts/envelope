@@ -1,3 +1,4 @@
+#define UTIL_DEBUG
 #include "common_auth.h"
 
 void connect_cb_env(EV_P, void *cb_data, DB_conn *conn);
