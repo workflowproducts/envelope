@@ -1,4 +1,3 @@
-#define UTIL_DEBUG
 #include "ws_select.h"
 
 // This is still secure even though we allow an arbitrary from:

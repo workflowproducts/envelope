@@ -791,6 +791,8 @@ error:
 
 // binary version of strstr
 char *bstrstr(char *buff1, size_t len1, char *buff2, size_t len2) {
+    SDEBUG("len1: %d", len1);
+    SDEBUG("len2: %d", len2);
     // WE RETURN THE FIRST ARGUMENT, USER NEEDS TO FREE BOTH BUFFERS THEMSELVES
     if (!buff1)
         return (char *)NULL;
@@ -901,8 +903,8 @@ char *hexencode(unsigned char *str_to_encode, size_t *ptr_int_len) {
 	*ptr_int_len = int_out_len;
 	return str_out;
 error:
-	SINFO("int_in_len: %d", int_in_len);
-	SINFO("int_out_len: %d", int_out_len);
+	SDEBUG("int_in_len: %d", int_in_len);
+	SDEBUG("int_out_len: %d", int_out_len);
 	SFREE(str_out);
 	return NULL;
 }

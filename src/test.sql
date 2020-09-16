@@ -229,7 +229,7 @@ CREATE OR REPLACE FUNCTION public.cgi_testing(str_args text)
 RETURNS text AS
 $BODY$
 BEGIN
-RETURN E'HTTP/1.1 200 OK\r\n\r\n' || str_args;
+RETURN E'HTTP/1.1 200 OK\r\n\r\n' || 'testingnitset';
 END
 $BODY$ LANGUAGE plpgsql VOLATILE;
 GRANT EXECUTE ON FUNCTION public.cgi_testing(str_args text) TO public_g;
@@ -238,7 +238,7 @@ CREATE OR REPLACE FUNCTION public.cginc_testing(str_args text)
 RETURNS text AS
 $BODY$
 BEGIN
-RETURN E'HTTP/1.1 200 OK\r\n\r\n' || str_args;
+RETURN E'HTTP/1.1 200 OK\r\n\r\n' || 'testingnitset';
 END
 $BODY$ LANGUAGE plpgsql VOLATILE;
 GRANT EXECUTE ON FUNCTION public.cginc_testing(str_args text) TO public_g;

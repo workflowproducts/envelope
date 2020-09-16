@@ -1,5 +1,4 @@
 // Hark ye onlooker: Adding UTIL_DEBUG to this file slows it down considerably. You have been warned.
-#define UTIL_DEBUG
 #include "common_client.h"
 
 #ifdef _WIN32
@@ -493,11 +492,11 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				}
 				if (strncasecmp(str_header_name, "Referer", 7) == 0) {
 					SFREE(client->str_referer);
-					SERROR_SNCAT(client->str_referer, &int_temp_len, str_header_value, strlen(str_header_value));
+					SERROR_SNCAT(client->str_referer, &client->int_referer_len, str_header_value, strlen(str_header_value));
 				}
 				if (strncasecmp(str_header_name, "Origin", 6) == 0) {
 					if (client->str_referer == NULL) {
-						SERROR_SNCAT(client->str_referer, &int_temp_len, str_header_value, strlen(str_header_value));
+						SERROR_SNCAT(client->str_referer, &client->int_referer_len, str_header_value, strlen(str_header_value));
 					}
 				}
 				if (strncasecmp(str_header_name, "Sec-Websocket-Key", 17) == 0) {
@@ -1170,14 +1169,15 @@ void client_send_from_cb(EV_P, ev_check *w, int revents) {
 		if (client->client_paused_request != NULL) {
 			if (client->client_paused_request->revents == EV_CHECK) {
 				ev_check_start(EV_A, (ev_check *)client->client_paused_request->watcher);
+				ev_idle_init(&client->client_paused_request->idle, idle_cb);
+				ev_idle_start(EV_A, &client->client_paused_request->idle);
 			} else {
 				ev_io_start(EV_A, (ev_io *)client->client_paused_request->watcher);
 			}
 			ev_feed_event(EV_A, client->client_paused_request->watcher, client->client_paused_request->revents);
 			SDEBUG("client->client_paused_request->bol_free_watcher: %s", client->client_paused_request->bol_free_watcher ? "true" : "false");
 			if (client->client_paused_request->bol_free_watcher) {
-				ev_idle_init(&client->client_paused_request->idle, idle_cb);
-				ev_idle_start(EV_A, &client->client_paused_request->idle);
+				ev_idle_stop(EV_A, &client->client_paused_request->idle);
 			}
 			SFREE(client->client_paused_request);
 		}

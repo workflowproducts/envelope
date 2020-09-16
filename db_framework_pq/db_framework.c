@@ -1,4 +1,3 @@
-#define UTIL_DEBUG
 #include "db_framework.h"
 
 const char *const WONT_GUESS = "____GS_YOU_WONT_GUESS_THIS_DATA_JHDFKSHDFURIHKSDJFHUIRSDJHF____";

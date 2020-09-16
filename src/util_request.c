@@ -83,7 +83,7 @@ char *get_cookie(char *str_all_cookie, size_t int_all_cookie_len, char *str_cook
 	SDEBUG("str_cookie 3");
 
 	// get cookie length
-	ptr_cookie_end_semi = bstrstr(ptr_cookie, int_all_cookie_len - int_full_cookie_len, ";", (size_t)1);
+	ptr_cookie_end_semi = bstrstr(ptr_cookie, int_all_cookie_len - (ptr_cookie - str_all_cookie), ";", (size_t)1);
 	int_cookie_end_semi = (size_t)(ptr_cookie_end_semi - ptr_cookie);
 	*int_cookie_value_len = int_all_cookie_len - (size_t)(ptr_cookie - str_all_cookie);
 	*int_cookie_value_len = ptr_cookie_end_semi != NULL && int_cookie_end_semi < (*int_cookie_value_len) ? int_cookie_end_semi : (*int_cookie_value_len);
@@ -143,7 +143,7 @@ error:
 	return NULL;
 }
 
-bool check_referer(char *_str_referer, size_t _int_referer_len, char *str_referer_list) {
+bool check_referer(char *_str_referer, size_t _int_referer_len, char *_str_referer_list) {
 	// Use this for testing:
 	// fprintf(stderr, "check_referer(\"localhost\", 9, \"localhost\"): %i\012", check_referer("localhost", 9, strdup("localhost")));
 	// fprintf(stderr, "check_referer(\"localhost\", 9, \"loCAlhost\"): %i\012", check_referer("localhost", 9, strdup("loCAlhost")));
@@ -158,37 +158,45 @@ bool check_referer(char *_str_referer, size_t _int_referer_len, char *str_refere
 	// fprintf(stderr, "check_referer(\"https://te.satasdf/test\", 24, \"test,*.stasdf\"): %i\012", check_referer("https://te.satasdf/test", 24, strdup("test,*.stasdf")));
 
 	char *str_referer = NULL;
+	char *str_referer_list = NULL;
+	char *ptr_referer_start = NULL;
 	char *ptr_referer_end = NULL;
 	char *ptr_tok = NULL;
 	char *ptr_tok_cmp = NULL;
 	char *ptr_cmp = NULL;
 	size_t int_cmp_len = 0;
 	size_t int_referer_len = 0;
-	if (strncmp(str_referer_list, "*", 2) == 0) {
+	if (strncmp(_str_referer_list, "*", 2) == 0) {
 		return true;
 	}
 
 	if (strncmp(_str_referer, "http", 4) == 0) {
-		ptr_referer_end = strstr(_str_referer, "://") + 3;
+		ptr_referer_start = strstr(_str_referer, "://") + 3;
 	} else {
-		ptr_referer_end = _str_referer;
+		ptr_referer_start = _str_referer;
 	}
+	SDEBUG("ptr_referer_start: %s", ptr_referer_start);
+	ptr_referer_end = strstr(ptr_referer_start, "/");
+	if (ptr_referer_end != NULL) {
+		int_referer_len = (ptr_referer_end - ptr_referer_start);
+	} else {
+        int_referer_len = _int_referer_len - (ptr_referer_start - _str_referer);
+    }
 	SDEBUG("ptr_referer_end: %s", ptr_referer_end);
+	SDEBUG("int_referer_len: %d", int_referer_len);
+	SDEBUG("_int_referer_len: %d", _int_referer_len);
+	SDEBUG("ptr_referer_end - ptr_referer_start: %d", ptr_referer_end - ptr_referer_start);
 	SERROR_SNCAT(
 		str_referer, &int_referer_len,
-		ptr_referer_end, _int_referer_len - (ptr_referer_end - _str_referer)
+		ptr_referer_start, int_referer_len
 	);
 	SDEBUG("str_referer: %s", str_referer);
-	ptr_referer_end = strstr(str_referer, "/");
-	if (ptr_referer_end != NULL) {
-		*ptr_referer_end = 0;
-		int_referer_len = (ptr_referer_end - str_referer);
-	}
 	SDEBUG("str_referer: %s", str_referer);
 
 	// strtok is not thread-safe, but we aren't using multiple threads
 	// if we end up using threads at some point, we will need to write
 	// a thread-safe version of this loop
+    SERROR_SNCAT(str_referer_list, &int_cmp_len, _str_referer_list, strlen(_str_referer_list), ",", (size_t)1);
 	ptr_tok = strtok(str_referer_list, ",");
 	while (ptr_tok != NULL) {
 		SDEBUG("ptr_tok: %s", ptr_tok);
@@ -210,8 +218,10 @@ bool check_referer(char *_str_referer, size_t _int_referer_len, char *str_refere
 		ptr_tok = strtok(NULL, ",");
 	}
 
+    SFREE(str_referer_list);
 	return false;
 error:
+    SFREE(str_referer_list);
 	return false;
 }
 

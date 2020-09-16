@@ -1,4 +1,3 @@
-//#define UTIL_DEBUG
 #include "ws_file.h"
 
 static const char *str_date_format = "%Y-%m-%d %H:%M:%S";

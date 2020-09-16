@@ -213,9 +213,10 @@ void http_main(struct sock_ev_client *client) {
 		int_uri_len = (size_t)(ptr_end_uri - str_uri);
 	}
 
-	SDEBUG("#################################################################################################");
-	SDEBUG("str_uri: %s", str_uri);
-	SDEBUG("#################################################################################################");
+	SINFO("#################################################################################################");
+	SINFO("str_uri: %s", str_uri);
+	SINFO("bol_global_allow_public_login: %s", bol_global_allow_public_login ? "true" : "false");
+	SINFO("#################################################################################################");
 
 	if (strncmp(str_uri, "/env/auth", 10) == 0 || strncmp(str_uri, "/env/auth/", 11) == 0 ||
 		((strncmp(str_uri, "/env/authnc", 12) == 0 || strncmp(str_uri, "/env/authnc/", 13) == 0) && bol_global_allow_public_login)) {
