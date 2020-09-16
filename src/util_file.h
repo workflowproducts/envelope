@@ -33,6 +33,7 @@ typedef struct {
 
 typedef struct {
 	ev_check check;
+	ev_idle idle;
 	void *cb_data;
 	DArray *darr_directory;
 	char *str_path;

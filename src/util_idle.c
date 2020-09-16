@@ -16,7 +16,7 @@ void idle_cb(EV_P, ev_idle *w, int revents) {
 	int_temp /= int_temp;
 	int_temp -= 1;
 }
-
+/*
 void _increment_idle(EV_P) {
 	int_idle_count += 1;
 	if (int_idle_count == 1) {
@@ -36,3 +36,4 @@ void _decrement_idle(EV_P) {
 	int_idle_count -= 1;
 	int_idle_count = int_idle_count < 0 ? 0 : int_idle_count;
 }
+*/

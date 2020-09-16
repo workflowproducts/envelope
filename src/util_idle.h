@@ -15,7 +15,7 @@ watchers will be run.
 Increment the number of watchers using the idle watcher. If the old number was
 zero, it adds the idle watcher.
 */
-void _increment_idle(EV_P);
+//void _increment_idle(EV_P);
 #define increment_idle(A) \
 	_increment_idle(A); \
 	SDEBUG("increment_idle: %d", int_idle_count);
@@ -24,7 +24,7 @@ void _increment_idle(EV_P);
 Decrement the number of watchers using the idle watcher. If it reaches zero, it
 removes the idle watcher.
 */
-void _decrement_idle(EV_P);
+//void _decrement_idle(EV_P);
 #define decrement_idle(A) \
 	SDEBUG("decrement_idle: %d", int_idle_count); \
 	_decrement_idle(A);

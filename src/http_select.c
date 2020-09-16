@@ -404,9 +404,10 @@ bool http_select_step3(EV_P, void *cb_data, DB_result *res) {
 	client_copy_check->client_request = client->cur_request;
 	client_copy_check->res = res;
 
-	increment_idle(EV_A);
 	ev_check_init(&client_copy_check->check, http_select_step4);
 	ev_check_start(EV_A, &client_copy_check->check);
+	ev_idle_init(&client_copy_check->idle, idle_cb);
+	ev_idle_start(EV_A, &client_copy_check->idle);
 	client->client_copy_check = client_copy_check;
 
 	bol_error_state = false;
@@ -559,7 +560,7 @@ void http_select_step4(EV_P, ev_check *w, int revents) {
 		SFINISH_SALLOC(client_copy_io, sizeof(struct sock_ev_client_copy_io));
 
 		ev_check_stop(EV_A, w);
-		decrement_idle(EV_A);
+		ev_idle_stop(EV_A, &client_copy_check->idle);
 		ev_io_init(&client_copy_io->io, http_select_step5, client_request->parent->int_ev_sock, EV_WRITE);
 		ev_io_start(EV_A, &client_copy_io->io);
 
@@ -605,7 +606,7 @@ finish:
 		if (client_copy_check != NULL) {
 			DB_free_result(client_copy_check->res);
 			ev_check_stop(EV_A, w);
-			decrement_idle(EV_A);
+			ev_idle_stop(EV_A, &client_copy_check->idle);
 			SFREE(client_copy_check->str_response);
 			SFREE(client_copy_check);
 			SFREE(client_copy_io);

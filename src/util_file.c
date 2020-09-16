@@ -40,8 +40,8 @@ bool canonical_recurse_directory(EV_P, char *str_canonical_start, char *str_part
 
 	ev_check_init(&rec_data->check, canonical_recurse_directory_check_cb);
 	ev_check_start(EV_A, &rec_data->check);
-
-	increment_idle(EV_A);
+	ev_idle_init(&rec_data->idle, idle_cb);
+	ev_idle_start(EV_A, &rec_data->idle);
 
 	return true;
 error:
@@ -67,8 +67,8 @@ void canonical_recurse_directory_check_cb(EV_P, ev_check *w, int revents) {
 
 	if (int_i == 0) {
 		rec_data->finish_callback(EV_A, rec_data->cb_data, true);
-		decrement_idle(EV_A);
 		ev_check_stop(EV_A, &rec_data->check);
+		ev_idle_stop(EV_A, &rec_data->idle);
 		free_recursive_callback_data(rec_data);
 		return;
 	}
@@ -82,8 +82,8 @@ void canonical_recurse_directory_check_cb(EV_P, ev_check *w, int revents) {
 		SFREE_ALL();
 		if (DArray_end(rec_data->darr_directory) == 0 || bol_res == false) {
 			rec_data->finish_callback(EV_A, rec_data->cb_data, false);
-			decrement_idle(EV_A);
 			ev_check_stop(EV_A, &rec_data->check);
+			ev_idle_stop(EV_A, &rec_data->idle);
 			free_recursive_callback_data(rec_data);
 			return;
 		}
@@ -186,8 +186,8 @@ void canonical_recurse_directory_check_cb(EV_P, ev_check *w, int revents) {
 	// bol_res = rec_data->step_callback(rec_data->cb_data, dir_data->str_path);
 	if (DArray_end(rec_data->darr_directory) == 0 || bol_res == false) {
 		rec_data->finish_callback(EV_A, rec_data->cb_data, bol_res);
-		decrement_idle(EV_A);
 		ev_check_stop(EV_A, &rec_data->check);
+		ev_idle_stop(EV_A, &rec_data->idle);
 		free_recursive_callback_data(rec_data);
 		SFREE_ALL();
 		return;
@@ -198,8 +198,8 @@ void canonical_recurse_directory_check_cb(EV_P, ev_check *w, int revents) {
 error:
 	SFREE_ALL();
 	rec_data->finish_callback(EV_A, rec_data->cb_data, false);
-	decrement_idle(EV_A);
 	ev_check_stop(EV_A, &rec_data->check);
+	ev_idle_stop(EV_A, &rec_data->idle);
 	free_recursive_callback_data(rec_data);
 	return;
 }

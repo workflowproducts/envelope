@@ -449,6 +449,7 @@ bool ws_select_step4(EV_P, void *cb_data, DB_result *res) {
 
 	bol_error_state = false;
 finish:
+	SDEBUG("finish bol_error_state: %s", bol_error_state ? "true" : "false");
 	SFREE_ALL();
 	if (arr_column_names != NULL) {
 		DArray_clear_destroy(arr_column_names);

@@ -212,9 +212,10 @@ void http_file_step1(struct sock_ev_client *client) {
 		SFINISH_SALLOC(client_copy_check, sizeof(struct sock_ev_client_copy_check));
 		client_copy_check->client_request = (struct sock_ev_client_request *)client_http_file;
 
-		increment_idle(global_loop);
 		ev_check_init(&client_copy_check->check, http_file_step2);
 		ev_check_start(global_loop, &client_copy_check->check);
+		ev_idle_init(&client_copy_check->idle, idle_cb);
+		ev_idle_start(global_loop, &client_copy_check->idle);
 	}
 	bol_error_state = false;
 finish:
@@ -319,9 +320,10 @@ bool http_file_step15_envelope(EV_P, void *cb_data, bool bol_group) {
 	SFINISH_SALLOC(client_copy_check, sizeof(struct sock_ev_client_copy_check));
 	client_copy_check->client_request = (struct sock_ev_client_request *)client_http_file;
 
-	increment_idle(EV_A);
 	ev_check_init(&client_copy_check->check, http_file_step2);
 	ev_check_start(EV_A, &client_copy_check->check);
+	ev_idle_init(&client_copy_check->idle, idle_cb);
+	ev_idle_start(EV_A, &client_copy_check->idle);
 
 	bol_error_state = false;
 finish:
@@ -444,8 +446,8 @@ void http_file_step2(EV_P, ev_check *w, int revents) {
 		client_http_file->int_response_len = client_http_file->int_response_header_len;
 
 		ev_check_stop(EV_A, &client_copy_check->check);
+		ev_idle_stop(EV_A, &client_copy_check->idle);
 		SFREE(client_copy_check);
-		decrement_idle(EV_A);
 		ev_io_init(&client_http_file->io, http_file_write_cb, client->io.fd, EV_WRITE);
 		ev_io_start(EV_A, &client_http_file->io);
 	} else {
@@ -514,7 +516,7 @@ error:
 	bol_error_state = false;
 	ev_io_stop(EV_A, &client->io);
 	ev_check_stop(EV_A, &client_copy_check->check);
-	decrement_idle(EV_A);
+	ev_idle_stop(EV_A, &client_copy_check->idle);
 	SERROR_CLIENT_CLOSE_NORESPONSE(client);
 }
 
@@ -534,8 +536,8 @@ void http_file_step3(EV_P, ev_check *w, int revents) {
 	SDEBUG("client_http_file->int_read_len: %d", client_http_file->int_read_len);
 	if (client_http_file->int_read == client_http_file->int_read_len) {
 		ev_check_stop(EV_A, &client_copy_check->check);
+		ev_idle_stop(EV_A, &client_copy_check->idle);
 		SFREE(client_copy_check);
-		decrement_idle(EV_A);
 		ev_io_init(&client_http_file->io, http_file_write_cb, client->io.fd, EV_WRITE);
 		ev_io_start(EV_A, &client_http_file->io);
 
@@ -586,7 +588,7 @@ error:
 	ev_io_stop(EV_A, &client->io);
 	if (client_copy_check != NULL) {
 		ev_check_stop(EV_A, &client_copy_check->check);
-		decrement_idle(EV_A);
+		ev_idle_stop(EV_A, &client_copy_check->idle);
 	}
 	SERROR_CLIENT_CLOSE_NORESPONSE(client);
 }

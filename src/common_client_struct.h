@@ -41,6 +41,7 @@ struct sock_ev_client_cnxn {
 
 struct sock_ev_client_reconnect_timer {
 	ev_prepare prepare;
+	ev_idle idle;
 
 	ev_tstamp close_time;
 
@@ -61,6 +62,7 @@ void _client_timeout_prepare_free(struct sock_ev_client_timeout_prepare *client_
 
 struct sock_ev_client_paused_request {
 	ev_watcher *watcher;
+	ev_idle idle;
 	int revents;
 	bool bol_free_watcher;
 	bool bol_increment_watcher;
@@ -69,6 +71,7 @@ void client_paused_request_free(struct sock_ev_client_paused_request *client_pau
 
 struct sock_ev_client_request_watcher {
 	ev_check check;
+	ev_idle idle;
 
 	struct sock_ev_client *parent;
 };
@@ -105,6 +108,7 @@ struct sock_ev_client_message {
 
 struct sock_ev_client {
 	ev_io io;
+	ev_idle idle_request_queue;
 
 	connect_cb_t connect_cb;
 
@@ -215,6 +219,7 @@ struct sock_ev_client_request_data {
 
 struct sock_ev_client_request {
 	ev_check check;
+	ev_idle idle;
 	struct sock_ev_client *parent;
 	struct sock_ev_client_query_callback_watcher *cb_data;
 
@@ -244,6 +249,7 @@ struct sock_ev_client_request {
 
 struct sock_ev_client_copy_check {
 	ev_check check;
+	ev_idle idle;
 
 	DB_result *res;
 	size_t int_i;

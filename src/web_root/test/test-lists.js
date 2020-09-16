@@ -195,9 +195,7 @@ Old password does not match.*/})],
 			['ROLE DOWNLOAD FAIL', 'ajax', 404, '/env/role/download/all/test{{test_random1}}.sql', 'asdf',
 				ml(function () {/*The file you are requesting is not here.*/})],
 			['ROLE UPLOAD FAIL 1', 'ajax', 500, '/env/upload', '',
-				ml(function () {/*FATAL
-util_request.c:get_sun_upload: Cannot find boundary for request
-get_sun_upload failed*/})],
+                "FATAL\nutil_request.c:get_sun_upload: boundary is null\nget_sun_upload failed"],
 			['ROLE UPLOAD', 'upload', 200, '/env/upload', '/role/all/test{{test_random1}}.sql',
 				ml(function () {/*Upload Succeeded
 */})],
@@ -390,7 +388,14 @@ SQL Injection detected*/})],
 
 			['ACTION FAIL 1', 'websocket', '', ml(function () {/*ACTION	public	action_testing1	testingnitset
 */}),
-			["FATAL\nerror_text\tERROR:  function public.action_testing1(unknown) does not exist\\nLINE 1: COPY (SELECT \"public\".\"action_testing1\"('testingnitset')) TO...\\n                     ^\\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\\n\nerror_detail\t\nerror_hint\tNo function matches the given name and argument types. You might need to add explicit type casts.\nerror_query\t\nerror_context\t\nerror_position\t14\n"]],
+                [ml(function(){/*FATAL
+error_text	ERROR:  function public.action_testing1(unknown) does not exist\nLINE 1: COPY (SELECT "public"."action_testing1"('testingnitset')) TOrtesting_table. You might need to add explicit type casts.\n
+error_detail	
+error_hint	No function matches the given name and argument types. You might need to add explicit type casts.
+error_query	
+error_context	
+error_position	14
+*/})]],
 			['ACTION FAIL 2', 'websocket', '', ml(function () {/*ACTION	public	actiont_testing1	testingnitset
 */}),
 			["Invalid action name, action function names must begin with \"action_\" or \"actionnc_\""]],
@@ -445,7 +450,7 @@ ORDER BY
 id DESC
 */
 			}),
-			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  column rtesting_table.test_full does not exist\\nLINE 1: rtesting_table.\"id\", rtesting_table.\"test_name\", rtesting_table                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t77\n"]],
+			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  column rtesting_table.test_full does not exist\\nLINE 1: rtesting_table.\"id\", rtesting_table.\"test_name\", rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t77\n"]],
 			['SELECT FAIL 2', 'websocket', '', ml(function () {/*SELECT	*/}) + ml(function () {/*
 RETURN	*
 
@@ -453,7 +458,7 @@ ORDER BY	LIMIT
 1 ASC	10
 */
 			}),
-			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 2:    FROM \"\"\\n                ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t18\n"]],
+                ["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 2:    FROM (SELECT * FROM \"\") rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t33\n"]],
 			['SELECT FAIL 3', 'websocket', '', ml(function () {/*SELECT
 RETURN	*
 
@@ -469,7 +474,7 @@ ORDER BY	LIMIT
 1 ASC	10
 */
 }),
-			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT \"rtesting_table\".\"\"\\n                                ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t25\n"]],
+                ["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT rtesting_table.\"\"\\n                                        ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t33\n"]],
 			['SELECT FAIL 5', 'websocket', '', ml(function () {/*SELECT	rtesting_table
 RETURN
 
@@ -485,7 +490,7 @@ ORDER BY	LIMIT
 1 ASC	10
 */
 }),
-			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT \"rtesting_table\".\"\"\\n                                ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t25\n"]],
+                ["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT rtesting_table.\"\"\\n                                        ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t33\n"]],
 			['SELECT FAIL 7', 'websocket', '', new Blob([ml(function () {/*SELECT	rtesting_table
 RETURN	*/
 			}) + ml(function () {/*
@@ -494,7 +499,7 @@ ORDER BY	LIMIT
 1 ASC	10
 */
             })], {type: 'application/x-binary'}),
-			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT \"rtesting_table\".\"\"\\n                                ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t25\n"]],
+                ["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT rtesting_table.\"\"\\n                                        ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t33\n"]],
 			['SELECT FAIL 8', 'websocket', '', ml(function () {/*SELECT	(SELECT * FROM rtesting_table) em) TO STDOUT; --
 RETURN	*/
 			}) + ml(function () {/*
@@ -508,10 +513,10 @@ ORDER BY	LIMIT
 RETURN	datname	datistemplate
 
 ORDER BY	LIMIT
-oid ASC	10
+datname ASC	10
 */
 			}),
-			["datname\tdatistemplate\nname\tboolean\n","template1\tt\ntemplate0\tt\npostgres\tf\n","TRANSACTION COMPLETED"]],
+			["datname\tdatistemplate\nname\tboolean\n","postgres\tf\ntemplate0\tt\ntemplate1\tt\n","TRANSACTION COMPLETED"]],
 			['SELECT 2', 'websocket', '', ml(function () {/*SELECT	pg_enum
 RETURN	enumtypid	enumsortorder	enumlabel
 */
@@ -1060,7 +1065,7 @@ id	test_name
 1{{test_random}}2	Alicia
 */
 			}),
-			["FATAL\nerror_text\tERROR:  column rtesting_table.tes_name does not exist\\nLINE 1: COPY (SELECT \"rtesting_table\".\"id\", \"rtesting_table\".\"tes_na...\\n                                            ^\\nHINT:  Perhaps you meant to reference the column \"rtesting_table.test_name\".\\n\nerror_detail\t\nerror_hint\tPerhaps you meant to reference the column \"rtesting_table.test_name\".\nerror_query\t\nerror_context\t\nerror_position\t37\n"]],
+			["FATAL\nerror_text\tERROR:  column rtesting_table.tes_name does not exist\\nLINE 1: COPY (SELECT \"rtesting_table\".\"id\", \"rtesting_table\".\"tes_nartesting_table.test_name\".\\n\nerror_detail\t\nerror_hint\tPerhaps you meant to reference the column \"rtesting_table.test_name\".\nerror_query\t\nerror_context\t\nerror_position\t37\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
@@ -1153,7 +1158,7 @@ id	test_name
 1{{test_random}}2	test	test
 */
 			}),
-			["DB_exec failed:\nFATAL\nerror_text\tERROR:  extra data after last expected column\\nCONTEXT:  COPY temp_update, line 1: \"1{{test_random}}2\\ttest\\ttest\"\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\tCOPY temp_update, line 1: \"1{{test_random}}2\\ttest\\ttest\"\nerror_position\t\n"]],
+			["DB_exec failed:\nFATAL\nerror_text\tERROR:  extra data after last expected column\\nCONTEXT:  COPY rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\tCOPY rtesting_table\"\nerror_position\t\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
@@ -1165,7 +1170,7 @@ id	test_name	id
 1{{test_random}}2	test
 */
 			}),
-			["DB_exec failed:\nFATAL\nerror_text\tERROR:  missing data for column \"set_id\"\\nCONTEXT:  COPY temp_update, line 1: \"1{{test_random}}2\\ttest\"\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\tCOPY temp_update, line 1: \"1{{test_random}}2\\ttest\"\nerror_position\t\n"]],
+			["DB_exec failed:\nFATAL\nerror_text\tERROR:  missing data for column \"set_id\"\\nCONTEXT:  COPY rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\tCOPY rtesting_table\"\nerror_position\t\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
@@ -1225,7 +1230,7 @@ id	test_name
 1{{test_random}}2	test
 */
 			}),
-			["FATAL\nerror_text\tERROR:  column rtesting_table.testset does not exist\\nLINE 1: ...esting_table\".\"id\", \"rtesting_table\".\"test_name\", \"rtesting_...\\n                                                             ^\\nHINT:  Perhaps you meant to reference the column \"rtesting_table.test@test\".\\n\nerror_detail\t\nerror_hint\tPerhaps you meant to reference the column \"rtesting_table.test@test\".\nerror_query\t\nerror_context\t\nerror_position\t67\n"]],
+			["FATAL\nerror_text\tERROR:  column rtesting_table.testset does not exist\\nLINE 1: rtesting_table.\"id\", \"rtesting_table\".\"test_name\", \"rtesting_rtesting_table.test@test\".\\n\nerror_detail\t\nerror_hint\tPerhaps you meant to reference the column \"rtesting_table.test@test\".\nerror_query\t\nerror_context\t\nerror_position\t67\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
@@ -1250,7 +1255,7 @@ id	test_name	testset
 1{{test_random}}2	test	2lkujh1234klj5hlk13j4h5lk
 */
 			}),
-    		["DB_exec failed:\nFATAL\nerror_text\tERROR:  column \"testset\" does not exist\\nLINE 1: ... \"id\" AS \"pk_id\", \"test_name\" AS \"set_test_name\", \"testset\" ...\\n                                                             ^\\nHINT:  Perhaps you meant to reference the column \"rtesting_table.test@test\".\\n\nerror_detail\t\nerror_hint\tPerhaps you meant to reference the column \"rtesting_table.test@test\".\nerror_query\t\nerror_context\t\nerror_position\t105\n"]],
+    		["DB_exec failed:\nFATAL\nerror_text\tERROR:  column \"testset\" does not exist\\nLINE 1: rtesting_table...\\n                                                             ^\\nHINT:  Perhaps you meant to reference the column \"rtesting_table.test@test\".\\n\nerror_detail\t\nerror_hint\tPerhaps you meant to reference the column \"rtesting_table.test@test\".\nerror_query\t\nerror_context\t\nerror_position\t105\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
@@ -1281,7 +1286,7 @@ id	test_name
 test
 */
 			}),
-			["DB_exec failed:\nFATAL\nerror_text\tERROR:  invalid input syntax for integer: \"test\"\\nCONTEXT:  COPY temp_update, line 2, column pk_id: \"test\"\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\tCOPY temp_update, line 2, column pk_id: \"test\"\nerror_position\t\n"]],
+			["DB_exec failed:\nFATAL\nerror_text\tERROR:  invalid input syntax for integer: \"test\"\\nCONTEXT:  COPY rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\tCOPY rtesting_table\"\nerror_position\t\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
@@ -1294,7 +1299,7 @@ id	test_name
 test
 */
 			}),
-  			["DB_exec failed:\nFATAL\nerror_text\tERROR:  invalid input syntax for integer: \"test\"\\nCONTEXT:  COPY temp_update, line 2, column pk_id: \"test\"\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\tCOPY temp_update, line 2, column pk_id: \"test\"\nerror_position\t\n"]],
+  			["DB_exec failed:\nFATAL\nerror_text\tERROR:  invalid input syntax for integer: \"test\"\\nCONTEXT:  COPY rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\tCOPY rtesting_table\"\nerror_position\t\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
@@ -1580,7 +1585,7 @@ id
 2{{test_random}}3
 */}),
             [
-                "DB_exec failed:\nFATAL\nerror_text\tERROR:  relation \"ttest@XXX.tpaste\" does not exist\\nLINE 1: ...ete ON COMMIT DROP AS SELECT \"id\" AS \"pk_id\" FROM \"ttest@XXX...\\n                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t77\n"
+                "DB_exec failed:\nFATAL\nerror_text\tERROR:  relation \"ttest@XXX.tpaste\" does not exist\\nLINE 1: rtesting_table...\\n                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t77\n"
             ]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
@@ -1593,7 +1598,7 @@ id
 2{{test_random}}2
 2{{test_random}}3
 */}),
-			["DB_exec failed:\nFATAL\nerror_text\tERROR:  relation \"public.tpaste@XXX\" does not exist\\nLINE 1: ...ete ON COMMIT DROP AS SELECT \"id\" AS \"pk_id\" FROM \"public\".\"...\\n                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t77\n"]],
+			["DB_exec failed:\nFATAL\nerror_text\tERROR:  relation \"public.tpaste@XXX\" does not exist\\nLINE 1: rtesting_table.\"...\\n                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t77\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
@@ -1607,7 +1612,7 @@ id	hash
 2{{test_random}}2	abc
 2{{test_random}}3	abc
 */}),
-				["DB_exec failed:\nFATAL\nerror_text\tERROR:  column \"tes\" does not exist\\nLINE 1: ...| ' ' || replace(replace(replace(replace(COALESCE(\"tes\"::tex...\\n                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t219\n"]
+				["DB_exec failed:\nFATAL\nerror_text\tERROR:  column \"tes\" does not exist\\nLINE 1: rtesting_table...\\n                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t219\n"]
             ],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
@@ -1623,7 +1628,7 @@ id	hash
 2{{test_random}}2	abc
 2{{test_random}}3	abc
 */}),
-				["DB_exec failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: ...| ' ' || replace(replace(replace(replace(COALESCE(\"\"::text, ...\\n                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t219\n"]
+				["DB_exec failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: rtesting_table...\\n                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t219\n"]
             ],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
@@ -1691,7 +1696,7 @@ pk	hash
 2{{test_random}}1	abc
 */}),
 			    [
-					"DB_exec failed:\nFATAL\nerror_text\tERROR:  column \"2{{test_random}}1\" does not exist\\nLINE 1: ...E TEMP TABLE temp_delete ON COMMIT DROP AS SELECT \"2{{test_random}}1\" ...\\n                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t56\n"
+					"DB_exec failed:\nFATAL\nerror_text\tERROR:  column \"2{{test_random}}1\" does not exist\\nLINE 1: rtesting_table...\\n                                                             ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t56\n"
 				]
             ],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
@@ -2110,6 +2115,19 @@ id
 			['SOCKET CLOSE', 'websocket end']
         ]
     },
+    ws_search: {
+        tests: [
+			['SOCKET OPEN', 'websocket start'],
+
+			['APP FILE SEARCH', 'websocket', '', 'FILE\tSEARCH\t/app/trusted_g/\te\nRECURSIVE\n',
+				[
+					"TRANSACTION COMPLETED"
+				]
+			],
+
+			['SOCKET CLOSE', 'websocket end']
+        ]
+    },
     ws_file_app: {
         tests: [
 			['SOCKET OPEN', 'websocket start'],
@@ -2117,9 +2135,7 @@ id
 			['APP DOWNLOAD FAIL', 'ajax', 404, '/env/app/download/all/test{{test_random1}}.sql', 'asdf',
 				ml(function () {/*The file you are requesting is not here.*/})],
 			['APP UPLOAD FAIL 1', 'ajax', 500, '/env/upload', '',
-				ml(function () {/*FATAL
-util_request.c:get_sun_upload: Cannot find boundary for request
-get_sun_upload failed*/})],
+                "FATAL\nutil_request.c:get_sun_upload: boundary is null\nget_sun_upload failed"],
 			['APP UPLOAD', 'upload', 200, '/env/upload', '/app/all/test{{test_random1}}.sql',
 				ml(function () {/*Upload Succeeded
 */})],
