@@ -651,8 +651,6 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				client->client_request_watcher->parent = client;
 				ev_check_init(&client->client_request_watcher->check, client_request_queue_cb);
 				ev_check_start(EV_A, &client->client_request_watcher->check);
-				ev_idle_init(&client->client_request_watcher->idle, idle_cb);
-				ev_idle_start(EV_A, &client->client_request_watcher->idle);
 				SDEBUG("client->str_request: %p", client->str_request);
 
 				if (client->conn != NULL) {
