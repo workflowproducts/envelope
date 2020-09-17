@@ -651,6 +651,8 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				client->client_request_watcher->parent = client;
 				ev_check_init(&client->client_request_watcher->check, client_request_queue_cb);
 				ev_check_start(EV_A, &client->client_request_watcher->check);
+				ev_idle_init(&client->client_request_watcher->idle, idle_cb);
+				ev_idle_start(EV_A, &client->client_request_watcher->idle);
 				SDEBUG("client->str_request: %p", client->str_request);
 
 				if (client->conn != NULL) {
@@ -1253,6 +1255,7 @@ void _client_request_free(struct sock_ev_client_request *client_request) {
 		ev_io_stop(global_loop, &client_request->cb_data->io);
 		SFREE(client_request->cb_data);
 	}
+    ev_idle_stop(global_loop, &client_request->idle);
 	SFREE(client_request->str_current_response);
 	SFREE(client_request->str_message_id);
 	SFREE(client_request->str_transaction_id);
@@ -1780,6 +1783,7 @@ bool client_close(struct sock_ev_client *client) {
 
 	if (client->client_request_watcher != NULL) {
 		ev_check_stop(global_loop, &client->client_request_watcher->check);
+		ev_check_stop(global_loop, &client->client_request_watcher->idle);
 		SFREE(client->client_request_watcher);
 	}
 
@@ -2060,6 +2064,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 
 	if (client->client_request_watcher != NULL) {
 		ev_check_stop(global_loop, &client->client_request_watcher->check);
+		ev_idle_stop(global_loop, &client->client_request_watcher->idle);
 		SFREE(client->client_request_watcher);
 	}
 	if (client->client_request_watcher_search != NULL) {
@@ -2085,6 +2090,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 	SFREE(client->str_notice);
 	SFREE(client->str_boundary);
 	SFREE(client->str_connname_folder);
+	SFREE(client->str_referer);
 	// DEBUG("%p->str_cookie: %p", client, client->str_cookie);
 	SFREE_PWORD(client->str_cookie);
 	SFREE_PWORD(client->str_all_cookie);
@@ -2111,6 +2117,7 @@ void client_paused_request_free(struct sock_ev_client_paused_request *client_pau
 			SDEBUG("client_paused_request->watcher: %p", client_paused_request->watcher);
 			if (client_paused_request->revents == EV_CHECK) {
 				ev_check_stop(global_loop, (ev_check *)client_paused_request->watcher);
+				ev_idle_stop(global_loop, &client_paused_request->idle);
 			} else {
 				ev_io_stop(global_loop, (ev_io *)client_paused_request->watcher);
 			}
