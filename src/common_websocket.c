@@ -445,8 +445,9 @@ error:
 		SERROR_NORESPONSE("should never get to EAGAIN with libev");
 		SFREE(str_global_error);
 		bol_error_state = false;
-	} else if (int_len == -1) {
+	} else if (int_len == -1 || errno == EPIPE) {
 		// This prevents an infinite loop if CLIENT_CLOSE fails
+        // Also, EPIPE can happen on a search that returns thousands of messages
 		int_len = 0;
 		SDEBUG("disconnect");
 
