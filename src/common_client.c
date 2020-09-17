@@ -368,7 +368,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 
 			if (client->int_form_data_length > 0 && client->int_request_full_len == 0) {
 				client->int_request_full_len = client->int_form_data_start + client->int_form_data_length;
-				SERROR_SREALLOC(client->str_request, client->int_request_full_len);
+				SERROR_SREALLOC(client->str_request, client->int_request_full_len + 1);
 			} else if (client->int_form_data_length == 0) {
 				SERROR_SREALLOC(client->str_request, (size_t)((ssize_t)client->int_request_len + int_len + 1));
 			}

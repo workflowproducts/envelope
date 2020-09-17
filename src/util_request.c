@@ -212,15 +212,19 @@ bool check_referer(char *_str_referer, size_t _int_referer_len, char *_str_refer
 		SDEBUG("ptr_cmp: %s", ptr_cmp);
 		SDEBUG("ptr_tok_cmp: %s", ptr_tok_cmp);
 		if (strncasecmp(ptr_cmp, ptr_tok_cmp, int_cmp_len) == 0) {
+            SFREE(str_referer);
+            SFREE(str_referer_list);
 			return true;
 		}
 
 		ptr_tok = strtok(NULL, ",");
 	}
 
+    SFREE(str_referer);
     SFREE(str_referer_list);
 	return false;
 error:
+    SFREE(str_referer);
     SFREE(str_referer_list);
 	return false;
 }
