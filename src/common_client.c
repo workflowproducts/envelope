@@ -679,6 +679,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 					WS_sendFrame(EV_A, client, true, 0x01, str_response, int_response_len), "Failed to send message");
 
 				client->bol_handshake = true;
+                client->bol_http = false;
 
 				if (client->conn == NULL) {
 					SDEBUG("client->str_request: %p", client->str_request);
@@ -700,6 +701,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 			} else {
 				SDEBUG("http request");
 				ev_io_stop(EV_A, &client->io);
+                client->bol_http = true;
 				http_main(client);
 				client = NULL; // it is http_main's responsibility now.
 			}

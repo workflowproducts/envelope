@@ -381,7 +381,7 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	SFREE_PWORD(str_password);
 	bol_error_state = false;
 finish:
-	if (str_response != NULL && !client->bol_handshake &&
+	if (str_response != NULL && client->bol_http &&
 		(strstr(str_response, "\012Session expired") != NULL || strstr(str_response, "\012No Cookie") != NULL)) {
 		SFREE(str_response);
 		str_temp = str_uri_path(client->str_request, client->int_request_len, &int_uri_length);

@@ -180,6 +180,7 @@ struct sock_ev_client {
 	struct sock_ev_client_notify_watcher *notify_watcher;
 	struct sock_ev_client_cnxn *reconnect_watcher;
 
+	bool bol_http;
 	bool bol_full_request;
 	bool bol_headers_parsed;
 	bool bol_headers_evaluated;
