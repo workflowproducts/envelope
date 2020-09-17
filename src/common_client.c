@@ -706,7 +706,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 		}
 
 		// handshake already done, let's get down to business
-	} else if (client->bol_handshake == true && (client->bol_connected == true || client->bol_is_open == false)) {
+	} else if (client->bol_full_request && client->bol_headers_evaluated == true && client->str_websocket_key && client->bol_handshake == true && (client->bol_connected == true || client->bol_is_open == false)) {
 		SDEBUG("Reading a frame");
 		WS_readFrame(EV_A, client, client_frame_cb);
 	}
