@@ -380,7 +380,7 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	}
 	SFREE_PWORD(str_password);
 	bol_error_state = false;
-finish:
+finish://|/usr/libexec/abrt-hook-ccpp %s %c %p %u %g %t e
 	if (str_response != NULL && client->bol_http &&
 		(strstr(str_response, "\012Session expired") != NULL || strstr(str_response, "\012No Cookie") != NULL)) {
 		SFREE(str_response);

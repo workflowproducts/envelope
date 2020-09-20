@@ -450,7 +450,7 @@ ORDER BY
 id DESC
 */
 			}),
-			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  column rtesting_table.test_full does not exist\\nLINE 1: rtesting_table.\"id\", rtesting_table.\"test_name\", rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t77\n"]],
+			["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  column rtesting_table.test_full does not exist\\nLINE 1: rtesting_table.\"id\", rtesting_table.\"test_name\", rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t79\n"]],
 			['SELECT FAIL 2', 'websocket', '', ml(function () {/*SELECT	*/}) + ml(function () {/*
 RETURN	*
 
@@ -474,7 +474,16 @@ ORDER BY	LIMIT
 1 ASC	10
 */
 }),
-                ["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT rtesting_table.\"\"\\n                                        ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t33\n"]],
+                [ml(function(){/*../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed
+Query failed:
+FATAL
+error_text	ERROR:  zero-length delimited identifier at or near """"\nLINE 1: SELECT rtesting_table.""\n                                         ^\n
+error_detail	
+error_hint	
+error_query	
+error_context	
+error_position	34
+*/})]],
 			['SELECT FAIL 5', 'websocket', '', ml(function () {/*SELECT	rtesting_table
 RETURN
 
@@ -482,7 +491,8 @@ ORDER BY	LIMIT
 1 ASC	10
 */
 			}),
-			["common_util_sql.c:get_return_columns: strstr failed\nFailed to get return columns from query"]],
+			[ml(function() {/*common_util_sql.c:get_return_columns: strstr failed
+Failed to get return columns from query*/})]],
 			['SELECT FAIL 6', 'websocket', '', ml(function () {/*SELECT	rtesting_table
 RETURN	*/}) + ml(function () {/*
 
@@ -490,7 +500,16 @@ ORDER BY	LIMIT
 1 ASC	10
 */
 }),
-                ["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT rtesting_table.\"\"\\n                                        ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t33\n"]],
+                [ml(function(){/*../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed
+Query failed:
+FATAL
+error_text	ERROR:  zero-length delimited identifier at or near """"\nLINE 1: SELECT rtesting_table.""\n                                         ^\n
+error_detail	
+error_hint	
+error_query	
+error_context	
+error_position	34
+*/})]],
 			['SELECT FAIL 7', 'websocket', '', new Blob([ml(function () {/*SELECT	rtesting_table
 RETURN	*/
 			}) + ml(function () {/*
@@ -499,7 +518,16 @@ ORDER BY	LIMIT
 1 ASC	10
 */
             })], {type: 'application/x-binary'}),
-                ["../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed\nQuery failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 1: SELECT rtesting_table.\"\"\\n                                        ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t33\n"]],
+                [ml(function(){/*../db_framework_pq/db_framework.c:DB_get_column_types_for_query2: DB_get_column_types_for_query failed
+Query failed:
+FATAL
+error_text	ERROR:  zero-length delimited identifier at or near """"\nLINE 1: SELECT rtesting_table.""\n                                         ^\n
+error_detail	
+error_hint	
+error_query	
+error_context	
+error_position	34
+*/})]],
 			['SELECT FAIL 8', 'websocket', '', ml(function () {/*SELECT	(SELECT * FROM rtesting_table) em) TO STDOUT; --
 RETURN	*/
 			}) + ml(function () {/*

@@ -32,9 +32,6 @@ SOCKET int_sock = INVALID_SOCKET;
 
 ev_periodic last_activity_free_timer;
 ev_periodic check_running_queries_timer;
-ev_signal sigint_watcher;
-ev_signal sigterm_watcher;
-ev_signal sigbreak_watcher;
 DB_conn *log_queries_over_conn = NULL;
 
 /*
@@ -55,9 +52,6 @@ void program_exit() {
 			}
 			ev_periodic_stop(global_loop, &check_running_queries_timer);
 		}
-		ev_signal_stop(global_loop, &sigint_watcher);
-		ev_signal_stop(global_loop, &sigterm_watcher);
-		ev_signal_stop(global_loop, &sigbreak_watcher);
 
 		if (_server.list_client != NULL) {
 			while (List_first(_server.list_client) != NULL) {
@@ -121,19 +115,6 @@ void program_exit() {
 #endif
 	}
 	DB_finish_framework();
-}
-
-/*
-This function is run when the program gets a SIGINT or a SIGTERM
-*/
-void sigint_cb(EV_P, ev_signal *w, int revents) {
-	if (EV_A != NULL) {
-	} // get rid of unused parameter warning
-	if (w != NULL) {
-	} // get rid of unused parameter warning
-	if (revents != 0) {
-	} // get rid of unused parameter warning
-	program_exit();
 }
 
 void free_last_activity(EV_P, ev_periodic *w, int revents) {
@@ -327,9 +308,6 @@ error:
 Program entry point
 */
 int main(int argc, char *const *argv) {
-	memset(&sigint_watcher, 0, sizeof(ev_signal));
-	memset(&sigterm_watcher, 0, sizeof(ev_signal));
-	memset(&sigbreak_watcher, 0, sizeof(ev_signal));
 #ifdef _WIN32
 	WORD w_version_requested;
 	WSADATA wsa_data;
@@ -375,15 +353,6 @@ int main(int argc, char *const *argv) {
 		ev_periodic_init(&check_running_queries_timer, check_running_queries, 0, (ev_tstamp)(int_global_log_queries_over) / 10, NULL);
 		ev_periodic_start(global_loop, &check_running_queries_timer);
 	}
-
-	ev_signal_init(&sigint_watcher, sigint_cb, SIGINT);
-	ev_signal_start(global_loop, &sigint_watcher);
-	ev_signal_init(&sigterm_watcher, sigint_cb, SIGTERM);
-	ev_signal_start(global_loop, &sigterm_watcher);
-#ifdef SIGBREAK
-	ev_signal_init(&sigterm_watcher, sigint_cb, SIGBREAK);
-	ev_signal_start(global_loop, &sigterm_watcher);
-#endif
 
 	memset(&_server, 0, sizeof(_server));
 

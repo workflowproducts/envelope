@@ -1783,7 +1783,7 @@ bool client_close(struct sock_ev_client *client) {
 
 	if (client->client_request_watcher != NULL) {
 		ev_check_stop(global_loop, &client->client_request_watcher->check);
-		ev_check_stop(global_loop, &client->client_request_watcher->idle);
+		ev_idle_stop(global_loop, &client->client_request_watcher->idle);
 		SFREE(client->client_request_watcher);
 	}
 

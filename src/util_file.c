@@ -1,5 +1,7 @@
 #include "util_file.h"
 
+extern struct ev_loop *global_loop;
+
 void canonical_recurse_directory_check_cb(EV_P, ev_check *w, int revents);
 void free_recursive_callback_data(recursive_callback_data *rec_data);
 void free_recursive_directory_data(recursive_directory_data *dir_data);
@@ -67,8 +69,6 @@ void canonical_recurse_directory_check_cb(EV_P, ev_check *w, int revents) {
 
 	if (int_i == 0) {
 		rec_data->finish_callback(EV_A, rec_data->cb_data, true);
-		ev_check_stop(EV_A, &rec_data->check);
-		ev_idle_stop(EV_A, &rec_data->idle);
 		free_recursive_callback_data(rec_data);
 		return;
 	}
@@ -82,8 +82,6 @@ void canonical_recurse_directory_check_cb(EV_P, ev_check *w, int revents) {
 		SFREE_ALL();
 		if (DArray_end(rec_data->darr_directory) == 0 || bol_res == false) {
 			rec_data->finish_callback(EV_A, rec_data->cb_data, false);
-			ev_check_stop(EV_A, &rec_data->check);
-			ev_idle_stop(EV_A, &rec_data->idle);
 			free_recursive_callback_data(rec_data);
 			return;
 		}
@@ -186,8 +184,6 @@ void canonical_recurse_directory_check_cb(EV_P, ev_check *w, int revents) {
 	// bol_res = rec_data->step_callback(rec_data->cb_data, dir_data->str_path);
 	if (DArray_end(rec_data->darr_directory) == 0 || bol_res == false) {
 		rec_data->finish_callback(EV_A, rec_data->cb_data, bol_res);
-		ev_check_stop(EV_A, &rec_data->check);
-		ev_idle_stop(EV_A, &rec_data->idle);
 		free_recursive_callback_data(rec_data);
 		SFREE_ALL();
 		return;
@@ -198,8 +194,6 @@ void canonical_recurse_directory_check_cb(EV_P, ev_check *w, int revents) {
 error:
 	SFREE_ALL();
 	rec_data->finish_callback(EV_A, rec_data->cb_data, false);
-	ev_check_stop(EV_A, &rec_data->check);
-	ev_idle_stop(EV_A, &rec_data->idle);
 	free_recursive_callback_data(rec_data);
 	return;
 }
@@ -357,6 +351,8 @@ error:
 }
 
 void free_recursive_callback_data(recursive_callback_data *rec_data) {
+    ev_check_stop(global_loop, &rec_data->check);
+    ev_idle_stop(global_loop, &rec_data->idle);
 	size_t int_i = 0, int_len = DArray_end(rec_data->darr_directory);
 	for (; int_i < int_len; int_i += 1) {
 		free_recursive_directory_data(DArray_get(rec_data->darr_directory, int_i));

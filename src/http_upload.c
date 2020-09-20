@@ -240,8 +240,6 @@ void http_upload_step3(EV_P, ev_check *w, int revents) {
 		}
 		SFREE(str_response);
 
-		ev_check_stop(EV_A, &client_upload->check);
-		ev_idle_stop(EV_A, &client_upload->idle);
 		http_upload_free(client_upload);
 		SERROR_CLIENT_CLOSE_NORESPONSE(client);
 	}
@@ -269,8 +267,6 @@ finish:
 		if (write(client->int_sock, str_response, int_response_len) < 0) {
 			SERROR_NORESPONSE("write() failed");
 		}
-		ev_check_stop(EV_A, &client_upload->check);
-		ev_idle_stop(EV_A, &client_upload->idle);
 		http_upload_free(client_upload);
 		SFREE(str_response);
 		SERROR_CLIENT_CLOSE_NORESPONSE(client);
@@ -289,6 +285,8 @@ void http_upload_free(struct sock_ev_client_upload *to_free) {
 		to_free->int_fd = -1;
 	}
 #endif
+    ev_check_stop(global_loop, &to_free->check);
+    ev_idle_stop(global_loop, &to_free->idle);
 	SFREE(to_free->str_canonical_start);
 	SFREE(to_free->str_file_name);
 	SFREE_SUN_UPLOAD(to_free->sun_current_upload);
