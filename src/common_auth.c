@@ -400,7 +400,7 @@ finish://|/usr/libexec/abrt-hook-ccpp %s %c %p %u %g %t e
 			"Connection: close\015\012"
 				"Set-Cookie: "
 			),
-			"envelope", 8,
+			"envelope", (size_t)8,
 			"=; path=/; expires=Tue, 01 Jan 1990 00:00:00 GMT", (size_t)48,
 			"; HttpOnly\015\012", (size_t)12
 		);
