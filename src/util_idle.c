@@ -20,8 +20,8 @@ void idle_cb(EV_P, ev_idle *w, int revents) {
 void _increment_idle(EV_P) {
 	int_idle_count += 1;
 	if (int_idle_count == 1) {
-		ev_idle_init(&idle_watcher, idle_cb);
-		ev_idle_start(EV_A, &idle_watcher);
+		ev_idle_init_debug(&idle_watcher, idle_cb);
+		ev_idle_start_debug(EV_A, &idle_watcher);
 	}
 }
 
@@ -31,7 +31,7 @@ void _decrement_idle(EV_P) {
 		return;
 	}
 	if (int_idle_count == 1) {
-		ev_idle_stop(EV_A, &idle_watcher);
+		ev_idle_stop_debug(EV_A, &idle_watcher);
 	}
 	int_idle_count -= 1;
 	int_idle_count = int_idle_count < 0 ? 0 : int_idle_count;

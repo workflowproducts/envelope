@@ -65,7 +65,7 @@ void sunny_exec_output_cb(EV_P, ev_check *w, int revents) {
 			}
 
 			ev_check_stop(EV_A, &exec_cb_data->check);
-			ev_idle_stop(EV_A, &exec_cb_data->idle);
+			ev_idle_stop_debug(EV_A, &exec_cb_data->idle);
 			SFREE(exec_cb_data);
 		}
 	}
@@ -97,7 +97,7 @@ error:
 	}
 
 	ev_check_stop(EV_A, &exec_cb_data->check);
-	ev_idle_stop(EV_A, &exec_cb_data->idle);
+	ev_idle_stop_debug(EV_A, &exec_cb_data->idle);
 	SFREE(exec_cb_data->str_current_response);
 	SFREE(exec_cb_data);
 	return;
@@ -288,8 +288,8 @@ bool s_exec(EV_P, int int_num_args, void *cb_data, exec_callback_t exec_callback
 
 	ev_check_init(&exec_cb_data->check, sunny_exec_output_cb);
 	ev_check_start(EV_A, &exec_cb_data->check);
-	ev_idle_init(&exec_cb_data->idle, idle_cb);
-	ev_idle_start(EV_A, &exec_cb_data->idle);
+	ev_idle_init_debug(&exec_cb_data->idle, idle_cb);
+	ev_idle_start_debug(EV_A, &exec_cb_data->idle);
 	exec_cb_data = NULL;
 
 #else

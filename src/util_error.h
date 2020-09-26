@@ -27,6 +27,10 @@ extern char *str_global_error;
 #define __FILENAME__ __FILE__
 #endif
 
+#define ev_idle_init_debug(a, b) { debug_root(__FILENAME__, __LINE__, (char *)__func__, "ev_idle_init: %s, %s", #a, #b); ev_idle_init(a, b); }
+#define ev_idle_start_debug(a, b) { debug_root(__FILENAME__, __LINE__, (char *)__func__, "ev_idle_start: %s, %x", #b, b); ev_idle_start(a, b); }
+#define ev_idle_stop_debug(a, b)  { if ((b)->active) { debug_root(__FILENAME__, __LINE__, (char *)__func__, "ev_idle_stop: %s, %x", #b, b); } ev_idle_stop(a, b);  }
+
 // These are for developers and must be compiled in by adding "-DUTIL_DEBUG" to
 // the compile options
 // or by adding #define UTIL_DEBUG before including this file

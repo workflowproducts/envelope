@@ -37,7 +37,7 @@ void db_conn_error_cb(EV_P, ev_check *w, int revents) {
 	DB_conn *conn = (void *)w;
 
 	ev_check_stop(EV_A, &conn->check);
-	ev_idle_stop(EV_A, &conn->idle);
+	ev_idle_stop_debug(EV_A, &conn->idle);
 
 	conn->connect_cb(EV_A, conn->cb_data, conn);
 }
@@ -124,8 +124,8 @@ finish:
 			str_response + 6, strlen(str_response + 6));
 		ev_check_init(&conn->check, db_conn_error_cb);
 		ev_check_start(EV_A, &conn->check);
-		ev_idle_init(&conn->idle, idle_cb);
-		ev_idle_start(EV_A, &conn->idle);
+		ev_idle_init_debug(&conn->idle, idle_cb);
+		ev_idle_start_debug(EV_A, &conn->idle);
 	}
 	SFREE(str_response);
 	SFREE(conn_poll);
@@ -685,7 +685,7 @@ char *DB_cancel_query(DB_conn *conn) {
 	}
 	if (conn->copy_check != NULL) {
 		ev_check_stop(conn->EV_A, &conn->copy_check->check);
-		ev_idle_stop(conn->EV_A, &conn->idle);
+		ev_idle_stop_debug(conn->EV_A, &conn->idle);
 		PQclear(conn->copy_check->res);
 		SFREE(conn->copy_check);
 	}
@@ -711,7 +711,7 @@ void _DB_finish(DB_conn *conn) {
 	SDEBUG("conn->copy_check: %p", conn->copy_check);
 	if (conn->copy_check != NULL) {
 		ev_check_stop(conn->EV_A, &conn->copy_check->check);
-		ev_idle_stop(conn->EV_A, &conn->idle);
+		ev_idle_stop_debug(conn->EV_A, &conn->idle);
 		PQclear(conn->copy_check->res);
 		SFREE(conn->copy_check);
 	}
@@ -816,8 +816,8 @@ static void db_query_cb(EV_P, ev_io *w, int revents) {
 			ev_check_start(EV_A, &db_copy_check->check);
 			res_poll->conn->copy_check = db_copy_check;
 
-			ev_idle_init(&conn->idle, idle_cb);
-			ev_idle_start(EV_A, &conn->idle);
+			ev_idle_init_debug(&conn->idle, idle_cb);
+			ev_idle_start_debug(EV_A, &conn->idle);
 
 			int_i = 0;
 			int_len = DArray_end(arr_res);
@@ -999,7 +999,7 @@ static void db_copy_out_check_cb(EV_P, ev_check *w, int revents) {
 			copy_cb_t copy_cb = copy_check->copy_cb;
 
 			ev_check_stop(EV_A, &copy_check->check);
-			ev_idle_stop(EV_A, &copy_check->conn->idle);
+			ev_idle_stop_debug(EV_A, &copy_check->conn->idle);
 			PQclear(copy_check->res);
 
 			// ev_io_init(&res_poll->io, db_query_cb, conn->int_sock, EV_READ);
@@ -1033,7 +1033,7 @@ finish:
 			str_response = _DB_get_diagnostic(copy_check->conn, res);
 
 			copy_cb_t copy_cb = copy_check->copy_cb;
-			ev_idle_stop(EV_A, &copy_check->conn->idle);
+			ev_idle_stop_debug(EV_A, &copy_check->conn->idle);
 			ev_check_stop(EV_A, &copy_check->check);
 			PQclear(copy_check->res);
 			copy_check->conn->copy_check = NULL;
