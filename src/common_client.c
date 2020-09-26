@@ -1119,7 +1119,6 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 		if (client_request != NULL) {
 			SDEBUG("Queue_send(%p, %p);", client->que_request, client_request);
 			Queue_send(client->que_request, client_request);
-			ev_idle_init_debug(&client->idle_request_queue, idle_cb);
 			ev_idle_start_debug(EV_A, &client->idle_request_queue);
 		}
 	}

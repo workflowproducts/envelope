@@ -103,6 +103,7 @@ void server_cb(EV_P, ev_io *w, int revents) {
 #else
 		client->int_ev_sock = int_client_sock;
 #endif
+        ev_idle_init_debug(&client->idle_request_queue, idle_cb);
 		ev_io_init(&client->io, client_cb, client->int_ev_sock, EV_READ);
 		ev_io_start(EV_A, &client->io);
 		client = NULL;
