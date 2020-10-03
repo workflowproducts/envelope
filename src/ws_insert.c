@@ -1566,6 +1566,7 @@ void ws_insert_free(struct sock_ev_client_request_data *client_request_data) {
 	SFREE(client_insert->str_pk_join_clause);
 	SFREE(client_insert->str_column_names);
 	SFREE(client_insert->str_real_table_name);
+	SFREE(client_insert->str_table_alias);
 	SFREE(client_insert->str_temp_table_name);
 	SFREE(client_insert->str_schema_literal);
 	SFREE(client_insert->str_table_literal);

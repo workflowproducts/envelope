@@ -352,8 +352,11 @@ void client_cb(EV_P, ev_io *w, int revents) {
 	SDEBUG("client->bol_handshake: %s", client->bol_handshake ? "true" : "false");
 	SDEBUG("client->bol_connected: %s", client->bol_connected ? "true" : "false");
 
-	// we haven't done the handshake yet
-	if (client->bol_handshake == false) {
+    // handshake already done, let's get down to business
+    if (client->bol_full_request && client->bol_headers_evaluated == true && client->str_websocket_key && client->bol_handshake == true && (client->bol_connected == true || client->bol_is_open == false)) {
+        SDEBUG("Reading a frame");
+        WS_readFrame(EV_A, client, client_frame_cb);
+    } else if (!client->bol_full_request) {
 		errno = 0;
 		int_len = read(client->int_sock, str_buffer, MAX_BUFFER);
 		SDEBUG("client->int_request_len: %zu", client->int_request_len);
@@ -651,7 +654,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				client->client_request_watcher->parent = client;
 				ev_check_init(&client->client_request_watcher->check, client_request_queue_cb);
 				ev_check_start(EV_A, &client->client_request_watcher->check);
-				SDEBUG("client->str_request: %p", client->str_request);
+				SDEBUG("client->str_request: %p->%p", client, client->str_request);
 
 				if (client->conn != NULL) {
 					//DB_finish(client->conn);
@@ -706,12 +709,18 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				client = NULL; // it is http_main's responsibility now.
 			}
 		}
-
-		// handshake already done, let's get down to business
-	} else if (client->bol_full_request && client->bol_headers_evaluated == true && client->str_websocket_key && client->bol_handshake == true && (client->bol_connected == true || client->bol_is_open == false)) {
-		SDEBUG("Reading a frame");
-		WS_readFrame(EV_A, client, client_frame_cb);
-	}
+	} else if (client->bol_full_request && client->bol_headers_evaluated == true && client->str_websocket_key && client->bol_handshake == true && client->bol_connected == false && client->bol_is_open == true) {
+        SDEBUG("after handshake, but no connection");
+	} else {
+        SDEBUG("NOT client->bol_full_request && client->bol_headers_evaluated == true && client->str_websocket_key && client->bol_handshake == true && (client->bol_connected == true || client->bol_is_open == false)");
+        SDEBUG("client->bol_full_request: %s", client->bol_full_request ? "true" : "false");
+        SDEBUG("client->bol_headers_evaluated: %s", client->bol_headers_evaluated ? "true" : "false");
+        SDEBUG("client->str_websocket_key: %s", client->str_websocket_key);
+        SDEBUG("client->bol_handshake: %s", client->bol_handshake ? "true" : "false");
+        SDEBUG("client->bol_connected: %s", client->bol_connected ? "true" : "false");
+        SDEBUG("client->bol_is_open: %s", client->bol_is_open ? "true" : "false");
+        SERROR("Got EV_READ after request received");
+    }
 
 	SDEBUG("Readable callback end");
 

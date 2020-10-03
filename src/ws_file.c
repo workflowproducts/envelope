@@ -2336,8 +2336,10 @@ finish:
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 		DArray_push(client_request->arr_response, str_response);
 
-		ev_check_stop(EV_A, &client_request_watcher->check);
-		ev_idle_stop_debug(EV_A, &client_request_watcher->idle);
+        if (client_request_watcher != NULL) {
+            ev_check_stop(EV_A, &client_request_watcher->check);
+            ev_idle_stop_debug(EV_A, &client_request_watcher->idle);
+        }
 		SFREE(client_request_watcher);
 	}
 	return true;

@@ -37,7 +37,9 @@ DB_conn *log_queries_over_conn = NULL;
 /*
 This function is run when the program exits
 */
+ev_signal exitsig;
 void program_exit() {
+    ev_signal_stop(global_loop, &exitsig);
 	fprintf(stderr, SUN_PROGRAM_UPPER_NAME" IS SHUTTING DOWN\n");
 	if (global_loop != NULL) {
 		size_t int_i, int_len;
@@ -61,6 +63,9 @@ void program_exit() {
 			_server.list_client = NULL;
 		}
 
+        List_destroy(list_global_running_queries);
+        list_global_running_queries = NULL;
+
 		if (_server.arr_client_last_activity != NULL) {
 			for (int_i = 0, int_len = DArray_end(_server.arr_client_last_activity); int_i < int_len; int_i += 1) {
 				struct sock_ev_client_last_activity *client_last_activity =
@@ -71,6 +76,8 @@ void program_exit() {
 		}
 
 		SFREE(str_global_port);
+		SFREE(str_global_api_referer_list);
+		SFREE(str_global_public_api_referer_list);
 		SFREE(str_global_error);
 		SFREE(str_global_config_file);
 		SFREE(str_global_connection_file);
@@ -304,6 +311,11 @@ error:
 	SERROR_NORESPONSE("MUCH BADNESS!");
 }
 
+void sig_cb(EV_P, ev_signal *w, int revents) {
+    program_exit();
+    exit(0);
+}
+
 /*
 Program entry point
 */
@@ -335,6 +347,8 @@ int main(int argc, char *const *argv) {
 
 	global_loop = ev_default_loop(0);
 	SERROR_CHECK(global_loop != NULL, "ev_default_loop failed!");
+    ev_signal_init(&exitsig, sig_cb, SIGINT);
+    ev_signal_start(global_loop, &exitsig);
 
 	if (int_global_login_timeout > 0) {
 		memset(&last_activity_free_timer, 0, sizeof(ev_periodic));
