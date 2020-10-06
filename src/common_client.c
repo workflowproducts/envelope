@@ -482,15 +482,15 @@ void client_cb(EV_P, ev_io *w, int revents) {
 					client->bol_full_request = client->int_request_len == (client->int_form_data_start + client->int_form_data_length);
 				}
 				if (strncasecmp(str_header_name, "X-Forwarded-For", 15) == 0) {
-					size_t int_ip_address_len = strlen(str_header_value);
-					memcpy(client->str_client_ip, str_header_value, int_ip_address_len);
+                    SFREE(client->str_client_ip);
+					SERROR_SNCAT(client->str_client_ip, &client->int_client_ip_len, str_header_value, strlen(str_header_value));
 
 					// IIS adds the client port to the X-Forwarded-For header
 					// we need to remove it because of the client_last_activity checks later on
-					char *ptr_temp = bstrstr(client->str_client_ip, int_ip_address_len, ":", 1);
+					char *ptr_temp = bstrstr(client->str_client_ip, client->int_client_ip_len, ":", 1);
 					if (ptr_temp != NULL) {
 						*ptr_temp = 0;
-						int_ip_address_len = ptr_temp - client->str_client_ip;
+						client->int_client_ip_len = ptr_temp - client->str_client_ip;
 					}
 				}
 				if (strncasecmp(str_header_name, "Referer", 7) == 0) {
@@ -2097,6 +2097,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 	SFREE(client->str_database);
 	SFREE(client->str_notice);
 	SFREE(client->str_boundary);
+	SFREE(client->str_client_ip);
 	SFREE(client->str_connname_folder);
 	SFREE(client->str_referer);
 	// DEBUG("%p->str_cookie: %p", client, client->str_cookie);

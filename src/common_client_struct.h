@@ -140,7 +140,8 @@ struct sock_ev_client {
 
 	ListNode *node;
 	ssize_t int_last_activity_i;
-	char str_client_ip[INET_ADDRSTRLEN];
+	char *str_client_ip;
+    size_t int_client_ip_len;
 	bool bol_handshake;
 	bool bol_connected;
 

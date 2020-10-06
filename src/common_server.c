@@ -87,7 +87,8 @@ void server_cb(EV_P, ev_io *w, int revents) {
 		client->darr_str_header_name = DArray_create(sizeof(char *), 25);
 		client->darr_str_header_value = DArray_create(sizeof(char *), 25);
 
-		if (inet_ntop(AF_INET, &client_address.sin_addr.s_addr, client->str_client_ip, sizeof(client->str_client_ip)) != NULL) {
+        SERROR_SALLOC(client->str_client_ip, 50);
+		if (inet_ntop(AF_INET, &client_address.sin_addr.s_addr, client->str_client_ip, 50) != NULL) {
 			SDEBUG("Got connection from %s:%d", client->str_client_ip, ntohs(client_address.sin_port));
 		} else {
 			SDEBUG("Unable to get address");
