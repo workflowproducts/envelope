@@ -6,7 +6,7 @@ window.addEventListener('design-register-element', function () {
                                                                 '    ${0}\n' +
                                                                 '</gs-jumbo>');
     
-    designRegisterElement('gs-jumbo', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-container-jumbo.html');
+    designRegisterElement('gs-jumbo', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_container_jumbo');
     
     window.designElementProperty_GSJUMBO = function(selectedElement) {
         // TITLE attribute

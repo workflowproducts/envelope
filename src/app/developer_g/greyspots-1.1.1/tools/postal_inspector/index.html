@@ -56,7 +56,18 @@
             <gs-page>
                 <gs-header><center><h3>Users In Group</h3></center></gs-header>
                 <gs-body>
-                    <gs-envelope where="roleid={{! currentID }}" src="(SELECT%20row_number()%20OVER%20(ORDER%20BY%20rolname)%20as%20id%2C%20rolname%2C%20has_group%2C%20roleid%0AFROM%20(SELECT%20rolname%2C%20min(has_group)%20as%20has_group%2C%20roleid%0A%20%20%20%20%20%20%20%20FROM%20(SELECT%20pg_roles.rolname%2C%200%20as%20has_group%2C%20roleid%0A%20%20%20%20%20%20%20%20%20%20%20%20FROM%20pg_auth_members%2Cpg_roles%20%0A%20%20WHERE%20rolcanlogin%0A%20%20%20%20%20%20%20%20%20%20%20%20UNION%0A%20%20%20%20%20%20%20%20%20%20%20%20SELECT%20pg_roles.rolname%2C%20-1%2C%20roleid%0A%20%20%20%20%20%20%20%20%20%20%20%20FROM%20pg_auth_members%20%0A%20%20%20%20%20%20%20%20%20%20%20%20LEFT%20JOIN%20pg_roles%20ON%20pg_roles.oid%20%3D%20pg_auth_members.member%0A%20%20WHERE%20rolcanlogin)%20em%09%09%20%20%20%0A%20%20%20%20%20%20%20%20GROUP%20BY%20rolname%2C%20roleid)%20ok%0AORDER%20BY%20rolname)%20ema" no-hudorderby no-hudlimit no-huddelete no-hudrefresh>
+                    <gs-envelope where="roleid={{! currentID }}" src="(SELECT row_number() OVER (ORDER BY rolname) as id, rolname, has_group, roleid
+FROM (SELECT rolname, min(has_group) as has_group, roleid
+        FROM (SELECT pg_roles.rolname, 0 as has_group, roleid
+            FROM pg_auth_members,pg_roles 
+  WHERE rolcanlogin
+            UNION
+            SELECT pg_roles.rolname, -1, roleid
+            FROM pg_auth_members 
+            LEFT JOIN pg_roles ON pg_roles.oid = pg_auth_members.member
+  WHERE rolcanlogin) em		   
+        GROUP BY rolname, roleid) ok
+ORDER BY rolname) ema" no-hudorderby no-hudlimit no-huddelete no-hudrefresh>
                         <template for="table">
                             <table>
                                 <tbody>
@@ -108,7 +119,17 @@
             <gs-page>
                 <gs-header><center><h3>Functions In Group</h3></center></gs-header>
                 <gs-body>
-                    <gs-envelope src="(SELECT%20oid%20AS%20id%2C%20func_name%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20(CASE%20WHEN%20has_function_privilege({{! currentID }}%3A%3Aoid%2C%20func_name%2C%20'EXECUTE')%20%20THEN%20'-1'%20ELSE%20'0'%20END)%20AS%20has_execute%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20FROM%20(%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20SELECT%20pg_proc.oid%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20pg_namespace.nspname%20%7C%7C%20'.'%20%7C%7C%20pg_proc.proname%20%7C%7C%20'('%20%7C%7C%20COALESCE(oidvectortypes(proargtypes)%2C%20'')%20%7C%7C%20')'%20as%20func_name%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20FROM%20pg_proc%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20LEFT%20JOIN%20pg_type%20ON%20pg_type.oid%20%3D%20pg_proc.prorettype%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20LEFT%20JOIN%20pg_namespace%20ON%20pg_namespace.oid%20%3D%20pg_proc.pronamespace%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20WHERE%20pg_namespace.nspname%20!%3D%20'pg_catalog'%20AND%20pg_proc.proisagg%20%3D%20FALSE%20AND%20typname%20%3C%3E%20'trigger'%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20AND%20NOT%20has_function_privilege('public'%2C%20pg_proc.oid%2C%20'EXECUTE')%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20ORDER%20BY%202)%20em)%20ema" no-hudorderby no-hudlimit no-huddelete no-hudrefresh action-select="postage/action_select">
+                    <gs-envelope src="(SELECT oid AS id, func_name,
+                       (CASE WHEN has_function_privilege({{! currentID }}::oid, func_name, &#39;EXECUTE&#39;)  THEN &#39;-1&#39; ELSE &#39;0&#39; END) AS has_execute
+                  FROM (
+                    SELECT pg_proc.oid,
+                           pg_namespace.nspname || &#39;.&#39; || pg_proc.proname || &#39;(&#39; || COALESCE(oidvectortypes(proargtypes), &#39;&#39;) || &#39;)&#39; as func_name
+                      FROM pg_proc
+                 LEFT JOIN pg_type ON pg_type.oid = pg_proc.prorettype 
+                 LEFT JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace 
+                     WHERE pg_namespace.nspname != &#39;pg_catalog&#39; AND pg_proc.proisagg = FALSE AND typname &#60;&#62; &#39;trigger&#39; 
+                       AND NOT has_function_privilege(&#39;public&#39;, pg_proc.oid, &#39;EXECUTE&#39;)
+                  ORDER BY 2) em) ema" no-hudorderby no-hudlimit no-huddelete no-hudrefresh action-select="postage/action_select">
                         <template for="table">
                             <table>
                                 <tbody>
@@ -131,7 +152,19 @@
             <gs-page>
                 <gs-header><center><h3>Groups On Function</h3></center></gs-header>
                 <gs-body>
-                    <gs-envelope src="(SELECT%20*%20FROM%20(%0ASELECT%20rank()%20OVER%20(ORDER%20BY%20rolname)%20AS%20id%2C%20oid%2C%20rolname%2C%20min(has_execute)%20as%20has_execute%2C%20foid%0AFROM%20(SELECT%20oid%2C%20rolname%2C%200%20as%20has_execute%2C%20foid%20FROM%20pg_roles%2C%20(SELECT%20oid%20as%20foid%20FROM%20pg_proc)%20foidlist%20WHERE%20NOT%20pg_roles.rolcanlogin%20UNION%20%0A%20%20%20%20SELECT%20pg_roles.oid%2C%20pg_roles.rolname%2C%20CASE%20WHEN%20procacl.has_execute%20THEN%20-1%20ELSE%200%20END%20as%20has_execute%2C%20procacl.oid%20as%20foid%0A%20%20%20%20FROM%20(SELECT%20DISTINCT%20oid%2C%20CASE%20WHEN%20acl%3A%3Atext%20~%20'%5E%3D'%3A%3Atext%20THEN%20'public'%20%0A%20%20%20%20%09%20%20%20%20%20%20%20ELSE%20substr(acl%3A%3Atext%2C%200%2C%20position('%3D'%20in%20acl%3A%3Atext))%20END%20as%20rolname%2C%0A%20%20%20%20%09%20%20%20%20%20%20substr(acl%3A%3Atext%2C%20position('%3D'%20in%20acl%3A%3Atext)%2B1%2C%20position('%2F'%20in%20acl%3A%3Atext)-position('%3D'%20in%20acl%3A%3Atext)-1)%20~%20'X'%20as%20has_execute%0A%20%20%20%20%09%20%20%20%20%20%20%0A%20%20%20%20%20%20%20%20%20%20FROM%20(SELECT%20unnest(proacl)%20as%20acl%2C%20oid%20FROM%20pg_proc)%20proc%20)%20procacl%0A%20%20%20%20LEFT%20JOIN%20pg_roles%20ON%20procacl.rolname%20%3D%20pg_roles.rolname%0A%20%20%20%20WHERE%20NOT%20pg_roles.rolcanlogin)%20em%0AGROUP%20BY%20oid%2C%20rolname%2C%20foid%20)%20ok%0AORDER%20BY%20rolname)%20ema" where="foid={{! currentID }}" no-hudorderby no-hudlimit no-huddelete no-hudrefresh action-select="postage/action_select">
+                    <gs-envelope src="(SELECT * FROM (
+SELECT rank() OVER (ORDER BY rolname) AS id, oid, rolname, min(has_execute) as has_execute, foid
+FROM (SELECT oid, rolname, 0 as has_execute, foid FROM pg_roles, (SELECT oid as foid FROM pg_proc) foidlist WHERE NOT pg_roles.rolcanlogin UNION 
+    SELECT pg_roles.oid, pg_roles.rolname, CASE WHEN procacl.has_execute THEN -1 ELSE 0 END as has_execute, procacl.oid as foid
+    FROM (SELECT DISTINCT oid, CASE WHEN acl::text ~ &#39;^=&#39;::text THEN &#39;public&#39; 
+    	       ELSE substr(acl::text, 0, position(&#39;=&#39; in acl::text)) END as rolname,
+    	      substr(acl::text, position(&#39;=&#39; in acl::text)+1, position(&#39;&#47;&#39; in acl::text)-position(&#39;=&#39; in acl::text)-1) ~ &#39;X&#39; as has_execute
+    	      
+          FROM (SELECT unnest(proacl) as acl, oid FROM pg_proc) proc ) procacl
+    LEFT JOIN pg_roles ON procacl.rolname = pg_roles.rolname
+    WHERE NOT pg_roles.rolcanlogin) em
+GROUP BY oid, rolname, foid ) ok
+ORDER BY rolname) ema" where="foid={{! currentID }}" no-hudorderby no-hudlimit no-huddelete no-hudrefresh action-select="postage/action_select">
                         <template for="table">
                             <table>
                                 <tbody>
@@ -154,7 +187,15 @@
             <gs-page>
                 <gs-header><center><h3>Groups On User</h3></center></gs-header>
                 <gs-body>
-                    <gs-envelope src="(SELECT%20oid%20AS%20id%2C%20rolname%2C%20(CASE%20WHEN%20member%20IS%20NULL%20THEN%20'0'%20ELSE%20'-1'%20END)%20AS%20has_grp%0A%20%20FROM%20(SELECT%20grp.oid%2C%20grp.rolname%2C%20pgam.member%0A%09%09%20%20FROM%20(SELECT%20oid%2C%20rolname%0A%09%09%20%20%20%20%20%20%20%20%20%20FROM%20pg_roles%0A%09%09%20%20%20%20%20%20%20%20%20%20WHERE%20NOT%20pg_roles.rolcanlogin)%20grp%0A%20%20LEFT%20JOIN%20(SELECT%20roleid%2C%20member%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20FROM%20pg_auth_members%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20WHERE%20member%20%3D%20{{! currentID }})%20pgam%20ON%20grp.oid%20%3D%20pgam.roleid%0A%20%20ORDER%20BY%20grp.rolname%20ASC)%20em)%20ema" no-hudorderby no-hudlimit no-huddelete no-hudrefresh action-select="postage/action_select">
+                    <gs-envelope src="(SELECT oid AS id, rolname, (CASE WHEN member IS NULL THEN '0' ELSE '-1' END) AS has_grp
+  FROM (SELECT grp.oid, grp.rolname, pgam.member
+		  FROM (SELECT oid, rolname
+		          FROM pg_roles
+		          WHERE NOT pg_roles.rolcanlogin) grp
+  LEFT JOIN (SELECT roleid, member
+               FROM pg_auth_members
+               WHERE member = {{! currentID }}) pgam ON grp.oid = pgam.roleid
+  ORDER BY grp.rolname ASC) em) ema" no-hudorderby no-hudlimit no-huddelete no-hudrefresh action-select="postage/action_select">
                         <template for="table">
                             <table>
                                 <tbody>
@@ -177,7 +218,22 @@
             <gs-page>
                 <gs-header><center><h3>Groups On User</h3></center></gs-header>
                 <gs-body>
-                    <gs-envelope src="(SELECT%20oid%20AS%20id%2C%20rolname%2C%20has_select%2C%20has_update%2C%20has_insert%2C%20has_delete%2C%20has_trigger%2C%20has_references%2C%20has_truncate%0A%09%20FROM%20(SELECT%20grp.*%2C%20view_grps.has_select%2C%20view_grps.has_update%2C%20view_grps.has_insert%2C%20view_grps.has_delete%2C%0A%09%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20view_grps.has_trigger%2C%20view_grps.has_references%2C%20view_grps.has_truncate%0A%09%20FROM%20(SELECT%20oid%2C%20rolname%20FROM%20pg_roles%20WHERE%20NOT%20pg_roles.rolcanlogin)%20grp%0A%09%20LEFT%20JOIN%20(SELECT%20CASE%20WHEN%20acl%3A%3Atext%20~%20'%5E%3D'%3A%3Atext%20THEN%20'public'%20ELSE%20substr(acl%3A%3Atext%2C%200%2C%20position('%3D'%20in%20acl%3A%3Atext))%20END%20as%20rolname%2C%0A%09%20%09substr(acl%3A%3Atext%2C%20position('%3D'%20in%20acl%3A%3Atext)%20%2B%201%2C%20position('%2F'%20in%20acl%3A%3Atext)%20-%20position('%3D'%20in%20acl%3A%3Atext)-1)%20~%20'r'%20as%20has_select%2C%0A%09%20%09substr(acl%3A%3Atext%2C%20position('%3D'%20in%20acl%3A%3Atext)%20%2B%201%2C%20position('%2F'%20in%20acl%3A%3Atext)%20-%20position('%3D'%20in%20acl%3A%3Atext)-1)%20~%20'w'%20as%20has_update%2C%0A%09%20%09substr(acl%3A%3Atext%2C%20position('%3D'%20in%20acl%3A%3Atext)%20%2B%201%2C%20position('%2F'%20in%20acl%3A%3Atext)%20-%20position('%3D'%20in%20acl%3A%3Atext)-1)%20~%20'a'%20as%20has_insert%2C%0A%09%20%09substr(acl%3A%3Atext%2C%20position('%3D'%20in%20acl%3A%3Atext)%20%2B%201%2C%20position('%2F'%20in%20acl%3A%3Atext)%20-%20position('%3D'%20in%20acl%3A%3Atext)-1)%20~%20'd'%20as%20has_delete%2C%0A%09%20%09substr(acl%3A%3Atext%2C%20position('%3D'%20in%20acl%3A%3Atext)%20%2B%201%2C%20position('%2F'%20in%20acl%3A%3Atext)%20-%20position('%3D'%20in%20acl%3A%3Atext)-1)%20~%20't'%20as%20has_trigger%2C%0A%09%20%09substr(acl%3A%3Atext%2C%20position('%3D'%20in%20acl%3A%3Atext)%20%2B%201%2C%20position('%2F'%20in%20acl%3A%3Atext)%20-%20position('%3D'%20in%20acl%3A%3Atext)-1)%20~%20'x'%20as%20has_references%2C%0A%09%20%09substr(acl%3A%3Atext%2C%20position('%3D'%20in%20acl%3A%3Atext)%20%2B%201%2C%20position('%2F'%20in%20acl%3A%3Atext)%20-%20position('%3D'%20in%20acl%3A%3Atext)-1)%20~%20'D'%20as%20has_truncate%0A%09%09FROM%20(SELECT%20unnest(relacl)%20as%20acl%0A%09%09%09%20%20FROM%20pg_class%0A%09%20%20%20%20%20%20%20%20%20%20WHERE%20pg_class.oid%20%3D%20{{! currentID }})%20pgc)%20view_grps%20ON%20grp.rolname%20%3D%20view_grps.rolname%0A%20%20%20%20%20%20%20%20ORDER%20BY%20grp.rolname)%20em)%20ema" no-hudorderby no-hudlimit no-huddelete no-hudrefresh action-select="postage/action_select">
+                    <gs-envelope src="(SELECT oid AS id, rolname, has_select, has_update, has_insert, has_delete, has_trigger, has_references, has_truncate
+	 FROM (SELECT grp.*, view_grps.has_select, view_grps.has_update, view_grps.has_insert, view_grps.has_delete,
+	                     view_grps.has_trigger, view_grps.has_references, view_grps.has_truncate
+	 FROM (SELECT oid, rolname FROM pg_roles WHERE NOT pg_roles.rolcanlogin) grp
+	 LEFT JOIN (SELECT CASE WHEN acl::text ~ '^='::text THEN 'public' ELSE substr(acl::text, 0, position('=' in acl::text)) END as rolname,
+	 	substr(acl::text, position('=' in acl::text) + 1, position('/' in acl::text) - position('=' in acl::text)-1) ~ 'r' as has_select,
+	 	substr(acl::text, position('=' in acl::text) + 1, position('/' in acl::text) - position('=' in acl::text)-1) ~ 'w' as has_update,
+	 	substr(acl::text, position('=' in acl::text) + 1, position('/' in acl::text) - position('=' in acl::text)-1) ~ 'a' as has_insert,
+	 	substr(acl::text, position('=' in acl::text) + 1, position('/' in acl::text) - position('=' in acl::text)-1) ~ 'd' as has_delete,
+	 	substr(acl::text, position('=' in acl::text) + 1, position('/' in acl::text) - position('=' in acl::text)-1) ~ 't' as has_trigger,
+	 	substr(acl::text, position('=' in acl::text) + 1, position('/' in acl::text) - position('=' in acl::text)-1) ~ 'x' as has_references,
+	 	substr(acl::text, position('=' in acl::text) + 1, position('/' in acl::text) - position('=' in acl::text)-1) ~ 'D' as has_truncate
+		FROM (SELECT unnest(relacl) as acl
+			  FROM pg_class
+	          WHERE pg_class.oid = {{! currentID }}) pgc) view_grps ON grp.rolname = view_grps.rolname
+        ORDER BY grp.rolname) em) ema" no-hudorderby no-hudlimit no-huddelete no-hudrefresh action-select="postage/action_select">
                         <template for="table">
                             <table>
                                 <tbody>
@@ -223,7 +279,28 @@
                             <h3 flex>Group Inspector</h3>
                         </gs-header>
                         <gs-body>
-                            <gs-envelope id="group-perms" src="(SELECT%20pg_roles.oid%20as%20id%2C%20pg_roles.rolname%2C%20%0A%20%20%20%20%20%20%20%20%20%20%20%20CASE%20WHEN%20sum(%20CASE%20WHEN%20has_table_privilege('public'%3A%3Aname%2C%20view_list.oid%2C%20'SELECT'%3A%3Atext)%20%0A%09%09%09%09%09%20AND%20view_list.relacl%20~%20pg_roles.rolname%3A%3Atext%20THEN%201%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20ELSE%200%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20END)%20%3E%200%20%0A%20%20%20%20%20%20%20%20%20%20%20%20THEN%20sum(%20CASE%20WHEN%20has_table_privilege('public'%3A%3Aname%2C%20view_list.oid%2C%20'SELECT'%3A%3Atext)%20AND%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20view_list.relacl%20~%20pg_roles.rolname%3A%3Atext%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20THEN%201%20ELSE%200%20END)%3A%3Atext%20%7C%7C%20'%20Views%20with%20'%20%7C%7C%20pg_roles.rolname%20%7C%7C%20'%20and%20Public'%20%0A%20%20%20%20%20%20%20%20%20%20%20%20ELSE%20'ok'%20END%20AS%20public_warn%20%0A%20%20FROM%20pg_roles%2C%20%0A%20%20%20%20%20%20%20(SELECT%20pg_class.oid%2C%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20(pg_namespace.nspname%3A%3Atext%20%7C%7C%20'.'%3A%3Atext)%20%7C%7C%20pg_class.relname%3A%3Atext%20AS%20nspname%2C%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20pg_class.relacl%3A%3Atext%20AS%20relacl%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20FROM%20pg_class%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20LEFT%20JOIN%20pg_namespace%20ON%20pg_namespace.oid%20%3D%20pg_class.relnamespace%20%0A%20%20%20%20%20%20%20%20%20%20%20%20%20WHERE%20(pg_namespace.nspname%20%3C%3E%20ALL%20(ARRAY%5B'pg_toast'%3A%3Aname%2C%20'pg_catalog'%3A%3Aname%2C%20'information_schema'%3A%3Aname%5D))%20%0A%09%09%09%20%20%20AND%20pg_class.relkind%20%3D%20'v'%3A%3A%22char%22)%20view_list%20%0A%20WHERE%20NOT%20rolcanlogin%20%0A%20%20%20%20%20%20%20%20%20%20GROUP%20BY%20pg_roles.oid%2C%20pg_roles.rolname%20%0AUNION%20ALL%20%0ASELECT%200%20AS%20oid%2C%20'public'%3A%3Aname%2C%20''%3A%3Atext%20%20%0AORDER%20BY%202)%20ema" no-hudorderby no-hudlimit no-huddelete action-select="postage/action_select">
+                            <gs-envelope id="group-perms" src="(SELECT pg_roles.oid as id, pg_roles.rolname, 
+            CASE WHEN sum( CASE WHEN has_table_privilege('public'::name, view_list.oid, 'SELECT'::text) 
+					 AND view_list.relacl ~ pg_roles.rolname::text THEN 1 
+                    ELSE 0
+                END) > 0 
+            THEN sum( CASE WHEN has_table_privilege('public'::name, view_list.oid, 'SELECT'::text) AND 
+                            view_list.relacl ~ pg_roles.rolname::text 
+                      THEN 1 ELSE 0 END)::text || ' Views with ' || pg_roles.rolname || ' and Public' 
+            ELSE 'ok' END AS public_warn 
+  FROM pg_roles, 
+       (SELECT pg_class.oid, 
+                    (pg_namespace.nspname::text || '.'::text) || pg_class.relname::text AS nspname, 
+                    pg_class.relacl::text AS relacl 
+                   FROM pg_class 
+              LEFT JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace 
+             WHERE (pg_namespace.nspname <> ALL (ARRAY['pg_toast'::name, 'pg_catalog'::name, 'information_schema'::name])) 
+			   AND pg_class.relkind = 'v'::char) view_list 
+ WHERE NOT rolcanlogin 
+          GROUP BY pg_roles.oid, pg_roles.rolname 
+UNION ALL 
+SELECT 0 AS oid, 'public'::name, ''::text  
+ORDER BY 2) ema" no-hudorderby no-hudlimit no-huddelete action-select="postage/action_select">
                                 <template for="table">
                                     <table>
                                         <tbody>
@@ -248,7 +325,18 @@
                             <h3 flex>Non-Public Functions</h3>
                         </gs-header>
                         <gs-body>
-                            <gs-envelope src="(SELECT%20pg_proc.oid%20as%20id%2C%0A%20%20%20%20((((pg_namespace.nspname%3A%3Atext%20%7C%7C%20'.'%3A%3Atext)%20%7C%7C%20pg_proc.proname%3A%3Atext)%20%7C%7C%20'('%3A%3Atext)%20%7C%7C%20%0A%09%09oidvectortypes(pg_proc.proargtypes))%20%7C%7C%20')'%3A%3Atext%20AS%20name%2C%20%0A%20%20%20%20CASE%20WHEN%20pg_proc.prosecdef%20THEN%20'-1'%20ELSE%20'0'%20END%20AS%20chk_secdef%0A%20%20%20FROM%20pg_proc%20%0A%20%20%20LEFT%20JOIN%20pg_type%20ON%20pg_type.oid%20%3D%20pg_proc.prorettype%20%0A%20%20%20LEFT%20JOIN%20pg_namespace%20ON%20pg_namespace.oid%20%3D%20pg_proc.pronamespace%20%0A%20%20WHERE%20pg_namespace.nspname%20%3C%3E%20'pg_catalog'%3A%3Aname%20AND%20pg_proc.proisagg%20%3D%20false%20%0A%20%20%20%20AND%20pg_type.typname%20%3C%3E%20'trigger'%3A%3Aname%20%0A%09AND%20NOT%20has_function_privilege('public'%3A%3Aname%2C%20pg_proc.oid%2C%20'EXECUTE'%3A%3Atext)%20%0A%20%20ORDER%20BY%20prosecdef%20DESC%2C%20((((pg_namespace.nspname%3A%3Atext%20%7C%7C%20'.'%3A%3Atext)%20%7C%7C%20pg_proc.proname%3A%3Atext)%20%7C%7C%20%0A%20%20%20%20%20%20%20%20%20%20%20'('%3A%3Atext)%20%7C%7C%20oidvectortypes(pg_proc.proargtypes))%20%7C%7C%20')'%3A%3Atext)%20ema" no-huddelete no-hudlimit no-hudorderby action-select="postage/action_select">
+                            <gs-envelope src="(SELECT pg_proc.oid as id,
+    ((((pg_namespace.nspname::text || '.'::text) || pg_proc.proname::text) || '('::text) || 
+		oidvectortypes(pg_proc.proargtypes)) || ')'::text AS name, 
+    CASE WHEN pg_proc.prosecdef THEN '-1' ELSE '0' END AS chk_secdef
+   FROM pg_proc 
+   LEFT JOIN pg_type ON pg_type.oid = pg_proc.prorettype 
+   LEFT JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace 
+  WHERE pg_namespace.nspname <> 'pg_catalog'::name AND pg_proc.proisagg = false 
+    AND pg_type.typname <> 'trigger'::name 
+	AND NOT has_function_privilege('public'::name, pg_proc.oid, 'EXECUTE'::text) 
+  ORDER BY prosecdef DESC, ((((pg_namespace.nspname::text || '.'::text) || pg_proc.proname::text) || 
+           '('::text) || oidvectortypes(pg_proc.proargtypes)) || ')'::text) ema" no-huddelete no-hudlimit no-hudorderby action-select="postage/action_select">
                                 <template for="table">
                                     <table>
                                         <tbody>
@@ -271,7 +359,18 @@
                             <h3 flex>Public Functions</h3>
                         </gs-header>
                         <gs-body>
-                            <gs-envelope src="(SELECT%20pg_proc.oid%20as%20id%2C%20%0A%20%20%20%20((((pg_namespace.nspname%3A%3Atext%20%7C%7C%20'.'%3A%3Atext)%20%7C%7C%20pg_proc.proname%3A%3Atext)%20%7C%7C%20'('%3A%3Atext)%20%7C%7C%20%0A%09%20%20%20%20oidvectortypes(pg_proc.proargtypes))%20%7C%7C%20')'%3A%3Atext%20AS%20name%2C%0A%20%20%20%20CASE%20WHEN%20pg_proc.prosecdef%20THEN%20'-1'%20ELSE%20'0'%20END%20AS%20chk_secdef%0A%20%20%20FROM%20pg_proc%20%0A%20%20%20LEFT%20JOIN%20pg_type%20ON%20pg_type.oid%20%3D%20pg_proc.prorettype%20%0A%20%20%20LEFT%20JOIN%20pg_namespace%20ON%20pg_namespace.oid%20%3D%20pg_proc.pronamespace%20%0A%20%20WHERE%20pg_namespace.nspname%20!~%20'pg_catalog%7Cinformation_schema'%3A%3Atext%20AND%20pg_proc.proisagg%20%3D%20false%20%0A%20%20%20%20AND%20pg_type.typname%20%3C%3E%20'trigger'%3A%3Aname%20%0A%09AND%20has_function_privilege('public'%3A%3Aname%2C%20pg_proc.oid%2C%20'EXECUTE'%3A%3Atext)%20%0A%20%20ORDER%20BY%20prosecdef%20DESC%2C%20((((pg_namespace.nspname%3A%3Atext%20%7C%7C%20'.'%3A%3Atext)%20%7C%7C%20pg_proc.proname%3A%3Atext)%20%7C%7C%20%0A%20%20%20%20%20%20%20%20%20%20%20'('%3A%3Atext)%20%7C%7C%20oidvectortypes(pg_proc.proargtypes))%20%7C%7C%20')'%3A%3Atext)%20ema" no-hudorderby no-hudlimit no-huddelete action-select="postage/action_select">
+                            <gs-envelope src="(SELECT pg_proc.oid as id, 
+    ((((pg_namespace.nspname::text || '.'::text) || pg_proc.proname::text) || '('::text) || 
+	    oidvectortypes(pg_proc.proargtypes)) || ')'::text AS name,
+    CASE WHEN pg_proc.prosecdef THEN '-1' ELSE '0' END AS chk_secdef
+   FROM pg_proc 
+   LEFT JOIN pg_type ON pg_type.oid = pg_proc.prorettype 
+   LEFT JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace 
+  WHERE pg_namespace.nspname !~ 'pg_catalog|information_schema'::text AND pg_proc.proisagg = false 
+    AND pg_type.typname <> 'trigger'::name 
+	AND has_function_privilege('public'::name, pg_proc.oid, 'EXECUTE'::text) 
+  ORDER BY prosecdef DESC, ((((pg_namespace.nspname::text || '.'::text) || pg_proc.proname::text) || 
+           '('::text) || oidvectortypes(pg_proc.proargtypes)) || ')'::text) ema" no-hudorderby no-hudlimit no-huddelete action-select="postage/action_select">
                                 <template for="table">
                                     <table>
                                         <tbody>
@@ -294,7 +393,10 @@
                             <h3 flex>Users</h3>
                         </gs-header>
                         <gs-body>
-                            <gs-envelope src="(SELECT%20pg_roles.oid%20AS%20id%2C%20pg_roles.rolname%0A%20%20%20FROM%20pg_roles%0A%20%20WHERE%20pg_roles.rolcanlogin%0A%20%20ORDER%20BY%20pg_roles.rolname)%20ema" no-hudorderby no-hudlimit no-huddelete action-select="postage/action_select">
+                            <gs-envelope src="(SELECT pg_roles.oid AS id, pg_roles.rolname
+   FROM pg_roles
+  WHERE pg_roles.rolcanlogin
+  ORDER BY pg_roles.rolname) ema" no-hudorderby no-hudlimit no-huddelete action-select="postage/action_select">
                                 <template for="table">
                                     <table>
                                         <tbody>
@@ -316,7 +418,48 @@
                             <h3 flex>Views</h3>
                         </gs-header>
                         <gs-body>
-                            <gs-envelope src="(SELECT%20pg_class.oid%20AS%20id%2C%20%0A%20%20%20%20(pg_namespace.nspname%3A%3Atext%20%7C%7C%20'.'%3A%3Atext)%20%7C%7C%20pg_class.relname%3A%3Atext%20AS%20viewname%2C%20%0A%20%20%20%20%20%20%20%20CASE%0A%20%20%20%20%20%20%20%20%20%20%20%20WHEN%20has_table_privilege('public'%3A%3Aname%2C%20(pg_namespace.nspname%3A%3Atext%20%7C%7C%20%0A%09%09%09%20%20%20%20%20'.'%3A%3Atext)%20%7C%7C%20pg_class.relname%3A%3Atext%2C%20'SELECT'%3A%3Atext)%20THEN%20'-1'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20%20%20%20%20ELSE%20'0'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20END%20AS%20public_select%2C%20%0A%20%20%20%20%20%20%20%20CASE%20%0A%20%20%20%20%20%20%20%20%20%20%20%20WHEN%20has_table_privilege('public'%3A%3Aname%2C%20(pg_namespace.nspname%3A%3Atext%20%7C%7C%20%0A%09%09%09%20%20%20%20%20'.'%3A%3Atext)%20%7C%7C%20pg_class.relname%3A%3Atext%2C%20'INSERT'%3A%3Atext)%20THEN%20'-1'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20%20%20%20%20ELSE%20'0'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20END%20AS%20public_insert%2C%20%0A%20%20%20%20%20%20%20%20CASE%20%0A%20%20%20%20%20%20%20%20%20%20%20%20WHEN%20has_table_privilege('public'%3A%3Aname%2C%20(pg_namespace.nspname%3A%3Atext%20%7C%7C%20%0A%09%09%09%20%20%20%20%20'.'%3A%3Atext)%20%7C%7C%20pg_class.relname%3A%3Atext%2C%20'UPDATE'%3A%3Atext)%20THEN%20'-1'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20%20%20%20%20ELSE%20'0'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20END%20AS%20public_update%2C%20%0A%20%20%20%20%20%20%20%20CASE%20%0A%20%20%20%20%20%20%20%20%20%20%20%20WHEN%20has_table_privilege('public'%3A%3Aname%2C%20(pg_namespace.nspname%3A%3Atext%20%7C%7C%20%0A%09%09%09%20%20%20%20%20'.'%3A%3Atext)%20%7C%7C%20pg_class.relname%3A%3Atext%2C%20'DELETE'%3A%3Atext)%20THEN%20'-1'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20%20%20%20%20ELSE%20'0'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20END%20AS%20public_delete%2C%20%0A%20%20%20%20%20%20%20%20CASE%20%0A%20%20%20%20%20%20%20%20%20%20%20%20WHEN%20has_table_privilege('public'%3A%3Aname%2C%20(pg_namespace.nspname%3A%3Atext%20%7C%7C%20%0A%09%09%09%20%20%20%20%20'.'%3A%3Atext)%20%7C%7C%20pg_class.relname%3A%3Atext%2C%20'TRIGGER'%3A%3Atext)%20THEN%20'-1'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20%20%20%20%20ELSE%20'0'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20END%20AS%20public_trigger%2C%20%0A%20%20%20%20%20%20%20%20CASE%20%0A%20%20%20%20%20%20%20%20%20%20%20%20WHEN%20has_table_privilege('public'%3A%3Aname%2C%20(pg_namespace.nspname%3A%3Atext%20%7C%7C%20%0A%09%09%09%20%20%20%20%20'.'%3A%3Atext)%20%7C%7C%20pg_class.relname%3A%3Atext%2C%20'REFERENCES'%3A%3Atext)%20THEN%20'-1'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20%20%20%20%20ELSE%20'0'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20END%20AS%20public_references%2C%20%0A%20%20%20%20%20%20%20%20CASE%20%0A%20%20%20%20%20%20%20%20%20%20%20%20WHEN%20has_table_privilege('public'%3A%3Aname%2C%20(pg_namespace.nspname%3A%3Atext%20%7C%7C%20%0A%09%09%09%20%20%20%20%20'.'%3A%3Atext)%20%7C%7C%20pg_class.relname%3A%3Atext%2C%20'TRUNCATE'%3A%3Atext)%20THEN%20'-1'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20%20%20%20%20ELSE%20'0'%3A%3Atext%20%0A%20%20%20%20%20%20%20%20END%20AS%20public_truncate%0A%20%20%20FROM%20pg_class%20%0A%20%20%20LEFT%20JOIN%20pg_namespace%20ON%20pg_namespace.oid%20%3D%20pg_class.relnamespace%20%0A%20%20WHERE%20(pg_namespace.nspname%20%3C%3E%20ALL%20(ARRAY%5B'pg_toast'%3A%3Aname%2C%20'pg_catalog'%3A%3Aname%2C%20'information_schema'%3A%3Aname%5D))%20%0A%20%20%20%20AND%20pg_class.relkind%20%3D%20'v'%3A%3A%22char%22%20AND%20pg_class.relpersistence%20!%3D%20't'%3A%3A%22char%22%20%0A%20%20ORDER%20BY%20(pg_namespace.nspname%3A%3Atext%20%7C%7C%20'.'%3A%3Atext)%20%7C%7C%20pg_class.relname%3A%3Atext)%20ema" no-hudorderby no-hudlimit no-huddelete action-select="postage/action_select">
+                            <gs-envelope src="(SELECT pg_class.oid AS id, 
+    (pg_namespace.nspname::text || '.'::text) || pg_class.relname::text AS viewname, 
+        CASE
+            WHEN has_table_privilege('public'::name, (pg_namespace.nspname::text || 
+			     '.'::text) || pg_class.relname::text, 'SELECT'::text) THEN '-1'::text 
+            ELSE '0'::text 
+        END AS public_select, 
+        CASE 
+            WHEN has_table_privilege('public'::name, (pg_namespace.nspname::text || 
+			     '.'::text) || pg_class.relname::text, 'INSERT'::text) THEN '-1'::text 
+            ELSE '0'::text 
+        END AS public_insert, 
+        CASE 
+            WHEN has_table_privilege('public'::name, (pg_namespace.nspname::text || 
+			     '.'::text) || pg_class.relname::text, 'UPDATE'::text) THEN '-1'::text 
+            ELSE '0'::text 
+        END AS public_update, 
+        CASE 
+            WHEN has_table_privilege('public'::name, (pg_namespace.nspname::text || 
+			     '.'::text) || pg_class.relname::text, 'DELETE'::text) THEN '-1'::text 
+            ELSE '0'::text 
+        END AS public_delete, 
+        CASE 
+            WHEN has_table_privilege('public'::name, (pg_namespace.nspname::text || 
+			     '.'::text) || pg_class.relname::text, 'TRIGGER'::text) THEN '-1'::text 
+            ELSE '0'::text 
+        END AS public_trigger, 
+        CASE 
+            WHEN has_table_privilege('public'::name, (pg_namespace.nspname::text || 
+			     '.'::text) || pg_class.relname::text, 'REFERENCES'::text) THEN '-1'::text 
+            ELSE '0'::text 
+        END AS public_references, 
+        CASE 
+            WHEN has_table_privilege('public'::name, (pg_namespace.nspname::text || 
+			     '.'::text) || pg_class.relname::text, 'TRUNCATE'::text) THEN '-1'::text 
+            ELSE '0'::text 
+        END AS public_truncate
+   FROM pg_class 
+   LEFT JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace 
+  WHERE (pg_namespace.nspname <> ALL (ARRAY['pg_toast'::name, 'pg_catalog'::name, 'information_schema'::name])) 
+    AND pg_class.relkind = 'v'::char AND pg_class.relpersistence != 't'::char
+  ORDER BY (pg_namespace.nspname::text || '.'::text) || pg_class.relname::text) ema" no-hudorderby no-hudlimit no-huddelete action-select="postage/action_select">
                                 <template for="table">
                                     <table>
                                         <tbody>

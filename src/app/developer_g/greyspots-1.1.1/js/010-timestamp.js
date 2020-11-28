@@ -6,7 +6,10 @@ window.addEventListener('design-register-element', function () {
     
     registerDesignSnippet('<gs-timestamp>', '<gs-timestamp>', 'gs-timestamp date-format="${0:isodate}" time-format=${1}></gs-timestamp>');
     
+    /*
+    TODO: there is no documentation
     designRegisterElement('gs-timestamp', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-timestamp.html');
+    */
     
     window.designElementProperty_GSTIMESTAMP = function (selectedElement) {    
         addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {

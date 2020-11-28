@@ -2,7 +2,7 @@
 window.addEventListener('design-register-element', function () {
     registerDesignSnippet('<gs-search>', '<gs-search>', 'gs-search id="${1}"></gs-search>');
 
-    designRegisterElement('gs-search', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-search.html');
+    designRegisterElement('gs-search', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_search');
 
     window.designElementProperty_GSSEARCH = function(selectedElement) {
         addProp('Placeholder', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('placeholder') || '') + '" mini></gs-text>', function () {
@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         function findFor(element) {
         var forElem;
-        // console.log(element, element.previousElementSibling)
+        //console.log(element, element.previousElementSibling)
         if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
             && element.previousElementSibling.hasAttribute('for')
             && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
@@ -610,7 +610,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.control.setAttribute('tabindex', element.savedTabIndex);
                 }
                 //element.style.width = elementWidth - 7 + 'px';
-                console.log(element.style.width, elementWidth + 'px');
+              //console.log(element.style.width, elementWidth + 'px');
                 element.syncView();
                 element.control.focus();
                 element.addEventListener('focus', focusFunction);

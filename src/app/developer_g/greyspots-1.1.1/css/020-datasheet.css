@@ -128,6 +128,10 @@ gs-datasheet table {
     table-layout: fixed;
 }
 
+gs-datasheet .hud-container {
+    padding-bottom: 0.5em;
+}
+
 gs-datasheet .floating-button-container {
     display: inline-block;
     position: fixed;
@@ -143,6 +147,7 @@ gs-datasheet .hud-container gs-button {
     border-color: #006E00;
     color: #0e7171;
     
+    margin: 0;
     margin-left: 0.5em;
     float: left;
     display: inline-block;

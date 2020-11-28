@@ -1,4 +1,6 @@
 //global GS, xtag, document, window, ml, evt, doT, Worker
+//global designRegisterElement, addProp, encodeHTML
+//global CryptoJS, registerDesignSnippet
 //jslint browser:true, maxlen:80, white:false, this:true
 
 // # CODE INDEX:
@@ -335,7 +337,7 @@ select behavior:
 // ############################## SNIPPET/DESIGN ##############################
 // ############################################################################
 
-window.addEventListener('design-register-element', function (event) {
+window.addEventListener('design-register-element', function () {
     'use strict';
 
     registerDesignSnippet(
@@ -351,24 +353,108 @@ window.addEventListener('design-register-element', function (event) {
     style="width: 100%; height: 100%;"
 >
     <template for="top-hud">
-        <gs-button onclick="document.getElementById('${1:tableid}').deleteSelected()" inline no-focus icononly icon="times">&nbsp;</gs-button>
-        <gs-button onclick="document.getElementById('${1:tableid}').openInsertDialog()" inline no-focus icononly icon="plus">&nbsp;</gs-button>
-        <gs-button onclick="document.getElementById('${1:tableid}').refresh()" inline no-focus icononly icon="refresh">&nbsp;</gs-button>
-        <gs-button onclick="document.getElementById('${1:tableid}').openPrefs(this)" inline no-focus icononly icon="sliders">&nbsp;</gs-button>
-        <gs-button onclick="document.getElementById('${1:tableid}').toFullscreen(this)" inline no-focus icononly icon="expand">&nbsp;</gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').deleteSelected()"
+            inline
+            no-focus
+            icononly
+            icon="times"
+        >&nbsp;</gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').openInsertDialog()"
+            inline
+            no-focus
+            icononly
+            icon="plus"
+        >&nbsp;</gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').refresh()"
+            inline
+            no-focus
+            icononly
+            icon="refresh"
+        >&nbsp;</gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').openPrefs(this)"
+            inline
+            no-focus
+            icononly
+            icon="sliders"
+        >&nbsp;</gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').toFullscreen(this)"
+            inline
+            no-focus
+            icononly
+            icon="expand"
+        >&nbsp;</gs-button>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <gs-button onclick="document.getElementById('${1:tableid}').sort('asc')" inline no-focus iconleft icon="sort-alpha-asc">Sort A to Z</gs-button>
-        <gs-button onclick="document.getElementById('${1:tableid}').sort('desc')" inline no-focus iconleft icon="sort-alpha-desc">Sort Z to A</gs-button>
-        <gs-button onclick="document.getElementById('${1:tableid}').sort('clear')" inline no-focus iconleft icon="trash">Clear Sort</gs-button>
-        <gs-button onclick="document.getElementById('${1:tableid}').clearFilter()" inline no-focus iconleft icon="trash">Clear Filter</gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').sort('asc')"
+            inline
+            no-focus
+            iconleft
+            icon="sort-alpha-asc"
+        >Sort A to Z</gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').sort('desc')"
+            inline
+            no-focus
+            iconleft
+            icon="sort-alpha-desc"
+        >Sort Z to A</gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').sort('clear')"
+            inline
+            no-focus
+            iconleft
+            icon="trash"
+        >Clear Sort</gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').clearFilter()"
+            inline
+            no-focus
+            iconleft
+            icon="trash"
+        >Clear Filter</gs-button>
     </template>
     <template for="bottom-hud">
-        <gs-button inline no-focus icononly onclick="document.getElementById('${1:tableid}').goToLine('first')" icon="step-backward">&nbsp;</gs-button>
-        <gs-button inline no-focus icononly onclick="document.getElementById('${1:tableid}').goToLine('previous')" icon="caret-left">&nbsp;</gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').goToLine('first')"
+            inline
+            no-focus
+            icononly
+            icon="step-backward"
+        >&nbsp;</gs-button>
+        <gs-button
+          onclick="document.getElementById('${1:tableid}').goToLine('previous')"
+            inline
+            no-focus
+            icononly
+            icon="caret-left"
+        >&nbsp;</gs-button>
         <gs-current-record inline for="${1:tableid}"></gs-current-record>
-        <gs-button inline no-focus icononly onclick="document.getElementById('${1:tableid}').goToLine('next')" icon="caret-right">&nbsp;</gs-button>
-        <gs-button inline no-focus icononly onclick="document.getElementById('${1:tableid}').goToLine('last')" icon="step-forward">&nbsp;</gs-button>
-        <gs-button inline no-focus icononly onclick="document.getElementById('${1:tableid}').goToLine('insert')" icon="plus"></gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').goToLine('next')"
+            inline
+            no-focus
+            icononly
+            icon="caret-right"
+        >&nbsp;</gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').goToLine('last')"
+            inline
+            no-focus
+            icononly
+            icon="step-forward"
+        >&nbsp;</gs-button>
+        <gs-button
+            onclick="document.getElementById('${1:tableid}').goToLine('insert')"
+            inline
+            no-focus
+            icononly
+            icon="plus"
+        >&nbsp;</gs-button>
     </template>
     <template for="header-record">
         <gs-cell>${2}</gs-cell>
@@ -385,11 +471,7 @@ window.addEventListener('design-register-element', function (event) {
 </gs-table>*/})
     );
 
-    designRegisterElement(
-        'gs-table',
-        '/env/app/developer_g/greyspots-' + GS.version() +
-                '/documentation/doc-elem-table.html'
-    );
+    designRegisterElement('gs-table', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#record_table');
 
     window.designElementProperty_GSTABLE = function (selectedElement) {
         addProp(
@@ -578,6 +660,38 @@ window.addEventListener('design-register-element', function (event) {
                 );
             }
         );
+
+        addProp('Before Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_select') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onbefore_select', this.value);
+        });
+
+        addProp('After Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_select') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onafter_select', this.value);
+        });
+
+        addProp('Before Insert', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_insert') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onbefore_insert', this.value);
+        });
+
+        addProp('After Insert', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_insert') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onafter_insert', this.value);
+        });
+
+        addProp('Before Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_update') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onbefore_update', this.value);
+        });
+
+        addProp('After Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_update') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onafter_update', this.value);
+        });
+
+        addProp('Before Delete', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_delete') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onbefore_delete', this.value);
+        });
+
+        addProp('After Delete', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_delete') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onafter_delete', this.value);
+        });
 
         addProp(
             'Null String', true,
@@ -3839,7 +3953,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
 
                     arrColumnElements[i].classList.add('right-button');
-                    console.log(arrColumnElements[i]);
+                    //console.log(arrColumnElements[i]);
                     // arrColumnElements[i].setAttribute('alt');
                     arrColumnElements[i].appendChild(
                         buttonElement.cloneNode(true)
@@ -4749,7 +4863,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     headerMode === 'always' ||
                     arrSelectedStates.indexOf(strHeader[intSel]) > -1
                 ) {
-                    // console.log(arrHeaders[intCol], 0, 0);
+                    ////console.log(arrHeaders[intCol], 0, 0);
                     handleCell(arrHeaders[intCol], 0, 0);
 
                 } else {
@@ -5210,7 +5324,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 arrSelection.push(strRecord);
             }
 
-            // console.log(arrSelection);
+            ////console.log(arrSelection);
 
             // because of the vast array of column types, we'll (for simplicity
             //      and for brevity) use one of two matrices, a matrix that
@@ -5702,7 +5816,6 @@ document.addEventListener('DOMContentLoaded', function () {
         //var arrRecordHeights;
         //var columnBorderWidth;
         //var recordBorderHeight;
-
         var jsnRange;
         var fromColumn;
         var toColumn;
@@ -6552,8 +6665,8 @@ document.addEventListener('DOMContentLoaded', function () {
             //var record_len;
             var strCell;
             var delim;
-            var cell_i;
-            var cell_len;
+            var cel_i;
+            var cel_len;
 
             // get text of the record data
             strRecord = element.internalData.records[index] + '\t';
@@ -6561,9 +6674,9 @@ document.addEventListener('DOMContentLoaded', function () {
             // create cell array for this record
             arrRecord = [];
             //console.log(element.internalData.columnNames.length);
-            cell_i = 0;
-            cell_len = element.internalData.columnNames.length;//9999;
-            while (cell_i < cell_len) {
+            cel_i = 0;
+            cel_len = element.internalData.columnNames.length;//9999;
+            while (cel_i < cel_len) {
                 delim = strRecord.indexOf('\t');
                 strCell = strRecord.substring(0, delim);
                 strRecord = strRecord.substring(delim + 1);
@@ -6576,7 +6689,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 //    break;
                 //}
 
-                cell_i += 1;
+                cel_i += 1;
             }
 
             //record_i = 0;
@@ -7402,7 +7515,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
             }
         }
-        // console.log(element.internalDisplay.focus.selectionRange);
+        ////console.log(element.internalDisplay.focus.selectionRange);
 
         // we want to either do a full re-render or a partial re-render
         if (intViewportHeight < 3 || intViewportWidth < 3) {
@@ -7480,7 +7593,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     ) + 'px;' +
                     '}'
                 );
-                // console.log(strCSS);
+                ////console.log(strCSS);
 
                 // we don't want the border width of 0 width columns to affect
                 //      positioning
@@ -8346,7 +8459,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 intIndex >= jsnRange.fromColumn &&
                 intIndex <= jsnRange.toColumn
             ) {
-                // console.log(intIndex);
+                ////console.log(intIndex);
 
                 // start with the min width, any future width settings must be
                 //      larger than this
@@ -8716,6 +8829,12 @@ document.addEventListener('DOMContentLoaded', function () {
             renderSelection(element);
         }
         GS.triggerEvent(element, 'after_select');
+        GS.triggerEvent(element, 'onafter_select');
+        if (element.hasAttribute('onafter_select')) {
+            new Function(
+                element.getAttribute('onafter_select')
+            ).apply(element);
+        }
     }
     function dataINSERTcallback(element) {
         element.internalData.bolInserting = false;
@@ -9009,7 +9128,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         );
                     }
 
-                    // console.log(
+                    ////console.log(
                     //     jsnFilter,
                     //     strListWhere
                     // );
@@ -9209,6 +9328,13 @@ document.addEventListener('DOMContentLoaded', function () {
         arrRecords = element.internalData.records;
         arrRecordHeights = element.internalDisplay.recordHeights;
 
+        //console.log('before_select', element);
+        GS.triggerEvent(element, 'before_select');
+        GS.triggerEvent(element, 'onbefore_select');
+        if (element.hasAttribute('onbefore_select')) {
+            new Function(element.getAttribute('onbefore_select')).apply(element);
+        }
+
         // we need the user to know that the envelope is re-fetching data,
         //      so we'll put a loader on
         addLoader(element, 'data-select', 'Loading Data...');
@@ -9322,10 +9448,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         // back to non-test code
                         console.timeEnd('data load');
-                        console.log(
-                            'record count:',
-                            element.internalData.records.length
-                        );
+                        //console.log(
+                        //    'record count:',
+                        //    element.internalData.records.length
+                        //);
                         removeLoader(element, 'data-select', 'Data Loaded');
                         dataSELECTcallback(element);
 
@@ -9711,6 +9837,10 @@ document.addEventListener('DOMContentLoaded', function () {
             "insertMode": strMode,
             "insertData": jsnInsert.data
         });
+        GS.triggerEvent(element, 'onbefore_insert');
+        if (element.hasAttribute('onbefore_insert')) {
+            new Function(element.getAttribute('onbefore_insert')).apply(element);
+        }
 
         // if the user prevents the default on the "before_update"
         //      event, prevent the execution of the following update code
@@ -9731,7 +9861,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // gotta let the user know that an insert is in progress
             addLoader(element, 'data-insert', 'Inserting Data...');
-            // console.log(strSchema,
+            //console.log(strSchema,
             //     strObject,
             //     strReturn,
             //     strPK,
@@ -9829,6 +9959,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                 "insertMode": strMode,
                                 "insertData": jsnInsert.data
                             });
+                            GS.triggerEvent(element, 'onafter_insert');
+                            if (element.hasAttribute('onafter_insert')) {
+                                new Function(
+                                    element.getAttribute('onafter_insert')
+                                ).apply(element);
+                            }
                         }
                     // insert failed: popup an error
                     } else {
@@ -10390,6 +10526,12 @@ document.addEventListener('DOMContentLoaded', function () {
             "oldData": jsnCurrentData,
             "newData": jsnUpdate.data
         });
+        GS.triggerEvent(element, 'onbefore_update');
+        if (element.hasAttribute('onbefore_update')) {
+            new Function(
+                element.getAttribute('onbefore_update')
+            ).apply(element);
+        }
 
         // if the user prevents the default on the "before_update"
         //      event, prevent the execution of the following update code
@@ -10635,6 +10777,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                 "oldData": jsnCurrentData,
                                 "newData": jsnUpdate.data
                             });
+                            GS.triggerEvent(element, 'onafter_update');
+                            if (element.hasAttribute('onafter_update')) {
+                                new Function(
+                                    element.getAttribute('onafter_update')
+                                ).apply(element);
+                            }
                         // transaction was rolled back: reverse change
                         } else {
                             //getData(element);
@@ -10952,6 +11100,12 @@ document.addEventListener('DOMContentLoaded', function () {
             "strColumnNames": strColumnNames,
             "strDeleteRecords": strDeleteRecords
         });
+        GS.triggerEvent(element, 'onbefore_delete');
+        if (element.hasAttribute('onbefore_delete')) {
+            new Function(
+                element.getAttribute('onbefore_delete')
+            ).apply(element);
+        }
 
         // if the user prevents the default on the "before_update"
         //      event, prevent the execution of the following update code
@@ -11067,6 +11221,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                 "strColumnNames": strColumnNames,
                                 "strDeleteRecords": strDeleteRecords
                             });
+                            GS.triggerEvent(element, 'onafter_delete');
+                            if (element.hasAttribute('onafter_delete')) {
+                                new Function(
+                                    element.getAttribute('onafter_delete')
+                                ).apply(element);
+                            }
                         }
                     // delete failed: popup an error
                     } else {
@@ -11228,6 +11388,12 @@ document.addEventListener('DOMContentLoaded', function () {
             "insertMode": strMode,
             "insertData": jsnInsert.data
         });
+        GS.triggerEvent(element, 'onbefore_insert');
+        if (element.hasAttribute('onbefore_insert')) {
+            new Function(
+                element.getAttribute('onbefore_insert')
+            ).apply(element);
+        }
 
         // if the user prevents the default on the "before_update"
         //      event, prevent the execution of the following update code
@@ -11419,6 +11585,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 "insertMode": strMode,
                 "insertData": jsnInsert.data
             });
+            GS.triggerEvent(element, 'onafter_insert');
+            if (element.hasAttribute('onafter_insert')) {
+                new Function(
+                    element.getAttribute('onafter_insert')
+                ).apply(element);
+            }
         };
 
         // we don't want to be able to insert of there's no insert data, so if
@@ -11708,6 +11880,12 @@ document.addEventListener('DOMContentLoaded', function () {
             "oldData": jsnCurrentData,
             "newData": jsnUpdate.data
         });
+        GS.triggerEvent(element, 'onbefore_update');
+        if (element.hasAttribute('onbefore_update')) {
+            new Function(
+                element.getAttribute('onbefore_update')
+            ).apply(element);
+        }
 
         // if the user prevents the default on the "before_update"
         //      event, prevent the execution of the following update code
@@ -11747,6 +11925,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 "oldData": jsnCurrentData,
                 "newData": jsnUpdate.data
             });
+            GS.triggerEvent(element, 'onafter_update');
+            if (element.hasAttribute('onafter_update')) {
+                new Function(
+                    element.getAttribute('onafter_update')
+                ).apply(element);
+            }
 
             // the update has finished, let the user know and remove the loader
             removeLoader(element, 'data-update', 'Change Saved');
@@ -11795,6 +11979,12 @@ document.addEventListener('DOMContentLoaded', function () {
             "recordIndexes": jsnDelete.recordIndexes,
             "deleteConfirmed": jsnDelete.deleteConfirmed
         });
+        GS.triggerEvent(element, 'onbefore_delete');
+        if (element.hasAttribute('onbefore_delete')) {
+            new Function(
+                element.getAttribute('onbefore_delete')
+            ).apply(element);
+        }
 
         // if the user prevents the default on the "before_update"
         //      event, prevent the execution of the following update code
@@ -11856,6 +12046,12 @@ document.addEventListener('DOMContentLoaded', function () {
             GS.triggerEvent(element, 'after_delete', {
                 "recordIndexes": jsnDelete.recordIndexes
             });
+            GS.triggerEvent(element, 'onafter_delete');
+            if (element.hasAttribute('onafter_delete')) {
+                new Function(
+                    element.getAttribute('onafter_delete')
+                ).apply(element);
+            }
         };
 
         // if no records have been sent to delete: error
@@ -13240,6 +13436,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //var intMaxPasteColumn;
         var intMinPasteColumn;
         var intPastedColumn;
+        var intOffsetColumn;
         var intColumn;
 
         var arrColumnElements;
@@ -13323,7 +13520,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         );
                         return;
                     }
-                    enc_i++;
+                    enc_i += 1;
                 }
                 bol_encrypt = true;
             }
@@ -13364,10 +13561,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         // if this column is selected: add cell to paste record
                         if (strSelection[intPastedColumn + intStart] === 'F') {
                             // strNewRecord += strCell;
+                            intOffsetColumn = (intPastedColumn + intStart);
+
                             if (bol_encrypt) {
                                 if (
                                     arr_encrypted_columns.indexOf(
-                                        (intPastedColumn + intStart).toString()
+                                        intOffsetColumn.toString()
                                     ) !== -1
                                 ) {
                                     strNewRecord += CryptoJS.AES.encrypt(
@@ -13375,7 +13574,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         , window[
                                             encrypted_vars[
                                                 arr_encrypted_columns.indexOf(
-                                        (intPastedColumn + intStart).toString()
+                                                    intOffsetColumn.toString()
                                                 )
                                             ]
                                         ]
@@ -13386,8 +13585,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             } else {
                                 strNewRecord += strCell;
                             }
-                            // console.log(strCell);
-                            // console.log(intPastedColumn + intStart);
+                            //console.log(strCell);
+                            //console.log(intPastedColumn + intStart);
 
                         // else, replace the current cell with NULL
                         } else {
@@ -14918,7 +15117,8 @@ document.addEventListener('DOMContentLoaded', function () {
             jsnAttr = element.attributes[i];
 
             element.internalData.defaultAttributes[jsnAttr.nodeName] = (
-                (jsnAttr.value || '')
+                jsnAttr.value ||
+                ''
             );
 
             i += 1;
@@ -14938,7 +15138,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var currentValue;
         var bolRefresh;
         var strOperator;
-        var jsnDefaultAttr
+        var jsnDefaultAttr;
 
         if (strQSCol) {
             jsnDefaultAttr = element.internalData.defaultAttributes;
@@ -15218,7 +15418,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         parentTable.internalSelection.ranges = [jsnRange];
                         renderSelection(parentTable);
                         active = document.activeElement;
-                        active.focus
+                        active.focus; // what is this?
                     }
                 }
             }
@@ -15237,6 +15437,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var parentTable = GS.findParentElement(active, element);
             var parentCell;
             var parentColumn;
+            var controlElement;
 
             element.internalDisplay.focus.latest = false;
 
@@ -15279,12 +15480,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.internalDisplay.focus.columnAttribute = (
                         parentColumn.getAttribute('column')
                     );
+
+                    controlElement = (
+                        active.classList.contains('control')
+                            ? active.parentNode
+                            : active
+                    );
+
                     element.internalDisplay.focus.nodeName = (
-                        (
-                            active.classList.contains('control')
-                                ? active.parentNode
-                                : active
-                        ).nodeName
+                        controlElement.nodeName
                     );
                     element.internalDisplay.focus.selectionRange = (
                         GS.getInputSelection(active)
@@ -16257,7 +16461,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     //      changed
                     renderSelection(element);
                     GS.triggerEvent(element, 'selection_change');
-                    // console.log('changed');
+                    //console.log('changed');
 
                     //console.log(element.internalSelection.ranges);
 
@@ -19458,7 +19662,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //      focused way, with more room. so, we open the update dialog
         //      when an update dialog button is clicked.
         element.internalEvents.updateDialog = function (event) {
-            // console.log(event);
+            //console.log(event);
             var target = event.target;
             var arrCol;
             var intRow;
@@ -19723,7 +19927,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     var i;
                     var len;
 
-                    element.internalEvents.insertRecordValueRetain(event);
+                    // element.internalEvents.insertRecordValueRetain(event);
 
                     // we only want return to insert if the return occured
                     //      inside an insert cell
@@ -19755,6 +19959,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
 
                         if (totalValues && totalValues !== 'false') {
+                            element.internalEvents.insertRecordValueRetain(event);
                             triggerRecordInsert(element);
                         }
                     }
@@ -19780,21 +19985,23 @@ document.addEventListener('DOMContentLoaded', function () {
         //      when we re-template the insert record on scroll, we can get
         //      the values back
         element.internalEvents.insertRecordValueRetain = function (event) {
-            // console.log(event);
             if (event.type === 'keyup' && event.keyCode == 13) {
-                // console.log('exit');
+                //console.log('exit');
                 return;
-                // console.log(event.type);
+                //console.log(event.type);
             }
             var target = event.target;
             var parentCell = GS.findParentTag(target, 'gs-cell');
 
             // if (target.hasAttribute('column')) {
             //     var parentColumn = event.target;
-            //     console.log(parentColumn, parentColumn.value);
+            //     //console.log(parentColumn, parentColumn.value);
             // } else {
                 var parentColumn = GS.findParentElement(target, '[column]');
             // }
+            if (!parentColumn) {
+                return;
+            }
             var strColumn = parentColumn.getAttribute('column');
 
             // this was commented out because it was grabbing the value
@@ -20210,16 +20417,18 @@ document.addEventListener('DOMContentLoaded', function () {
                         //      occuring.
                         event.preventDefault();
                         event.stopPropagation();
-
                         // if CMD or CTRL is held down: move to extreme
                         if (bolCMDorCTRL) {
                             intNewRecord = intMaxRecord;
                             intNewColumn = intOldColumn;
-
-                        // else, move to next immediate cell
-                        } else if (intOldRecord < intMaxRecord) {
+                        
+                        // else if, is at the end move to next immediate cell
+                        } else if (intOldRecord < intMaxRecord && bolCursorAtLast) {
                             intNewRecord = (intOldRecord + 1);
                             intNewColumn = intOldColumn;
+                        // else, move to extreme of cell
+                        } else {
+                            GS.setInputSelection(active, jsnCursorPos.start, activeValue.length);
                         }
                     }
 
@@ -20648,7 +20857,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.getAttribute('copy-types') ||
                     'text,html'
                 );
-                arrCopyType = strCopyType.split(',')
+                arrCopyType = strCopyType.split(',');
 
                 beforeCopyEvent = GS.triggerEvent(element, 'before_copy', {
                     forceCopy: element.internalEvents.forceCopy
@@ -22759,7 +22968,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return getCopyStrings(this);
             },
             'updateDialog': function (event) {
-                this.internalEvents.updateDialog(event)
+                this.internalEvents.updateDialog(event);
             },
             'paste': function (strPasteString) {
                 usePasteString(this, strPasteString);

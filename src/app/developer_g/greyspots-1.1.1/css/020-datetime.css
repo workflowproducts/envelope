@@ -342,7 +342,7 @@ gs-body.gs-datetime-wheel-dialog .divider {
     text-align: center;
 }
 gs-body.gs-datetime-wheel-dialog .divider[touch] {
-    font-size: 9vh;
+    /*font-size: 9vh;*/
 }
 
 gs-body.gs-datetime-wheel-dialog .divider span {

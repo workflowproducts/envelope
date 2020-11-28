@@ -1,6 +1,11 @@
 //global window
 //jslint white:true multivar:true
 
+// ##############################################################
+// ################# WARNING FOR NON-DEVELOPERS #################
+// ##############################################################
+console.log('%cOnly developers should be in this area', 'color: red; font-size: x-large');
+
 // #############################################################
 // ################### CROSS PLATFORM EVENTS ###################
 // #############################################################
@@ -124,8 +129,8 @@ if (window.functionality === undefined) {
 // ####################### NO CONSOLE FIX #######################
 // ##############################################################
 
-// in IE8 when the dev tools are not open console.log is not defined so if there was a console.log() the page would error
-//      this defines the console object if it is empty so that if there is a console.log() it will not error in IE8
+// in IE8 when the dev tools are not open "console.log" is not defined so if there was a log the page would error
+//      this defines the console object if it is empty so that if there is a log it will not error in IE8
 if (typeof console === 'undefined' || !console.log) {
     window.console = {
         log:   function () { 'use strict'; },
@@ -152,7 +157,7 @@ if (evt.touchDevice) {
         };
         
         //window.addEventListener('scroll', function (event) {
-        //    console.log(event);
+        //    //console.log(event);
         //}, true);
         
         window.ontouchmove = function (event) {
@@ -598,7 +603,7 @@ window.addEventListener('load', function () {
     
     shimmed.MutationObserver    = !nativeTest(window.MutationObserver);
     shimmed.WeakMap             = !nativeTest(window.WeakMap);
-    shimmed.registerElement     = !nativeTest(document.registerElement);
+    shimmed.customElements      = !nativeTest(customElements.define);
     shimmed.DOMTokenList        = !nativeTest(window.DOMTokenList);
     shimmed.HTMLTemplateElement = Boolean(HTMLTemplateElement.bootstrap);
     
@@ -653,20 +658,23 @@ window.addEventListener('load', function () {
         functionality.errors.WeakMap = e;
     }
     
-    functionality.registerElement = false;
+    functionality.customElements = false;
     try {
-        var prototype = Object.create(HTMLElement.prototype);
-        prototype.testmethod = function () { return true; };
-        document.registerElement('asdf-test', {'prototype': prototype});
+        function AsdfElement() { return Reflect.construct(HTMLElement, [], new.target); }
+        AsdfElement.prototype = Object.create(HTMLElement.prototype);
+        AsdfElement.prototype.testmethod = function () {
+            return true;
+        };
+        customElements.define('asdf-test', AsdfElement);
         
         var testElement;
         testElement = document.createElement('asdf-test');
         
-        functionality.registerElement = testElement.testmethod();
+        functionality.customElements = testElement.testmethod();
         
     } catch (e) {
-        functionality.registerElement = false;
-        functionality.errors.registerElement = e;
+        functionality.customElements = false;
+        functionality.errors.customElements = e;
     }
     
     functionality.DOMTokenList = false;

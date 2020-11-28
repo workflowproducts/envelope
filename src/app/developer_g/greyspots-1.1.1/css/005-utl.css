@@ -1,4 +1,27 @@
 /* ########################################################## */
+/* ############# mobile phone notch compensation ############ */
+/* ########################################################## */
+
+body {
+    padding:
+        constant(safe-area-inset-top)
+        constant(safe-area-inset-right)
+        constant(safe-area-inset-bottom)
+        constant(safe-area-inset-left);
+    padding:
+        env(safe-area-inset-top)
+        env(safe-area-inset-right)
+        env(safe-area-inset-bottom)
+        env(safe-area-inset-left);
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+/* ########################################################## */
 /* ################ FLEXBOX ATTRIBUTE SYSTEM ################ */
 /* ########################################################## */
 /* this section was inspired by the Google Polymer layout attribute system */

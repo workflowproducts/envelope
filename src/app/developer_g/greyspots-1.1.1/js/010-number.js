@@ -1,13 +1,14 @@
+//global GS, window, document, registerDesignSnippet, designRegisterElement, addProp, encodeHTML, setOrRemoveTextAttribute, setOrRemoveBooleanAttribute, addFlexProps
 
 window.addEventListener('design-register-element', function () {
 
     registerDesignSnippet('<gs-number>', '<gs-number>', 'gs-number column="${1:name}"></gs-number>');
-    registerDesignSnippet('<gs-number> With Label', '<gs-number>', 'label for="${1:number-insert-qty}">${2:Quantity}:</label>\n' +
-                                                                  '<gs-number id="${1:number-insert-qty}" column="${3:qty}"></gs-number>');
+    registerDesignSnippet('<gs-number> With Label', '<gs-number>', 'label for="${1:text-insert-account-name}">${2:Account Name}:</label>\n' +
+                                                               '<gs-number id="${1:date-insert-account-name}" column="${3:account_name}"></gs-number>');
+    
+    designRegisterElement('gs-number', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_text');
 
-    designRegisterElement('gs-number', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-number.html');
-
-    window.designElementProperty_GSNUMBER = function(selectedElement) {
+    window.designElementProperty_GSTEXT = function (selectedElement) {
         addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'column', this.value);
         });
@@ -24,8 +25,6 @@ window.addEventListener('design-register-element', function () {
             return setOrRemoveTextAttribute(selectedElement, 'placeholder', this.value);
         });
 
-        //console.log(selectedElement.hasAttribute('mini'));
-
         addProp('Mini', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('mini')) + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'mini', (this.value === 'true'), true);
         });
@@ -38,6 +37,10 @@ window.addEventListener('design-register-element', function () {
         // TABINDEX attribute
         addProp('Tabindex', true, '<gs-number class="target" value="' + encodeHTML(selectedElement.getAttribute('tabindex') || '') + '" mini></gs-number>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'tabindex', this.value);
+        });
+
+        addProp('Max-length', true, '<gs-number class="target" value="' + encodeHTML(selectedElement.getAttribute('max-length') || '') + '" mini></gs-number>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'max-length', this.value);
         });
 
         addProp('Autocorrect', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocorrect') !== 'off') + '" mini></gs-checkbox>', function () {
@@ -54,6 +57,10 @@ window.addEventListener('design-register-element', function () {
 
         addProp('Spellcheck', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('spellcheck') !== 'false') + '" mini></gs-checkbox>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'spellcheck', (this.value === 'false' ? 'false' : ''));
+        });
+
+        addProp('Show Caps Lock', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('show-caps') !== 'false') + '" mini></gs-checkbox>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'show-caps', (this.value === 'false' ? 'false' : ''));
         });
 
         // SUSPEND-CREATED attribute
@@ -90,16 +97,17 @@ window.addEventListener('design-register-element', function () {
             strVisibilityAttribute = 'show-on-phone';
         }
 
-        addProp('Visibility', true, '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                                        '<option value="">Visible</option>' +
-                                        '<option value="hidden">Invisible</option>' +
-                                        '<option value="hide-on-desktop">Invisible at desktop size</option>' +
-                                        '<option value="hide-on-tablet">Invisible at tablet size</option>' +
-                                        '<option value="hide-on-phone">Invisible at phone size</option>' +
-                                        '<option value="show-on-desktop">Visible at desktop size</option>' +
-                                        '<option value="show-on-tablet">Visible at tablet size</option>' +
-                                        '<option value="show-on-phone">Visible at phone size</option>' +
-                                    '</gs-select>', function () {
+        addProp('Visibility', true,
+                '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
+                '    <option value="">Visible</option>' +
+                '    <option value="hidden">Invisible</option>' +
+                '    <option value="hide-on-desktop">Invisible at desktop size</option>' +
+                '    <option value="hide-on-tablet">Invisible at tablet size</option>' +
+                '    <option value="hide-on-phone">Invisible at phone size</option>' +
+                '    <option value="show-on-desktop">Visible at desktop size</option>' +
+                '    <option value="show-on-tablet">Visible at tablet size</option>' +
+                '    <option value="show-on-phone">Visible at phone size</option>' +
+                '</gs-select>', function () {
             selectedElement.removeAttribute('hidden');
             selectedElement.removeAttribute('hide-on-desktop');
             selectedElement.removeAttribute('hide-on-tablet');
@@ -124,78 +132,102 @@ window.addEventListener('design-register-element', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'readonly', this.value === 'true', true);
         });
 
-        //addFlexContainerProps(selectedElement);
         addFlexProps(selectedElement);
     };
 });
 
+window.addEventListener('keydown', function (event) {
+    window.caps = event.getModifierState && event.getModifierState( 'CapsLock' );
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
-    var singleLineTemplateElement = document.createElement('template'),
-        singleLineTemplate;
-
-    singleLineTemplateElement.innerHTML = '<input class="control" gs-dynamic type="text" />';
-    singleLineTemplate = singleLineTemplateElement.content;
 
     // re-target change event from control to element
     function changeFunction(event) {
         event.preventDefault();
         event.stopPropagation();
+        event.stopImmediatePropagation();
+        event.target.parentNode.syncGetters();//iphone sometimes doesn't do a key like with time wheels
 
         GS.triggerEvent(event.target.parentNode, 'change');
 
-        handleFormat(event.target.parentNode, event);
+        return false;
     }
 
-    // re-target focus event from control to element
-    // function focusFunction(event) {
-    //     GS.triggerEvent(event.target.parentNode, 'focus');
-    //     event.target.parentNode.classList.add('focus');
-    // }
+    function focusNextElement() {
+        //add all elements we want to include in our selection
+        var focussableElements = 'a:not([disabled]), button:not([disabled]), input:not([disabled]), gs-button:not([disabled])';
+        if (document.activeElement) {
+            var focussable = Array.prototype.filter.call(document.querySelectorAll(focussableElements),
+            function (element) {
+                //check for visibility while always include the current activeElement 
+                return element.offsetWidth > 0 || element.offsetHeight > 0 || element === document.activeElement
+            });
+            var index = focussable.indexOf(document.activeElement);
+            if(index > -1) {
+               var nextElement = focussable[index + 1] || focussable[0];
+               nextElement.focus();
+            }                    
+        }
+    }
+
+    function checkMaxLength(event) {
+        var element = event.target;
+        if (element.classList.contains('control')) {
+            element = GS.findParentTag(element, 'gs-number');
+        }
+        element.syncGetters();
+        if (element.hasAttribute('max-length') && element.value.length >= element.getAttribute('max-length')) {
+            if (element.value.length > element.getAttribute('max-length')) {
+                element.value = element.value.substring(0,element.getAttribute('max-length'));
+            }
+            if (element.control.hasAttribute('tabindex') && xtag.query(document, '[tabindex="' + (parseInt(element.control.getAttribute('tabindex'), 10) + 1) + '"]').length > 0) {
+                xtag.query(document, '[tabindex="' + (parseInt(element.control.getAttribute('tabindex'), 10) + 1) + '"]')[0].focus();
+            // find next focusable element
+            } else {
+                focusNextElement();
+            }
+        }
+    }
+    
+    function CapsLock(event) {
+        var element = event.target;
+        if (element.classList.contains('control')) {
+            element = GS.findParentTag(element, 'gs-number');
+        }
+        var temp_caps = event.getModifierState && event.getModifierState( 'CapsLock' );
+        if (temp_caps) {
+            element.classList.add('caps');
+        } else {
+            if (element.classList.contains('caps')) {
+                element.classList.remove('caps');
+            }
+        }
+    }
+
     function focusFunction(event) {
         var element = event.target;
-        if (element.hasAttribute('defer-insert')) {
-            // if (element.hasAttribute('in-cell')) {
-            //     var cellElem = GS.findParentTag(element, "gs-cell");
-            //     var tableElem = GS.findParentTag(cellElem, "gs-table")
-            //     if (row === 'insert') {
-            //         row = tableElem.internalData.records.length;
-            //     } else {
-            //         row = parseInt(row, 10);
-            //     }
-            //     tableElem.internalSelection.ranges[0].start = {
-            //         "row": row,
-            //         "column": parseInt(cellElem.getAttribute('data-col-number'), 10)
-            //     };
-            //     tableElem.internalSelection.ranges[0].end = {
-            //         "row": row,
-            //         "column": parseInt(cellElem.getAttribute('data-col-number'), 10)
-            //     };
-            //     tableElem.render();
-            // }
-            element.removeEventListener('focus', focusFunction);
-            element.classList.add('focus');
-            element.addControl();
-            if (element.control.value && element.control.value.length > 0) {
-                if (element.bolSelect) {
-                    element.control.setSelectionRange(0, element.control.value.length);
-                } else {
-                    element.control.setSelectionRange(element.control.value.length, element.control.value.length);
-                }
-            }
-            element.bolSelect = true;
-        } else {
-            GS.triggerEvent(event.target.parentNode, 'focus');
-            event.target.parentNode.classList.add('focus');
+        if (element.classList.contains('focus')) {
+            return;
+        }
+        
+        element = element.parentNode;
+        GS.triggerEvent(event.target.parentNode, 'focus');
+        event.target.parentNode.classList.add('focus');
+        if (window.caps) {
+            element.classList.add('caps');
         }
     }
 
     // re-target blur event from control to element
     function blurFunction(event) {
+        var element = event.target.parentNode;
         GS.triggerEvent(event.target.parentNode, 'blur');
         event.target.parentNode.classList.remove('focus');
-        if (event.target.parentNode.hasAttribute('defer-insert')) {
-            event.target.parentNode.removeControl();
+        //remove icon
+        if (element.classList.contains('caps')) {
+            element.classList.remove('caps');
         }
     }
 
@@ -211,14 +243,6 @@ document.addEventListener('DOMContentLoaded', function () {
         event.target.parentNode.classList.add('hover');
     }
 
-    //function createPushReplacePopHandler(element) {
-    //    var strQueryString = GS.getQueryString(), strQSCol = element.getAttribute('qs');
-
-    //    if (GS.qryGetKeys(strQueryString).indexOf(strQSCol) > -1) {
-    //        element.value = GS.qryGetVal(strQueryString, strQSCol);
-    //    }
-    //}
-    
     function saveDefaultAttributes(element) {
         var i;
         var len;
@@ -303,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (element.internal.bolQSFirstRun !== true) {
                 if (strQSValue !== '' || !element.getAttribute('value')) {
-                    element.setAttribute('value', strQSValue);
+                    element.value = strQSValue;
                 }
             } else {
                 element.value = strQSValue;
@@ -313,207 +337,6 @@ document.addEventListener('DOMContentLoaded', function () {
         element.internal.bolQSFirstRun = true;
     }
 
-    // sync control value and resize to text
-    function syncView(element) {
-        if (element.control) {
-            element.control.setAttribute('value', (element.getAttribute('value') || ''));
-        }
-    }
-    
-    function syncGetters(element) {
-        if (element.control) {
-            element.setAttribute('value', (element.control.value || ''));
-        } else if (element.getAttribute('value') !== element.innerHTML) {
-            element.setAttribute('value', element.innerHTML);
-        }
-    }
-
-    function handleFormat(element, event, bolAlertOnError) {
-        var strFormat, intValue;
-
-        if (element.hasAttribute('format')) {
-            strFormat = element.getAttribute('format');
-
-            intValue = element.value; // parseFloat(element.value.replace(/[^0-9.]*/g, ''), 10);
-
-            if (isNaN(intValue)) {
-                if (bolAlertOnError !== undefined && bolAlertOnError !== false) {
-                    alert('Invalid Number: ' + element.value);
-                }
-
-                if (element.control) {
-                    GS.setInputSelection(element.control, 0, element.value.length);
-                }
-
-                if (event) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                }
-
-            } else {
-                if (element.control) {
-                    element.control.value = formatNumber(intValue, strFormat);
-                } else {
-                    element.innerHTML = formatNumber(intValue, strFormat);
-                }
-            }
-        }
-    }
-
-    function formatNumber(intValue, strFormat) {
-        /* (this function contains a (modified) substantial portion of code from another source
-            here is the copyright for sake of legality) (Uses code by Matt Kruse)
-        Copyright (c) 2006-2009 Rostislav Hristov, Asual DZZD
-
-        Permission is hereby granted, free of charge, to any person obtaining a
-        copy of this software and associated documentation files
-        (the "Software"), to deal in the Software without restriction,
-        including without limitation the rights to use, copy, modify, merge,
-        publish, distribute, sublicense, and/or sell copies of the Software,
-        and to permit persons to whom the Software is furnished to do so,
-        subject to the following conditions:
-
-        The above copyright notice and this permission notice shall be included
-        in all copies or substantial portions of the Software.
-
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-        OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-        IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-        CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-        TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-        SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
-        var groupingSeparator,
-            groupingIndex,
-            decimalSeparator,
-            decimalIndex,
-            roundFactor,
-            result,
-            i,
-            locale = {
-                groupingSeparator: ',',
-                decimalSeparator: '.',
-                currencySymbol: '$',
-                percentSymbol: '%'
-            };
-
-        if (strFormat.toLowerCase() === 'currency') {
-            strFormat = locale.currencySymbol + '0.00';
-        } else if (strFormat.toLowerCase() === 'percent') {
-            intValue = intValue * 100;
-            strFormat = locale.percentSymbol + '0.00';
-        }
-
-        var integer = '',
-            fraction = '',
-            negative,
-            minFraction,
-            maxFraction,
-            powFraction,
-            bolCurrencySymbol = strFormat[0] === locale.currencySymbol,
-            bolPercentSymbol = strFormat[0] === locale.percentSymbol;
-
-        if (bolCurrencySymbol || bolPercentSymbol) {
-            strFormat = strFormat.substring(1);
-        }
-
-        groupingSeparator = ',';
-        groupingIndex = strFormat.lastIndexOf(groupingSeparator);
-        decimalSeparator = '.';
-        decimalIndex = strFormat.indexOf(decimalSeparator);
-
-        negative = intValue < 0;
-        minFraction = strFormat.substr(decimalIndex + 1).replace(/#/g, '').length;
-        maxFraction = strFormat.substr(decimalIndex + 1).length;
-        powFraction = 10;
-
-        intValue = Math.abs(intValue);
-
-        if (decimalIndex != -1) {
-            fraction = locale.decimalSeparator;
-            if (maxFraction > 0) {
-                roundFactor = 1000;
-                powFraction = Math.pow(powFraction, maxFraction);
-                var tempRound = Math.round(parseInt(intValue * powFraction * roundFactor -
-                            Math.round(intValue) * powFraction * roundFactor, 10) / roundFactor),
-                    tempFraction = String(tempRound < 0 ? Math.round(parseInt(intValue * powFraction * roundFactor -
-                            parseInt(intValue, 10) * powFraction * roundFactor, 10) / roundFactor) : tempRound),
-                    parts = intValue.toString().split('.');
-                if (typeof parts[1] != 'undefined') {
-                    for (i = 0; i < maxFraction; i++) {
-                        if (parts[1].substr(i, 1) == '0' && i < maxFraction - 1 &&
-                                tempFraction.length != maxFraction) {
-                            tempFraction = '0' + tempFraction;
-                        } else {
-                            break;
-                        }
-                    }
-                }
-                for (i = 0; i < (maxFraction - fraction.length); i++) {
-                    tempFraction += '0';
-                }
-                var symbol, formattedFraction = '';
-
-                for (i = 0; i < tempFraction.length; i++) {
-                    symbol = tempFraction.substr(i, 1);
-                    if (i >= minFraction && symbol == '0' && (/^0*$/).test(tempFraction.substr(i + 1))) {
-                        break;
-                    }
-                    formattedFraction += symbol;
-                }
-                fraction += formattedFraction;
-            }
-            if (fraction == locale.decimalSeparator) {
-                fraction = '';
-            }
-        }
-
-        if (decimalIndex !== 0) {
-            if (fraction !== '') {
-                integer = String(parseInt(Math.round(intValue * powFraction) / powFraction, 10));
-            } else {
-                integer = String(Math.round(intValue));
-            }
-            var grouping = locale.groupingSeparator,
-                groupingSize = 0;
-            if (groupingIndex != -1) {
-                if (decimalIndex != -1) {
-                    groupingSize = decimalIndex - groupingIndex;
-                } else {
-                    groupingSize = strFormat.length - groupingIndex;
-                }
-                groupingSize--;
-            }
-            if (groupingSize > 0) {
-                var count = 0, 
-                    formattedInteger = '';
-                i = integer.length;
-                while (i--) {
-                    if (count !== 0 && count % groupingSize === 0) {
-                        formattedInteger = grouping + formattedInteger;    
-                    }
-                    formattedInteger = integer.substr(i, 1) + formattedInteger;
-                    count++;
-                }
-                integer = formattedInteger;
-            }
-            var maxInteger, maxRegExp = /#|,/g;
-            if (decimalIndex != -1) {
-                maxInteger = strFormat.substr(0, decimalIndex).replace(maxRegExp, '').length;
-            } else {
-                maxInteger = strFormat.replace(maxRegExp, '').length;
-            }
-            var tempInteger = integer.length;
-            for (i = tempInteger; i < maxInteger; i++) {
-                integer = '0' + integer;
-            }
-        }
-        result = integer + fraction;
-        return (bolPercentSymbol ? locale.percentSymbol : '') +
-               (bolCurrencySymbol ? locale.currencySymbol : '') +
-               (negative ? '-' : '') + result;
-    }
-    
     // dont do anything that modifies the element here
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
@@ -524,14 +347,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (element.value) {
                 element.setAttribute('value', element.value);
                 delete element.value;
-                //element.value = null;
             }
         }
     }
 
     function findFor(element) {
         var forElem;
-        // console.log(element, element.previousElementSibling)
         if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
             && element.previousElementSibling.hasAttribute('for')
             && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
@@ -540,7 +361,6 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
             forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
         }
-        //console.log(forElem);
         if (forElem) {
             forElem.setAttribute('for', element.getAttribute('id') + '_control');
             if (element.control) {
@@ -553,27 +373,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
-        
-        /*
-            if (element.hasAttribute('id')) {
-                findFor(element);
-            }
-        // please ensure that if the element has an id it is given an id
-                if (element.hasAttribute('id')) {
-                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
-                }
-                if (element.hasAttribute('aria-labelledby')) {
-                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
-                }
-                if (element.hasAttribute('title')) {
-                    element.control.setAttribute('title', element.getAttribute('title'));
-                }
-        */
     }
 
     function elementInserted(element) {
-        //var strQSValue;
-
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
             // if this is the first time inserted has been run: continue
@@ -582,92 +384,38 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.internal = {};
                 saveDefaultAttributes(element);
 
-                if (element.hasAttribute('defer-insert')) {
-                    if (!element.hasAttribute('tabindex')) {
-                        element.setAttribute('tabindex', '0');
-                    }
-                    element.bolSelect = true;
-    
-                    if (element.getAttribute('value')) {
-                        element.innerHTML = element.getAttribute('value');
-                        syncGetters(element);
-                    } else if (element.hasAttribute('placeholder')) {
-                        element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
-                    }
-    
-                    element.addEventListener('focus', focusFunction);
-                    if (evt.touchDevice) {
-                        element.addEventListener(evt.click, focusFunction);
-                        element.addEventListener(evt.mousedown, function (event) {
-                            element.startX = event.touches[0].clientX;
-                            element.startY = event.touches[0].clientY;
-                            element.addEventListener('touchmove', function (event) {
-                                element.lastX = event.touches[0].clientX;
-                                element.lastY = event.touches[0].clientY;
-                                
-                            });
-                        });
-                        element.addEventListener(evt.mouseup, function (event) {
-                            var element = event.target;
-    
-                            if (element.lastX && element.lastY &&
-                                (parseInt(element.lastX, 10) > (parseInt(element.startX, 10) + 10) ||
-                                parseInt(element.lastX, 10) < (parseInt(element.startX, 10) - 10) ||
-                                parseInt(element.lastY, 10) > (parseInt(element.startY, 10) + 10) ||
-                                parseInt(element.lastY, 10) < (parseInt(element.startY, 10) - 10))
-                            ) {
-                            } else {
-                                focusFunction(event);
-                            }
-                        });
-                    }
-    
-                    if (element.getAttribute('qs')) {
-    
+                // handle control
+                element.handleContents();
+
+                // fill control
+                element.syncView();
+
+                // bind/handle query string
+                if (element.getAttribute('qs')) {
+                    createPushReplacePopHandler(element);
+                    window.addEventListener('pushstate', function () {
                         createPushReplacePopHandler(element);
-                        window.addEventListener('pushstate',    function () { createPushReplacePopHandler(element); });
-                        window.addEventListener('replacestate', function () { createPushReplacePopHandler(element); });
-                        window.addEventListener('popstate',     function () { createPushReplacePopHandler(element); });
-                    }
-                    
-                    element.refresh();
-                } else {
-                    if (element.hasAttribute('tabindex')) {
-                        element.setAttribute('data-tabindex', element.getAttribute('tabindex'));
-                        element.removeAttribute('tabindex');
-                    }
-                    if (element.hasAttribute('disabled')) {
-                        element.innerHTML = element.getAttribute('value') || element.getAttribute('placeholder');
-                    } else {
-                        element.innerHTML = '';
-                        element.appendChild(singleLineTemplate.cloneNode(true));
-                        if (element.hasAttribute('data-tabindex')) {
-                            xtag.query(element, '.control')[0].setAttribute('tabindex', element.getAttribute('data-tabindex'));
-                        }
-                    }
-    
-                    if (element.getAttribute('qs')) {
-                        //strQSValue = GS.qryGetVal(GS.getQueryString(), element.getAttribute('qs'));
-                        //
-                        //if (strQSValue !== '' || !element.getAttribute('value')) {
-                        //    element.value = strQSValue;
-                        //}
-    
+                    });
+                    window.addEventListener('replacestate', function () {
                         createPushReplacePopHandler(element);
-                        window.addEventListener('pushstate',    function () { createPushReplacePopHandler(element); });
-                        window.addEventListener('replacestate', function () { createPushReplacePopHandler(element); });
-                        window.addEventListener('popstate',     function () { createPushReplacePopHandler(element); });
-                    }
-    
-                    if (element.innerHTML === '') {
-                        element.appendChild(singleLineTemplate.cloneNode(true));
-                        if (element.hasAttribute('data-tabindex')) {
-                            xtag.query(element, '.control')[0].setAttribute('tabindex', element.getAttribute('data-tabindex'));
-                        }
-                    }
-                    element.refresh();
+                    });
+                    window.addEventListener('popstate', function () {
+                        createPushReplacePopHandler(element);
+                    });
+                }
+
+                // if this element is empty when it is inserted: initalize
+                if (element.innerHTML.trim() === '') {
+                    // handle control
+                    element.handleContents();
+
+                    // fill control
+                    element.syncView();
                 }
             }
+        }
+
+        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
             if (element.hasAttribute('id')) {
                 findFor(element);
             }
@@ -685,142 +433,107 @@ document.addEventListener('DOMContentLoaded', function () {
             },
 
             attributeChanged: function (strAttrName, oldValue, newValue) {
+                var element = this;
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'suspend-created' && newValue === null) {
-                    elementCreated(this);
-                    elementInserted(this);
+                    elementCreated(element);
+                    elementInserted(element);
 
                 // if "suspend-inserted" has been removed: run inserted code
                 } else if (strAttrName === 'suspend-inserted' && newValue === null) {
-                    elementInserted(this);
+                    elementInserted(element);
 
-                } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
-                    // attribute code
-                    if (strAttrName === 'disabled') {
-                        // if (this.hasAttribute('tabindex')) {
-                        //     this.setAttribute('data-tabindex', this.getAttribute('tabindex'));
-                        //     this.removeAttribute('tabindex');
-                        // }
-                        // if (this.hasAttribute('disabled')) {
-                        //     this.innerHTML = this.getAttribute('value') || this.getAttribute('placeholder');
-                        // } else {
-                        //     this.innerHTML = '';
-                        //     this.appendChild(singleLineTemplate.cloneNode(true));
-                        //     if (this.hasAttribute('data-tabindex')) {
-                        //         xtag.query(this, '.control')[0].setAttribute('tabindex', this.getAttribute('data-tabindex'));
-                        //     }
-                        // }
+                } else if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+                    var currentValue;
 
-                        // this.refresh();
-                    } else if (strAttrName === 'value' && newValue !== oldValue) {
-                        this.value = newValue;
+                    if (strAttrName === 'disabled' || strAttrName === 'readonly') {
+                        // handle control
+                        element.handleContents();
+
+                        // fill control
+                        element.syncView();
+
+                    } else if (strAttrName === 'value' && element.initalized) {
+                        currentValue = element.control.value;
+
+                        // if there is a difference between the new value in the
+                        //      attribute and the valued in the front end: refresh the front end
+                        if (newValue !== currentValue) {
+                            element.syncView();
+                        }
+                    }
+                    var arrPassThroughAttributes = [
+                            'placeholder', 'name', 'maxlength', 'autocorrect',
+                            'autocapitalize', 'autocomplete', 'autofocus', 'spellcheck',
+                            'readonly', 'disabled'
+                        ];
+                    if (element.control) {
+                        if (element.hasAttribute(strAttrName) && arrPassThroughAttributes.indexOf(strAttrName) !== -1) {
+                            element.control.setAttribute(strAttrName, newValue);
+                        }
+                        if (!element.hasAttribute(strAttrName) && element.control.hasAttribute(strAttrName) && arrPassThroughAttributes.indexOf(strAttrName) !== -1) {
+                            element.control.removeAttribute(strAttrName);
+                        }
                     }
                 }
             }
         },
         events: {
             // on keydown and keyup sync the value attribute and the control value
-            keydown: function (event) {
-                if (window.bolDesignMode !== true) {
-                    if (this.getAttribute('disabled') !== null && event.keyCode !== 9) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    } else {
-                        syncView(this);
-                    }
+            'keydown': function (event) {
+                var element = this;
+                this.control.value = this.control.value.replace(/[^0-9\.]/g,'');
+                if (!element.hasAttribute('readonly') && !element.hasAttribute('disabled')) {
+                        element.syncGetters();
                 }
             },
-            keyup: function () {
-                if (window.bolDesignMode !== true) {
-                    syncView(this);
+            'keyup': function () {
+                var element = this;
+                this.control.value = this.control.value.replace(/[^0-9\.]/g,'');
+                if (!element.hasAttribute('readonly') && !element.hasAttribute('disabled')) {
+                    element.syncGetters();
                 }
-            }//,
-            //'change:delegate(.control)': function (event) {
-            //    var element = this.parentNode;
-            //
-            //    event.preventDefault();
-            //    event.stopPropagation();
-            //
-            //    xtag.fireEvent(element, 'change', {
-            //        bubbles: true,
-            //        cancelable: true
-            //    });
-            //}
+            }
         },
         accessors: {
             value: {
                 // get value straight from the input
                 get: function () {
-                    if (this.control) {
-                        return parseFloat(this.control.value.replace(/[^-0-9.]*/g, ''), 10); // this.control.value;
-                    } else {
-                        return parseFloat(this.innerHTML.replace(/[^-0-9.]*/g, ''), 10); // this.control.value;
-                    }
+                    var element = this;
+                    return this.getAttribute('value');
                 },
-                
+
                 // set the value of the input and set the value attribute
                 set: function (strNewValue) {
-                    var selection;
-                    if (this.control) {
-                        selection = GS.getInputSelection(this.control);
-                        this.control.value = strNewValue;
-                    } else {
-                        this.innerHTML = strNewValue;
-                    }
-                    handleFormat(this);
-                    syncView(this);
-                    if (selection) {
-                        GS.setInputSelection(this.control, selection.start, selection.end);
-                    }
                     this.setAttribute('value', strNewValue);
-                    syncView(this);
                 }
             }
         },
         methods: {
             focus: function () {
                 var element = this;
-                element.bolSelect = false;
-                focusFunction({ target: element });
-            },
-
-            removeControl: function () {
-                var element = this;
                 if (element.control) {
-                    element.setAttribute('tabindex', element.control.getAttribute('tabindex'));
-                } else {
-                    element.setAttribute('tabindex', '0');
+                    element.control.focus();
                 }
-                if (element.control.value) {
-                    element.innerHTML = element.control.value;
-                    syncGetters(element);
-                } else if (element.hasAttribute('placeholder')) {
-                    console.log('<span class="placeholder">' + element.getAttribute('placeholder') + '</span>');
-                    element.innerHTML = '<span class="placeholder">' + element.getAttribute('placeholder') + '</span>';
-                } else {
-                    element.innerHTML = ''
-                }
-                element.control = false;
             },
 
-            addControl: function () {
+            handleContents: function () {
                 var element = this;
                 var arrPassThroughAttributes = [
-                    'placeholder', 'name', 'maxlength', 'autocorrect',
-                    'autocapitalize', 'autocomplete', 'autofocus', 'spellcheck',
-                    'readonly', 'disabled'
-                ];
+                        'placeholder', 'name', 'maxlength', 'autocorrect',
+                        'autocapitalize', 'autocomplete', 'autofocus', 'spellcheck',
+                        'readonly', 'disabled'
+                    ];
                 var i;
                 var len;
-                // if the gs-text element has a tabindex: save the tabindex and remove the attribute
+
+                // if the gs-number element has a tabindex: save the tabindex and remove the attribute
                 if (element.hasAttribute('tabindex')) {
                     element.savedTabIndex = element.getAttribute('tabindex');
                     element.removeAttribute('tabindex');
                 }
 
-                // add control input and save it to a variable for later use
-                element.innerHTML = '';
-                element.innerHTML = '<input class="control" gs-dynamic type="' + (element.getAttribute('type') || 'text') + '" />';
+                element.innerHTML = '<input class="control" gs-dynamic type="' + ((element.getAttribute('input-type') || element.getAttribute('type')) || 'text') + '" />';
                 element.control = element.children[0];
                 if (element.hasAttribute('id')) {
                     element.control.setAttribute('id', element.getAttribute('id') + '_control');
@@ -828,24 +541,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.hasAttribute('aria-labelledby')) {
                     element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
                 }
+                if (element.hasAttribute('aria-label')) {
+                    element.control.setAttribute('aria-label', element.getAttribute('aria-label'));
+                }
                 if (element.hasAttribute('title')) {
                     element.control.setAttribute('title', element.getAttribute('title'));
                 }
 
                 // bind event re-targeting functions
+                element.control.removeEventListener('keydown', CapsLock);
+                element.control.addEventListener('keydown', CapsLock);
+
                 element.control.removeEventListener('change', changeFunction);
                 element.control.addEventListener('change', changeFunction);
 
+                element.control.removeEventListener('focus', focusFunction);
+                element.control.addEventListener('focus', focusFunction);
+                
+                element.removeEventListener('keyup', checkMaxLength);
+                element.addEventListener('keyup', checkMaxLength);
 
                 element.control.removeEventListener('blur', blurFunction);
                 element.control.addEventListener('blur', blurFunction);
 
-                element.removeEventListener(evt.mouseout, mouseoutFunction);
-                element.addEventListener(evt.mouseout, mouseoutFunction);
-
-                element.removeEventListener(evt.mouseout, mouseoverFunction);
-                element.addEventListener(evt.mouseover, mouseoverFunction);
-
+                element.control.removeEventListener(evt.mouseout, mouseoutFunction);
+                element.control.addEventListener(evt.mouseout, mouseoutFunction);
+                
+                element.control.removeEventListener(evt.mouseout, mouseoverFunction);
+                element.control.addEventListener(evt.mouseover, mouseoverFunction);
+                
                 // copy passthrough attributes to control
                 i = 0;
                 len = arrPassThroughAttributes.length;
@@ -870,72 +594,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.savedTabIndex !== undefined && element.savedTabIndex !== null) {
                     element.control.setAttribute('tabindex', element.savedTabIndex);
                 }
-                syncView(element);
-                element.control.focus();
-                element.addEventListener('focus', focusFunction);
             },
 
-            refresh: function () {
-                var arrPassThroughAttributes, i, len;
+            syncView: function () {
+                var element = this;
+                element.control.value = ((element.getAttribute('value') === '\\N') ? '' : element.getAttribute('value') || '');
+                element.initalized = true;
                 
-                // set a variable with the control element for convenience and speed
-                this.control = xtag.query(this, '.control')[0];
-                
-                if (this.control) {
-                    if (this.hasAttribute('id')) {
-                        this.control.setAttribute('id', this.getAttribute('id') + '_control');
-                    }
-                    if (this.hasAttribute('aria-labelledby')) {
-                        this.control.setAttribute('aria-labelledby', this.getAttribute('aria-labelledby'));
-                    }
-                    if (this.hasAttribute('title')) {
-                        this.control.setAttribute('title', this.getAttribute('title'));
-                    }
-                    
-                    this.control.removeEventListener('change', changeFunction);
-                    this.control.addEventListener('change', changeFunction);
-                    
-                    this.removeEventListener('focus', focusFunction);
-                    this.addEventListener('focus', focusFunction);
-                    
-                    this.control.removeEventListener('blur', blurFunction);
-                    this.control.addEventListener('blur', blurFunction);
-                    
-                    this.control.removeEventListener(evt.mouseout, mouseoutFunction);
-                    this.control.addEventListener(evt.mouseout, mouseoutFunction);
-    
-                    this.control.removeEventListener(evt.mouseover, mouseoverFunction);
-                    this.control.addEventListener(evt.mouseover, mouseoverFunction);
-                }
-                // if there is a value already in the attributes of the element: set the control value
-                if (this.hasAttribute('value')) {
-                    if (this.control) {
-                        this.control.value = this.getAttribute('value') || this.getAttribute('placeholder');
-                    } else {
-                        this.innerHTML = this.getAttribute('value') || this.getAttribute('placeholder');
-                    }
-                    handleFormat(this, undefined, false);
-                }
-                
-                if (this.control) {
-                    // copy passthrough attributes to control
-                    arrPassThroughAttributes = [
-                        'placeholder',
-                        'name',
-                        'maxlength',
-                        'autocorrect',
-                        'autocapitalize',
-                        'autocomplete',
-                        'autofocus',
-                        'spellcheck',
-                        'readonly'
-                    ];
-                    for (i = 0, len = arrPassThroughAttributes.length; i < len; i += 1) {
-                        if (this.hasAttribute(arrPassThroughAttributes[i])) {
-                            this.control.setAttribute(arrPassThroughAttributes[i], this.getAttribute(arrPassThroughAttributes[i]) || '');
-                        }
-                    }
-                }
+            },
+
+            syncGetters: function () {
+                var element = this;
+                element.setAttribute('value', (element.control.value || '\\N'));
             }
         }
     });

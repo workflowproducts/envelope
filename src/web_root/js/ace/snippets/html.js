@@ -450,7 +450,7 @@ snippet xhtml\n\
 	</html>\n\
 snippet html5\n\
 	<!DOCTYPE html>\n\
-	<html lang="en">\n\
+	<html lang=\"en\">\n\
 		<head>\n\
 			<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" />\n\
 			<title>${1:`substitute(Filename('', 'Page Title'), '^.', '\\u&', '')`}</title>\n\

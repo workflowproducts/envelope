@@ -8,7 +8,7 @@ window.addEventListener('design-register-element', function () {
                                                         '    </gs-sticky-inner>\n' +
                                                         '</gs-sticky>');
     
-    designRegisterElement('gs-sticky', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-sticky.html');
+    designRegisterElement('gs-sticky', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_sticky_header_footer');
 
     window.designElementProperty_GSSTICKY = function (selectedElement) {
         addProp('Direction', true,  '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('direction') || '') + '" mini>' +

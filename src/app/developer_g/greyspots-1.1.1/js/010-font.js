@@ -6,7 +6,7 @@ window.addEventListener('design-register-element', function () {
                                                     '    ${0}\n' +
                                                     '</gs-font>');
     
-    designRegisterElement('gs-font', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-font.html');
+    designRegisterElement('gs-font', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_font_size');
     
     window.designElementProperty_GSFONT = function (selectedElement) {
         addProp('Min-Width Media', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('min-width') || '') + '" mini></gs-text>', function () {

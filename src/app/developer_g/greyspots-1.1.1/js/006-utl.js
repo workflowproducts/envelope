@@ -59,9 +59,220 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('GS.numberSuffix', 'GS.numberSuffix', 'GS.numberSuffix(${1:intNumber});');
 
     registerDesignSnippet('GS.hitLink', 'GS.hitLink', 'GS.hitLink(${1:strLink});');
-    
+
     registerDesignSnippet('GS.log', 'GS.log', 'GS.log(\'${1:send}\', ${2:message});');
 });
+
+
+GS.positionHandlingFunction = function (element, elementTarget, intMargin, strDirectionRequest, defaultDirection, returnCallback) {
+    "usr strict";
+    var intDialogTop = '', intDialogLeft = '', intDialogMarginTop = '', intDialogMarginLeft = '', strOldStyle
+        , arrElements, arrScrollingElements, i, len, strOverflow, jsnPositionData, arrTests
+        , strResolvedDirection, intDialogResolvedWidth, intDialogResolvedHeight
+        , intElementMidPoint, intDialogMidPoint;
+
+    // if the dialog is not in the DOM: unbind and skip the contents of the function using return
+    if (element.parentNode !== document.body) {
+        /*
+        window.removeEventListener('resize', function () {GS.positionHandlingFunction(element)});
+        window.removeEventListener('orientationchange', function () {GS.positionHandlingFunction(element)});
+        observer.disconnect();
+        */
+
+        returnCallback();
+
+        return;
+    }
+
+    // save old style attribute
+    strOldStyle = element.getAttribute('style');
+
+    // save scroll numbers
+    arrElements = xtag.query(element, '*');
+    arrScrollingElements = [];
+
+    for (i = 0, len = arrElements.length; i < len; i += 1) {
+        strOverflow = GS.getStyle(arrElements[i], 'overflow');
+
+        if (strOverflow === 'scroll' ||
+            (strOverflow === 'auto' && arrElements[i].clientHeight < arrElements[i].scrollHeight)) {
+            arrScrollingElements.push(arrElements[i]);
+        }
+        //console.log('strOverflow', i, strOverflow);
+    }
+
+    for (i = 0, len = arrScrollingElements.length; i < len; i += 1) {
+        arrScrollingElements[i].oldScrollTop = arrScrollingElements[i].scrollTop;
+        arrScrollingElements[i].oldScrollLeft = arrScrollingElements[i].scrollLeft;
+        //console.log('arrScrollingElements', i, arrScrollingElements[i]);
+    }
+
+    // clear dialog CSS
+    element.style.top        = '';
+    element.style.left       = '';
+    element.style.marginTop  = '';
+    element.style.marginLeft = '';
+    element.style.width      = '94%';
+    element.style.height     = '';
+    element.style.maxHeight  = '';
+
+    //console.log(element.oldHeight, element.offsetHeight);
+
+    // if height hasn't changed: restore style
+    if (element.oldHeight === element.offsetHeight) {
+        element.setAttribute('style', strOldStyle);
+
+        for (i = 0, len = arrScrollingElements.length; i < len; i += 1) {
+            arrScrollingElements[i].scrollTop = arrScrollingElements[i].oldScrollTop;
+            arrScrollingElements[i].scrollLeft = arrScrollingElements[i].oldScrollLeft;
+            //console.log('arrScrollingElements', i, arrScrollingElements[i]);
+        }
+
+    // else: recalculate style
+    } else {
+        element.oldHeight = element.offsetHeight;
+
+        // resolve dialog width and height
+
+        // if dialog is taller than: window height - (intMargin * 2): add max-height and height
+        if (element.clientHeight > ((window.innerHeight / 100) * 94)) {
+            element.style.height = '94%';
+            element.style.maxHeight = strMaxHeight;
+        }
+
+        intDialogResolvedWidth  = element.offsetWidth;
+        intDialogResolvedHeight = element.offsetHeight + 1; // + 1 added to fix occasional scrollbar issue
+
+        // set dialog width and height to resolved width and height
+        element.style.width  = intDialogResolvedWidth  + 'px';
+        element.style.height = intDialogResolvedHeight + 'px';
+
+        // get target position data
+        jsnPositionData = GS.getElementPositionData(elementTarget);
+
+        // order of tests depending on direction
+        if (strDirectionRequest === 'up') {
+            arrTests = ['up', 'down', 'left', 'right'];
+
+        } else if (strDirectionRequest === 'down') {
+            arrTests = ['down', 'up', 'left', 'right'];
+
+        } else if (strDirectionRequest === 'left') {
+            arrTests = ['left', 'right', 'down', 'up'];
+
+        } else if (strDirectionRequest === 'right') {
+            arrTests = ['right', 'left', 'down', 'up'];
+
+        } else { // full: no tests (just go to full)
+            arrTests = [];
+        }
+
+        // up: compare room above to dialog resolved height
+        //      pass: display
+        //      fail: next test
+        for (i = 0, len = arrTests.length; i < len; i += 1) {
+            if ((arrTests[i] ===    'up' && (intDialogResolvedHeight + intMargin) <= jsnPositionData.intRoomAbove) ||
+                (arrTests[i] ===  'down' && (intDialogResolvedHeight + intMargin) <= jsnPositionData.intRoomBelow) ||
+                (arrTests[i] ===  'left' && (intDialogResolvedWidth  + intMargin) <=  jsnPositionData.intRoomLeft) ||
+                (arrTests[i] === 'right' && (intDialogResolvedWidth  + intMargin) <= jsnPositionData.intRoomRight)) {
+                //console.log('arrTests', i, arrTests[i]);
+                strResolvedDirection = arrTests[i];
+                break;
+            }
+        }
+
+        // if we could not resolve to a particular direction: set direction to full screen
+        strResolvedDirection = strResolvedDirection || defaultDirection;
+        //console.log(strResolvedDirection);
+
+        // if up or down: get as close to horizontally centered on the element as possible
+        if (strResolvedDirection === 'up' || strResolvedDirection === 'down') {
+            intElementMidPoint = (jsnPositionData.intElementLeft + (jsnPositionData.intElementWidth / 2));
+            intDialogMidPoint = (intDialogResolvedWidth / 2);
+            //console.log(intElementMidPoint, jsnPositionData.left, jsnPositionData.intElementWidth);
+
+            // if centered goes past intMargin of the left edge of the screen: go to intMargin from the bottom
+            if (intElementMidPoint - intDialogMidPoint < intMargin) {
+                intDialogLeft = intMargin;
+                //console.log('1***', intMargin);
+
+            // else if centered goes past intMargin of the right edge of the screen: go to intMargin less than the width of the viewport
+            } else if (intElementMidPoint + intDialogMidPoint > window.innerWidth - intMargin) {
+                intDialogLeft = ((window.innerWidth - intDialogResolvedWidth) - intMargin);
+                //console.log('2***', window.innerWidth, intDialogResolvedWidth, intMargin);
+
+            // else centered does not go past intMargin of either edge of the screen: center
+            } else {
+                intDialogLeft = (intElementMidPoint - intDialogMidPoint);
+                //console.log('3***', intElementMidPoint, intDialogMidPoint, (intElementMidPoint - intDialogMidPoint) + 'px');
+            }
+
+        // else if left or right: get as close to vertically centered next to the element as possible
+        } else if (strResolvedDirection === 'left' || strResolvedDirection === 'right') {
+            intElementMidPoint = (jsnPositionData.intElementTop + (jsnPositionData.intElementHeight / 2));
+            intDialogMidPoint = (intDialogResolvedHeight / 2);
+
+            //console.log('0***', intElementMidPoint, intDialogMidPoint, window.innerHeight, intMargin, intDialogResolvedHeight);
+
+            // if centered goes past intMargin of the top edge of the screen: go to intMargin from the bottom
+            if (intElementMidPoint - intDialogMidPoint < intMargin) {
+                intDialogTop = intMargin;
+                //console.log('1***', intMargin);
+
+            // else if centered goes past intMargin of the bottom edge of the screen: go to intMargin less than the height of the viewport
+            } else if (intElementMidPoint + intDialogMidPoint > window.innerHeight - intMargin) {
+                intDialogTop = ((window.innerHeight - intDialogResolvedHeight) - intMargin);
+                //console.log('2***', window.innerHeight, intDialogResolvedHeight, intMargin);
+
+            // else centered does not go past intMargin of either edge of the screen: center
+            } else {
+                intDialogTop = (intElementMidPoint - intDialogMidPoint);
+                //console.log('3***', intElementMidPoint, intDialogMidPoint, (intElementMidPoint - intDialogMidPoint) + 'px');
+            }
+
+        // else full: use dialog logic to get width and height and center both vertically and horizontally
+        } else {
+            intDialogTop        = '50%';
+            intDialogLeft       = '50%';
+            intDialogMarginTop  = '-' + (intDialogResolvedHeight / 2) + 'px';
+            intDialogMarginLeft = '-' + (intDialogResolvedWidth / 2) + 'px';
+        }
+
+        // if direction is up: connect the bottom of the dialog to the top of the element
+        if (strResolvedDirection === 'up') {
+            intDialogTop = (jsnPositionData.intElementTop - intDialogResolvedHeight);
+
+        // if direction is down: connect the top of the dialog to the bottom of the element
+        } else if (strResolvedDirection === 'down') {
+            intDialogTop = (jsnPositionData.intElementTop + jsnPositionData.intElementHeight);
+
+        // if direction is left: connect the right of the dialog to the left of the element
+        } else if (strResolvedDirection === 'left') {
+            intDialogLeft = (jsnPositionData.intElementLeft - intDialogResolvedWidth);
+
+        // if direction is right: connect the left of the dialog to the right of the element
+        } else if (strResolvedDirection === 'right') {
+            intDialogLeft = (jsnPositionData.intElementLeft + jsnPositionData.intElementWidth);
+        }
+
+        // prevent the dialog from vertically going outside the viewport
+        if (intDialogTop + intDialogResolvedHeight > window.innerHeight) {
+            intDialogTop -= (intDialogTop + intDialogResolvedHeight) - window.innerHeight;
+
+        }
+
+        // prevent the dialog from horizontally going outside the viewport
+        if (intDialogLeft + intDialogResolvedWidth > window.innerWidth) {
+            intDialogLeft -= (intDialogLeft + intDialogResolvedWidth) - window.innerWidth;
+        }
+
+        // apply CSS to the dialog
+        element.style.top        = intDialogTop + 'px';
+        element.style.left       = intDialogLeft + 'px';
+        element.style.marginTop  = intDialogMarginTop + 'px';
+        element.style.marginLeft = intDialogMarginLeft + 'px';
+    }
+};
 
 function gt(x,y)  { return x >  y; }
 function gte(x,y) { return x >= y; }
@@ -89,7 +300,6 @@ GS.hitLink = function (strLink) {
 
 GS.newDate = function (date) {
     var strDate = '' + date + '';
-    // console.log(strDate.indexOf('-'), strDate.lastIndexOf('-'));
     if (strDate.indexOf('-') !== strDate.lastIndexOf('-')) {
         strDate = (
             strDate
@@ -911,16 +1121,25 @@ GS.setCookie = function (c_name, value, exdays) {
     } else {
         exDayNum = exdays;
     }
-    
+
     var hostname = location.hostname;
     var exdate = new Date(), c_value;
-    hostname = hostname.substring(hostname.indexOf('.'));
+
+    // if there's more than one dot in the *fudging* domain, remove the *fudging* subdomain.
+    // but what if there's two subdomains? The world will never now!
+
+
+    //jk that two subdomains thing needs to be fixed
+    if (hostname.indexOf('.') !== hostname.lastIndexOf('.')) {
+        hostname = hostname.substring(hostname.indexOf('.'));
+    }
     exdate.setDate(exdate.getDate() + exDayNum);
-    
+
     c_value = encodeURIComponent(value) + ((exDayNum === null || exDayNum === undefined) ? '' : '; expires=' + exdate.toUTCString()) + '; domain=' + hostname + '; path=/';
-    
+
     document.cookie = c_name + '=' + c_value;
 };
+
 
 // get a cookie from the browser
 GS.getCookie = function (c_name) {

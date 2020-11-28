@@ -50,6 +50,8 @@ gs-grid:after {
 gs-grid[gutter] > gs-block {
     padding-left: 0.5em;
     padding-right: 0.5em;
+    padding-bottom: 0.5em;
+    padding-top: 0.5em;
 }
 
 /* ################################################################################# */
@@ -63,4 +65,6 @@ gs-grid[force-reflow] {
 gs-grid[force-reflow] > gs-block {
     width: auto !important;
     float: none;
+    padding-bottom: 0.5em;
+    padding-top: 0.5em; 
 }

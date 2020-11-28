@@ -10,7 +10,7 @@ window.addEventListener('design-register-element', function () {
                                                       '    </gs-page>\n' +
                                                       '</gs-panel>');
     
-    designRegisterElement('gs-panel', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-panel.html');
+    designRegisterElement('gs-panel', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_panel');
     
     window.designElementProperty_GSPANEL = function(selectedElement) {
         // no-shadow-dismiss attribute
@@ -197,20 +197,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     GS.qryGetVal(strQueryString, strElementID + '.' + strID) === 'hide') {
                     GS.pushQueryString(strElementID + '.' + strID + '=show');
                     
-                } else if (this.getAttribute(strID) === 'show') {
-                    //document.getElementById(strID).style.left = '';
-                    //document.getElementById(strID).style.position = '';
-                    //document.getElementById(strID + '-blocker').style.left = ''; // <-- works on a phone
-                    document.getElementById(strID).removeAttribute('panel-hide');
-                    document.getElementById(strID + '-blocker').removeAttribute('panel-hide');
-                    
-                    //this.hiddenIDs.splice(this.hiddenIDs.indexOf(strID), 1);
-                    //
-                    GS.triggerEvent(document.getElementById(strID), 'show');
-                    GS.triggerEvent(window, 'resize'); //, {'triggered': true});
-                } else {
-                    this.setAttribute(strID, 'show');
                 }
+                this.setAttribute(strID, 'show');
+                
+                //document.getElementById(strID).style.left = '';
+                //document.getElementById(strID).style.position = '';
+                //document.getElementById(strID + '-blocker').style.left = ''; // <-- works on a phone
+                document.getElementById(strID).removeAttribute('panel-hide');
+                document.getElementById(strID + '-blocker').removeAttribute('panel-hide');
+                
+                //this.hiddenIDs.splice(this.hiddenIDs.indexOf(strID), 1);
+                //
+                GS.triggerEvent(document.getElementById(strID), 'show');
+                GS.triggerEvent(window, 'resize'); //, {'triggered': true});
                 //}
             },
             
@@ -228,23 +227,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     GS.qryGetVal(strQueryString, strElementID + '.' + strID) === 'show') {
                     GS.pushQueryString(strElementID + '.' + strID + '=hide');
                     
-                } else if (this.getAttribute(strID) === 'hide') {
-                    document.getElementById(strID).setAttribute('panel-hide', '');
-                    document.getElementById(strID + '-blocker').setAttribute('panel-hide', '');
-                    
-                    //if (window.innerWidth <= 768 || this.hasAttribute('dismissible')) {
-                    //    document.getElementById(strID).style.left = '-100%';
-                    //    document.getElementById(strID).style.position = 'absolute';
-                    //    document.getElementById(strID + '-blocker').style.left = '-100%'; // <-- works on a phone
-                    //    
-                    //    this.hiddenIDs.push(strID);
-                    //    
-                    GS.triggerEvent(document.getElementById(strID), 'hide');
-                    GS.triggerEvent(window, 'resize'); //, {'triggered': true});
-                    //}
-                } else {
-                    this.setAttribute(strID, 'hide');
                 }
+                
+                this.setAttribute(strID, 'hide');
+                
+                document.getElementById(strID).setAttribute('panel-hide', '');
+                document.getElementById(strID + '-blocker').setAttribute('panel-hide', '');
+                
+                //if (window.innerWidth <= 768 || this.hasAttribute('dismissible')) {
+                //    document.getElementById(strID).style.left = '-100%';
+                //    document.getElementById(strID).style.position = 'absolute';
+                //    document.getElementById(strID + '-blocker').style.left = '-100%'; // <-- works on a phone
+                //    
+                //    this.hiddenIDs.push(strID);
+                //    
+                GS.triggerEvent(document.getElementById(strID), 'hide');
+                GS.triggerEvent(window, 'resize'); //, {'triggered': true});
+                //}
             },
             
             'toggle': function (strID) {

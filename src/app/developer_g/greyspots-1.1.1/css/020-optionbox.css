@@ -29,13 +29,14 @@ gs-optionbox:not([no-target]) gs-option {
 }
 
 gs-optionbox:not([no-target]) gs-option:after {
-    /* fa-circle */
-    content: '\f111';
+    /* fa-circle \f111*/
+    /* fa-circle-o */
+    content: '\f10c';
 }
 
 gs-optionbox:not([no-target]) gs-option[selected]:after {
-    /* fa-circle-o */
-    content: '\f10c';
+    /* checked-circle-o */
+    content: '\f05d';
 }
 
 

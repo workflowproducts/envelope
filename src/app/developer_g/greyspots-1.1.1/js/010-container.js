@@ -6,7 +6,7 @@ window.addEventListener('design-register-element', function () {
                                                                 '    ${0}\n' +
                                                                 '</gs-container>');
     
-    designRegisterElement('gs-container', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-container-jumbo.html');
+    designRegisterElement('gs-container', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_container_jumbo');
     
     window.designElementProperty_GSCONTAINER = function(selectedElement) {
         var strVisibilityAttribute;

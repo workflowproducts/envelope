@@ -1,10 +1,15 @@
+//jslint this
+
 window.addEventListener('design-register-element', function () {
     'use strict';
-    
+
     registerDesignSnippet('<gs-datetime>', '<gs-datetime>', 'gs-datetime></gs-datetime>');
-    
+
+    /*
+    TODO: there is no documentation
     designRegisterElement('gs-datetime', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-datetime.html');
-    
+    */
+
     window.designElementProperty_GSDATETIME = function(selectedElement) {
         addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'column', this.value);
@@ -50,6 +55,34 @@ window.addEventListener('design-register-element', function () {
         // SUSPEND-INSERTED attribute
         addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
+        });
+
+        addProp('Focus', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onfocus') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onfocus', this.value);
+        });
+        addProp('Blur', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onblur') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onblur', this.value);
+        });
+        addProp('Change', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onchange') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onchange', this.value);
+        });
+        addProp('Mousedown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousedown') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onmousedown', this.value);
+        });
+        addProp('Mouseup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmouseup') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onmouseup', this.value);
+        });
+        addProp('Mousemove', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousemove') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onmousemove', this.value);
+        });
+        addProp('Keydown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeydown') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onkeydown', this.value);
+        });
+        addProp('Keyup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeyup') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onkeyup', this.value);
+        });
+        addProp('Keypress', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeypress') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onkeypress', this.value);
         });
 
         // visibility attributes
@@ -541,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
-            // console.log(element.hasTime);
+            //console.log(element.hasTime);
             if (element.hasTime) {
                 var clock = xtag.query(document, 'gs-dialog .clock')[0];
                 var timeAdjustSection = xtag.query(document, 'gs-dialog .time-adjust-section')[0];
@@ -883,7 +916,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var wheelHTML = function () {
             var strRet = '';
-            // console.log(arrFormat, arrDate);
+            //console.log(arrFormat, arrDate);
             for (i = 0, len = arrFormat.length; i < len; i += 1) {
                 if (arrFormat[i] === '\'') {
                     i += 1;
@@ -919,7 +952,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         dialogHTML = ml(function () {/*
-            <gs-page>
+            <gs-page id="wheel-dialog">
                 <gs-header>
                     {{LABELHTML}}
                     <gs-grid widths="1,1,1">
@@ -944,7 +977,8 @@ document.addEventListener('DOMContentLoaded', function () {
         dialogTemplate.innerHTML = dialogHTML;
         dialogTemplate.setAttribute('data-mode', evt.touchDevice ? 'full' : 'detect');
         GS.openDialog(dialogTemplate, function () {
-            var dialog = xtag.query(document, 'gs-dialog')[0];
+            // var dialog = xtag.query(document, 'gs-dialog')[0];
+            var dialog = document.getElementById('wheel-dialog');
 
             xtag.query(dialog, '.now-button')[0].addEventListener('click', function () {
                 element.dteValue = new Date();
@@ -954,6 +988,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             dialog.addEventListener('change', function (event) {
+                //console.log('test');
                 if (event.target.getAttribute('values') === 'MM' || event.target.getAttribute('values')[0] === 'y') {
                     var year = xtag.query(dialog, 'gs-wheel[values^="y"]')[0].value;
                     var month = xtag.query(dialog, 'gs-wheel[values="MM"]')[0].value;
@@ -974,7 +1009,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }, function (event, strAnswer) {
             if (strAnswer === 'Done') {
                 var dialog = xtag.query(document, 'gs-dialog')[0];
-                // console.log(dialog);
+                //console.log(dialog);
 
                 for (i = 0, len = arrFormat.length; i < len; i += 1) {
                     if (arrFormat[i] === '\'') {
@@ -1008,8 +1043,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         i += 1;
                     }
                 }
-
-                element.dteValue = new Date((element.hasDate ? '' : '2017-01-01 ') + arrDate.join('').replace('\'T\'', 'T'));
+                //console.log((element.hasDate ? '' : '2017/01/01 ') + arrDate.join('').replace('\'T\'', 'T'));
+                element.dteValue = new Date((element.hasDate ? '' : '2017/01/01 ') + arrDate.join('').replace('\'T\'', 'T'));
                 GS.triggerEvent(element, 'change');
             }
         });
@@ -1108,8 +1143,6 @@ document.addEventListener('DOMContentLoaded', function () {
             s = dteValue.getSeconds(),
             S = dteValue.getMilliseconds();
 
-        //console.log(dteValue.getFullYear());
-
         yearLen = String(y).length;
         dteValue = {
             y: y,
@@ -1169,7 +1202,6 @@ document.addEventListener('DOMContentLoaded', function () {
         c = '';
         token = '';
         s = false;
-
         while (i < strFormat.length) {
             token = '';
             c = strFormat.charAt(i);
@@ -1250,6 +1282,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         element.timezoneOffset = d2.getTime() - d1.getTime();
                     }
                 }*/
+                
+                //console.log(element.getAttribute('value'));
+                // if (element.getAttribute('value') === 'now' || element.getAttribute('value') === 'today') {
+                //     element.setAttribute('value', formatDate(new Date(), element.getAttribute('format')));
+                // }
+                //console.log(element.getAttribute('value'));
+
 
                 element.hasDate = /\b(y|yyyy|yy|M|MM|MMM|MMMM|d|dd|EEE|EEEE)\b/g.test(element.getAttribute('format'));
                 element.hasTime = /\b(k|kk|hh|h|H|HH|m|mm|s|ss|S|SS|SSS)\b/g.test(element.getAttribute('format'));
@@ -1376,7 +1415,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 set: function (newValue) {
                     var newerValue = GS.newDate(newValue);
-                    this.value = formatDate(newerValue, (this.hasDate ? 'yyyy/MM/dd' : '') + ' ' + (this.hasTime ? 'HH:mm:ss' : '').trim());
+                    // if (this.hasAttribute('format')) {
+                        this.value = newerValue;
+                    // } else {
+                    //     this.value = formatDate(newerValue, (this.hasDate ? 'yyyy/MM/dd' : '') + ' ' + (this.hasTime ? 'HH:mm:ss' : '').trim());
+                    // }
                 }
             }
         },
@@ -1467,7 +1510,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var arrTitles = element.arrtitle;
             wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + i + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
         } else {
-            wheel.appendChild(GS.stringToElement('<span class="value" value="' + arrValues[Math.abs(i)] + '" data-number="' + i + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + arrTitles[Math.abs(i)] + '</span>'));
+            wheel.appendChild(GS.stringToElement('<span class="value" data-number="' + newNumber + '" rotation="' + newRotation + '" style="transform: rotateX(' + newRotation + 'deg) translateZ(' + element.radius + ');">' + GS.leftPad(newNumber, '0', 2) + '</span>'), wheel.firstChild);
         }
     }
 
@@ -1490,8 +1533,8 @@ document.addEventListener('DOMContentLoaded', function () {
             clearTimeout(element.kineticTimer);
             element.kineticTimer = null;
         }
-        // console.log(element.dragStart, pageY, element.velocity, element.rotation, event);
-        // console.log('wheelDragStartHandler', element);
+        //console.log(element.dragStart, pageY, element.velocity, element.rotation, event);
+        //console.log('wheelDragStartHandler', element);
 
         var dragHandler = function (event) {
             var pageY = 0;
@@ -1502,9 +1545,9 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (event.pageY) {
                 pageY = event.pageY;
             }
-            // console.log('dragHandler', element);
+            //console.log('dragHandler', element);
             element.velocity = element.dragStart - pageY;
-            // console.log(element.dragStart, pageY, element.velocity, element.rotation, event);
+            //console.log(element.dragStart, pageY, element.velocity, element.rotation, event);
 
             element.rotation += element.velocity / fontSize;
             wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
@@ -1631,7 +1674,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            // console.log(wheel, element.rotation);
+            //console.log(wheel, element.rotation);
             var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
             if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
                 element.setAttribute('value', valueElement.innerText);
@@ -1663,7 +1706,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            // console.log(wheel, element.rotation);
+            //console.log(wheel, element.rotation);
             var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
             if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
                 element.setAttribute('value', valueElement.innerText);
@@ -1702,10 +1745,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
-            element.setAttribute('value', (valueElement.getAttribute('value') || valueElement.innerText));
+            // if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
+            //     element.setAttribute('value', (valueElement.getAttribute('data-number') || valueElement.innerText));
+            // } else {
+                element.setAttribute('value', (valueElement.getAttribute('value') || valueElement.innerText));
+                //element.setAttribute('value', (valueElement.getAttribute('value') || valueElement.getAttribute('data-number')));
+            // }
 
             wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
-            addNumberToStart(element);
+            if (!element.ampm) {
+                addNumberToStart(element);
+            }
 
         } else if (event.deltaY < 0) {
             element.rotation += element.rotationInterval;
@@ -1726,10 +1776,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             var valueElement = xtag.query(wheel, '[rotation="' + (element.rotation * -1) + '"]')[0];
-            element.setAttribute('value', (valueElement.getAttribute('value') || valueElement.innerText));
+            // if (element.getAttribute('values') && element.getAttribute('values').toLowerCase() === 'ampm') {
+            //     element.setAttribute('value', valueElement.innerText);
+            // } else {
+                element.setAttribute('value', (valueElement.getAttribute('value') || valueElement.innerText));
+                //element.setAttribute('value', (valueElement.getAttribute('value') || valueElement.getAttribute('data-number')));
+            // }
 
             wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + element.rotation + 'deg);');
-            addNumberToEnd(element);
+            if (!element.ampm) {
+                addNumberToEnd(element);
+            }
         }
     }
 
@@ -1742,9 +1799,11 @@ document.addEventListener('DOMContentLoaded', function () {
         element.wheel.innerHTML = '';
         for (var rotation = 0, j = parseInt(element.value - ((element.arrvalue) ? 1 : 0), 10) - 8; rotation > -360; rotation -= element.rotationInterval, j += 1) {
             if (element.ampm) {
+                element.rotation = (element.value === 'AM' ? 0 : 22.5);
+                element.wheel.setAttribute('style', 'transform: translateZ(-' + element.radius + ') rotateX(' + (element.value === 'AM' ? '0' : '22.5') + 'deg);');
                 element.wheel.appendChild(
                     GS.stringToElement(
-                        '<span class="value" data-number="' + j + '" ' +
+                        '<span class="value" data-number="' + (rotation === 0 ? 'AM' : 'PM') + '" ' +
                             'rotation="' + rotation + '" ' +
                             'style="transform: rotateX(' + rotation + 'deg) translateZ(' + element.radius + ');">' +
                                 (rotation === 0 ? 'AM' : 'PM') +
@@ -1767,13 +1826,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     var i = j;
                 }
-                // console.log(i, j);
+                //console.log(i, j);
                 j = ((j < 0) ? (Math.abs(i) % arrValues.length) - ((Math.abs(i) % arrValues.length) * 2) : (Math.abs(i) % arrValues.length));
                 if (j == -1) {
                     j = arrValues.length - 1;
                 }
                 i = Math.abs(j) % arrValues.length;
-                // console.log(i, j);
+                //console.log(i, j);
                 if (rotation == -180) {
                     element.setAttribute('value', arrValues[Math.abs(i)]);
                     if (xtag.query(element, '.container')[0].style.width < element.longestWidth + 'px') {
@@ -1990,7 +2049,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // element.max = parseInt(arrValue[1], 10);
                     var arrValue = element.values.split('-');
                     var i = parseInt(arrValue[0], 10);
-                    // console.log(arrValue);
+                    //console.log(arrValue);
                     element.arrvalue = [];
                     element.arrtitle = [];
                     var len = parseInt(arrValue[1], 10) + 1;
@@ -2041,7 +2100,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     this.longest = longestOfArray(arrTitles);
                     this.innerHTML = '<div style="position: absolute; visibility: hidden; height: auto; width: auto; white-space: nowrap;">&nbsp;' + this.longest + '&nbsp;</div>';
                     this.longestWidth = this.children[0].offsetWidth;
-                    // console.log(this.longestWidth);
+                    //console.log(this.longestWidth);
                 }
                 wheelElementInserted(this);
             },

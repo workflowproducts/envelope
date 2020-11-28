@@ -328,73 +328,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 element.displayIframe.parentNode.replaceChild(newIframe, element.displayIframe);
                 element.displayIframe = newIframe;
+                console.log(element.displayIframe, element.displayIframe.parentNode, element.displayIframe.contentWindow);
 
-                //if (bolSQL) {
-                //    //loadFunction = function () {
-                //    element.DBEditorStatusFlag.classList.add('running');
-                //    GS.ajaxJSON('/sql', element.DBEditor.getValue(), function (data, ajaxError) {
-                //        var bolError = false, i, len, errorSQL, errorPos, strError;
-                //
-                //        //element.DBEditor.focus();
-                //        element.DBEditorStatusFlag.classList.remove('running');
-                //
-                //        if (!ajaxError) {
-                //            if (data.dat.error === undefined) {
-                //                for (i = 0, len = data.dat.length; i < len; i = i + 1) {
-                //                    if (data.dat[i].type === 'error') {
-                //                        bolError = true;
-                //                        errorSQL = data.dat[i].sql;
-                //                        errorPos = parseInt(data.dat[i].err_pos, 10);
-                //
-                //                        if (isNaN(errorPos)) {
-                //                            strError = data.dat[i].error + '\n' +
-                //                                       '<hr/>' +
-                //                                       errorSQL;
-                //                        } else {
-                //                            strError = data.dat[i].error + '\n' +
-                //                               'Error found at position: "' + errorPos + '". The position has been marked with "&lt;&lt;".\n\n' +
-                //                               '<hr />' +
-                //                               errorSQL.substring(0, errorPos) + '<span style="color: #FF0000; font-weight: 900;">&lt;&lt;</span>' +
-                //                               errorSQL.substring(errorPos, errorSQL.length);
-                //                        }
-                //
-                //                        console.error('Error specific: ', data.dat[i]);
-                //                        console.error('All returned data: ', data);
-                //
-                //                        break;
-                //                    }
-                //                }
-                //            }
-                //
-                //            if (!bolError) {
-                //                element.displayIframe.contentWindow.document.write(strHTML);
-                //
-                //                // close the layout stream, causing everything to render
-                //                element.displayIframe.contentWindow.document.close();
-                //                element.handleQueryString();
-                //            } else {
-                //                element.displayIframe.contentWindow.document.write(
-                //                    '<pre style="white-space: pre-wrap;">' +
-                //                        '<center><h3>SQL Error</h3></center>' +
-                //                        strError + '<hr />Please see the console if you need more details.' +
-                //                    '</pre>');
-                //
-                //                // close the layout stream, causing everything to render
-                //                element.displayIframe.contentWindow.document.close();
-                //                element.handleQueryString();
-                //            }
-                //
-                //        } else {
-                //            GS.ajaxErrorDialog(data, function () {
-                //                element.refreshDisplay(true);
-                //            });
-                //        }
-                //    });
-                //    //
-                //    //    element.displayIframe.removeEventListener('load', loadFunction);
-                //    //};
-                //    //element.displayIframe.addEventListener('load', loadFunction);
-                //} else {
+                element.displayIframe.onload = function() {
                     element.displayIframe.contentWindow.document.write(strHTML);
 
                     // close the layout stream, causing everything to render
@@ -413,8 +349,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             }
                         });
                     }
-
-                //}
+                };
             },
 
             handleQueryString: function () {

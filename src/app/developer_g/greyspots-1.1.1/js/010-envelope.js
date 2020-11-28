@@ -1,3 +1,6 @@
+//global registerDesignSnippet, designRegisterElement, addProp, encodeHTML, setOrRemoveTextAttribute, setOrRemoveBooleanAttribute
+//jslint this
+
 window.addEventListener('design-register-element', function (event) {
     'use strict';
 
@@ -16,14 +19,15 @@ window.addEventListener('design-register-element', function (event) {
                                                             '    <template for="insert"></template>\n' +
                                                             '</gs-envelope>');
 
+    /*
+    TODO: there is no documentation
     designRegisterElement('gs-envelope', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-envelope.html');
+    */
 
     window.designElementProperty_GSENVELOPE = function (selectedElement) {
         var intIdNumber = (Math.floor(Math.random() * 1000)) + (Math.floor(new Date().getTime() / (Math.random() * 100000)));
 
-        addProp('Source', true,
-                '<gs-memo class="target" autoresize rows="1" value="' + encodeHTML((selectedElement.getAttribute('src') ||
-                                                                        selectedElement.getAttribute('source') || '')) + '" mini></gs-memo>',
+        addProp('Source', true, '<gs-memo class="target" autoresize rows="1" value="' + encodeHTML(selectedElement.getAttribute('src') || selectedElement.getAttribute('source') || '') + '" mini></gs-memo>',
                 function () {
             return setOrRemoveTextAttribute(selectedElement, 'src', (this.value));
         });
@@ -107,6 +111,39 @@ window.addEventListener('design-register-element', function (event) {
 
         addProp('Delete Action', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('action-delete') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'action-delete', this.value);
+        });
+        
+        // events
+        addProp('Before Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_select') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onbefore_select', this.value);
+        });
+
+        addProp('After Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_select') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onafter_select', this.value);
+        });
+
+        addProp('Before Insert', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_insert') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onbefore_insert', this.value);
+        });
+
+        addProp('After Insert', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_insert') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onafter_insert', this.value);
+        });
+
+        addProp('Before Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_update') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onbefore_update', this.value);
+        });
+
+        addProp('After Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_update') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onafter_update', this.value);
+        });
+
+        addProp('Before Delete', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_delete') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onbefore_delete', this.value);
+        });
+
+        addProp('After Delete', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_delete') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onafter_delete', this.value);
         });
 
         // Disable insert/update
@@ -211,8 +248,18 @@ document.addEventListener('DOMContentLoaded', function () {
     // ###################################################################
 
     function selectHandler(element, dragOrigin, dragCurrentCell, dragMode) {
-        var bolThead, bolFirstTh, arrRecords, arrCells, arrRecordsToAffect = [], arrCellsToAffect = [],
-            arrNewSelection = [], arrCellsToRemoveFromSelection = [], i, len, intFrom, intTo;
+        var bolThead;
+        var bolFirstTh;
+        var arrRecords;
+        var arrCells;
+        var arrRecordsToAffect = [];
+        var arrCellsToAffect = [];
+        var arrNewSelection = [];
+        var arrCellsToRemoveFromSelection = [];
+        var i;
+        var len;
+        var intFrom;
+        var intTo;
 
         arrRecords = xtag.query(element.scrollContainerElement, 'tr');
         arrCells = xtag.query(element.scrollContainerElement, 'td, th');
@@ -229,28 +276,40 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // if origin & currentCell are both the top-left cell and the cell is a heading: select all cells
-            if (bolThead && bolFirstTh &&
-                dragOrigin.parentNode.rowIndex === 0 && dragCurrentCell.parentNode.rowIndex === 0 &&
-                dragOrigin.cellIndex === 0 && dragCurrentCell.cellIndex === 0) {
+            if (
+                bolThead &&
+                bolFirstTh &&
+                dragOrigin.parentNode.rowIndex === 0 &&
+                dragCurrentCell.parentNode.rowIndex === 0 &&
+                dragOrigin.cellIndex === 0 &&
+                dragCurrentCell.cellIndex === 0
+            ) {
                 arrCellsToAffect = arrCells;
 
             // else if origin & currentCell are both first ths: select the records from origin to currentCell
             } else if (bolFirstTh && dragOrigin.cellIndex === 0 && dragCurrentCell.cellIndex === 0) {
-                arrRecordsToAffect =
-                    arrRecords.slice(Math.min(dragOrigin.parentNode.rowIndex, dragCurrentCell.parentNode.rowIndex),
-                                     Math.max(dragOrigin.parentNode.rowIndex, dragCurrentCell.parentNode.rowIndex) + 1);
+                arrRecordsToAffect = arrRecords.slice(
+                    Math.min(dragOrigin.parentNode.rowIndex, dragCurrentCell.parentNode.rowIndex),
+                    Math.max(dragOrigin.parentNode.rowIndex, dragCurrentCell.parentNode.rowIndex) + 1
+                );
 
-                for (i = 0, len = arrRecordsToAffect.length; i < len; i += 1) {
+                i = 0;
+                len = arrRecordsToAffect.length;
+                while (i < len) {
                     Array.prototype.push.apply(arrCellsToAffect, xtag.toArray(arrRecordsToAffect[i].children));
+                    i += 1;
                 }
 
             // else if origin & currentCell are both headings: select the columns from origin to currentCell
             } else if (bolThead && dragOrigin.parentNode.rowIndex === 0 && dragCurrentCell.parentNode.rowIndex === 0) {
                 intFrom = Math.min(dragOrigin.cellIndex, dragCurrentCell.cellIndex);
-                intTo   = Math.max(dragOrigin.cellIndex, dragCurrentCell.cellIndex) + 1;
+                intTo = Math.max(dragOrigin.cellIndex, dragCurrentCell.cellIndex) + 1;
 
-                for (i = 0, len = arrRecords.length; i < len; i += 1) {
+                i = 0;
+                len = arrRecords.length;
+                while (i < len) {
                     Array.prototype.push.apply(arrCellsToAffect, xtag.toArray(arrRecords[i].children).slice(intFrom, intTo));
+                    i += 1;
                 }
 
             //// else if origin & currentCell are the same cell: select the record
@@ -263,15 +322,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // else select cells from origin to currentCell
             } else {
-                arrRecordsToAffect =
-                    arrRecords.slice(Math.min(dragOrigin.parentNode.rowIndex, dragCurrentCell.parentNode.rowIndex),
-                                     Math.max(dragOrigin.parentNode.rowIndex, dragCurrentCell.parentNode.rowIndex) + 1);
+                arrRecordsToAffect = arrRecords.slice(
+                    Math.min(dragOrigin.parentNode.rowIndex, dragCurrentCell.parentNode.rowIndex),
+                    Math.max(dragOrigin.parentNode.rowIndex, dragCurrentCell.parentNode.rowIndex) + 1
+                );
 
                 intFrom = Math.min(dragOrigin.cellIndex, dragCurrentCell.cellIndex);
-                intTo   = Math.max(dragOrigin.cellIndex, dragCurrentCell.cellIndex) + 1;
+                intTo = Math.max(dragOrigin.cellIndex, dragCurrentCell.cellIndex) + 1;
 
-                for (i = 0, len = arrRecordsToAffect.length; i < len; i += 1) {
+                i = 0;
+                len = arrRecordsToAffect.length;
+                while (i < len) {
                     Array.prototype.push.apply(arrCellsToAffect, xtag.toArray(arrRecordsToAffect[i].children).slice(intFrom, intTo));
+                    i += 1;
                 }
             }
 
@@ -286,20 +349,29 @@ document.addEventListener('DOMContentLoaded', function () {
             if (dragMode === 'select') {
 
                 // add new cells to element.selectionSelectedCells
-                for (i = 0, len = element.selectionSelectedCells.length; i < len; i += 1) {
+                i = 0;
+                len = element.selectionSelectedCells.length;
+                while (i < len) {
                     if (arrCellsToAffect.indexOf(element.selectionSelectedCells[i]) === -1) {
                         arrCellsToRemoveFromSelection.push(element.selectionSelectedCells[i]);
                     }
+                    i += 1;
                 }
                 element.selectionSelectedCells = arrCellsToAffect;
 
                 // add new cells to element.selectedCells
                 arrNewSelection = element.selectedCells;
-                for (i = 0, len = arrCellsToAffect.length; i < len; i += 1) {
+                i = 0;
+                len = arrCellsToAffect.length;
+                while (i < len) {
                     GS.listAdd(arrNewSelection, arrCellsToAffect[i]);
+                    i += 1;
                 }
-                for (i = 0, len = arrCellsToRemoveFromSelection.length; i < len; i += 1) {
+                i = 0;
+                len = arrCellsToRemoveFromSelection.length;
+                while (i < len) {
                     arrNewSelection.splice(arrNewSelection.indexOf(arrCellsToRemoveFromSelection[i]), 1);
+                    i += 1;
                 }
                 element.selectedCells = arrNewSelection;
 
@@ -310,10 +382,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 // deselect cells from arrCellsToAffect
                 arrNewSelection = element.selectedCells;
 
-                for (i = 0, len = arrCellsToAffect.length; i < len; i += 1) {
+                i = 0;
+                len = arrCellsToAffect.length;
+                while (i < len) {
                     if (arrNewSelection.indexOf(arrCellsToAffect[i]) > -1) {
                         arrNewSelection.splice(arrNewSelection.indexOf(arrCellsToAffect[i]), 1);
                     }
+                    i += 1;
                 }
                 element.selectedCells = arrNewSelection;
             }
@@ -327,17 +402,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // get data and send it off to be templated
     function getData(element) {
+        GS.triggerEvent(element, 'before_select');
+        GS.triggerEvent(element, 'onbefore_select');
+        if (element.hasAttribute('onbefore_select')) {
+            new Function(element.getAttribute('onbefore_select')).apply(element);
+        }
+
         element.refreshing = true;
-        var strSrc     = GS.templateWithQuerystring((element.getAttribute('src') || element.getAttribute('source') || ''))
-          , srcParts   = strSrc[0] === '(' ? [strSrc, ''] : strSrc.split('.')
-          , strSchema  = srcParts[0]
-          , strObject  = srcParts[1]
-          , strWhere   = GS.templateWithQuerystring((element.getAttribute('where') || ''))
-          , strOrd     = GS.templateWithQuerystring((element.getAttribute('ord') || ''))
-          , strLimit   = GS.templateWithQuerystring((element.getAttribute('limit') || ''))
-          , strOffset  = GS.templateWithQuerystring((element.getAttribute('offset') || ''))
-          , response_i = 0, response_len = 0, arrTotalRecords = [], strWhereColumn
-          , i, len;
+        var strSrc = GS.templateWithQuerystring(element.getAttribute('src') || element.getAttribute('source') || '');
+        var srcParts = strSrc[0] === '(' ? [strSrc, ''] : strSrc.split('.');
+        var strSchema = srcParts[0];
+        var strObject = srcParts[1];
+        var strWhere = GS.templateWithQuerystring(element.getAttribute('where') || '');
+        var strOrd = GS.templateWithQuerystring(element.getAttribute('ord') || '');
+        var strLimit = GS.templateWithQuerystring(element.getAttribute('limit') || '');
+        var strOffset = GS.templateWithQuerystring(element.getAttribute('offset') || '');
+        var response_i = 0;
+        var response_len = 0;
+        var arrTotalRecords = [];
+        var strWhereColumn;
+        var i;
+        var len;
 
         // if there is a column attribute on element: combine the where attribute with a where generated by value
         if ((element.getAttribute('column') || element.getAttribute('qs')) && element.value) {
@@ -356,8 +441,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // if the user has set an order by: use the user order bys
         if (element.user_order_bys && element.user_order_bys.columns.length > 0) {
-            for (i = 0, len = element.user_order_bys.columns.length, strOrd = ''; i < len; i += 1) {
+            i = 0;
+            len = element.user_order_bys.columns.length;
+            strOrd = '';
+            while (i < len) {
                 strOrd += (strOrd !== '' ? ', ' : '') + element.user_order_bys.columns[i] + ' ' + element.user_order_bys.directions[i].toUpperCase();
+                i += 1;
             }
 
         // else: use the order by attribute
@@ -367,26 +456,37 @@ document.addEventListener('DOMContentLoaded', function () {
         element.oldScrollTop = element.scrollContainerElement.scrollTop;
 
         addLoader(element, 'Loading...');
-        
+
         GS.requestCachingSelect(GS.envSocket, strSchema, strObject, '*'
                                  , strWhere, strOrd, strLimit, strOffset
                                  , function (data, error) {
             element.refreshing = false;
-            var arrRecords, arrCells, envData
-              , i, len, cell_i, cell_len;
+            var arrRecords;
+            var arrCells;
+            var envData;
+            var i;
+            var len;
+            var cell_i;
+            var cell_len;
 
             if (!error) {
                 if (data.strMessage !== 'TRANSACTION COMPLETED') {
                     arrRecords = GS.trim(data.strMessage, '\n').split('\n');
 
-                    for (i = 0, len = arrRecords.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrRecords.length;
+                    while (i < len) {
                         arrCells = arrRecords[i].split('\t');
 
-                        for (cell_i = 0, cell_len = arrCells.length; cell_i < cell_len; cell_i += 1) {
+                        cell_i = 0;
+                        cell_len = arrCells.length;
+                        while (cell_i < cell_len) {
                             arrCells[cell_i] = arrCells[cell_i] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[cell_i]);
+                            cell_i += 1;
                         }
 
                         arrTotalRecords.push(arrCells);
+                        i += 1;
                     }
                 } else {
                     removeLoader(element);
@@ -436,7 +536,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!theadElement) {
                 arrCells = tbodyElement.getElementsByTagName('tr')[0].children;
 
-                for (i = 0, len = arrCells.length, strHeaderHTML = '', strFixedHeaderHTML = ''; i < len; i += 1) {
+                i = 0;
+                len = arrCells.length;
+                strHeaderHTML = '';
+                strFixedHeaderHTML = '';
+                while (i < len) {
                     strCurrentHeadingText = encodeHTML(GS.templateWithQuerystring(arrCells[i].getAttribute('heading') || ''));
 
                     if (strCurrentHeadingText) {
@@ -445,6 +549,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     strHeaderHTML += '<th gs-dynamic>' + strCurrentHeadingText + '</th>';
                     strFixedHeaderHTML += '<div class="fixed-header-cell" gs-dynamic>' + strCurrentHeadingText + '</div>';
+                    i += 1;
                 }
 
                 if (bolHeaderTextFound) {
@@ -458,8 +563,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 strHeaderHTML = theadElement.outerHTML;
                 arrCells = theadElement.getElementsByTagName('tr')[0].children;
 
-                for (i = 0, len = arrCells.length, strFixedHeaderHTML = ''; i < len; i += 1) {
+                i = 0;
+                len = arrCells.length;
+                strFixedHeaderHTML = '';
+                while (i < len) {
                     strFixedHeaderHTML += '<div class="fixed-header-cell" gs-dynamic>' + encodeHTML(arrCells[i].textContent || '') + '</div>';
+                    i += 1;
                 }
             }
 
@@ -517,6 +626,10 @@ document.addEventListener('DOMContentLoaded', function () {
             // this is triggered after the scrolling is set so that if someone wants to scroll
             // to a record after select they aren't going to encounter a problem
             GS.triggerEvent(element, 'after_select');
+            GS.triggerEvent(element, 'onafter_select');
+            if (element.hasAttribute('onafter_select')) {
+                new Function(element.getAttribute('onafter_select')).apply(element);
+            }
 
         } else {
             // add error class
@@ -531,18 +644,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     function updateRecord(element, record, strColumn, newValue) {
-        var srcParts   = GS.templateWithQuerystring((element.getAttribute('src') || element.getAttribute('source') || '')).split('.')
-          , strSchema  = srcParts[0]
-          , strObject  = srcParts[1]
-          , strHashCols = ''
-          , strHashData = ''
-          , strUpdateData =
+        var srcParts = GS.templateWithQuerystring(element.getAttribute('src') || element.getAttribute('source') || '').split('.');
+        var strSchema = srcParts[0];
+        var strObject = srcParts[1];
+        var strHashCols = '';
+        var strHashData = '';
+        var strUpdateData = (
             'pk\tset\thash\n' +
             'id\t' + GS.encodeForTabDelimited(strColumn) + '\thash\n' +
             GS.encodeForTabDelimited(record.getAttribute('data-id')) + '\t' + GS.encodeForTabDelimited(newValue) + '\t'
-          , i, len, arrTotalRecords = [], callbackFunction;
+        );
+        var i;
+        var len;
+        var arrTotalRecords = [];
+        var callbackFunction;
 
-        for (i = 0, len = element.arrWhereColumns.length; i < len; i += 1) {
+        GS.triggerEvent(element, 'before_update');
+        GS.triggerEvent(element, 'onbefore_update');
+        if (element.hasAttribute('onbefore_update')) {
+            new Function(element.getAttribute('onbefore_update')).apply(element);
+        }
+
+        i = 0;
+        len = element.arrWhereColumns.length;
+        while (i < len) {
             if (element.arrWhereColumns[i] != 'id') {
                 if (strHashCols.length > 0) {
                     strHashCols += '\t';
@@ -552,10 +677,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 strHashData += GS.encodeForTabDelimited(record.getAttribute('data-' + element.arrWhereColumns[i]));
             }
+
+            i += 1;
         }
 
         strUpdateData += CryptoJS.MD5(strHashData);
-        
+
         element.saveState = 'saving';
         if (element.saveTimeout) {
             clearTimeout(element.saveTimeout);
@@ -601,8 +728,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 GS.webSocketErrorDialog(data);
             }
         }, function (data, error, transactionID, commitFunction, rollbackFunction) {
-            var arrRecords, arrCells, envData
-              , i, len, cell_i, cell_len;
+            var arrRecords;
+            var arrCells;
+            var envData;
+            var i;
+            var len;
+            var cell_i;
+            var cell_len;
 
             if (!error) {
                 if (data !== 'TRANSACTION COMPLETED') {
@@ -613,17 +745,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (xtag.query(element, '.saving-warning-parent').length > 0) {
                         element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
                     }
-                    
+
                     arrRecords = GS.trim(data, '\n').split('\n');
 
-                    for (i = 0, len = arrRecords.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrRecords.length;
+                    while (i < len) {
                         arrCells = arrRecords[i].split('\t');
 
-                        for (cell_i = 0, cell_len = arrCells.length; cell_i < cell_len; cell_i += 1) {
+                        cell_i = 0;
+                        cell_len = arrCells.length;
+                        while (cell_i < cell_len) {
                             arrCells[cell_i] = arrCells[cell_i] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[cell_i]);
+                            cell_i += 1;
                         }
 
                         arrTotalRecords.push(arrCells);
+                        i += 1;
                     }
 
                 } else {
@@ -691,7 +829,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 focusElement = focusElement.parentNode;
             }
             focusElementCell = getCellFromTarget(focusElement);
-            console.log(focusElement, focusElementCell);
+          //console.log(focusElement, focusElementCell);
 
             if (focusElementCell) {
                 focusElementTag = focusElement.nodeName.toLowerCase();
@@ -700,7 +838,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 focusElementRecordIndex = focusElementRecord.rowIndex;
                 focusElementCellIndex = focusElementCell.cellIndex;
                 focusElementIndex = xtag.query(focusElementRecord, focusElement.nodeName.toLowerCase()).indexOf(focusElement);
-                console.log(focusElementRecordIndex, focusElementCellIndex, focusElementIndex);
+              //console.log(focusElementRecordIndex, focusElementCellIndex, focusElementIndex);
 
                 //console.log(focusElementRecord,
                 //            xtag.query(focusElementRecord, '*'),
@@ -717,13 +855,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     // refresh record in lastSuccessData
                     idIndex = element.lastSuccessData.arr_column.indexOf('id');
 
-                    for (i = 0, len = element.lastSuccessData.dat.length; i < len; i += 1) {
+                    i = 0;
+                    len = element.lastSuccessData.dat.length;
+                    while (i < len) {
                         if (String(element.lastSuccessData.dat[i][idIndex]) === String(record.getAttribute('data-id'))) {
                             recordIndex = i;
                             element.lastSuccessData.dat[i] = JSON.parse(JSON.stringify(event.detail.response));
 
                             break;
                         }
+                        i += 1;
                     }
 
                     // save text selection status
@@ -735,7 +876,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     arrElements = xtag.query(record, 'td, th');
                     arrSelection = [];
 
-                    for (i = 0, len = arrElements.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrElements.length;
+                    while (i < len) {
                         if (arrElements[i].hasAttribute('selected-secondary')) {
                             arrSelection.push('selected-secondary');
                         } else if (arrElements[i].hasAttribute('selected')) {
@@ -743,6 +886,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         } else {
                             arrElements.push('');
                         }
+                        i += 1;
                     }
 
                     // replace "record" with new templated record
@@ -754,23 +898,26 @@ document.addEventListener('DOMContentLoaded', function () {
                     // use saved selection status to select the cells in the new record
                     arrElements = xtag.query(newRecord, 'td, th');
 
-                    for (i = 0, len = arrElements.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrElements.length;
+                    while (i < len) {
                         if (arrSelection[i]) {
                             arrElements[i].setAttribute(arrSelection[i], '');
                         }
+                        i += 1;
                     }
 
                     // refocus
                     if (focusElementCell) {
                         elementWalkResult = xtag.query(element.scrollContainerElement, 'tr')[focusElementRecordIndex];
-                        console.log(elementWalkResult);
+                      //console.log(elementWalkResult);
 
                         if (elementWalkResult) {
                             elementWalkResult = xtag.query(elementWalkResult, focusElementTag)[focusElementIndex];
-                            console.log(elementWalkResult, focusElementTag, focusElementIndex);
+                          //console.log(elementWalkResult, focusElementTag, focusElementIndex);
 
                             if (elementWalkResult) {
-                                console.log('test');
+                              //console.log('test');
                                 elementWalkResult.focus();
                             }
 
@@ -798,6 +945,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.refreshFixedHeader();
                 element.refreshHeight();
 
+                GS.triggerEvent(element, 'after_update');
+                GS.triggerEvent(element, 'onafter_update');
+                if (element.hasAttribute('onafter_update')) {
+                    new Function(element.getAttribute('onafter_update')).apply(element);
+                }
+
             // else: errorDialog
             } else {
                 // create addin to error response
@@ -809,11 +962,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     // revert
                     idIndex = element.lastSuccessData.arr_column.indexOf('id');
 
-                    for (i = 0, len = element.lastSuccessData.dat.length; i < len; i += 1) {
+                    i = 0;
+                    len = element.lastSuccessData.dat.length;
+                    while (i < len) {
                         if (String(element.lastSuccessData.dat[i][idIndex]) === String(record.getAttribute('data-id'))) {
                             recordIndex = i;
                             break;
                         }
+                        i += 1;
                     }
 
                     tbodyElement = document.createElement('tbody');
@@ -825,27 +981,40 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function deleteRecords(element, arrID, arrRecord) {
-        var srcParts   = GS.templateWithQuerystring((element.getAttribute('src') || element.getAttribute('source') || '')).split('.')
-          , strSchema  = srcParts[0]
-          , strObject  = srcParts[1]
-          , strHashCols = ''
-          , strHashData = ''
-          , strDeleteData =
+        var srcParts = GS.templateWithQuerystring(element.getAttribute('src') || element.getAttribute('source') || '').split('.');
+        var strSchema = srcParts[0];
+        var strObject = srcParts[1];
+        var strHashCols = '';
+        var strHashData = '';
+        var strDeleteData = (
             'pk\thash\n' +
             'id\thash\n'
-          , i, len, j, len2, arrTotalRecords = [], callbackFunction;
+        );
+        var i;
+        var len;
+        var j;
+        var len2;
+        var arrTotalRecords = [];
+        var callbackFunction;
 
-        for (j = 0, len2 = element.arrWhereColumns.length; j < len2; j += 1) {
+        j = 0;
+        len2 = element.arrWhereColumns.length;
+        while (j < len2) {
             if (element.arrWhereColumns[j] != 'id') {
                 if (strHashCols.length > 0) {
                     strHashCols += '\t';
                 }
                 strHashCols += GS.encodeForTabDelimited(element.arrWhereColumns[j]);
             }
+            j += 1;
         }
 
-        for (i = 0, len = arrID.length; i < len; i += 1) {
-            for (j = 0, len2 = element.arrWhereColumns.length; j < len2; j += 1) {
+        i = 0;
+        len = arrID.length;
+        while (i < len) {
+            j = 0;
+            len2 = element.arrWhereColumns.length;
+            while (j < len2) {
                 if (element.arrWhereColumns[j] != 'id') {
                     if (strHashData.length > 0) {
                         strHashData += '\t';
@@ -855,23 +1024,32 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     strDeleteData += GS.encodeForTabDelimited(arrRecord[i].getAttribute('data-id'));
                 }
+                j += 1;
             }
             //console.log(strHashData);
             strDeleteData += '\t' + CryptoJS.MD5(strHashData) + '\n';
             strHashData = '';
+            i += 1;
         }
 
         addLoader(element, 'Creating Delete Transaction...');
         GS.requestDeleteFromSocket(
-            GS.envSocket, strSchema, strObject, strHashCols, strDeleteData
-            , function (data, error, transactionID) {
+            GS.envSocket,
+            strSchema,
+            strObject,
+            strHashCols,
+            strDeleteData,
+            function (data, error, transactionID) {
                 if (error) {
                     removeLoader(element);
                     GS.webSocketErrorDialog(data);
                 }
-            }
-            , function (data, error, transactionID, commitFunction, rollbackFunction) {
-                var arrElements, i, len, templateElement;
+            },
+            function (data, error, transactionID, commitFunction, rollbackFunction) {
+                var arrElements;
+                var i;
+                var len;
+                var templateElement;
                 if (!error) {
                     if (data === 'TRANSACTION COMPLETED') {
                         // We have already confimed with the user that we are going to delete
@@ -882,17 +1060,27 @@ document.addEventListener('DOMContentLoaded', function () {
                     rollbackFunction();
                     GS.webSocketErrorDialog(data);
                 }
-            }
-            , function (strAnswer, data, error) {
-                var i, len, idColIndex, deleteIndex;
+            },
+            function (strAnswer, data, error) {
+                var i;
+                var len;
+                var idColIndex;
+                var deleteIndex;
                 removeLoader(element);
 
                 if (!error) {
                     if (strAnswer === 'COMMIT') {
                         GS.triggerEvent(element, 'after_delete');
+                        GS.triggerEvent(element, 'onafter_delete');
+                        if (element.hasAttribute('onafter_delete')) {
+                            new Function(element.getAttribute('onafter_delete')).apply(element);
+                        }
 
-                        for (i = 0, len = arrRecord.length; i < len; i += 1) {
+                        i = 0;
+                        len = arrRecord.length;
+                        while (i < len) {
                             arrRecord[i].parentNode.removeChild(arrRecord[i]);
+                            i += 1;
                         }
 
                         idColIndex = element.lastSuccessData.arr_column.indexOf('id');
@@ -903,7 +1091,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         } else {
                             // remove the record data from our stored data and
                             //      stop looping when we have deleted all the ones we are supposed to
-                            for (i = 0, len = element.lastSuccessData.dat.length; i < len; i += 1) {
+                            i = 0;
+                            len = element.lastSuccessData.dat.length;
+                            while (i < len) {
                                 // (arrID should only have strings so we cast the current id to string)
                                 deleteIndex = arrID.indexOf(String(element.lastSuccessData.dat[i][idColIndex]));
 
@@ -917,6 +1107,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 if (arrID.length === 0) {
                                     break;
                                 }
+                                i += 1;
                             }
 
                             handleData(element, element.lastSuccessData);
@@ -932,14 +1123,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function insertRecord(element, dialog, strInsertString) {
-        var srcParts   = GS.templateWithQuerystring((element.getAttribute('src') || element.getAttribute('source') || '')).split('.')
-          , strSchema  = srcParts[0]
-          , strObject  = srcParts[1]
-          , arrInsertKeys
-          , arrInsertValues
-          , strWSInsertColumns
-          , strWSInsertData
-          , i, len;
+        var srcParts = GS.templateWithQuerystring(element.getAttribute('src') || element.getAttribute('source') || '').split('.');
+        var strSchema = srcParts[0];
+        var strObject = srcParts[1];
+        var arrInsertKeys;
+        var arrInsertValues;
+        var strWSInsertColumns;
+        var strWSInsertData;
+        var i;
+        var len;
 
         // if there is a column attribute on this element: append child column (or column) and the value to the insert string
         if (element.getAttribute('column') || element.getAttribute('qs')) {
@@ -951,39 +1143,65 @@ document.addEventListener('DOMContentLoaded', function () {
         arrInsertKeys = GS.qryGetKeys(strInsertString);
         arrInsertValues = GS.qryGetVals(strInsertString);
 
-        for (i = 0, len = arrInsertKeys.length, strWSInsertColumns = ''; i < len; i += 1) {
+        i = 0;
+        len = arrInsertKeys.length;
+        strWSInsertColumns = '';
+        while (i < len) {
             strWSInsertColumns += arrInsertKeys[i] + ((i + 1) === len ? '\n' : '\t');
+            i += 1;
         }
-        for (i = 0, len = arrInsertValues.length, strWSInsertData = ''; i < len; i += 1) {
+        i = 0;
+        len = arrInsertValues.length;
+        strWSInsertData = '';
+        while (i < len) {
             strWSInsertData += arrInsertValues[i] + ((i + 1) === len ? '\n' : '\t');
+            i += 1;
         }
 
         addLoader(element, 'Inserting Record...');
 
-        GS.requestInsertFromSocket(GS.envSocket, strSchema, strObject, strWSInsertColumns, 'id', '', strWSInsertColumns + strWSInsertData, function (data, error, transactionID) {
-            if (error) {
-                removeLoader(element);
-                GS.webSocketErrorDialog(data);
-            }
-        }, function (data, error, transactionID, commitFunction, rollbackFunction) {
-            var arrElements, i, len, templateElement;
-
-            if (!error) {
-                if (data === 'TRANSACTION COMPLETED') {
-                    commitFunction();
+        GS.requestInsertFromSocket(
+            GS.envSocket,
+            strSchema,
+            strObject,
+            strWSInsertColumns,
+            'id',
+            '',
+            strWSInsertColumns + strWSInsertData,
+            function (data, error, transactionID) {
+                if (error) {
+                    removeLoader(element);
+                    GS.webSocketErrorDialog(data);
                 }
+            },
+            function (data, error, transactionID, commitFunction, rollbackFunction) {
+                var arrElements;
+                var i;
+                var len;
+                var templateElement;
 
-            } else {
+                if (!error) {
+                    if (data === 'TRANSACTION COMPLETED') {
+                        commitFunction();
+                        GS.triggerEvent(element, 'after_insert');
+                        GS.triggerEvent(element, 'onafter_insert');
+                        if (element.hasAttribute('onafter_insert')) {
+                            new Function(element.getAttribute('onafter_insert')).apply(element);
+                        }
+                    }
+                } else {
+                    removeLoader(element);
+                    rollbackFunction();
+                    GS.webSocketErrorDialog(data);
+                }
+            },
+            function () {
                 removeLoader(element);
-                rollbackFunction();
-                GS.webSocketErrorDialog(data);
+                GS.triggerEvent(element, 'after_insert');
+                GS.closeDialog(dialog, 'Ok');
+                getData(element, true);
             }
-        }, function () {
-            removeLoader(element);
-            GS.triggerEvent(element, 'after_insert');
-            GS.closeDialog(dialog, 'Ok');
-            getData(element, true);
-        });
+        );
     }
 
 
@@ -991,13 +1209,24 @@ document.addEventListener('DOMContentLoaded', function () {
     // ########################### UI REFRESH ###########################
     // ##################################################################
 
-
     function refreshHud(element) {
-        var elementHudTopContainer, elementHudBottomContainer, divElement = document.createElement('div'),
-            hudInsertButton, hudRefreshButton, hudDeleteButton, hudOrderbyButton, hudLimitButton, intOffset, intLimit,
-            jsnOrderByCopy, i, len, customHudTemplate, customHudElements;
+        var elementHudTopContainer;
+        var elementHudBottomContainer;
+        var divElement = document.createElement('div');
+        var hudInsertButton;
+        var hudRefreshButton;
+        var hudDeleteButton;
+        var hudOrderbyButton;
+        var hudLimitButton;
+        var intOffset;
+        var intLimit;
+        var jsnOrderByCopy;
+        var i;
+        var len;
+        var customHudTemplate;
+        var customHudElements;
 
-        elementHudTopContainer    = element.hudTopElement;
+        elementHudTopContainer = element.hudTopElement;
         elementHudBottomContainer = element.hudBottomElement;
 
         elementHudTopContainer.innerHTML = '';
@@ -1113,12 +1342,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     GS.triggerEvent(element, 'insert_dialog_open');
 
                     xtag.query(dialog, '.dialog-envelope-insert')[0].addEventListener('click', function () {
-                        var insertContainer = document.getElementById('insert-dialog-content-container'),
-                            controls, i, len, strInsertString, currentValue;
+                        var insertContainer = document.getElementById('insert-dialog-content-container');
+                        var controls;
+                        var i;
+                        var len;
+                        var strInsertString;
+                        var currentValue;
+
+                        GS.triggerEvent(element, 'before_insert');
+                        GS.triggerEvent(element, 'onbefore_insert');
+                        if (element.hasAttribute('onbefore_insert')) {
+                            new Function(element.getAttribute('onbefore_insert')).apply(element);
+                        }
 
                         controls = xtag.query(insertContainer, '[column]');
 
-                        for (i = 0, len = controls.length, strInsertString = ''; i < len; i += 1) {
+                        i = 0;
+                        len = controls.length;
+                        strInsertString = '';
+                        while (i < len) {
                             currentValue = controls.checked !== undefined ? controls.checked : controls[i].value;
 
                             if (currentValue === undefined || currentValue === null) {
@@ -1131,6 +1373,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 strInsertString += (strInsertString === '' ? '' : '&') +
                                                     controls[i].getAttribute('column') + '=' + currentValue;
                             }
+                            i += 1;
                         }
 
                         insertRecord(element, dialog, strInsertString);
@@ -1153,11 +1396,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 var i, len, arrRecord = element.selectedRecords, arrID = [];
 
                 // loop through the selected cells and create an array of ids
-                for (i = 0, len = arrRecord.length; i < len; i += 1) {
+                i = 0;
+                len = arrRecord.length;
+                while (i < len) {
                     arrID.push(String(arrRecord[i].dataset.id));
+                    i += 1;
                 }
 
                 if (arrID.length > 0) {
+                    GS.triggerEvent(element, 'before_delete');
+                    GS.triggerEvent(element, 'onbefore_delete');
+                    if (element.hasAttribute('onbefore_delete')) {
+                        new Function(element.getAttribute('onbefore_delete')).apply(element);
+                    }
                     GS.msgbox(  'Are you sure...',
                                     '<br gs-dynamic />' +
                                     '<center gs-dynamic>' +
@@ -1229,15 +1480,23 @@ document.addEventListener('DOMContentLoaded', function () {
                         */});
 
                         dialog = GS.openDialog(templateElement2, function () {
-                                    var unusedColumnsContainer = document.getElementById('order-by-dialog-unused-columns'),
-                                        unusedColumnTapHandler, columnElements, i, len, strHTML;
+                                    var unusedColumnsContainer = document.getElementById('order-by-dialog-unused-columns');
+                                    var unusedColumnTapHandler;
+                                    var columnElements;
+                                    var i;
+                                    var len;
+                                    var strHTML;
 
-                                    for (i = 0, len = element.lastSuccessData.arr_column.length, strHTML = ''; i < len; i += 1) {
+                                    i = 0;
+                                    len = element.lastSuccessData.arr_column.length;
+                                    strHTML = '';
+                                    while (i < len) {
                                         if (jsnOrderByCopy.columns.indexOf(element.lastSuccessData.arr_column[i]) === -1) {
                                             strHTML +=  '<div class="order_by_column" data-column="' + element.lastSuccessData.arr_column[i] + '" gs-dynamic>' +
                                                             '<gs-button mini style="padding: 0.25em;" dialogclose class="column_name" gs-dynamic>' + GS.strToTitle(element.lastSuccessData.arr_column[i]) + '</gs-button>' +
                                                         '</div>';
                                         }
+                                        i += 1;
                                     }
 
                                     unusedColumnsContainer.innerHTML = strHTML;
@@ -1256,8 +1515,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                     columnElements = unusedColumnsContainer.getElementsByClassName('order_by_column');
 
-                                    for (i = 0, len = columnElements.length; i < len; i += 1) {
+                                    i = 0;
+                                    len = columnElements.length;
+                                    while (i < len) {
                                         columnElements[i].addEventListener('click', unusedColumnTapHandler);
+                                        i += 1;
                                     }
                                 });
 
@@ -1271,24 +1533,39 @@ document.addEventListener('DOMContentLoaded', function () {
                             deleteTapHandler, directionButtons, directionTapHandler;
 
 
-                        for (i = 0, len = jsnOrderByCopy.columns.length, strHTML = ''; i < len; i += 1) {
+                        i = 0;
+                        len = jsnOrderByCopy.columns.length;
+                        strHTML = '';
+                        while (i < len) {
                             strHTML +=  '<div class="order_by_column" flex-horizontal data-column="' + jsnOrderByCopy.columns[i] + '" data-direction="' + jsnOrderByCopy.directions[i] + '" gs-dynamic>' +
                                             '<gs-button inline remove-all icononly icon="bars" class="sort" gs-dynamic></gs-button>' +
                                             '<div class="column_name" flex gs-dynamic>' + GS.strToTitle(jsnOrderByCopy.columns[i]) + '</div>' +
                                             '<gs-button inline remove-all icononly icon="times" class="delete" gs-dynamic></gs-button>' +
                                             '<gs-button inline remove-all icononly icon="sort-amount-' + jsnOrderByCopy.directions[i] + '" class="direction" gs-dynamic></gs-button>' +
                                         '</div>';
+                            i += 1;
                         }
 
                         usedColumnsElement.innerHTML = strHTML;
 
                         // bind sort buttons
                         sortMousedownHandler = function () {
-                            var columns = usedColumnsElement.getElementsByClassName('order_by_column'), offsetsCache = [], i, len,
-                                currentElement = this.parentNode, currentlyMarkedElement, markerElement, bolLast = false, intToIndex,
-                                currentElementClone, intCloneoffset, intFromIndex, sortMousemoveHandler, sortMouseupHandler, 
-                                strColumn = currentElement.getAttribute('data-column'),
-                                strDirection = currentElement.getAttribute('data-direction');
+                            var columns = usedColumnsElement.getElementsByClassName('order_by_column');
+                            var offsetsCache = [];
+                            var i;
+                            var len;
+                            var currentElement = this.parentNode;
+                            var currentlyMarkedElement;
+                            var markerElement;
+                            var bolLast = false;
+                            var intToIndex;
+                            var currentElementClone;
+                            var intCloneoffset;
+                            var intFromIndex;
+                            var sortMousemoveHandler;
+                            var sortMouseupHandler;
+                            var strColumn = currentElement.getAttribute('data-column');
+                            var strDirection = currentElement.getAttribute('data-direction');
 
                             markerElement = document.createElement('div');
                             markerElement.classList.add('drop_marker');
@@ -1298,8 +1575,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             ghostContainerElement.appendChild(currentElementClone);
                             intCloneoffset = GS.getElementOffset(ghostContainerElement).top + (currentElementClone.offsetHeight / 2);
 
-
-                            for (i = 0, len = columns.length; i < len; i += 1) {
+                            i = 0;
+                            len = columns.length;
+                            while (i < len) {
                                 offsetsCache.push({
                                     'element': columns[i],
                                     'top': GS.getElementOffset(columns[i]).top,
@@ -1309,10 +1587,16 @@ document.addEventListener('DOMContentLoaded', function () {
                                 if (columns[i] === currentElement) {
                                     intFromIndex = i;
                                 }
+
+                                i += 1;
                             }
 
                             sortMousemoveHandler = function (event) {
-                                var i, len, matchedElement, bolNewLast, intTop;
+                                var i;
+                                var len;
+                                var matchedElement;
+                                var bolNewLast;
+                                var intTop;
 
                                 event.preventDefault();
                                 event.stopPropagation();
@@ -1332,7 +1616,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                         bolNewLast = false;
 
                                     } else {
-                                        for (i = 0, len = offsetsCache.length; i < len; i += 1) {
+                                        i = 0;
+                                        len = offsetsCache.length;
+                                        while (i < len) {
                                             if (offsetsCache[i + 1]) {
                                                 if (offsetsCache[i].top <= intTop &&
                                                     offsetsCache[i].top + ((offsetsCache[i + 1].top - offsetsCache[i].top) / 2) > intTop) {
@@ -1365,6 +1651,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                                     break;
                                                 }
                                             }
+                                            i += 1;
                                         }
                                     }
 
@@ -1423,8 +1710,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         };
                         sortButtons = usedColumnsElement.getElementsByClassName('sort');
 
-                        for (i = 0, len = sortButtons.length; i < len; i += 1) {
+                        i = 0;
+                        len = sortButtons.length;
+                        while (i < len) {
                             sortButtons[i].addEventListener(evt.mousedown, sortMousedownHandler);
+                            i += 1;
                         }
                         //console.log(usedColumnsElement.getElementsByClassName('sort'));
 
@@ -1440,8 +1730,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         };
                         deleteButtons = usedColumnsElement.getElementsByClassName('delete');
 
-                        for (i = 0, len = deleteButtons.length; i < len; i += 1) {
+                        i = 0;
+                        len = deleteButtons.length;
+                        while (i < len) {
                             deleteButtons[i].addEventListener('click', deleteTapHandler);
+                            i += 1;
                         }
                         //console.log(usedColumnsElement.getElementsByClassName('delete'));
 
@@ -1461,8 +1754,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         };
                         directionButtons = usedColumnsElement.getElementsByClassName('direction');
 
-                        for (i = 0, len = directionButtons.length; i < len; i += 1) {
+                        i = 0;
+                        len = directionButtons.length;
+                        while (i < len) {
                             directionButtons[i].addEventListener('click', directionTapHandler);
+                            i += 1;
                         }
                         //console.log(usedColumnsElement.getElementsByClassName('direction'));
                     }
@@ -1804,7 +2100,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (element.hasAttribute('refresh-on-querystring-values')) {
                 arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
 
-                for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
+                i = 0;
+                len = arrPopKeys.length;
+                while (i < len) {
                     currentValue = GS.qryGetVal(strQS, arrPopKeys[i]);
 
                     if (element.popValues[arrPopKeys[i]] !== currentValue) {
@@ -1812,13 +2110,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     element.popValues[arrPopKeys[i]] = currentValue;
+                    i += 1;
                 }
             } else if (element.hasAttribute('refresh-on-querystring-change')) {
                 bolRefresh = true;
             }
 
             if (bolRefresh && element.hasAttribute('src')) {
-                console.log('pushReplacePopHandler: getData', element);
+              //console.log('pushReplacePopHandler: getData', element);
                 getData(element);
             } else if (bolRefresh && !element.hasAttribute('src')) {
                 console.warn('gs-combo Warning: element has "refresh-on-querystring-values" or "refresh-on-querystring-change", but no "src".', element);
@@ -1827,8 +2126,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (element.hasAttribute('refresh-on-querystring-values')) {
                 arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
 
-                for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
+                i = 0;
+                len = arrPopKeys.length;
+                while (i < len) {
                     element.popValues[arrPopKeys[i]] = GS.qryGetVal(strQS, arrPopKeys[i]);
+                    i += 1;
                 }
             }
         }
@@ -1899,8 +2201,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 oldRootElement = xtag.queryChildren(element, '.root');
 
                 if (oldRootElement.length > 0) {
-                    for (i = 0, len = oldRootElement.length; i < len; i += 1) {
+                    i = 0;
+                    len = oldRootElement.length;
+                    while (i < len) {
                         element.removeChild(oldRootElement[i]);
+                        i += 1;
                     }
                 }
 
@@ -1964,8 +2269,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (recordElement) {
                         // add a data- attribute for all where columns (most of the time: id and change_stamp)
-                        for (i = 0, len = element.arrWhereColumns.length; i < len; i += 1) {
+                        i = 0;
+                        len = element.arrWhereColumns.length;
+                        while (i < len) {
                             recordElement.setAttribute('data-' + element.arrWhereColumns[i], '{{! row.' + element.arrWhereColumns[i] + ' }}');
+                            i += 1;
                         }
 
                         // add a doT.js coded "value" attribute to any element with a "column" attribute but no "value" attribute
@@ -2070,8 +2378,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             // if the user has set an order by: use the user order bys
                             if (element.user_order_bys && element.user_order_bys.columns.length > 0) {
-                                for (i = 0, len = element.user_order_bys.columns.length, strUserOrderBy; i < len; i += 1) {
+                                i = 0;
+                                len = element.user_order_bys.columns.length;
+                                strUserOrderBy = '';
+                                while (i < len) {
                                     strUserOrderBy += (strUserOrderBy !== '' ? ', ' : '') + element.user_order_bys.columns[i] + ' ' + element.user_order_bys.directions[i].toUpperCase();
+                                    i += 1;
                                 }
                             }
 
@@ -2167,8 +2479,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                     if (element.selectionPreviousSelectedCells) {
                                         arrSelectedCells = element.selectedCells;
 
-                                        for (i = 0, len = element.selectionPreviousSelectedCells.length; i < len; i += 1) {
+                                        i = 0;
+                                        len = element.selectionPreviousSelectedCells.length;
+                                        while (i < len) {
                                             arrSelectedCells.splice(arrSelectedCells.indexOf(element.selectionPreviousSelectedCells[i]), 1);
+                                            i += 1;
                                         }
 
                                         element.selectedCells = arrSelectedCells;
@@ -2319,7 +2634,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 cellElements = xtag.query(tbodyElement, 'tr > td, tr > th');
 
                                 // loop through previous cells looking for something focusable
-                                for (i = cellElements.indexOf(cellElement) - 1; i > -1; i -= 1) {
+                                i = cellElements.indexOf(cellElement) - 1;
+                                while (i > -1) {
                                     //console.log(i);
 
                                     tempElement = xtag.query(cellElements[i], '[column]')[0];
@@ -2329,6 +2645,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                         break;
                                     }
+                                    i -= 1;
                                 }
 
                             // right arrow and (at the end of the target OR target has no selected)
@@ -2340,14 +2657,16 @@ document.addEventListener('DOMContentLoaded', function () {
                                 cellElements = xtag.query(tbodyElement, 'tr > td, tr > th');
 
                                 // loop through previous cells looking for something focusable
-                                for (i = cellElements.indexOf(cellElement) + 1, len = cellElements.length; i < len; i += 1) { // - 1
+                                i = cellElements.indexOf(cellElement) + 1;
+                                len = cellElements.length;
+                                while (i < len) { // - 1
                                     tempElement = xtag.query(cellElements[i], '[column]')[0];
 
                                     if (tempElement && GS.isElementFocusable(tempElement)) { // tempElement.control
                                         focusElement = tempElement; // tempElement.control
-
                                         break;
                                     }
+                                    i += 1;
                                 }
                             }
                         }
@@ -2382,7 +2701,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         // loop through the selected cells and create a tsv string using the text of the cell
                         if (arrSelected.length > 0) {
-                            for (i = 0, len = arrSelected.length; i < len; i += 1) {
+                            i = 0;
+                            len = arrSelected.length;
+                            while (i < len) {
                                 if (arrSelected[i].parentNode.rowIndex < intFromRecord) {
                                     intFromRecord = arrSelected[i].parentNode.rowIndex;
                                 }
@@ -2395,15 +2716,21 @@ document.addEventListener('DOMContentLoaded', function () {
                                 if (arrSelected[i].cellIndex + 1 > intToCell) {
                                     intToCell = arrSelected[i].cellIndex + 1;
                                 }
+                                i += 1;
                             }
 
                             arrRecords = xtag.query(element.scrollContainerElement, 'tr');
                             strCopyString = '';
 
-                            for (i = intFromRecord, len = intToRecord; i < len; i += 1) {
+                            i = intFromRecord;
+                            len = intToRecord;
+                            while (i < len) {
                                 arrCells = arrRecords[i].children;
 
-                                for (cell_i = intFromCell, cell_len = intToCell, strRecordString = ''; cell_i < cell_len; cell_i += 1) {
+                                cell_i = intFromCell;
+                                cell_len = intToCell;
+                                strRecordString = '';
+                                while (cell_i < cell_len) {
                                     if (arrCells[cell_i].hasAttribute('selected')) {
                                         if (arrCells[cell_i].lastElementChild) {
                                             strCellText = arrCells[cell_i].lastElementChild.textValue ||
@@ -2417,6 +2744,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     }
 
                                     strRecordString += (cell_i !== intFromCell ? '\t' : '') + (strCellText || '');
+                                    cell_i += 1;
                                 }
                                 if (strRecordString.trim()) {
                                     strCopyString += strRecordString;
@@ -2424,6 +2752,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 if (i + 1 !== len && strRecordString.trim()) {
                                     strCopyString += '\n';
                                 }
+                                i += 1;
                             }
                         }
 
@@ -2482,8 +2811,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         if (recordElement) {
                             // add a data- attribute for all where columns (most of the time: id and change_stamp)
-                            for (i = 0, len = element.arrWhereColumns.length; i < len; i += 1) {
+                            i = 0;
+                            len = element.arrWhereColumns.length;
+                            while (i < len) {
                                 recordElement.setAttribute('data-' + element.arrWhereColumns[i], '{{! row.' + element.arrWhereColumns[i] + ' }}');
+                                i += 1;
                             }
 
                             // add a doT.js coded "value" attribute to any element with a "column" attribute but no "value" attribute
@@ -2530,16 +2862,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     //console.log(arrRecords);
 
                     // clear old selection
-                    for (i = 0, len = fixedHeaderCells.length; i < len; i += 1) {
+                    i = 0;
+                    len = fixedHeaderCells.length;
+                    while (i < len) {
                         fixedHeaderCells[i].removeAttribute('selected');
+                        i += 1;
                     }
-                    for (i = 0, len = arrCells.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrCells.length;
+                    while (i < len) {
                         arrCells[i].removeAttribute('selected');
+                        i += 1;
                     }
 
                     arrCells = xtag.query(this.scrollContainerElement, '[selected-secondary]');
-                    for (i = 0, len = arrCells.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrCells.length;
+                    while (i < len) {
                         arrCells[i].removeAttribute('selected-secondary');
+                        i += 1;
                     }
 
                     // if newValue is not an array: make it an array
@@ -2550,24 +2891,33 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     // set new selection
-                    for (i = 0, len = arrCells.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrCells.length;
+                    while (i < len) {
                         arrCells[i].setAttribute('selected', '');
 
                         if (arrCells[i].parentNode.parentNode.nodeName === 'THEAD') {
                             fixedHeaderCells[arrCells[i].cellIndex].setAttribute('selected', '');
                         }
+
+                        i += 1;
                     }
 
                     arrRecords = this.selectedRecords;
 
-                    for (i = 0, len = arrRecords.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrRecords.length;
+                    while (i < len) {
                         arrCells = arrRecords[i].children;
-
-                        for (cell_i = 0, cell_len = arrCells.length; cell_i < cell_len; cell_i += 1) {
+                        cell_i = 0;
+                        cell_len = arrCells.length;
+                        while (cell_i < cell_len) {
                             if (!arrCells[cell_i].hasAttribute('selected')) {
                                 arrCells[cell_i].setAttribute('selected-secondary', '');
                             }
+                            cell_i += 1;
                         }
+                        i += 1;
                     }
 
                     GS.triggerEvent(this, 'after_selection');
@@ -2578,33 +2928,50 @@ document.addEventListener('DOMContentLoaded', function () {
                     var i, len, intRecordIndex = -1, arrRecord = [], selected = this.selectedCells;
 
                     // loop through the selected cells and create an array of trs
-                    for (i = 0, len = selected.length; i < len; i += 1) {
+                    i = 0;
+                    len = selected.length;
+                    while (i < len) {
                         if (selected[i].parentNode.rowIndex > intRecordIndex && selected[i].parentNode.parentNode.nodeName !== 'THEAD') {
                             intRecordIndex = selected[i].parentNode.rowIndex;
 
                             arrRecord.push(selected[i].parentNode);
                         }
+                        i += 1;
                     }
 
                     return arrRecord;
                 },
 
                 set: function (newValue) {
-                    var i, len, cell_i, cell_len, intIdIndex, arrCells = this.selectedCells, arrRecords, arrCellChildren,
-                        fixedHeaderCells = xtag.queryChildren(this.fixedHeaderContainerElement, '.fixed-header-cell');
+                    var i;
+                    var len;
+                    var cell_i;
+                    var cell_len;
+                    var intIdIndex;
+                    var arrCells = this.selectedCells;
+                    var arrRecords;
+                    var arrCellChildren;
+                    var fixedHeaderCells = xtag.queryChildren(this.fixedHeaderContainerElement, '.fixed-header-cell');
 
                     // clear old selection
-                    for (i = 0, len = arrCells.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrCells.length;
+                    while (i < len) {
                         arrCells[i].removeAttribute('selected');
 
                         if (arrCells[i].parentNode.parentNode.nodeName === 'THEAD') {
                             fixedHeaderCells[arrCells[i].cellIndex].removeAttribute('selected', '');
                         }
+
+                        i += 1;
                     }
 
                     arrCells = xtag.query(this.scrollContainerElement, '[selected-secondary]');
-                    for (i = 0, len = arrCells.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrCells.length;
+                    while (i < len) {
                         arrCells[i].removeAttribute('selected-secondary');
+                        i += 1;
                     }
 
                     // if newValue is not an array: make it an array
@@ -2615,12 +2982,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     // set new selection
-                    for (i = 0, len = arrRecords.length, arrCells = []; i < len; i += 1) {
+                    i = 0;
+                    len = arrRecords.length;
+                    arrCells = [];
+                    while (i < len) {
                         arrCellChildren = arrRecords[i].children;
 
-                        for (cell_i = 0, cell_len = arrCellChildren.length; cell_i < cell_len; cell_i += 1) {
+                        cell_i = 0;
+                        cell_len = arrCellChildren.length;
+                        while (cell_i < cell_len) {
                             arrCells.push(arrCellChildren[cell_i]);
+                            cell_i += 1;
                         }
+
+                        i += 1;
                     }
 
                     this.selectedCells = arrCells;
@@ -2630,31 +3005,47 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             selectedIds: {
                 get: function () {
-                    var i, len, arrID = [], selected = this.selectedRecords;
+                    var i;
+                    var len;
+                    var arrID = [];
+                    var selected = this.selectedRecords;
 
                     // loop through the selected records and create an array of ids
-                    for (i = 0, len = selected.length; i < len; i += 1) {
+                    i = 0;
+                    len = selected.length;
+                    while (i < len) {
                         arrID.push(String(selected[i].dataset.id));
                         //arrID.push(String(selected[i].parentNode.dataset.id));
+                        i += 1;
                     }
 
                     return arrID;
                 },
 
                 set: function (newValue) {
-                    var i, len, cell_i, cell_len, arrCells = this.selectedCells, // intIdIndex,
-                        arrRecords = xtag.query(this.scrollContainerElement, 'tbody > tr');
+                    var i;
+                    var len;
+                    var cell_i;
+                    var cell_len;
+                    var arrCells = this.selectedCells; // intIdIndex,
+                    var arrRecords = xtag.query(this.scrollContainerElement, 'tbody > tr');
 
                     //console.log(arrRecords);
 
                     // clear old selection
-                    for (i = 0, len = arrCells.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrCells.length;
+                    while (i < len) {
                         arrCells[i].removeAttribute('selected');
+                        i += 1;
                     }
 
                     arrCells = xtag.query(this.scrollContainerElement, '[selected-secondary]');
-                    for (i = 0, len = arrCells.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrCells.length;
+                    while (i < len) {
                         arrCells[i].removeAttribute('selected-secondary');
+                        i += 1;
                     }
 
                     // if newValue is not an array: make it an array
@@ -2663,21 +3054,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // else: cast all new values to strings
                     } else {
-                        for (i = 0, len = newValue.length; i < len; i += 1) {
+                        i = 0;
+                        len = newValue.length;
+                        while (i < len) {
                             newValue[i] = String(newValue[i]);
+                            i += 1;
                         }
                     }
 
                     // set new selection
-                    for (i = 0, len = arrRecords.length; i < len; i += 1) {
+                    i = 0;
+                    len = arrRecords.length;
+                    while (i < len) {
 
                         if (newValue.indexOf(arrRecords[i].getAttribute('data-id')) > -1) {//String(.dataset.id) === String()
                             arrCells = arrRecords[i].children;
 
-                            for (cell_i = 0, cell_len = arrCells.length; cell_i < cell_len; cell_i += 1) {
+                            cell_i = 0;
+                            cell_len = arrCells.length;
+                            while (cell_i < cell_len) {
                                 arrCells[cell_i].setAttribute('selected', '');
+                                cell_i += 1;
                             }
                         }
+                        i += 1;
                     }
 
                     GS.triggerEvent(this, 'after_selection');
@@ -2747,12 +3147,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     this.fixedHeaderContainerElement.removeAttribute('hidden');
                     theadCellElements = xtag.query(this.theadElement, 'th, td');
 
-                    for (i = 0, len = theadCellElements.length, intLeft = 0; i < len; i += 1) {
+                    i = 0;
+                    len = theadCellElements.length;
+                    intLeft = 0;
+                    while (i < len) {
                         elementFixedHeaderCells[i].style.height = (theadCellElements[i].offsetHeight + 1) + 'px';
                         elementFixedHeaderCells[i].style.width = theadCellElements[i].offsetWidth + 'px';
                         elementFixedHeaderCells[i].style.left = (intLeft - this.scrollContainerElement.scrollLeft) + 'px';
 
                         intLeft += theadCellElements[i].offsetWidth;
+                        i += 1;
                     }
                 } else {
                     this.fixedHeaderContainerElement.setAttribute('hidden', '');

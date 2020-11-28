@@ -1,4 +1,5 @@
-//global addProp, encodeHTML, window, GS, setOrRemoveBooleanAttribute, setOrRemoveTextAttribute, addFlexProps, registerDesignSnippet, designRegisterElement
+//global addProp, encodeHTML, window, GS, setOrRemoveBooleanAttribute, setOrRemoveTextAttribute, addFlexProps, registerDesignSnippet, designRegisterElement, xtag, evt
+//jslint this
 
 window.addEventListener('design-register-element', function () {
     'use strict';
@@ -17,7 +18,7 @@ window.addEventListener('design-register-element', function () {
 
     designRegisterElement(
         'gs-checkbox',
-        '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-checkbox.html'
+        '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_checkbox'
     );
 
     window.designElementProperty_GSCHECKBOX = function (selectedElement) {
@@ -57,13 +58,20 @@ window.addEventListener('design-register-element', function () {
             return setOrRemoveTextAttribute(selectedElement, 'tabindex', this.value);
         });
 
-        addProp('Type', true, '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('type') || '') + '" mini>' +
-                                        '<option value="">Detect</option>' +
-                                        '<option value="smallint">Smallint</option>' +
-                                        '<option value="boolean">Boolean</option>' +
-                                    '</gs-select>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'type', this.value);
-        });
+        addProp(
+            'Type',
+            true,
+            (
+                '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('type') || '') + '" mini>' +
+                    '<option value="">Detect</option>' +
+                    '<option value="smallint">Smallint</option>' +
+                    '<option value="boolean">Boolean</option>' +
+                '</gs-select>'
+            ),
+            function () {
+                return setOrRemoveTextAttribute(selectedElement, 'type', this.value);
+            }
+        );
 
         // visibility attributes
         strVisibilityAttribute = '';
@@ -145,29 +153,58 @@ window.addEventListener('design-register-element', function () {
             }
         );
 
+        addProp('Focus', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onfocus') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onfocus', this.value);
+        });
+        addProp('Blur', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onblur') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onblur', this.value);
+        });
+        addProp('Change', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onchange') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onchange', this.value);
+        });
+        addProp('Mousedown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousedown') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onmousedown', this.value);
+        });
+        addProp('Mouseup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmouseup') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onmouseup', this.value);
+        });
+        addProp('Mousemove', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousemove') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onmousemove', this.value);
+        });
+        addProp('Keydown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeydown') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onkeydown', this.value);
+        });
+        addProp('Keyup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeyup') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onkeyup', this.value);
+        });
+        addProp('Keypress', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeypress') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onkeypress', this.value);
+        });
+
+
         // addProp('Corners', true, '<div class="target">' +
         //             '<gs-checkbox value="' + (!(selectedElement.hasAttribute('remove-all') ||
         //                                         selectedElement.hasAttribute('remove-top') ||
         //                                         selectedElement.hasAttribute('remove-left') ||
-        //                                         selectedElement.hasAttribute('remove-top-left'))).toString() + 
+        //                                         selectedElement.hasAttribute('remove-top-left'))).toString() +
         //                     '" remove-right remove-bottom id="round-top-left-corner________" inline></gs-checkbox>' +
 
         //             '<gs-checkbox value="' + (!(selectedElement.hasAttribute('remove-all') ||
         //                                         selectedElement.hasAttribute('remove-top') ||
         //                                         selectedElement.hasAttribute('remove-right') ||
-        //                                         selectedElement.hasAttribute('remove-top-right'))).toString() + 
+        //                                         selectedElement.hasAttribute('remove-top-right'))).toString() +
         //                     '" remove-left remove-bottom id="round-top-right-corner________" inline></gs-checkbox><br />' +
 
         //             '<gs-checkbox value="' + (!(selectedElement.hasAttribute('remove-all') ||
         //                                         selectedElement.hasAttribute('remove-bottom') ||
         //                                         selectedElement.hasAttribute('remove-left') ||
-        //                                         selectedElement.hasAttribute('remove-bottom-left'))).toString() + 
+        //                                         selectedElement.hasAttribute('remove-bottom-left'))).toString() +
         //                     '" remove-right remove-top id="round-bottom-left-corner________" inline></gs-checkbox>' +
 
         //             '<gs-checkbox value="' + (!(selectedElement.hasAttribute('remove-all') ||
         //                                         selectedElement.hasAttribute('remove-bottom') ||
         //                                         selectedElement.hasAttribute('remove-right') ||
-        //                                         selectedElement.hasAttribute('remove-bottom-right'))).toString() + 
+        //                                         selectedElement.hasAttribute('remove-bottom-right'))).toString() +
         //                     '" remove-left remove-top id="round-bottom-right-corner________" inline></gs-checkbox>' +
         //         '</div>', function () {
         //     var topLeft = document.getElementById('round-top-left-corner________').value === 'true';
@@ -246,7 +283,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function saveDefaultAttributes(element) {
         var i;
         var len;
-        var arrAttr;
         var jsnAttr;
 
         // we need a place to store the attributes
@@ -255,7 +291,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // loop through attributes and store them in the internal defaultAttributes object
         i = 0;
         len = element.attributes.length;
-        arrAttr = element.attributes;
         while (i < len) {
             jsnAttr = element.attributes[i];
 
@@ -349,25 +384,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function findFor(element) {
         var forElem;
-        // console.log(element, element.previousElementSibling)
-        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
-            && element.previousElementSibling.hasAttribute('for')
-            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
+
+        if (
+            element.previousElementSibling &&
+            element.previousElementSibling.tagName.toUpperCase() === 'LABEL' &&
+            element.previousElementSibling.hasAttribute('for') &&
+            element.previousElementSibling.getAttribute('for') === element.getAttribute('id')
         ) {
             forElem = element.previousElementSibling;
         } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
             forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
         }
-        
-        //console.log(forElem);
+
         if (forElem) {
-            if (! element.hasAttribute('aria-label') && element.innerText.length === 0) {
+            if (!element.hasAttribute('aria-label') && element.innerText.length === 0) {
                 element.setAttribute('aria-label', forElem.innerText);
             }
         }
     }
 
-    //
     function elementInserted(element) {
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
@@ -375,10 +410,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!element.inserted) {
                 element.inserted = true;
                 element.internal = {};
-                
 
                 if (element.hasAttribute('value')) {
-                    // console.log(element.getAttribute('value'));
+                    //console.log(element.getAttribute('value'));
                     if (element.getAttribute('value') === 'true' || element.getAttribute('value') === '-1') {
                         element.setAttribute('aria-checked', 'true');
                     } else if (element.getAttribute('value') === 'false' || element.getAttribute('value') === '0') {
@@ -395,24 +429,30 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.hasAttribute('qs')) {
                     pushReplacePopHandler(element);
 
-                    window.addEventListener('pushstate',    function () { pushReplacePopHandler(element); });
-                    window.addEventListener('replacestate', function () { pushReplacePopHandler(element); });
-                    window.addEventListener('popstate',     function () { pushReplacePopHandler(element); });
+                    window.addEventListener('pushstate', function () {
+                        pushReplacePopHandler(element);
+                    });
+                    window.addEventListener('replacestate', function () {
+                        pushReplacePopHandler(element);
+                    });
+                    window.addEventListener('popstate', function () {
+                        pushReplacePopHandler(element);
+                    });
                 }
 
-                element.addEventListener('focus', function (event) {
+                element.addEventListener('focus', function () {
                     element.classList.add('focus');
                 });
 
-                element.addEventListener('blur', function (event) {
+                element.addEventListener('blur', function () {
                     element.classList.remove('focus');
                 });
 
-                element.addEventListener(evt.mouseout, function (event) {
+                element.addEventListener(evt.mouseout, function () {
                     element.classList.remove('hover');
                 });
 
-                element.addEventListener(evt.mouseover, function (event) {
+                element.addEventListener(evt.mouseover, function () {
                     element.classList.add('hover');
                 });
 
@@ -439,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
             if (element.hasAttribute('id')) {
-                // console.log('running');
+                //console.log('running');
                 findFor(element);
             }
         }
@@ -477,7 +517,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 elementInserted(this);
             },
 
-            attributeChanged: function (strAttrName, oldValue, newValue) {
+            attributeChanged: function (strAttrName, ignore, newValue) {//oldValue
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'suspend-created' && newValue === null) {
                     elementCreated(this);
@@ -503,9 +543,11 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         events: {
             'mousedown': function () {
-                if (!this.hasAttribute('suspend-created') &&
+                if (
+                    !this.hasAttribute('suspend-created') &&
                     !this.hasAttribute('suspend-inserted') &&
-                    !this.hasAttribute('readonly')) {
+                    !this.hasAttribute('readonly')
+                ) {
                     this.classList.add('down');
                 }
             },
@@ -516,14 +558,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             },
-            'click': function (event) {
+            'click': function () {
                 var bolTripleState;
                 var strValue;
                 var strType;
 
-                if (!this.hasAttribute('suspend-created') &&
+                if (
+                    !this.hasAttribute('suspend-created') &&
                     !this.hasAttribute('suspend-inserted') &&
-                    !this.hasAttribute('readonly')) {
+                    !this.hasAttribute('readonly')
+                ) {
                     bolTripleState = this.hasAttribute('triplestate');
                     strValue = this.getAttribute('value').trim().toLowerCase();
 
@@ -536,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             strType = 'boolean';
                         } else if (strValue === '0' || strValue === '-1' || strValue === 'n') {
                             strType = 'smallint';
-                    // else default to boolean (backwards compatibility)
+                    // else default to boolean (this is for backwards compatibility, we prefer smallint)
                         } else {
                             strType = 'boolean';
                         }
@@ -574,7 +618,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 strValue = '-1';
                             }
                         } else if (strValue === '-1') {
-                                strValue = '0';
+                            strValue = '0';
                         } else if (strValue === 'n') {
                             strValue = '-1';
                         }
@@ -586,7 +630,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 strValue = 'true';
                             }
                         } else if (strValue === 'true') {
-                                strValue = 'false';
+                            strValue = 'false';
                         } else if (strValue === 'null') {
                             strValue = 'true';
                         }
@@ -595,68 +639,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     // set new value
                     this.setAttribute('value', strValue);
 
-                    //// here be dragons
-                    //if (strValue === 'false') {
-                    //    this.setAttribute('value', 'true');
-                    //} else if (strValue === 'true') {
-                    //    if (bolTripleState) {
-                    //        this.setAttribute('value', 'null');
-                    //    } else {
-                    //        this.setAttribute('value', 'false');
-                    //    }
-                    //} else if (strValue === 'null') {
-                    //    this.setAttribute('value', 'false');
-                    //} else if (strValue === '0') {
-                    //    this.setAttribute('value', '-1');
-                    //} else if (strValue === '-1') {
-                    //    if (bolTripleState) {
-                    //        this.setAttribute('value', 'n');
-                    //    } else {
-                    //        this.setAttribute('value', '0');
-                    //    }
-                    //} else if (strValue === 'n') {
-                    //    this.setAttribute('value', '0');
-                    //} else if (strValue === 0) {
-                    //    this.setAttribute('value', -1);
-                    //} else if (strValue === -1) {
-                    //    if (bolTripleState) {
-                    //        this.setAttribute('value', 'n');
-                    //    } else {
-                    //        this.setAttribute('value', 0);
-                    //    }
-                    //} else if (strValue === 'n') {
-                    //    this.setAttribute('value', 0);
-                    //} else if (strValue === false) {
-                    //    this.setAttribute('value', true);
-                    //} else if (strValue === true) {
-                    //    if (bolTripleState) {
-                    //        this.setAttribute('value', null);
-                    //    } else {
-                    //        this.setAttribute('value', false);
-                    //    }
-                    //} else if (strValue === null) {
-                    //    //this.setAttribute('value', false);
-                    //    if (this.getAttribute('type') === 'smallint') {
-                    //        this.setAttribute('value', '-1');
-                    //    } else {
-                    //        this.setAttribute('value', 'true');
-                    //    }
-                    //} else {
-                    //    if (this.getAttribute('type') === 'smallint') {
-                    //        this.setAttribute('value', '-1');
-                    //    } else {
-                    //        this.setAttribute('value', 'true');
-                    //    }
-                    //}
-
                     this.classList.remove('down');
                     xtag.fireEvent(this, 'change', {bubbles: true, cancelable: true});
                 }
             },
             'keydown': function (event) {
-                if (!this.hasAttribute('suspend-created') &&
+                if (
+                    !this.hasAttribute('suspend-created') &&
                     !this.hasAttribute('suspend-inserted') &&
-                    !this.hasAttribute('readonly')) {
+                    !this.hasAttribute('readonly')
+                ) {
                     // if we pressed return (13) or space (32)
                     if (event.keyCode === 13 || event.keyCode === 32) {
                         // prevent default and stop propagation (to prevent scrolling of the page)
@@ -666,7 +658,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // if we are not disabled and we pressed return (13) or space (32): trigger click
                     if (!this.attributes.disabled && (event.keyCode === 13 || event.keyCode === 32)) {
-                        xtag.fireEvent(this, 'click', { bubbles: true, cancelable: true });
+                        xtag.fireEvent(this, 'click', {bubbles: true, cancelable: true});
                     }
                 }
             }

@@ -3,7 +3,7 @@ window.addEventListener('design-register-element', function () {
                                                         '    <option value="${0}">${1}</option>\n' +
                                                         '</gs-select>');
 
-    designRegisterElement('gs-select', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-select.html');
+    designRegisterElement('gs-select', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_select');
 
     window.designElementProperty_GSSELECT = function(selectedElement) {
         addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function findFor(element) {
         var forElem;
-        // console.log(element, element.previousElementSibling)
+        //console.log(element, element.previousElementSibling)
         if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
             && element.previousElementSibling.hasAttribute('for')
             && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')

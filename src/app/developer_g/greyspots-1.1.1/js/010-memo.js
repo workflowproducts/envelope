@@ -1,7 +1,7 @@
 //element.clientHeight < element.scrollHeight
 
 window.addEventListener('design-register-element', function () {
-    designRegisterElement('gs-memo', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-memo.html');
+    designRegisterElement('gs-memo', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_memo');
 });
 
 // trigger resize to text on window resize
@@ -176,7 +176,6 @@ document.addEventListener('DOMContentLoaded', function () {
     
     //
     function keyupFunction(event) {
-                                
         var element = event.target;
         if (!element.hasAttribute('readonly')) {
             //this.parentNode.syncView();
@@ -480,8 +479,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         element.setAttribute('data-tabindex', element.getAttribute('tabindex'));
                         element.removeAttribute('tabindex');
                     }
-    
-                    element.appendChild(multiLineTemplate.cloneNode(true));
+                    if (!element.children[0] || !element.children[0].classList.contains('control')) {
+                        element.appendChild(multiLineTemplate.cloneNode(true));
+                    }
                     if (element.hasAttribute('data-tabindex')) {
                         xtag.query(element, '.control')[0].setAttribute('tabindex', element.getAttribute('data-tabindex'));
                     }
@@ -885,24 +885,26 @@ document.addEventListener('DOMContentLoaded', function () {
                     this.control.removeEventListener('keydown', keydownFunction);
                     this.control.addEventListener('keydown', keydownFunction);
                     
+                    this.control.removeEventListener('keyup', keyupFunction);
+                    this.control.addEventListener('keyup', keyupFunction);
+                    
                     this.control.removeEventListener('insert', insertFunction);
                     this.control.addEventListener('insert', insertFunction);
                 }
-                // console.log(this.control.nodeName);
+                //console.log(this.control.nodeName);
                 if (this.control && this.control.nodeName === 'TEXTAREA') {
                     if (this.hasAttribute('encrypted')) {
                         if (window[this.getAttribute('encrypted')] && this.control.value !== this.getAttribute('value')) {
-                            console.log(window[this.getAttribute('encrypted')], this.getAttribute('value'));
                             this.control.value = CryptoJS.AES.decrypt(this.getAttribute('value') || '', (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
                             // this.innerHTML = CryptoJS.AES.decrypt(this.getAttribute('value') || '', (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
-                            console.log(this.control.value);
+                          //console.log(this.control.value);
                         } else {
                         }
                     } else {
                         this.control.value = this.getAttribute('value');
                     }
                 } else {
-                    console.log(this.outerHTML);
+                  //console.log(this.outerHTML);
                     if (this.hasAttribute('encrypted')) {
                         if (window[this.getAttribute('encrypted')] && this.control.value !== this.getAttribute('value')) {
                             this.control.innerHTML = CryptoJS.AES.decrypt(this.getAttribute('value'), (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) || this.getAttribute('placeholder') || '';

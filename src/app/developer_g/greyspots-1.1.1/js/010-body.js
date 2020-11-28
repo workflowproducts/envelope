@@ -13,7 +13,7 @@ window.addEventListener('design-register-element', function () {
                                                     '    $0\n' +
                                                     '</gs-body>');
     
-    designRegisterElement('gs-body', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-page.html');
+    designRegisterElement('gs-body', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_page');
 });
 
 // document.addEventListener('DOMContentLoaded', function () {

@@ -45,29 +45,63 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('Centered H4', 'Centered H4', '<center><h4>$0</h4></center>');
     registerDesignSnippet('Centered H5', 'Centered H5', '<center><h5>$0</h5></center>');
     registerDesignSnippet('Centered H6', 'Centered H6', '<center><h6>$0</h6></center>');
+    registerDesignSnippet('thead', 'thead',
+            'thead>\n' +
+            '    <tr>\n' +
+            '        <th>\n' +
+            '            $1\n' +
+            '        </th>\n' +
+            '    </tr>\n' +
+            '</thead>\n');
+    registerDesignSnippet('tbody', 'tbody',
+            'tbody>\n' +
+            '    <tr>\n' +
+            '        <td>\n' +
+            '            $1\n' +
+            '        </td>\n' +
+            '    </tr>\n' +
+            '</tbody>\n');
+
+    registerDesignSnippet('Table Template', 'Table Template',
+            'template>\n' +
+            '    <thead>\n' +
+            '        <tr>\n' +
+            '            <th>\n' +
+            '                $1\n' +
+            '            </th>\n' +
+            '        </tr>\n' +
+            '    </thead>\n' +
+            '    <tbody>\n' +
+            '        <tr>\n' +
+            '            <td>\n' +
+            '                $2\n' +
+            '            </td>\n' +
+            '        </tr>\n' +
+            '    </tbody>\n' +
+            '</template>\n');
 
 
-    
-    registerDesignSnippet('Format JSON', 'JSON.stringify','JSON.stringify(${1:value}, ${2:replacer}, ${3:space});');
+
+    registerDesignSnippet('Format JSON', 'JSON.stringify', 'JSON.stringify(${1:value}, ${2:replacer}, ${3:space});');
 
 
     registerDesignSnippet('setInterval', 'setInterval',
             'var ${1:intervalId} = setInterval(function(){\n' +
             '    ${3}\n' +
             '}, ${2:milliseconds});\n');
-            
-            
-    registerDesignSnippet('clearInterval', 'clearInterval','clearInterval(${1:intervalId});');
-    
-    
-    
+
+
+    registerDesignSnippet('clearInterval', 'clearInterval', 'clearInterval(${1:intervalId});');
+
+
+
     registerDesignSnippet('setTimeout', 'setTimeout',
             'var ${1:intervalId} = setTimeout(function(){\n' +
             '    ${3}\n' +
             '}, ${2:milliseconds});\n');
-            
-            
-    registerDesignSnippet('clearTimeout', 'clearTimeout','clearTimeout(${1:intervalId});');
+
+
+    registerDesignSnippet('clearTimeout', 'clearTimeout', 'clearTimeout(${1:intervalId});');
 
     // javascript snippets
     registerDesignSnippet('Xtag Register', 'xtag.register',

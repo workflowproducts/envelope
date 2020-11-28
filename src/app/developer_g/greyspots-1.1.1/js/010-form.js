@@ -1,4 +1,5 @@
-//jslint white:true miltivar:true
+//global GS, ml, addProp, document, window, registerDesignSnippet, designRegisterElement, encodeHTML, setOrRemoveTextAttribute, setOrRemoveBooleanAttribute, addFlexContainerProps, addFlexProps, CryptoJS, xtag, shimmed, evt, HTMLTemplateElement
+//jslint this
 window.addEventListener('design-register-element', function () {
     'use strict';
     
@@ -8,9 +9,21 @@ window.addEventListener('design-register-element', function () {
                                                     '    </template>\n' +
                                                     '</gs-form>');
     
-    designRegisterElement('gs-form', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-form.html');
+    designRegisterElement('gs-form', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#record_form');
     
     window.designElementProperty_GSFORM = function (selectedElement) {
+        addProp(
+            'Socket',
+            true,
+            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('socket') || '') + '" mini></gs-text>',
+            function () {
+            return setOrRemoveTextAttribute(
+                selectedElement,
+                'socket',
+                encodeURIComponent(this.value)
+            );
+        });
+
         addProp('Source', true, '<gs-memo class="target" value="' + encodeHTML(decodeURIComponent(selectedElement.getAttribute('src') ||
                                                                                         selectedElement.getAttribute('source') || '')) + '" mini></gs-memo>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'src', encodeURIComponent(this.value));
@@ -57,7 +70,23 @@ window.addEventListener('design-register-element', function () {
         addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
         });
-        
+
+        addProp('Before Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_select') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onbefore_select', this.value);
+        });
+
+        addProp('After Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_select') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onafter_select', this.value);
+        });
+
+        addProp('Before Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_update') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onbefore_update', this.value);
+        });
+
+        addProp('After Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_update') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onafter_update', this.value);
+        });
+
         // SUSPEND-CREATED attribute
         addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
@@ -120,555 +149,20 @@ window.addEventListener('design-register-element', function () {
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
-    
-    function triggerAfterUpdate(element) {
-        GS.triggerEvent(element, 'after_update');
-        if (element.hasAttribute('afterupdate')) {
-            new Function(element.getAttribute('afterupdate')).apply(element);
-        }
-    }
-    
-    // ##################################################################
-    // ######################## UPDATE FUNCTIONS ########################
-    // ##################################################################
-    
-    function emergencyUpdate(element) {
-        if (element.currentSaveAjax) {
-            element.currentSaveAjax.abort();
-        }
-        element.bolCurrentlySaving = false;
-        updateDataWithoutTemplate(element, false);
-    }
-    
-    function updateData(element, updateElement, strColumn, newValue) {
-        var data, parentRecord, strID, strHash
-          , srcParts = GS.templateWithQuerystring(element.getAttribute('src')).split('.')
-          , strSchema = srcParts[0]
-          , strObject = srcParts[1]
-          , strReturnCols = element.arrColumns.join('\t')
-          , strHashCols = element.lockColumn
-          , updateFrameData, strRoles, strColumns, arrTotalRecords = [];
-        
-        parentRecord = GS.findParentElement(updateElement, '.form-record');
-        
-        strID = parentRecord.getAttribute('data-id');
-        strHash = CryptoJS.MD5(parentRecord.getAttribute('data-' + element.lockColumn)).toString();
-        
-        strRoles   = 'pk\thash\tset';
-        strColumns = 'id\thash\t' + GS.encodeForTabDelimited(strColumn);
-        updateFrameData = strID + '\t' + strHash + '\t' + GS.encodeForTabDelimited(newValue);
-        
-        updateFrameData = (strRoles + '\n' + strColumns + '\n' + updateFrameData);
-        GS.triggerEvent(element, 'before_update');
-        
-        element.saveState = 'saving';
-        if (element.saveTimeout) {
-            clearTimeout(element.saveTimeout);
-        }
-        //console.log('wait five seconds');
-        element.saveTimeout = setTimeout(function () {
-            //console.log('element.saveState', element.saveState);
-            if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
-                element.saveState = 'error';
-                var parentElement = document.createElement('center');
-                parentElement.setAttribute('class', 'saving-warning-parent');
-                
-                var warningElement = document.createElement('div');
-                warningElement.setAttribute('class', 'saving-warning');
-    
-                // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
-                warningElement.innerHTML = 'YOUR CHANGES ARE NOT SAVED<br />WE HAVEN\'T HEARD BACK FROM THE SERVER<br />EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR';
-                
-                parentElement.appendChild(warningElement);
-                element.insertBefore(parentElement, element.children[0]);
-                
-                // element.appendChild(parentElement);
-                /*
-                warningElement.addEventListener('click', function () {
-                    saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
-                });
-                */
-            }
-        }, /*30*/ 5 * 1000);
-        
-        GS.requestUpdateFromSocket(
-            GS.envSocket, strSchema, strObject
-          , strReturnCols, strHashCols, updateFrameData
-            
-          , function (data, error, transactionID) {
-                if (error) {
-                    //console.log('error');
-                    if (element.saveTimeout) {
-                        clearTimeout(element.saveTimeout);
-                    }
-                    element.saveState = 'error';
-                    
-                    getData(element);
-                    GS.removeLoader(element);
-                    GS.webSocketErrorDialog(data);
-                }
-            }
-          , function (data, error, transactionID, commitFunction, rollbackFunction) {
-                GS.removeLoader(element);
-                
-                if (!error) {
-                    if (data === 'TRANSACTION COMPLETED') {
-                        //console.log('saved');
-                        if (element.saveTimeout) {
-                            clearTimeout(element.saveTimeout);
-                        }
-                        element.saveState = 'saved';
-                        
-                        commitFunction();
-                    } else {
-                        var arrRecords, arrCells, i, len, cell_i, cell_len;
-                        
-                        arrRecords = GS.trim(data, '\n').split('\n');
-                        
-                        for (i = 0, len = arrRecords.length; i < len; i += 1) {
-                            arrCells = arrRecords[i].split('\t');
-                            
-                            for (cell_i = 0, cell_len = arrCells.length; cell_i < cell_len; cell_i += 1) {
-                                arrCells[cell_i] = arrCells[cell_i] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[cell_i]);
-                            }
-                            
-                            arrTotalRecords.push(arrCells);
-                        }
-                    }
-                    
-                } else {
-                    //console.log('error');
-                    if (element.saveTimeout) {
-                        clearTimeout(element.saveTimeout);
-                    }
-                    element.saveState = 'error';
-                    
-                    rollbackFunction();
-                    getData(element);
-                    GS.webSocketErrorDialog(data);
-                }
-            }
-          , function (strAnswer, data, error) {
-                GS.removeLoader(element);
-                
-                if (!error) {
-                    if (strAnswer === 'COMMIT') {
-                        //console.log('saved');
-                        if (element.saveTimeout) {
-                            clearTimeout(element.saveTimeout);
-                        }
-                        element.saveState = 'saved';
-                        
-                        var idIndex, i, len;
-                        
-                        idIndex = element.lastSuccessData.arr_column.indexOf('id');
-                        
-                        for (i = 0, len = element.lastSuccessData.dat.length; i < len; i += 1) {
-                            if (String(element.lastSuccessData.dat[i][idIndex]) === strID) {
-                                element.lastSuccessData.dat[i] = arrTotalRecords[0];
-                                break;
-                            }
-                        }
-                        
-                        triggerAfterUpdate(element);
-                        handleData(element, element.lastSuccessData);
-                        
-                        GS.triggerEvent(element, 'after_update');
-                    } else {
-                        getData(element);
-                    }
-                } else {
-                    //console.log('error');
-                    if (element.saveTimeout) {
-                        clearTimeout(element.saveTimeout);
-                    }
-                    element.saveState = 'error';
-                    
-                    getData(element);
-                    GS.webSocketErrorDialog(data);
-                }
-            }
-        );
-    }
-    
-    function updateDataWithoutTemplate(element, bolErrorHandling) {
-        if (element.bolCurrentlySaving === false && !element.bolErrorOpen) {
-            var data, parentRecord, strID, strHash
-              , srcParts = GS.templateWithQuerystring(element.getAttribute('src')).split('.')
-              , strSchema = srcParts[0]
-              , strObject = srcParts[1]
-              , strReturnCols = element.arrColumns.join('\t')
-              , strHashCols = element.lockColumn
-              , updateFrameData, strRoles, strColumns, arrTotalRecords = [], functionUpdateRecord, col_key, key, strColumn, newValue, idIndex, i, len;
-            
-            functionUpdateRecord = function (strID, strColumn, recordIndex, strParameters) {
-                var strWhere, strChangeStamp, strValue;
-                
-                element.bolCurrentlySaving = true;
-                element.jsnUpdate[strID][strColumn] = undefined;
-                
-                // run ajax
-                removeMessage(element, 'waiting');
-                addMessage(element, 'saving');
-                element.state = 'saving';
-                
-                strWhere        = GS.qryGetVal(strParameters, 'where');
-                strColumn       = GS.qryGetVal(strParameters, 'column');
-                strValue        = GS.qryGetVal(strParameters, 'value');
-                
-                strID           = GS.qryGetVal(strWhere,      'id');
-                strChangeStamp  = GS.qryGetVal(strWhere,      element.lockColumn);
-                
-                strHash = CryptoJS.MD5(strChangeStamp).toString();
-                
-                //parentRecord = GS.findParentElement(updateElement, '.form-record');
-                
-                strRoles   = 'pk\thash\tset';
-                strColumns = 'id\thash\t' + GS.encodeForTabDelimited(strColumn);
-                updateFrameData = strID + '\t' + strHash + '\t' + GS.encodeForTabDelimited(strValue);
-                
-                updateFrameData = (strRoles + '\n' + strColumns + '\n' + updateFrameData);
-                
-                
-                
-                //console.log(strParameters);
-                //console.log(updateFrameData);
-                //console.log(strSchema, strObject, strReturnCols, strHashCols);
-                
-                GS.requestUpdateFromSocket(
-                    GS.envSocket, strSchema, strObject
-                  , strReturnCols, strHashCols, updateFrameData
-                    
-                  , function (data, error, transactionID) {
-                        if (error) {
-                            getData(element);
-                            GS.webSocketErrorDialog(data);
-                        }
-                    }
-                  , function (data, error, transactionID, commitFunction, rollbackFunction) {
-                        if (!error) {
-                            if (data === 'TRANSACTION COMPLETED') {
-                                commitFunction();
-                            } else {
-                                var arrRecords, arrCells, i, len, cell_i, cell_len;
-                                
-                                arrRecords = GS.trim(data, '\n').split('\n');
-                                
-                                for (i = 0, len = arrRecords.length; i < len; i += 1) {
-                                    arrCells = arrRecords[i].split('\t');
-                                    
-                                    for (cell_i = 0, cell_len = arrCells.length; cell_i < cell_len; cell_i += 1) {
-                                        arrCells[cell_i] = arrCells[cell_i] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[cell_i]);
-                                    }
-                                    
-                                    arrTotalRecords.push(arrCells);
-                                }
-                            }
-                            
-                        } else {
-                            rollbackFunction();
-                            getData(element);
-                            GS.webSocketErrorDialog(data);
-                        }
-                    }
-                  , function (strAnswer, data, error) {
-                        var col_key, key, bolSaveWaiting;
-                        removeMessage(element, 'saving');
-                        element.state = 'saved';
-                        
-                        GS.removeLoader(element);
-                        
-                        if (!error) {
-                            if (strAnswer === 'COMMIT') {
-                                element.lastSuccessData.dat[recordIndex] = arrTotalRecords[0];
-                                element.bolCurrentlySaving = false;
-                                
-                                // if there is another save in the pipeline: bolSaveWaiting = true
-                                for (key in element.jsnUpdate) {
-                                    for (col_key in element.jsnUpdate[key]) {
-                                        if (element.jsnUpdate[key][col_key] !== undefined) {
-                                            bolSaveWaiting = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                
-                                // if there is a save waiting: update again
-                                if (bolSaveWaiting) {
-                                    updateDataWithoutTemplate(element);
-                                    
-                                } else {
-                                    triggerAfterUpdate(element);
-                                }
-                            } else {
-                                getData(element);
-                            }
-                        } else {
-                            GS.webSocketErrorDialog(data);
-                        }
-                    }
-                );
-            };
-            
-            // loop through the jsnUpdate variable and make one update for every record that needs an update
-            console.log(JSON.stringify(element.jsnUpdate));
-            
-            for (key in element.jsnUpdate) {
-                for (col_key in element.jsnUpdate[key]) {
-                    if (element.jsnUpdate[key][col_key] !== undefined) {
-                        strID = key;
-                        strColumn = col_key;
-                        newValue = element.jsnUpdate[key][col_key];
-                        idIndex = element.lastSuccessData.arr_column.indexOf('id');
-                        
-                        for (i = 0, len = element.lastSuccessData.dat.length; i < len; i += 1) {
-                            if (String(element.lastSuccessData.dat[i][idIndex]) === strID) {
-                                functionUpdateRecord(strID, strColumn, i,
-                                            'where=' + encodeURIComponent(
-                                                'id=' + strID +
-                                                '&' + element.lockColumn + '=' + GS.envGetCell(element.lastSuccessData, i, element.lockColumn)
-                                            ) +
-                                            '&column=' + strColumn +
-                                            '&value=' +  encodeURIComponent(newValue));
-                                
-                                break;
-                            }
-                        }
-                        
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    
-    
-    // #################################################################
-    // ######################### DATA HANDLING #########################
-    // #################################################################
-    
-    // handles fetching the data
-    //      if bolInitalLoad === true then
-    //          use: initialize query COALESCE TO source query
-    //      else
-    //          use: source query
-    function getData(element) { //bolClearPrevious
-        var strSrc     = GS.templateWithQuerystring(element.getAttribute('src'))
-          , srcParts   = strSrc[0] === '(' ? [strSrc, ''] : strSrc.split('.')
-          , strSchema  = srcParts[0]
-          , strObject  = srcParts[1]
-          , strColumns = GS.templateWithQuerystring(element.getAttribute('cols') || '*').split(',').join('\t')
-          , strWhere   = GS.templateWithQuerystring(element.getAttribute('where') || '')
-          , strOrd     = GS.templateWithQuerystring(element.getAttribute('ord') || '')
-          , strLimit   = GS.templateWithQuerystring(element.getAttribute('limit') || '1')
-          , strOffset  = GS.templateWithQuerystring(element.getAttribute('offset') || '')
-          , response_i = 0, response_len = 0, arrTotalRecords = [];
-        
-        GS.triggerEvent(element, 'before_select');
-        GS.requestSelectFromSocket(GS.envSocket, strSchema, strObject, strColumns
-                                 , strWhere, strOrd, strLimit, strOffset
-                                 , function (data, error) {
-            var arrRecords, arrCells, i, len, cell_i, cell_len;
-            
-            if (!error) {
-                if (data.strMessage !== 'TRANSACTION COMPLETED') {
-                    arrRecords = GS.trim(data.strMessage, '\n').split('\n');
-                    
-                    for (i = 0, len = arrRecords.length; i < len; i += 1) {
-                        arrCells = arrRecords[i].split('\t');
-                        
-                        for (cell_i = 0, cell_len = arrCells.length; cell_i < cell_len; cell_i += 1) {
-                            arrCells[cell_i] = arrCells[cell_i] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[cell_i]);
-                        }
-                        
-                        arrTotalRecords.push(arrCells);
-                    }
-                } else {
-                    element.arrColumns = data.arrColumnNames;
-                    
-                    handleData(element, {
-                        "arr_column": data.arrColumnNames
-                      , "dat": arrTotalRecords
-                      , "row_count": arrTotalRecords.length
-                    }, '', 'load');
-                }
-            } else {
-                GS.webSocketErrorDialog(data);
-            }
-        });
-    }
-    
-    // handles data result from method function: getData 
-    //      success:  template
-    //      error:    add error classes
-    function handleData(element, data, error, strAction, failCallback) {
-        var arrElements, i, len, arrHeaders = [], intColumnElementFocusNumber, jsnSelection, matchElement,
-            templateElement = document.createElement('template'), focusTimerID, focusToElement, timer_i;
-        
-        // clear any old error status
-        element.classList.remove('error');
-        
-        if (!error && data.dat.length === 0 && !element.hasAttribute('limit') && !element.hasAttribute('suppress-no-record-found')) {
-            templateElement.setAttribute('data-theme', 'error');
-            templateElement.innerHTML = ml(function () {/*
-                <gs-page>
-                    <gs-header><center><h3>Error</h3></center></gs-header>
-                    <gs-body padded>
-                        <center>No record found</center>
-                    </gs-body>
-                    <gs-footer>
-                        <gs-grid>
-                            <gs-block><gs-button dialogclose>Cancel</gs-button></gs-block>
-                            <gs-block><gs-button dialogclose listen-for-return bg-primary>Try Again</gs-button></gs-block>
-                        </gs-grid>
-                    </gs-footer>
-                </gs-page>
-            */});
-            
-            GS.openDialog(templateElement, '', function (event, strAnswer) {
-                if (strAnswer === 'Try Again') {
-                    element.refresh();
-                }
-            });
-        }
-        
-        // if there was no error
-        if (!error) {
-            element.error = false;
-            
-            // save success data
-            element.lastSuccessData = data;
-            
-            if (GS.findParentElement(document.activeElement, 'gs-form') === element) {
-                //console.log('Hey');
-                arrElements = xtag.query(element, '[column]');
-                matchElement = GS.findParentElement(document.activeElement, '[column]');
-                
-                if (document.activeElement.nodeName === 'INPUT' || document.activeElement.nodeName === 'TEXTAREA') {
-                    jsnSelection = GS.getInputSelection(document.activeElement);
-                }
-                
-                if (matchElement) {
-                    for (i = 0, len = arrElements.length; i < len; i += 1) {
-                        if (arrElements[i] === matchElement) {
-                            intColumnElementFocusNumber = i;
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            //console.log(element.children);
-            element.innerHTML = dataTemplateRecords(element, data);
-            //console.log(element.children);
-            
-            // if template is not native: handle templates inside the form
-            if (shimmed.HTMLTemplateElement) {
-                HTMLTemplateElement.bootstrap(element);
-            }
-            
-            // handle autofocus
-            arrElements = xtag.query(element, '[autofocus]');
-            
-            if (arrElements.length > 0 && !evt.touchDevice) {
-                arrElements[0].focus();
-                
-                if (arrElements.length > 1) {
-                    console.warn('dialog Warning: Too many [autofocus] elements, defaulting to the first one. Please have only one [autofocus] element per form.');
-                }
-            }
-            
-            // if there is a intColumnElementFocusNumber: restore focus
-            if (intColumnElementFocusNumber) {
-                arrElements = xtag.query(element, '[column]');
-                
-                //console.log(intColumnElementFocusNumber, jsnSelection);
-                //
-                //console.log('arrElements: ', arrElements);
-                //console.log('intColumnElementFocusNumber: ', intColumnElementFocusNumber);
-                //console.log('element: ', arrElements[intColumnElementFocusNumber]);
-                //console.log('jsnSelection: ', jsnSelection);
-                //
-                //console.log('element upgrade: ', arrElements[intColumnElementFocusNumber].__upgraded__);
-                
-                //console.log('1***');
-                if (arrElements.length > intColumnElementFocusNumber) {
-                    //console.log('2***', document.activeElement);
-                    focusToElement = arrElements[intColumnElementFocusNumber];
-                    
-                    // if element registration is not shimmed, we can just focus into the target element
-                    if (shimmed.registerElement === false) {
-                        focusToElement.focus();
-                        if (jsnSelection) {
-                            GS.setInputSelection(document.activeElement, jsnSelection.start, jsnSelection.end);
-                        }
-                        
-                    // else, we have to check on a loop to see if the element has been upgraded,
-                    //      the reason I need to use a loop here is because there is no event for
-                    //      when an element is upgraded (if there was then 1000 custom elements
-                    //      would emit 1000 events, which is a lot and we don't want to bog the
-                    //      browser down)
-                    } else {
-                        timer_i = 0;
-                        focusTimerID = setInterval(function () {
-                            if (focusToElement.__upgraded__ || timer_i >= 10) {
-                                clearTimeout(focusTimerID);
-                            }
-                            if (focusToElement.__upgraded__) {
-                                focusToElement.focus();
-                                if (jsnSelection) {
-                                    GS.setInputSelection(document.activeElement, jsnSelection.start, jsnSelection.end);
-                                }
-                            }
-                            timer_i += 1;
-                        }, 5);
-                    }
-                }
-            }
-            
-            //console.log('current element', document.activeElement);
-            
-            // trigger after_select
-            GS.triggerEvent(element, 'after_select');
-            //console.log(element, 'after_select');
-            
-        // else there was an error: add error class, title attribute
-        } else {
-            element.error = true;
-            element.classList.add('error');
-            
-            element.innerHTML = 'This form encountered an error.'
-            
-            //GS.ajaxErrorDialog(event.detail.response);
-            GS.ajaxErrorDialog(data);
-        }
-    }
-    
-    
-    function dataTemplateRecords(element, data) {
-        var jsnTemplate, strRet;
-        
-        jsnTemplate = GS.templateHideSubTemplates(element.templateHTML);
-        
-        //console.log(jsnTemplate.templateHTML);
-        
-        strRet = GS.templateWithEnvelopeData('<div class="form-record" ' + (data.dat.length === 1 ? 'style="height: 100%;" ' : '') +
-                                                'data-id="{{! row.id }}" data-' + element.lockColumn + '="{{! row.' + element.lockColumn + ' }}" gs-dynamic>' +
-                                                jsnTemplate.templateHTML +
-                                            '</div>',
-                                            data);
-        
-        strRet = GS.templateShowSubTemplates(strRet, jsnTemplate);
-        
-        //console.log(strRet);
-        
-        return strRet;
-    }
-    
-    
     // #################################################################
     // ########################### UTILITIES ###########################
     // #################################################################
+    
+    function removeMessage(element, strMessageName) {
+        if (strMessageName === 'saving' && element.savingMessage) {
+            element.removeChild(element.savingMessage);
+            element.savingMessage = null;
+            
+        } else if (strMessageName === 'waiting' && element.waitingMessage) {
+            element.removeChild(element.waitingMessage);
+            element.waitingMessage = null;
+        }
+    }
     
     function addMessage(element, strMessageName) {
         if (strMessageName === 'saving') {
@@ -693,20 +187,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    function removeMessage(element, strMessageName) {
-        if (strMessageName === 'saving' && element.savingMessage) {
-            element.removeChild(element.savingMessage);
-            element.savingMessage = undefined;
-            
-        } else if (strMessageName === 'waiting' && element.waitingMessage) {
-            element.removeChild(element.waitingMessage);
-            element.waitingMessage = undefined;
-        }
-    }
-    
     function columnParentsUntilForm(form, element) {
-        var intColumnParents = 0, currentElement = element, maxLoops = 50, i = 0;
-        
+        var intColumnParents = 0;
+        var currentElement = element;
+        var maxLoops = 50;
+        var i = 0;
+
         while (currentElement.parentNode !== form && currentElement.parentNode && i < maxLoops) {
             if (currentElement.parentNode.hasAttribute('column') === true //If something with a column attribute
                 || currentElement.parentNode.hasAttribute('src') === true) { //or something with a src attribute
@@ -716,38 +202,10 @@ document.addEventListener('DOMContentLoaded', function () {
             currentElement = currentElement.parentNode;
             i += 1;
         }
-        
+
         return intColumnParents;
     }
-    
-    //function pushReplacePopHandler(element) {
-    //    var i, len, arrPopKeys, bolRefresh = false, currentValue, strQueryString = GS.getQueryString(), strQSCol = element.getAttribute('qs');
-    //    
-    //    if (strQSCol && GS.qryGetKeys(strQueryString).indexOf(strQSCol) > -1) {
-    //        element.setAttribute('where', 'id=' + GS.qryGetVal(strQueryString, strQSCol));
-    //        bolRefresh = true;
-    //        
-    //    } else if (element.hasAttribute('refresh-on-querystring-values')) {
-    //        arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
-    //        
-    //        for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
-    //            currentValue = GS.qryGetVal(strQueryString, arrPopKeys[i]);
-    //            
-    //            if (element.popValues[arrPopKeys[i]] !== currentValue) {
-    //                bolRefresh = true;
-    //            }
-    //            
-    //            element.popValues[arrPopKeys[i]] = currentValue;
-    //        }
-    //        
-    //    } else if (element.hasAttribute('refresh-on-querystring-change')) {
-    //        bolRefresh = true;
-    //    }
-    //    
-    //    if (bolRefresh) {
-    //        element.refresh();
-    //    }
-    //}
+
     function saveDefaultAttributes(element) {
         var i;
         var len;
@@ -835,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 strQSValue = GS.qryGetVal(strQS, strQSCol);
     
                 if (element.internal.bolQSFirstRun !== true) {
-                    console.log(element.getAttribute('value'));
+                  //console.log(element.getAttribute('value'));
                     if (strQSValue !== '' || !element.getAttribute('value')) {
                         element.setAttribute('where', 'id=' + (isNaN(strQSValue) ? '$WHEREQuoTE$' + strQSValue + '$WHEREQuoTE$' : strQSValue));
                         bolRefresh = true;
@@ -851,15 +309,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (element.internal.bolQSFirstRun === true) {
             if (element.hasAttribute('refresh-on-querystring-values')) {
                 arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
-                
-                for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
+
+                i = 0;
+                len = arrPopKeys.length;
+                while (i < len) {
                     currentValue = GS.qryGetVal(strQS, arrPopKeys[i]);
-                    
+
                     if (element.popValues[arrPopKeys[i]] !== currentValue) {
                         bolRefresh = true;
                     }
-                    
+
                     element.popValues[arrPopKeys[i]] = currentValue;
+                    i += 1;
                 }
             } else if (element.hasAttribute('refresh-on-querystring-change')) {
                 bolRefresh = true;
@@ -868,8 +329,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (element.hasAttribute('refresh-on-querystring-values')) {
                 arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
                 
-                for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
+                i = 0;
+                len = arrPopKeys.length;
+                while (i < len) {
                     element.popValues[arrPopKeys[i]] = GS.qryGetVal(strQS, arrPopKeys[i]);
+                    i += 1;
                 }
             }
             
@@ -887,6 +351,657 @@ document.addEventListener('DOMContentLoaded', function () {
         element.internal.bolQSFirstRun = true;
     }
     
+    function triggerBeforeSelect(element) {
+        GS.triggerEvent(element, 'before_select');
+        if (element.hasAttribute('onbefore_select')) {
+            new Function(element.getAttribute('onbefore_select')).apply(element);
+        }
+    }
+
+    function triggerAfterSelect(element) {
+        GS.triggerEvent(element, 'after_select');
+        if (element.hasAttribute('onafter_select')) {
+            new Function(element.getAttribute('onafter_select')).apply(element);
+        }
+    }
+
+    //this one doesn't seem to be working properly
+    function triggerBeforeUpdate(element) {
+        GS.triggerEvent(element, 'before_update');
+        if (element.hasAttribute('onbefore_update')) {
+            new Function(element.getAttribute('onbefore_update')).apply(element);
+        }
+    }
+
+    function triggerAfterUpdate(element) {
+        GS.triggerEvent(element, 'after_update');
+        if (element.hasAttribute('onafter_update')) {
+            new Function(element.getAttribute('onafter_update')).apply(element);
+        } else if (element.hasAttribute('afterupdate')) {
+            new Function(element.getAttribute('afterupdate')).apply(element);
+        }
+    }
+
+    // the user needs to be able to set a custom websocket for this element,
+    //      so this function will use an attribute to find out what socket to
+    //      use (and it'll default to "GS.envSocket")
+    function getSocket(element) {
+        if (element.getAttribute('socket')) {
+            return GS[element.getAttribute('socket')];
+        }
+        return GS.envSocket;
+    }
+    
+    // ##################################################################
+    // ######################## UPDATE FUNCTIONS ########################
+    // ##################################################################
+    
+    function emergencyUpdate(element) {
+        if (element.currentSaveAjax) {
+            element.currentSaveAjax.abort();
+        }
+        element.bolCurrentlySaving = false;
+        updateDataWithoutTemplate(element, false);
+    }
+    
+    function updateData(element, updateElement, strColumn, newValue) {
+        var parentRecord;
+        var strID;
+        var strHash;
+        var srcParts = GS.templateWithQuerystring(element.getAttribute('update-src') || element.getAttribute('src')).split('.');
+        var strSchema = srcParts[0];
+        var strObject = srcParts[1];
+        var strReturnCols = element.arrColumns.join('\t');
+        var strHashCols = element.lockColumn;
+        var updateFrameData;
+        var strRoles;
+        var strColumns;
+        var arrTotalRecords = [];
+        
+        parentRecord = GS.findParentElement(updateElement, '.form-record');
+        
+        strID = parentRecord.getAttribute('data-id');
+        strHash = CryptoJS.MD5(parentRecord.getAttribute('data-' + element.lockColumn)).toString();
+        
+        strRoles   = 'pk\thash\tset';
+        strColumns = 'id\thash\t' + GS.encodeForTabDelimited(strColumn);
+        updateFrameData = strID + '\t' + strHash + '\t' + GS.encodeForTabDelimited(newValue);
+        
+        updateFrameData = (strRoles + '\n' + strColumns + '\n' + updateFrameData);
+        
+        triggerBeforeUpdate(element);
+        //GS.triggerEvent(element, 'before_update');
+        
+        element.saveState = 'saving';
+        if (element.saveTimeout) {
+            clearTimeout(element.saveTimeout);
+        }
+        element.saveTimeout = setTimeout(function () {
+            if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
+                element.saveState = 'error';
+                var parentElement = document.createElement('center');
+                parentElement.setAttribute('class', 'saving-warning-parent');
+                
+                var warningElement = document.createElement('div');
+                warningElement.setAttribute('class', 'saving-warning');
+    
+                // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
+                warningElement.innerHTML = 'YOUR CHANGES ARE NOT SAVED<br />WE HAVEN\'T HEARD BACK FROM THE SERVER<br />EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR';
+                
+                parentElement.appendChild(warningElement);
+                element.insertBefore(parentElement, element.children[0]);
+                
+                // element.appendChild(parentElement);
+                /*
+                warningElement.addEventListener('click', function () {
+                    saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
+                });
+                */
+            }
+        }, /*30*/ 5 * 1000);
+        
+        GS.requestUpdateFromSocket(
+            getSocket(element), strSchema, strObject
+          , strReturnCols, strHashCols, updateFrameData
+            
+          , function (data, error) { //, transactionID
+                if (error) {
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'error';
+
+                    getData(element);
+                    GS.removeLoader(element);
+                    GS.webSocketErrorDialog(data);
+                }
+            }
+          , function (data, error, transactionID, commitFunction, rollbackFunction) {
+                // removed by Nunzio on 2019-07-31 because there is no loader
+                //GS.removeLoader(element);
+                
+                if (!error) {
+                    if (data === 'TRANSACTION COMPLETED') {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.saveState = 'saved';
+                        
+                        commitFunction();
+                    } else {
+                        var arrRecords;
+                        var arrCells;
+                        var i;
+                        var len;
+                        var cell_i;
+                        var cell_len;
+
+                        arrRecords = GS.trim(data, '\n').split('\n');
+
+                        i = 0;
+                        len = arrRecords.length;
+                        while (i < len) {
+                            arrCells = arrRecords[i].split('\t');
+                            
+                            cell_i = 0;
+                            cell_len = arrCells.length;
+                            while (cell_i < cell_len) {
+                                arrCells[cell_i] = arrCells[cell_i] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[cell_i]);
+                                cell_i += 1;
+                            }
+                            
+                            arrTotalRecords.push(arrCells);
+                            i += 1;
+                        }
+                    }
+                    
+                } else {
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'error';
+                    
+                    rollbackFunction();
+                    getData(element);
+                    GS.webSocketErrorDialog(data);
+                }
+            }
+          , function (strAnswer, data, error) {
+                var idIndex;
+                var i;
+                var len;
+
+                //GS.removeLoader(element);
+
+                if (!error) {
+                    if (strAnswer === 'COMMIT') {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.saveState = 'saved';
+
+                        idIndex = element.lastSuccessData.arr_column.indexOf('id');
+                        i = 0;
+                        len = element.lastSuccessData.dat.length;
+                        while (i < len) {
+                            if (String(element.lastSuccessData.dat[i][idIndex]) === strID) {
+                                element.lastSuccessData.dat[i] = arrTotalRecords[0];
+                                break;
+                            }
+                            i += 1;
+                        }
+
+                        handleData(element, element.lastSuccessData);
+
+                        triggerAfterUpdate(element);
+                        //GS.triggerEvent(element, 'after_update');
+                    } else {
+                        getData(element);
+                    }
+                } else {
+                    if (element.saveTimeout) {
+                        clearTimeout(element.saveTimeout);
+                    }
+                    element.saveState = 'error';
+
+                    getData(element);
+                    GS.webSocketErrorDialog(data);
+                }
+            }
+        );
+    }
+    
+    function updateDataWithoutTemplate(element) {
+        if (element.bolCurrentlySaving === false && !element.bolErrorOpen) {
+            var strID;
+            var strHash;
+            var srcParts = GS.templateWithQuerystring(element.getAttribute('src')).split('.');
+            var strSchema = srcParts[0];
+            var strObject = srcParts[1];
+            var strReturnCols = element.arrColumns.join('\t');
+            var strHashCols = element.lockColumn;
+            var updateFrameData;
+            var strRoles;
+            var strColumns;
+            var arrTotalRecords = [];
+            var functionUpdateRecord;
+            var col_key;
+            var key;
+            var strColumn;
+            var newValue;
+            var idIndex;
+            var i;
+            var len;
+            
+            functionUpdateRecord = function (strID, strColumn, recordIndex, strParameters) {
+                var strWhere;
+                var strChangeStamp;
+                var strValue;
+                
+                element.bolCurrentlySaving = true;
+                element.jsnUpdate[strID][strColumn] = undefined;
+                
+                // run ajax
+                removeMessage(element, 'waiting');
+                addMessage(element, 'saving');
+                element.state = 'saving';
+                
+                element.saveTimeout = setTimeout(function () {
+                    if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
+                        element.saveState = 'error';
+                        var parentElement = document.createElement('center');
+                        parentElement.setAttribute('class', 'saving-warning-parent');
+                        
+                        var warningElement = document.createElement('div');
+                        warningElement.setAttribute('class', 'saving-warning');
+            
+                        // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
+                        warningElement.innerHTML = 'YOUR CHANGES ARE NOT SAVED<br />WE HAVEN\'T HEARD BACK FROM THE SERVER<br />EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR';
+                        
+                        parentElement.appendChild(warningElement);
+                        element.insertBefore(parentElement, element.children[0]);
+                        
+                        // element.appendChild(parentElement);
+                        /*
+                        warningElement.addEventListener('click', function () {
+                            saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
+                        });
+                        */
+                    }
+                }, /*30*/ 5 * 1000);
+                
+                strWhere        = GS.qryGetVal(strParameters, 'where');
+                strColumn       = GS.qryGetVal(strParameters, 'column');
+                strValue        = GS.qryGetVal(strParameters, 'value');
+                strID           = GS.qryGetVal(strWhere,      'id');
+                strChangeStamp  = GS.qryGetVal(strWhere,      element.lockColumn);
+                strHash = CryptoJS.MD5(strChangeStamp).toString();
+
+                strRoles   = 'pk\thash\tset';
+                strColumns = 'id\thash\t' + GS.encodeForTabDelimited(strColumn);
+                updateFrameData = strID + '\t' + strHash + '\t' + GS.encodeForTabDelimited(strValue);
+                updateFrameData = (strRoles + '\n' + strColumns + '\n' + updateFrameData);
+                
+                GS.requestUpdateFromSocket(
+                    getSocket(element), strSchema, strObject
+                  , strReturnCols, strHashCols, updateFrameData
+                    
+                  , function (data, error, transactionID) {
+                        if (error) {
+                            getData(element);
+                            GS.webSocketErrorDialog(data);
+                        }
+                    }
+                  , function (data, error, transactionID, commitFunction, rollbackFunction) {
+                        if (!error) {
+                            if (data === 'TRANSACTION COMPLETED') {
+                                commitFunction();
+                            } else {
+                                var arrRecords;
+                                var arrCells;
+                                var i;
+                                var len;
+                                var cell_i;
+                                var cell_len;
+
+                                arrRecords = GS.trim(data, '\n').split('\n');
+
+                                i = 0;
+                                len = arrRecords.length;
+                                while (i < len) {
+                                    arrCells = arrRecords[i].split('\t');
+
+                                    cell_i = 0;
+                                    cell_len = arrCells.length;
+                                    while (cell_i < cell_len) {
+                                        arrCells[cell_i] = arrCells[cell_i] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[cell_i]);
+                                        cell_i += 1;
+                                    }
+                                    
+                                    arrTotalRecords.push(arrCells);
+                                    i += 1;
+                                }
+                            }
+                            
+                        } else {
+                            rollbackFunction();
+                            getData(element);
+                            GS.webSocketErrorDialog(data);
+                        }
+                    }
+                  , function (strAnswer, data, error) {
+                        var col_key;
+                        var key;
+                        var bolSaveWaiting;
+
+                        removeMessage(element, 'saving');
+                        element.state = 'saved';
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+
+                        GS.removeLoader(element);
+
+                        if (!error) {
+                            if (strAnswer === 'COMMIT') {
+                                element.lastSuccessData.dat[recordIndex] = arrTotalRecords[0];
+                                element.bolCurrentlySaving = false;
+
+                                // if there is another save in the pipeline: bolSaveWaiting = true
+                                for (key in element.jsnUpdate) {
+                                    for (col_key in element.jsnUpdate[key]) {
+                                        if (element.jsnUpdate[key][col_key] !== undefined) {
+                                            bolSaveWaiting = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                // if there is a save waiting: update again
+                                if (bolSaveWaiting) {
+                                    updateDataWithoutTemplate(element);
+                                    
+                                } else {
+                                    triggerAfterUpdate(element);
+                                }
+                            } else {
+                                getData(element);
+                            }
+                        } else {
+                            GS.webSocketErrorDialog(data);
+                        }
+                    }
+                );
+            };
+            
+            // loop through the jsnUpdate variable and make one update for every record that needs an update
+            for (key in element.jsnUpdate) {
+                for (col_key in element.jsnUpdate[key]) {
+                    if (element.jsnUpdate[key][col_key] !== undefined) {
+                        strID = key;
+                        strColumn = col_key;
+                        newValue = element.jsnUpdate[key][col_key];
+                        idIndex = element.lastSuccessData.arr_column.indexOf('id');
+                        
+                        i = 0;
+                        len = element.lastSuccessData.dat.length;
+                        while (i < len) {
+                            if (String(element.lastSuccessData.dat[i][idIndex]) === strID) {
+                                functionUpdateRecord(strID, strColumn, i,
+                                            'where=' + encodeURIComponent(
+                                                'id=' + strID +
+                                                '&' + element.lockColumn + '=' + GS.envGetCell(element.lastSuccessData, i, element.lockColumn)
+                                            ) +
+                                            '&column=' + strColumn +
+                                            '&value=' +  encodeURIComponent(newValue));
+                                
+                                break;
+                            }
+                            i += 1;
+                        }
+                        
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    // #################################################################
+    // ######################### DATA HANDLING #########################
+    // #################################################################
+
+    function dataTemplateRecords(element, data) {
+        var jsnTemplate;
+        var strRet;
+        
+        jsnTemplate = GS.templateHideSubTemplates(element.templateHTML);
+        
+        strRet = GS.templateWithEnvelopeData('<div class="form-record" ' + (data.dat.length === 1 ? 'style="height: 100%;" ' : '') +
+                                                'data-id="{{! row.id }}" data-' + element.lockColumn + '="{{! row.' + element.lockColumn + ' }}" gs-dynamic>' +
+                                                jsnTemplate.templateHTML +
+                                            '</div>',
+                                            data);
+        strRet = GS.templateShowSubTemplates(strRet, jsnTemplate);
+        
+        return strRet;
+    }
+    
+    // handles data result from method function: getData 
+    //      success:  template
+    //      error:    add error classes
+    function handleData(element, data, error) {
+        var arrElements;
+        var i;
+        var len;
+        var intColumnElementFocusNumber;
+        var jsnSelection;
+        var matchElement;
+        var templateElement = document.createElement('template');
+        var focusTimerID;
+        var focusToElement;
+        var timer_i;
+        
+        // clear any old error status
+        element.classList.remove('error');
+        
+        if (!error && data.dat.length === 0 && !element.hasAttribute('limit') && !element.hasAttribute('suppress-no-record-found')) {
+            templateElement.setAttribute('data-theme', 'error');
+            templateElement.innerHTML = ml(function () {/*
+                <gs-page>
+                    <gs-header><center><h3>Error</h3></center></gs-header>
+                    <gs-body padded>
+                        <center>No record found</center>
+                    </gs-body>
+                    <gs-footer>
+                        <gs-grid>
+                            <gs-block><gs-button dialogclose>Cancel</gs-button></gs-block>
+                            <gs-block><gs-button dialogclose listen-for-return bg-primary>Try Again</gs-button></gs-block>
+                        </gs-grid>
+                    </gs-footer>
+                </gs-page>
+            */});
+            
+            GS.openDialog(templateElement, '', function (ignore, strAnswer) {
+                if (strAnswer === 'Try Again') {
+                    element.refresh();
+                }
+            });
+        }
+        
+        // if there was no error
+        if (!error) {
+            element.error = false;
+            
+            // save success data
+            element.lastSuccessData = data;
+            
+            if (GS.findParentElement(document.activeElement, 'gs-form') === element) {
+                //console.log('Hey');
+                arrElements = xtag.query(element, '[column]');
+                matchElement = GS.findParentElement(document.activeElement, '[column]');
+                
+                if (document.activeElement.nodeName === 'INPUT' || document.activeElement.nodeName === 'TEXTAREA') {
+                    jsnSelection = GS.getInputSelection(document.activeElement);
+                }
+                
+                if (matchElement) {
+                    i = 0;
+                    len = arrElements.length;
+                    while (i < len) {
+                        if (arrElements[i] === matchElement) {
+                            intColumnElementFocusNumber = i;
+                            break;
+                        }
+                        i += 1;
+                    }
+                }
+            }
+            
+            //console.log(element.children);
+            element.innerHTML = dataTemplateRecords(element, data);
+            //console.log(element.children);
+            
+            // if template is not native: handle templates inside the form
+            if (shimmed.HTMLTemplateElement) {
+                HTMLTemplateElement.bootstrap(element);
+            }
+            
+            // handle autofocus
+            arrElements = xtag.query(element, '[autofocus]');
+            
+            if (arrElements.length > 0 && !evt.touchDevice) {
+                arrElements[0].focus();
+                
+                if (arrElements.length > 1) {
+                    console.warn('dialog Warning: Too many [autofocus] elements, defaulting to the first one. Please have only one [autofocus] element per form.');
+                }
+            }
+            
+            // if there is a intColumnElementFocusNumber: restore focus
+            if (intColumnElementFocusNumber) {
+                arrElements = xtag.query(element, '[column]');
+
+                if (arrElements.length > intColumnElementFocusNumber) {
+                    focusToElement = arrElements[intColumnElementFocusNumber];
+
+                    // if element registration is not shimmed, we can just focus into the target element
+                    if (shimmed.registerElement === false) {
+                        focusToElement.focus();
+                        if (jsnSelection) {
+                            GS.setInputSelection(document.activeElement, jsnSelection.start, jsnSelection.end);
+                        }
+
+                    // else, we have to check on a loop to see if the element has been upgraded,
+                    //      the reason I need to use a loop here is because there is no event for
+                    //      when an element is upgraded (if there was then 1000 custom elements
+                    //      would emit 1000 events, which is a lot and we don't want to bog the
+                    //      browser down)
+                    } else {
+                        timer_i = 0;
+                        focusTimerID = setInterval(function () {
+                            if (focusToElement['__upgraded__'] || timer_i >= 10) {
+                                clearTimeout(focusTimerID);
+                            }
+                            if (focusToElement['__upgraded__']) {
+                                focusToElement.focus();
+                                if (jsnSelection) {
+                                    GS.setInputSelection(document.activeElement, jsnSelection.start, jsnSelection.end);
+                                }
+                            }
+                            timer_i += 1;
+                        }, 5);
+                    }
+                }
+            }
+            
+            // trigger after_select
+            triggerAfterSelect(element);
+            //GS.triggerEvent(element, 'after_select');
+            
+        // else there was an error: add error class, title attribute
+        } else {
+            element.error = true;
+            element.classList.add('error');
+            element.innerHTML = 'This form encountered an error.';
+
+            //GS.ajaxErrorDialog(event.detail.response);
+            GS.ajaxErrorDialog(data);
+        }
+    }
+    
+    // handles fetching the data
+    //      if bolInitalLoad === true then
+    //          use: initialize query COALESCE TO source query
+    //      else
+    //          use: source query
+    function getData(element) { //bolClearPrevious
+        var strSrc     = GS.templateWithQuerystring(element.getAttribute('src'));
+        var bolQuery   = strSrc[0] === '(';
+        var srcParts   = strSrc[0] === '(' ? [strSrc, ''] : strSrc.split('.');
+        var strSchema  = srcParts[0];
+        var strObject  = srcParts[1];
+        var strColumns = GS.templateWithQuerystring(element.getAttribute('cols') || '*').split(',').join('\t');
+        var strWhere   = GS.templateWithQuerystring(element.getAttribute('where') || '');
+        var strOrd     = GS.templateWithQuerystring(element.getAttribute('ord') || '');
+        var strLimit   = GS.templateWithQuerystring(element.getAttribute('limit') || '1');
+        var strOffset  = GS.templateWithQuerystring(element.getAttribute('offset') || '');
+        var arrTotalRecords = [];
+        
+        triggerBeforeSelect(element);
+        //GS.triggerEvent(element, 'before_select');
+        
+        GS.requestSelectFromSocket(getSocket(element), bolQuery ? '' : strSchema, bolQuery ? strSrc : strObject, strColumns
+                                 , strWhere, strOrd, strLimit, strOffset
+                                 , function (data, error) {
+            var arrRecords;
+            var arrCells;
+            var i;
+            var len;
+            var cell_i;
+            var cell_len;
+            
+            if (!error) {
+                if (data.strMessage !== 'TRANSACTION COMPLETED') {
+                    arrRecords = GS.trim(data.strMessage, '\n').split('\n');
+
+                    i = 0;
+                    len = arrRecords.length;
+                    while (i < len) {
+                        arrCells = arrRecords[i].split('\t');
+                        
+                        cell_i = 0;
+                        cell_len = arrCells.length;
+                        while (cell_i < cell_len) {
+                            arrCells[cell_i] = arrCells[cell_i] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[cell_i]);
+                            cell_i += 1;
+                        }
+                        
+                        arrTotalRecords.push(arrCells);
+                        i += 1;
+                    }
+                } else {
+                    element.arrColumns = data.arrColumnNames;
+
+                    handleData(element, {
+                        "arr_column": data.arrColumnNames
+                      , "dat": arrTotalRecords
+                      , "row_count": arrTotalRecords.length
+                    }, '', 'load');
+                }
+            } else {
+                GS.webSocketErrorDialog(data);
+            }
+        });
+    }
+    
+    
+    
+    // #################################################################
+    // ########################### LIFECYCLE ###########################
+    // #################################################################
+    
     // dont do anything that modifies the element here
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
@@ -895,8 +1010,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    //
     function elementInserted(element) {
+        var firstChildElement;
+        var changeHandler;
+
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
             if (element.children.length === 0) {
@@ -904,16 +1021,21 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             // if this is the first time inserted has been run: continue
             if (!element.inserted) {
+                // #############################################################################################
+                // ###  ######################
+                // #############################################################################################
+
                 element.inserted = true;
                 element.internal = {};
                 saveDefaultAttributes(element);
-                
-                var //templateElement = document.createElement('template'),
-                    //templateElementSubTemplateSafe = document.createElement('template'),
-                    firstChildElement = element.children[0],
-                    //arrElements, i, len, arrColumnElement, arrTemplates,
-                    strQueryString = GS.getQueryString(), changeHandler;
-                
+
+                firstChildElement = element.children[0];
+
+
+                // #############################################################################################
+                // ### PREVENT CHANGES FROM BEING LOST WHEN NAVIGATING AWAY FROM THE PAGE ######################
+                // #############################################################################################
+
                 // if this form has the "save-while-typing" attribute
                 if (element.hasAttribute('save-while-typing')) {
                     GS.addBeforeUnloadEvent(function () {
@@ -928,80 +1050,126 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.activeElement.blur();
                     });
                 }
-                
+
+
+                // #############################################################################################
+                // ### DEFAULT #################################################################################
+                // #############################################################################################
+
                 // lock attribute and defaulting
                 element.lockColumn = element.getAttribute('lock') || 'change_stamp';
-                
+
+
+                // #############################################################################################
+                // ### TEMPLATE SAVING #########################################################################
+                // #############################################################################################
+
                 // if the first child is a template element: save its HTML
                 if (firstChildElement.nodeName === 'TEMPLATE') {
                     element.templateHTML = firstChildElement.innerHTML;
-                    
+
                 // else: save the innerHTML of the form and send a warning
                 } else {
                     console.warn('Warning: gs-form is now built to use a template element. ' +
                                  'Please use a template element to contain the template for this form. ' + // this warning was added: March 12th 2015
                                  'A fix has been included so that it is not necessary to use the template element, but that code may be removed at a future date.');
-                    
+
                     element.templateHTML = element.innerHTML;
                 }
-                
+
                 // if there is no HTML: throw an error
                 if (!element.templateHTML.trim()) { throw 'GS-FORM error: no template HTML.'; }
-                
+
                 if (element.templateHTML.indexOf('&gt;') > -1 || element.templateHTML.indexOf('&lt;') > -1) {
                     console.warn('GS-FORM WARNING: &gt; or &lt; detected in record template, this can have undesired effects on doT.js. Please use gt(x,y), gte(x,y), lt(x,y), or lte(x,y) to silence this warning.');
                 }
-                
+
                 // add a doT.js coded "value" attribute to any element with a "column" attribute but no "value" attribute
                 element.templateHTML = GS.templateColumnToValue(element.templateHTML);
+
+
+                // #############################################################################################
+                // ### "QS" ATTRIBUTE ##########################################################################
+                // #############################################################################################
                 
                 // handle "qs" attribute
-                if (element.getAttribute('qs') ||
-                        element.getAttribute('refresh-on-querystring-values') ||
-                        element.hasAttribute('refresh-on-querystring-change')) {
+                if (
+                    element.getAttribute('qs') ||
+                    element.getAttribute('refresh-on-querystring-values') ||
+                    element.hasAttribute('refresh-on-querystring-change')
+                ) {
                     element.popValues = {};
-                    
-                    //if (element.getAttribute('qs')) {
-                    //    if (GS.qryGetVal(strQueryString, element.getAttribute('qs'))) {
-                    //        element.setAttribute('where', 'id=' + GS.qryGetVal(strQueryString, element.getAttribute('qs')));
-                    //    } else {
-                    //        element.setAttribute('where', 'false');
-                    //    }
-                    //}
-                    
-                    //if (GS.getQueryString() || element.hasAttribute('refresh-on-querystring-change')) {
                     pushReplacePopHandler(element);
-                    //}
-                    
                     window.addEventListener('pushstate',    function () { pushReplacePopHandler(element); });
                     window.addEventListener('replacestate', function () { pushReplacePopHandler(element); });
                     window.addEventListener('popstate',     function () { pushReplacePopHandler(element); });
                 } else {
                     getData(element);
                 }
-                
+
+
+                // #############################################################################################
+                // ### ARROW FIELD NAVIGATION ##################################################################
+                // #############################################################################################
+
                 element.addEventListener('keydown', function (event) {
-                    var intKeyCode = event.which || event.keyCode, jsnSelection;
-                    
-                    if (document.activeElement.nodeName === 'INPUT' || document.activeElement.nodeName === 'TEXTAREA') {
+                    var intKeyCode = (event.which || event.keyCode);
+                    var jsnSelection;
+                    var focusToElement;
+                    var i;
+                    var len;
+                    var arrElementsFocusable;
+                    var currentElement;
+
+                    if (
+                        document.activeElement.nodeName === 'INPUT' ||
+                        document.activeElement.nodeName === 'TEXTAREA'
+                    ) {
                         jsnSelection = GS.getInputSelection(event.target);
                     }
-                    
-                    if ((intKeyCode === 37 && (!jsnSelection || jsnSelection.start === 0)) ||
-                        (intKeyCode === 39 && (!jsnSelection || jsnSelection.end === event.target.value.length))) {
-                        var focusToElement, i, len, arrElementsFocusable, currentElement;
-                        //Left
-                        if (intKeyCode === 37 && (!jsnSelection || jsnSelection.start === 0)) {
-                            arrElementsFocusable = xtag.query(document, 'input:not([disabled]), ' +
-                                'select:not([disabled]), memo:not([disabled]), button:not([disabled]), ' +
-                                '[tabindex]:not([disabled]), [column]');
-                            
-                            for (i = 0,len = arrElementsFocusable.length;i < len;i++) {
+
+                    if (
+                        // Left arrow
+                        (
+                            intKeyCode === 37 &&
+                            (!jsnSelection || jsnSelection.start === 0)
+                        ) ||
+                        // Right arrow
+                        (
+                            intKeyCode === 39 &&
+                            (!jsnSelection || jsnSelection.end === event.target.value.length)
+                        )
+                    ) {
+                        // Left arrow
+                        if (
+                            intKeyCode === 37 &&
+                            (!jsnSelection || jsnSelection.start === 0)
+                        ) {
+                            arrElementsFocusable = xtag.query(
+                                document,
+                                'input:not([disabled]), ' +
+                                'select:not([disabled]), ' +
+                                'memo:not([disabled]), ' +
+                                'button:not([disabled]), ' +
+                                '[tabindex]:not([disabled]), ' +
+                                '[column]'
+                            );
+
+                            i = 0;
+                            len = arrElementsFocusable.length;
+                            while (i < len) {
                                 currentElement = arrElementsFocusable[i];
-                                //console.log(currentElement === event.target, currentElement, event.target);
-                                if (currentElement === event.target ||
-                                    ((event.target.nodeName === 'INPUT' || event.target.nodeName === 'TEXTAREA') &&
-                                    currentElement === event.target.parentNode)) {
+
+                                if (
+                                    currentElement === event.target ||
+                                    (
+                                        (
+                                            event.target.nodeName === 'INPUT' ||
+                                            event.target.nodeName === 'TEXTAREA'
+                                        ) &&
+                                        currentElement === event.target.parentNode
+                                    )
+                                ) {
                                     if (i === 0) {
                                         focusToElement = currentElement;
                                     } else {
@@ -1009,15 +1177,28 @@ document.addEventListener('DOMContentLoaded', function () {
                                     }
                                     break;
                                 }
+
+                                i += 1;
                             }
-                            //console.log(focusToElement);
-                        //Right
-                        } else if (intKeyCode === 39 && (!jsnSelection || jsnSelection.end === event.target.value.length)) {
-                            arrElementsFocusable = xtag.query(document, 'input:not([disabled]), ' +
-                                'select:not([disabled]), memo:not([disabled]), button:not([disabled]), ' +
-                                '[tabindex]:not([disabled]), [column]');
+
+                        // Right arrow
+                        } else if (
+                            intKeyCode === 39 &&
+                            (!jsnSelection || jsnSelection.end === event.target.value.length)
+                        ) {
+                            arrElementsFocusable = xtag.query(
+                                document,
+                                'input:not([disabled]), ' +
+                                'select:not([disabled]), ' +
+                                'memo:not([disabled]), ' +
+                                'button:not([disabled]), ' +
+                                '[tabindex]:not([disabled]), ' +
+                                '[column]'
+                            );
                             
-                            for (i = 0,len = arrElementsFocusable.length;i < len;i++) {
+                            i = 0;
+                            len = arrElementsFocusable.length;
+                            while (i < len) {
                                 currentElement = arrElementsFocusable[i];
                                 if (currentElement === event.target) {
                                     if (i === len) {
@@ -1027,17 +1208,22 @@ document.addEventListener('DOMContentLoaded', function () {
                                     }
                                     break;
                                 }
+
+                                i += 1;
                             }
                         }
                         
-                        //console.log('focusable', GS.isElementFocusable(focusToElement));
-                        if (focusToElement && GS.isElementFocusable(focusToElement)) {
-                            //console.log('focus');
+                        if (
+                            focusToElement &&
+                            GS.isElementFocusable(focusToElement)
+                        ) {
                             event.preventDefault();
-                            
                             focusToElement.focus();
-                            
-                            if (document.activeElement.nodeName === 'INPUT' || document.activeElement.nodeName === 'TEXTAREA') {
+
+                            if (
+                                document.activeElement.nodeName === 'INPUT' ||
+                                document.activeElement.nodeName === 'TEXTAREA'
+                            ) {
                                 GS.setInputSelection(document.activeElement, 0, document.activeElement.value.length);
                             }
                         }
@@ -1061,25 +1247,27 @@ document.addEventListener('DOMContentLoaded', function () {
                     // keep updating until all columns have been saved (undefined marks an empty column)
                     
                     changeHandler = function (event) {
-                        var intKeyCode = event.which || event.keyCode, newValue,
-                            targetColumnParent = GS.findParentElement(event.target, '[column]'),
-                            parentRecordElement, strID;
-                        
-                        //console.log(event.target, targetColumnParent);
-                        
+                        var newValue;
+                        var targetColumnParent = GS.findParentElement(event.target, '[column]');
+                        var parentRecordElement;
+                        var strID;
+
                         if (targetColumnParent.getAttribute('column') && columnParentsUntilForm(element, targetColumnParent) === 0 &&
                             element.column(targetColumnParent.getAttribute('column')) !== targetColumnParent.value) {
                             
                             //event.stopPropagation();
                             if (element.saveTimerID) {
                                 clearTimeout(element.saveTimerID);
-                                element.saveTimerID = undefined;
+                                element.saveTimerID = null;
                             }
                             
                             addMessage(element, 'waiting');
                             element.state = 'waiting to save';
                             
-                            if (targetColumnParent.value !== null && targetColumnParent.value !== null) {
+                            if (
+                                targetColumnParent.value !== null &&
+                                targetColumnParent.value !== null
+                            ) {
                                 newValue = targetColumnParent.value;
                             } else {
                                 newValue = targetColumnParent.checked;
@@ -1095,11 +1283,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             
                             element.saveTimerID = setTimeout(function () {
                                 updateDataWithoutTemplate(element);
-                                element.saveTimerID = undefined;
+                                element.saveTimerID = null;
                             }, 300);
                         }
                     };
-                    
+
                     element.addEventListener('keydown', changeHandler);
                     element.addEventListener('keyup', changeHandler);
                     element.addEventListener('change', changeHandler);
@@ -1137,7 +1325,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 elementInserted(this);
             },
             
-            attributeChanged: function (strAttrName, oldValue, newValue) {
+            attributeChanged: function (strAttrName, ignore, newValue) {//oldValue
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'suspend-created' && newValue === null) {
                     elementCreated(this);
@@ -1164,6 +1352,10 @@ document.addEventListener('DOMContentLoaded', function () {
         methods: {
             refresh: function () {
                 getData(this);
+            },
+            
+            save: function () {
+                updateDataWithoutTemplate(this, false);
             },
             
             column: function (strColumn) {

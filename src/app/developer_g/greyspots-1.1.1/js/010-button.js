@@ -4,7 +4,7 @@
     'use strict';
 
     function defineButton(strTagName, strDocLink, arrDisableWhenEmptyAttributes, designAdditionalFunction, clickFunction) {
-        strDocLink = strDocLink || '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-buttons-toggle.html';
+        strDocLink = strDocLink || '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_buttons_toggle';
         designAdditionalFunction = designAdditionalFunction || function () {};
         clickFunction = clickFunction || function () {};
 
@@ -246,6 +246,31 @@
                 // SUSPEND-INSERTED attribute
                 addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
                     return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
+                });
+
+                addProp('Focus', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onfocus') || '') + '" mini></gs-text>', function () {
+                    return setOrRemoveTextAttribute(selectedElement, 'onfocus', this.value);
+                });
+                addProp('Blur', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onblur') || '') + '" mini></gs-text>', function () {
+                    return setOrRemoveTextAttribute(selectedElement, 'onblur', this.value);
+                });
+                addProp('Mousedown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousedown') || '') + '" mini></gs-text>', function () {
+                    return setOrRemoveTextAttribute(selectedElement, 'onmousedown', this.value);
+                });
+                addProp('Mouseup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmouseup') || '') + '" mini></gs-text>', function () {
+                    return setOrRemoveTextAttribute(selectedElement, 'onmouseup', this.value);
+                });
+                addProp('Mousemove', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousemove') || '') + '" mini></gs-text>', function () {
+                    return setOrRemoveTextAttribute(selectedElement, 'onmousemove', this.value);
+                });
+                addProp('Keydown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeydown') || '') + '" mini></gs-text>', function () {
+                    return setOrRemoveTextAttribute(selectedElement, 'onkeydown', this.value);
+                });
+                addProp('Keyup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeyup') || '') + '" mini></gs-text>', function () {
+                    return setOrRemoveTextAttribute(selectedElement, 'onkeyup', this.value);
+                });
+                addProp('Keypress', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeypress') || '') + '" mini></gs-text>', function () {
+                    return setOrRemoveTextAttribute(selectedElement, 'onkeypress', this.value);
                 });
 
                 // visibility attributes
@@ -679,20 +704,21 @@
     
     
     defineButton('gs-email-button', '', ['value'], '', function (element) {
-        var emailAddress = element.getAttribute('value'), linkIframe, mousedownHandler;
+        var emailAddress = element.getAttribute('value'), linkIframe, loadHandler;
         
         if (emailAddress) {
             linkIframe = document.createElement('iframe');
             document.body.appendChild(linkIframe);
             
-            linkIframe.setAttribute('src', 'mailto:' + emailAddress);
-            
-            mousedownHandler = function () {
+            loadHandler = function () {
                 document.body.removeChild(linkIframe);
-                window.removeEventListener('mousedown', mousedownHandler);
+                document.removeEventListener('mousedown', loadHandler);//'mousedown'
             };
             
-            window.addEventListener('mousedown', mousedownHandler);
+            document.addEventListener('mousedown', loadHandler);//'mousedown'
+            // linkIframe.setAttribute('onLoad', 'console.log(\'runnin\'); loadHandler();');
+            linkIframe.setAttribute('style', 'display: none;');
+            linkIframe.setAttribute('src', 'mailto:' + emailAddress);
         }
     });
     
@@ -1046,7 +1072,7 @@ window.addEventListener('design-register-element', function () {
     
     registerDesignSnippet('<gs-button>', '<gs-button>', 'gs-button>${1}</gs-button>');
     
-    designRegisterElement('gs-button', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-buttons-toggle.html');
+    designRegisterElement('gs-button', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_buttons_toggle');
     
     window.designElementProperty_GSBUTTON = function(selectedElement) {
         var strIconPos, strIconRotation;
@@ -1283,6 +1309,31 @@ window.addEventListener('design-register-element', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'dialogclose', this.value === 'true', true);
         });
         
+        addProp('Focus', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onfocus') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onfocus', this.value);
+        });
+        addProp('Blur', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onblur') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onblur', this.value);
+        });
+        addProp('Mousedown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousedown') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onmousedown', this.value);
+        });
+        addProp('Mouseup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmouseup') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onmouseup', this.value);
+        });
+        addProp('Mousemove', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousemove') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onmousemove', this.value);
+        });
+        addProp('Keydown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeydown') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onkeydown', this.value);
+        });
+        addProp('Keyup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeyup') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onkeyup', this.value);
+        });
+        addProp('Keypress', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeypress') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onkeypress', this.value);
+        });
+        
         // visibility attributes
         var strVisibilityAttribute = '';
         if (selectedElement.hasAttribute('hidden'))          { strVisibilityAttribute = 'hidden'; }
@@ -1422,7 +1473,9 @@ document.addEventListener('DOMContentLoaded', function () {
     'use strict';
     
     function refreshAnchor(element) {
+        //console.log('refreshAnchor', element);
         var strLink = element.getAttribute('href') || element.getAttribute('value');
+        //console.log('refreshAnchor', strLink);
         
         if (element.anchorElement) {
             element.removeChild(element.anchorElement);
@@ -1437,7 +1490,7 @@ document.addEventListener('DOMContentLoaded', function () {
             element.anchorElement.setAttribute('href', strLink);
             
             if (element.getAttribute('onclick')) {
-                element.anchorElement.setAttribute('onclick', element.getAttribute('onclick'));
+                //element.anchorElement.setAttribute('onclick', element.getAttribute('onclick'));
             }
             
             if (element.hasAttribute('download')) {
@@ -1716,6 +1769,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             
             attributeChanged: function (strAttrName, oldValue, newValue) {
+                //console.log('attributeChanged', strAttrName, oldValue, newValue);
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'suspend-created' && newValue === null) {
                     elementCreated(this);

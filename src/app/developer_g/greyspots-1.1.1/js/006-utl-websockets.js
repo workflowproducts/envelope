@@ -474,7 +474,7 @@
         socket.onerror = function (event) {
             var i, len;
 
-            console.log('SOCKET ERROR', event);
+            console.warn('SOCKET ERROR', event);
             socket.bolError = true;
             //socket.stayClosed = true;
 
@@ -485,7 +485,7 @@
         };
 
         socket.onclose = function (event) {
-            console.log('SOCKET CLOSING', socket.stayClosed, socket.bolError, event);
+            console.warn('SOCKET CLOSING', socket.stayClosed, socket.bolError, event);
 
             // error closure dialog
             if (socket.stayClosed && socket.bolError && arrWaitingCalls.length > 0) {
@@ -508,7 +508,7 @@
 
             if (!socket.stayClosed) {
                 setTimeout(function() {
-                    console.log('ATTEMPTING SOCKET RE-OPEN', socket);
+                    console.warn('ATTEMPTING SOCKET RE-OPEN', socket);
                     var event = GS.triggerEvent(window, 'socket-reconnect');
                     if (! event.defaultPrevented) {
                         if (socketname) {
@@ -523,9 +523,9 @@
                 }, 1000);
             } else {
                 if (socket.bolError) {
-                    console.log('SOCKET NOT RE-OPENING DUE TO ERROR');
+                    console.warn('SOCKET NOT RE-OPENING DUE TO ERROR');
                 } else {
-                    console.log('SOCKET NOT RE-OPENING DUE TO MANUAL CLOSE');
+                    console.warn('SOCKET NOT RE-OPENING DUE TO MANUAL CLOSE');
                 }
             }
         };
@@ -850,7 +850,7 @@
     };
 
     GS.requestSelectFromSocket = function (socket, strSchema, strObject, strReturnCols, strWhere, strOrd, strLimit, strOffset, finalCallback) {
-        var strMessage = 'SELECT\t' + encodeForTabDelimited(strSchema) + '\t' + encodeForTabDelimited(strObject) +
+        var strMessage = 'SELECT\t' + (!strSchema ? '' : encodeForTabDelimited(strSchema) + '\t') + encodeForTabDelimited(strObject) +
                             '\nRETURN\t' + strReturnCols + '\n\n' +
                             'where\t' + (strOrd ? 'order by\t' : '') + 'limit\toffset\n' +
                             encodeForTabDelimited(strWhere || '1=1') + '\t' + (strOrd ? encodeForTabDelimited(strOrd) + '\t' : '') +
@@ -987,7 +987,7 @@
                 transactionID = data;
                 if (typeof beginCallback === 'function') { beginCallback(data, error); }
 
-                GS.requestFromSocket(GS.envSocket, 'transactionid = ' + transactionID + '\n' + strMessage, function (data, error, errorData) {
+                GS.requestFromSocket(socket, 'transactionid = ' + transactionID + '\n' + strMessage, function (data, error, errorData) {
                     var commitFunction, rollbackFunction;
 
                     if (!error) {
@@ -995,8 +995,8 @@
                         //data = data.substring(data.indexOf('\n') + 1); // responsenumber
                     }
 
-                    // console.log('INSERT DATA:', data);
-                    // console.log('INSERT TRANSID:', transactionID);
+                    //console.log('INSERT DATA:', data);
+                    //console.log('INSERT TRANSID:', transactionID);
 
                     commitFunction = function () {
                         GS.requestCommit(socket, transactionID, function (data, error) {
@@ -1042,7 +1042,7 @@
                 transactionID = data;
                 if (typeof beginCallback === 'function') { beginCallback(data, error); }
 
-                GS.requestFromSocket(GS.envSocket, 'transactionid = ' + transactionID + '\n' + strMessage, function (data, error, errorData) {
+                GS.requestFromSocket(socket, 'transactionid = ' + transactionID + '\n' + strMessage, function (data, error, errorData) {
                     var commitFunction, rollbackFunction;
 
                     if (!error) {
@@ -1092,7 +1092,7 @@
                 transactionID = data;
                 if (typeof beginCallback === 'function') { beginCallback(data, error); }
 
-                GS.requestFromSocket(GS.envSocket, 'transactionid = ' + transactionID + '\n' + strMessage, function (data, error, errorData) {
+                GS.requestFromSocket(socket, 'transactionid = ' + transactionID + '\n' + strMessage, function (data, error, errorData) {
                     var commitFunction, rollbackFunction;
 
                     if (!error) {
@@ -1129,7 +1129,7 @@
     };
 
     GS.requestBegin = function (socket, callback) {
-        GS.requestFromSocket(GS.envSocket, 'BEGIN', function (data, error, errorData) {
+        GS.requestFromSocket(socket, 'BEGIN', function (data, error, errorData) {
             var transactionID;
 
             if (typeof callback === 'function') {

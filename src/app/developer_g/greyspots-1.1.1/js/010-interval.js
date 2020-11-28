@@ -7,7 +7,7 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('<gs-interval> With Label', '<gs-interval>', 'label for="${1:interval-insert-complete_time}">${2:Time to complete}:</label>\n' +
                                                                '<gs-interval id="${1:interval-insert-complete_time}" column="${3:complete_time}"></gs-interval>');
     
-    designRegisterElement('gs-interval', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-interval.html');
+    designRegisterElement('gs-interval', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_interval');
 
     window.designElementProperty_GSINTERVAL = function (selectedElement) {
         addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // re-target focus event from control to element
     function focusFunction(event) {
-        console.log('focusFunction');
+      //console.log('focusFunction');
         GS.triggerEvent(event.target.parentNode, 'focus');
         event.target.parentNode.classList.add('focus');
     }
@@ -712,7 +712,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function findFor(element) {
         var forElem;
-        // console.log(element, element.previousElementSibling)
+        //console.log(element, element.previousElementSibling)
         if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
             && element.previousElementSibling.hasAttribute('for')
             && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
@@ -886,7 +886,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
 
             'keydown': function (event) { // don't use the "input" event, doesn't work for this
-                console.log('keydown');
+              //console.log('keydown');
                 var element = this;
                 var strValue = element.control.value;
                 var intKeyCode = (event.keyCode || event.which);

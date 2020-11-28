@@ -79,14 +79,20 @@
         });
     });
     
+    
     ######## PSEUDO ELEMENT WARNING: ######## ~michael
     In firefox I ran into an issue where the undo history of controls in a gs-form (with the attribute "save-while-typing") was being erased. Turns out the issue was caused by a CSS pseudo-element. I was using a pseudo-element for a little box attached to the form to tell the user if the form was waiting to save or saving. By changing the pseudo-element to a real element that I add and remove with Javascript the issue was fixed.
     
     If you want to use a pseudo-element: make sure it doesn't affect the undo history of elements that are children of the element that the pseudo-element is attached to. This issue could have been fixed by now.
     
     
-    
     ######## TEMPLATE SHIM: ######## ~michael
     The template polyfill has been changed, DO NOT UPDATE. It is for old browsers, and old browsers don't change so there is should be no need for the polyfill to change.
+    
+    
+    ######## HALLMARKS OF GOOD ELEMENT DESIGN: ######## ~michael
+    
+    
+    
     
 */

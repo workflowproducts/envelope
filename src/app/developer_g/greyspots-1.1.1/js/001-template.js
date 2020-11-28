@@ -65,7 +65,7 @@ if (typeof HTMLTemplateElement === 'undefined') {
                 
                 //for (i = 0, l = templates.length; i < l; i += 1) {
                 //    templates[i].outerHTML = templates[i].outerHTML;
-                //    console.log(templates[i].outerHTML);
+                //    //console.log(templates[i].outerHTML);
                 //}
                 
                 for (var e = fragment.firstChild; e; e = e.nextSibling) {

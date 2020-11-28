@@ -1,61 +1,78 @@
+//global xtag, window, document, registerDesignSnippet, designRegisterElement, addProp, encodeHTML
+//global setOrRemoveTextAttribute, setOrRemoveBooleanAttribute, GS, addFlexProps
+//jslint this
 
 window.addEventListener('design-register-element', function () {
     registerDesignSnippet('<gs-optionbox>', '<gs-optionbox>', 'gs-optionbox column="${1}">\n' +
                                                               '    <gs-option value="${2}">${3}</gs-option>\n' +
                                                               '</gs-optionbox>');
-    
-    designRegisterElement('gs-optionbox', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-optionbox.html');
-    
-    window.designElementProperty_GSOPTIONBOX = function(selectedElement) {
+
+    designRegisterElement('gs-optionbox', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_optionbox');
+
+    window.designElementProperty_GSOPTIONBOX = function (selectedElement) {
         addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'column', this.value);
         });
-        
+
         addProp('Value', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('value') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'value', this.value);
         });
-        
+
         addProp('Clearable', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('clearable') || '') + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'clearable', this.value === 'true', true);
         });
-        
+
         addProp('Column In Querystring', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'qs', this.value, false);
         });
-        
+
         addProp('Mini', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('mini') || '') + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'mini', this.value === 'true', true);
         });
-        
+
         addProp('No Targets', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-target') || '') + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'no-target', this.value === 'true', true);
         });
-        
+
         // TITLE attribute
         addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
         });
-        
+
         // SUSPEND-CREATED attribute
         addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
         });
-        
+
         // SUSPEND-INSERTED attribute
         addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
         });
-        
+
         // visibility attributes
         var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden'))                   { strVisibilityAttribute = 'hidden'; }
-        if (selectedElement.hasAttribute('hide-on-desktop'))  { strVisibilityAttribute = 'hide-on-desktop'; }
-        if (selectedElement.hasAttribute('hide-on-tablet'))   { strVisibilityAttribute = 'hide-on-tablet'; }
-        if (selectedElement.hasAttribute('hide-on-phone'))    { strVisibilityAttribute = 'hide-on-phone'; }
-        if (selectedElement.hasAttribute('show-on-desktop'))   { strVisibilityAttribute = 'show-on-desktop'; }
-        if (selectedElement.hasAttribute('show-on-tablet'))    { strVisibilityAttribute = 'show-on-tablet'; }
-        if (selectedElement.hasAttribute('show-on-phone'))     { strVisibilityAttribute = 'show-on-phone'; }
-        
+        if (selectedElement.hasAttribute('hidden')) {
+            strVisibilityAttribute = 'hidden';
+        }
+        if (selectedElement.hasAttribute('hide-on-desktop')) {
+            strVisibilityAttribute = 'hide-on-desktop';
+        }
+        if (selectedElement.hasAttribute('hide-on-tablet')) {
+            strVisibilityAttribute = 'hide-on-tablet';
+        }
+        if (selectedElement.hasAttribute('hide-on-phone')) {
+            strVisibilityAttribute = 'hide-on-phone';
+        }
+        if (selectedElement.hasAttribute('show-on-desktop')) {
+            strVisibilityAttribute = 'show-on-desktop';
+        }
+        if (selectedElement.hasAttribute('show-on-tablet')) {
+            strVisibilityAttribute = 'show-on-tablet';
+        }
+        if (selectedElement.hasAttribute('show-on-phone')) {
+            strVisibilityAttribute = 'show-on-phone';
+        }
+
         addProp('Visibility', true, '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
                                         '<option value="">Visible</option>' +
                                         '<option value="hidden">Invisible</option>' +
@@ -73,23 +90,23 @@ window.addEventListener('design-register-element', function () {
             selectedElement.removeAttribute('show-on-desktop');
             selectedElement.removeAttribute('show-on-tablet');
             selectedElement.removeAttribute('show-on-phone');
-            
+
             if (this.value) {
                 selectedElement.setAttribute(this.value, '');
             }
-            
+
             return selectedElement;
         });
-        
+
         // DISABLED attribute
         addProp('Disabled', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('disabled') || '') + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'disabled', this.value === 'true', true);
         });
-        
+
         addProp('Readonly', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('readonly') || '') + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'readonly', this.value === 'true', true);
         });
-        
+
         //addFlexContainerProps(selectedElement);
         addFlexProps(selectedElement);
     };
@@ -98,12 +115,12 @@ window.addEventListener('design-register-element', function () {
         addProp('Hidden Value:', true, '<gs-text class="target" value="' + (selectedElement.getAttribute('value') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'value', this.value);
         });
-        
+
         // TITLE attribute
         addProp('Title', true, '<gs-text class="target" value="' + (selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
         });
-        
+
         addFlexContainerProps(selectedElement);
         //addFlexProps(selectedElement);
     };*/
@@ -111,21 +128,30 @@ window.addEventListener('design-register-element', function () {
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
-    
+
     // removes selected attribute from old selected option adds selected attribute to option
-    function highlightOption(element, option) {
-        var i, len, arrSelectedOptions, arrAriaSelectedOptions;
-        
+    function highlightOption(element, option, bolFocus) {
+        var i;
+        var len;
+        var arrSelectedOptions;
+        var arrAriaSelectedOptions;
+
         // clear previous selection
         arrSelectedOptions = xtag.query(element, 'gs-option[selected]');
         arrAriaSelectedOptions = xtag.query(element, 'gs-option');
-        for (i = 0, len = arrSelectedOptions.length; i < len; i += 1) {
+        i = 0;
+        len = arrSelectedOptions.length;
+        while (i < len) {
             arrSelectedOptions[i].removeAttribute('selected');
             arrSelectedOptions[i].setAttribute('tabindex', '-1');
+            i += 1;
         }
-        
-        for (i = 0, len = arrAriaSelectedOptions.length; i < len; i += 1) {
+
+        i = 0;
+        len = arrAriaSelectedOptions.length;
+        while (i < len) {
             arrAriaSelectedOptions[i].setAttribute('aria-checked', 'false');
+            i += 1;
         }
 
         // select/highlight the record that was provided
@@ -133,26 +159,37 @@ document.addEventListener('DOMContentLoaded', function () {
             option.setAttribute('selected', '');
             option.setAttribute('tabindex', '0');
             option.setAttribute('aria-checked', 'true');
+            if (bolFocus) {
+                option.focus();
+            }
         }
     }
 
     // loops through the options and finds a option using the parameter
     function findOptionFromString(element, strSearchString) {
-        var i, len, matchedOption, arrOptions = xtag.query(element, 'gs-option');
+        var i;
+        var len;
+        var matchedOption;
+        var arrOptions = xtag.query(element, 'gs-option');
 
         // search exact text and search both the value attribute (if present) and the text content
-        for (i = 0, len = arrOptions.length; i < len; i += 1) {
+        i = 0;
+        len = arrOptions.length;
+        while (i < len) {
             if (arrOptions[i].getAttribute('value') === strSearchString || arrOptions[i].textContent === strSearchString) {
                 matchedOption = arrOptions[i];
                 break;
             }
+            i += 1;
         }
 
         return matchedOption;
     }
 
     function selectOption(element, handle, bolChange) {
-        var option, strOptionValue, strOptionText;
+        var option;
+        var strOptionValue;
+        var strOptionText;
 
         if (typeof handle === 'string') {
             option = findOptionFromString(element, handle);
@@ -163,8 +200,8 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             option = handle;
         }
-        
-        highlightOption(element, option);
+
+        highlightOption(element, option, bolChange); //if bolChange is true, focus selected control
 
         if (option) {
             strOptionValue = option.getAttribute('value');
@@ -189,16 +226,22 @@ document.addEventListener('DOMContentLoaded', function () {
     // #################################################################
     // handle behaviours on keydown
     function handleKeyDown(event) {
-        //console.log(handleKeyDown, event, event.target);
-        var element = GS.findParentTag(event.target, 'gs-optionbox'), intKeyCode = event.keyCode || event.which,
-            selectedOption, selectedOptionIndex,
-            arrOptions, i, len;
+        //console.log('handleKeyDown', event, event.target);
+        var element = GS.findParentTag(event.target, 'gs-optionbox');
+        var intKeyCode = event.keyCode || event.which;
+        var selectedOption;
+        var selectedOptionIndex;
+        var arrOptions;
+        var i;
+        var len;
 
-        if (!element.hasAttribute('disabled')) {
+        if (!element.hasAttribute('disabled') && event.target.tagName.toUpperCase() === 'GS-OPTION') {
             if ((intKeyCode === 40 || intKeyCode === 39 || intKeyCode === 38 || intKeyCode === 37) && !event.shiftKey && !event.metaKey && !event.ctrlKey && !element.error) {
                 arrOptions = xtag.query(element, 'gs-option');
 
-                for (i = 0, len = arrOptions.length; i < len; i += 1) {
+                i = 0;
+                len = arrOptions.length;
+                while (i < len) {
                     if (arrOptions[i].hasAttribute('selected')) {
                         selectedOptionIndex = i;
                         selectedOption = arrOptions[i];
@@ -207,6 +250,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (selectedOption) {
                         break;
                     }
+
+                    i += 1;
                 }
 
                 //console.log(selectedOption, selectedOptionIndex, arrOptions.length);
@@ -226,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 event.stopPropagation();
 
             }
-        } else {
+        } else if (event.target.tagName.toUpperCase() === 'GS-OPTION') {
             if (event.keyCode !== 9) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -236,16 +281,17 @@ document.addEventListener('DOMContentLoaded', function () {
         //console.log('handleKeyDown', intKeyCode, event);
     }
     function handleKeyPress(event) {
-        //console.log(handleKeyPress, event, event.target);
-        var element = event.target, intKeyCode = event.keyCode || event.which;
+        //console.log('handleKeyPress', event, event.target);
+        var element = event.target;
+        var intKeyCode = event.keyCode || event.which;
 
-        if (!element.hasAttribute('disabled')) {
+        if (!element.hasAttribute('disabled') && event.target.tagName.toUpperCase() === 'GS-OPTION') {
             if ((intKeyCode === 40 || intKeyCode === 39 || intKeyCode === 38 || intKeyCode === 37) && !event.shiftKey && !event.metaKey && !event.ctrlKey && !element.error) {
                 event.preventDefault();
                 event.stopPropagation();
 
             }
-        } else {
+        } else if (event.target.tagName.toUpperCase() === 'GS-OPTION') {
             if (event.keyCode !== 9) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -371,11 +417,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function enhanceChildren(element) {
-        var arrElement, i, len;
+        var arrElement;
+        var i;
+        var len;
 
         arrElement = xtag.query(element, 'gs-option');
 
-        for (i = 0, len = arrElement.length; i < len; i += 1) {
+        i = 0;
+        len = arrElement.length;
+        while (i < len) {
             // this if allows the developer to define the icon position
             if (!arrElement[i].hasAttribute('icontop')
                     && !arrElement[i].hasAttribute('iconleft')
@@ -386,9 +436,10 @@ document.addEventListener('DOMContentLoaded', function () {
             arrElement[i].setAttribute('icon', '');
             arrElement[i].setAttribute('role', 'radio');
             arrElement[i].setAttribute('tabindex', '-1');
-            arrElement[i].addEventListener('focus', function () {
-                selectOption(element, this, true);
-            });
+            // arrElement[i].addEventListener('focus', function () {
+            //     selectOption(element, this, true);
+            // });
+            i += 1;
         }
     }
 
@@ -409,7 +460,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function findFor(element) {
         var forElem;
-        // console.log(element, element.previousElementSibling)
+        //console.log(element, element.previousElementSibling)
         if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
             && element.previousElementSibling.hasAttribute('for')
             && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
@@ -429,7 +480,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     //
     function elementInserted(element) {
-        var strQSValue, observer;
+        var strQSValue;
+        var observer;
 
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
@@ -438,7 +490,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.inserted = true;
                 element.internal = {};
                 saveDefaultAttributes(element);
-                
+
                 if (!element.hasAttribute('role')) {
                     element.setAttribute('role', 'radiogroup');
                 }
@@ -476,12 +528,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         // check each mutation: if only option and optgroup tags were added: refersh option tags in select
                         mutations.forEach(function(mutation) {
-                            var i, len;
+                            var i;
+                            var len;
 
-                            for (i = 0, len = mutation.addedNodes.length; i < len; i += 1) {
+                            i = 0;
+                            len = mutation.addedNodes.length;
+                            while (i < len) {
                                 if (mutation.addedNodes[i].nodeName !== 'GS-OPTION') {
                                     bolRefreshOptionList = false;
                                 }
+                                i += 1;
                             }
                         });
 
@@ -497,7 +553,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
             if (element.hasAttribute('id')) {
-                // console.log('running');
+                //console.log('running');
                 findFor(element);
             }
         }
@@ -514,49 +570,67 @@ document.addEventListener('DOMContentLoaded', function () {
             },
 
             attributeChanged: function (strAttrName, oldValue, newValue) {
+                var element = this;
+
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'suspend-created' && newValue === null) {
-                    elementCreated(this);
-                    elementInserted(this);
-                    
+                    elementCreated(element);
+                    elementInserted(element);
+
                 // if "suspend-inserted" has been removed: run inserted code
                 } else if (strAttrName === 'suspend-inserted' && newValue === null) {
-                    elementInserted(this);
-                    
-                } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
+                    elementInserted(element);
+
+                } else if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
                     if (strAttrName === 'value' && newValue !== oldValue) {
-                        selectOption(this, newValue);
+                        selectOption(element, newValue);
                     }
                 }
             }
         },
         events: {
             'keydown': function (event) {
-                if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
+                var element = this;
+
+                if (
+                    !element.hasAttribute('suspend-created') &&
+                    !element.hasAttribute('suspend-inserted')
+                ) {
                     handleKeyDown(event);
                 }
             },
             'keypress': function (event) {
-                if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
+                var element = this;
+
+                if (
+                    !element.hasAttribute('suspend-created') &&
+                    !element.hasAttribute('suspend-inserted')
+                ) {
                     handleKeyPress(event);
                 }
             },
-            
+
             'click': function (event) {
-                if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted') && !this.hasAttribute('readonly')) {
+                var element = this;
+
+                if (
+                    !element.hasAttribute('suspend-created') &&
+                    !element.hasAttribute('suspend-inserted') &&
+                    !element.hasAttribute('readonly')
+                ) {
                     var parentOption = getParentOption(event.target);
-                    
+
                     //console.log(parentOption);
-                    
+
                     //  else if (this.hasAttribute('clearable') && newValue === oldValue) {
-                    //     console.log('running');
+                    //   //console.log('running');
                     //     selectOption(this, undefined);
                     // }
-                    
+
                     if (parentOption && !parentOption.hasAttribute('selected')) {
-                        selectOption(this, parentOption, true);
-                    } else if (this.hasAttribute('clearable')) {
-                        selectOption(this, undefined);
+                        selectOption(element, parentOption, true);
+                    } else if (parentOption && parentOption.hasAttribute('selected') && element.hasAttribute('clearable')) {
+                        selectOption(element, undefined);
                     }
                 }
             }
@@ -566,27 +640,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 get: function () {
                     return this.innerValue;
                 },
-                
                 set: function (strNewValue) {
                     selectOption(this, String(strNewValue));
                 }
             },
-            
+
             selectedOption: {
                 get: function () {
                     return this.innerSelectedOption;
                 },
-                
                 set: function (newValue) {
                     selectOption(this, newValue);
                 }
             },
-            
+
             textValue: {
                 get: function () {
                     return this.innerSelectedOption.textContent;
                 },
-                
                 set: function (newValue) {
                     selectOption(this, newValue);
                 }

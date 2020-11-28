@@ -4,7 +4,7 @@ window.addEventListener('design-register-element', function () {
     'use strict';
     registerDesignSnippet('<gs-footer>', '<gs-footer>', 'gs-footer>$0</gs-footer>');
 
-    designRegisterElement('gs-footer', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-page.html');
+    designRegisterElement('gs-footer', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_page');
 
     window.designElementProperty_GSFOOTER = function (selectedElement) {
         // visibility attributes

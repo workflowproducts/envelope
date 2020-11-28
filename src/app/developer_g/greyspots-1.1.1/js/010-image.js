@@ -4,7 +4,7 @@ window.addEventListener('design-register-element', function () {
     
     registerDesignSnippet('<gs-img>', '<gs-img>', 'gs-img src="${1}"></gs-img>');
     
-    designRegisterElement('gs-img', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-image.html');
+    designRegisterElement('gs-img', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_image');
     
     window.designElementProperty_GSIMG = function(selectedElement) {
         addProp('Min-Width Media', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('min-width') || '') + '" mini></gs-text>', function () {

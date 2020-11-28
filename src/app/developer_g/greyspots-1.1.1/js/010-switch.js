@@ -7,7 +7,7 @@ window.addEventListener('design-register-element', function () {
                                                         '    <template for="${2:detail}"></template>\n' +
                                                         '</gs-switch>');
 
-    designRegisterElement('gs-switch', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-switch.html');
+    designRegisterElement('gs-switch', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_switch');
 
     window.designElementProperty_GSSWITCH = function (selectedElement) {
 

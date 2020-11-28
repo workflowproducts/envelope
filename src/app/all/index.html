@@ -13,6 +13,7 @@
         
         <script>
             //jslint white:true multivar:true for:true
+            GS.ebSocket = GS.openSocket('env', null, null, 'ebSocket');
             window.addEventListener('load', function () {
                 'use strict';
                 GS.ajaxJSON('/env/action_info', '', function (data, error) {
@@ -76,6 +77,84 @@
                         arrElements[i].classList.add('grey');
                     }
                 }
+                if (userData.groups.indexOf('days_g') !== -1) {
+                    var dteStart = new Date();
+                    var dteEnd = new Date();
+                    dteEnd.setDate(dteEnd.getDate() + 6);
+                    function pgDate(d) {
+                        'use strict';
+                        return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate();
+                    }
+                    function timestampToReadableTime(timestamp) {
+                        'use strict';
+                        var parts = [];
+                    
+                        if (timestamp) {
+                            parts = timestamp.split(/[\/\-:\ ]/gi);
+                            parts[0] = parseInt(parts[3], 10);
+                            parts[1] = parts[4];
+                            parts[2] = parts[5];
+                    
+                            if (parts[0] >= 12) {
+                                if (parts[0] > 12) {
+                                    parts[0] = parts[0] - 12;
+                                }
+                                parts[3] = 'PM';
+                    
+                            } else {
+                                if (parts[0] === 0) {
+                                    parts[0] = 12;
+                                }
+                                parts[3] = 'AM';
+                            }
+                    
+                            return parts[0] + ':' + parts[1] + (parts[2] === '00'
+                                ? ''
+                                : ':' + parts[2]) + ' ' + parts[3];
+                        }
+                        return '';
+                    }
+                    GS.ajaxJSON('/env/days.action_event', 'action=list_owners', function (data, error) {
+                        if (!error) {
+                            var ownerList = document.getElementById('owner-list');
+                            var arrOwner = [];
+                            data.dat.forEach(function (cur) {
+                                if (cur.checked === -1) {
+                                    arrOwner.push(cur.gname);
+                                }
+                            });
+                            GS.ajaxJSON('/env/days.action_event', 
+                                'action=list' +
+                                '&owners=' + encodeURIComponent(arrOwner.join(',')) + ',Countdown' +
+                                '&start_date=' + pgDate(dteStart) +
+                                '&end_date=' + pgDate(dteEnd), function (data, error) {
+                                    if (!error) {
+                                        data.dat.sort(function (a, b) {
+                                            return new Date(a.real_appt_start) - new Date(b.real_appt_start);
+                                        });
+                                        var strHTML = '';
+                                        data.dat.forEach(function (cur) {
+                                            if ((cur.appt_status || 'unfinished') === 'unfinished') {
+                                                strHTML += '<tr>';
+                                                strHTML += '<td>' + cur.event_day + '</td>';
+                                                strHTML += '<td>' + cur.appt_name + '</td>';
+                                                strHTML += '<td>' + timestampToReadableTime(cur.appt_start) + '</td>';
+                                                strHTML += '<td>' + timestampToReadableTime(cur.appt_end) + '</td>';
+                                                strHTML += '</tr>';
+                                            }
+                                        });
+                                        document.getElementById('toccical_upcoming_events').innerHTML = strHTML;
+                                    } else {
+                                        GS.ajaxErrorDialog(data);
+                                    }
+                                });
+                        } else {
+                            GS.ajaxErrorDialog(data);
+                        }
+                    });
+                            
+
+                }
                 if (userData.groups.indexOf('todo_g') !== -1) {
                     GS.ajaxJSON('/env/todo.action_todo', 'number_items', function (data, error) {
                         if (!error) {
@@ -126,7 +205,7 @@
                                         });
                                     });
                                 }, function (event, strAnswer) {
-                                    document.getElementById('todo_list_mainmenu').removeAttribute('suspend-inserted');
+                                    // document.getElementById('todo_list_mainmenu').removeAttribute('suspend-inserted');
                                     //document.getElementById('todo_list_mainmenu').refresh();
                                 });
                             }
@@ -316,7 +395,332 @@
                     </gs-combo>
                 </div>
                 <br />-->
-                <div id="user-app-list-container">
+                
+                <gs-grid widths="1,1" reflow-at="500px" gutter>
+                    <gs-block>
+                        <gs-button jumbo target="_blank" data-group="corinthiancraftsmen_g" href="https://www.sunnyserve.com/env/app/all/file_manager/file_manager.html?socket=true&path=%2Fweb_root%2Fcorinthiancraftsmen.com">Click Here Irene</gs-button>
+                    </gs-block>
+                </gs-grid>
+                
+                <div id="user-app-list-container"><div class="group-container" data-group="tocci_g">
+                        <h4><i>Apps</i></h4>
+                        <span class="space"></span>
+                        <gs-button target="_blank" data-user="joseph@wfprod.com" href="../wiki_g/index.html?page_id=63243"><b>MENU</b></gs-button>
+                        
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button jumbo target="_blank" data-group="adr_g" href="../adr_g/index.html">Address Book</gs-button>
+                                <gs-button jumbo target="_blank" data-group="days_g" href="../days_g/ages.html">Ages</gs-button>
+                                <gs-button jumbo target="_blank" data-group="cal2_g" href="../cal2_g/calendar.html">Calendar</gs-button>
+                                <gs-button jumbo target="_blank" data-group="days_g" href="../days_g/index.html">Countdown</gs-button>
+                                <gs-button jumbo target="_blank" data-group="adr_g" href="../adr_g/clist/index.html">Craigslist ads</gs-button>
+                                <gs-button jumbo target="_blank" data-group="a8g_g" href="../a8g_g/index.html">EasyBooks</gs-button>
+                                <gs-button jumbo target="_blank" data-group="exr_g" href="../exr_g/index.html">Exercise</gs-button>
+                                <gs-button jumbo target="_blank" data-group="hebrew_g" href="../hebrew_g/bible.html">Hebrew Bible</gs-button>
+                                <gs-button jumbo target="_blank" data-group="hebrew_g" href="../hebrew_g/transliterate.html">Hebrew Transliterate</gs-button>
+                                <gs-button jumbo target="_blank" data-group="ide_g" href="../ide_g/index.html">Ideas</gs-button>
+                                <gs-button jumbo target="_blank" data-group="school_g" href="../school_g/index.html">Learning App</gs-button>
+                                <gs-button jumbo target="_blank" data-group="school_g" href="../school_g/math.html">Learning Latin Math</gs-button>
+                                <!--<gs-button jumbo target="_blank" data-group="lph_g" href="../lph_g/lph.html">LPH</gs-button>-->
+                                <gs-button jumbo target="_blank" data-group="meal_g" href="../meal_g/calendar.html">Meals 3.0</gs-button>
+                                <gs-button jumbo target="_blank" data-group="trkng_g" href="../trkng_g/index.html">Packages</gs-button>
+                                <gs-button jumbo target="_blank" data-group="pvt_g" href="../pvt_g/index.html">Private Old</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo target="_blank" data-group="pvt_g" href="../pvt_g/index_new.html">Private</gs-button>
+                                <gs-button jumbo target="_blank" data-group="lin_g" href="../lin_g/main_menu.html">Production Lines</gs-button>
+                                <!--
+                                <gs-form src="post.rptdownload_new" data-group="tocci_g" style="overflow: visible;">
+                                    <template>
+                                        <gs-button jumbo target="_blank" href="../all/splashcount.html">
+                                            Splash Page Downloads (<gs-static mini inline column="day_new_users"></gs-static> New / <gs-static mini inline column="today_users"></gs-static> Total)
+                                        </gs-button>
+                                    </template>
+                                </gs-form>
+                                -->
+                                <gs-button jumbo target="_blank" data-group="adr_g" href="../adr_g/teleprompter.html">Teleprompter</gs-button>
+                                <gs-button jumbo target="_blank" data-group="shop_g" href="../shop_g/index.html">TEMP</gs-button>
+                                <gs-button jumbo target="_blank" data-group="tst_g" href="../tst_g/index.html">Testing Facility Monitor</gs-button>
+                                <!--<gs-button jumbo target="_blank" data-group="wtk_g" href="../wtk_g/index.html">Timekeeping</gs-button>-->
+                                <gs-button jumbo data-group="wtk_g" onclick="window.open('../wtk_g/index.html');window.open('../wtk_g/time.html');">Timekeeping</gs-button>
+                                <gs-button jumbo target="_blank" data-group="wtk_g" href="../wtk_g/productivity.html">Timekeeping Productivity</gs-button>
+                                <gs-button jumbo target="_blank" data-group="wtk_g" href="../wtk_g/time.html">Time Graph</gs-button>
+                                <gs-button jumbo target="_blank" data-group="days_g" href="../days_g/toccical.html">TocciCal</gs-button>
+                                <gs-button jumbo target="_blank" data-group="days_g" href="../todo_g/todo.html">Todo</gs-button>
+                                <gs-button jumbo target="_blank" data-group="days_g" href="file_manager/file_manager.html?socket=true&path=%2Frole%2Fftp_g">Uploads</gs-button>
+                                <gs-button jumbo target="_blank" data-group="wiki_g" href="../wiki_g/index.html">Wiki (Markdown)</gs-button>
+                                <gs-button jumbo target="_blank" data-group="wiki_g" href="../wiki_g/index_dotty.html">Wiki (Dotty XLD)</gs-button>
+                                <gs-button jumbo target="_blank" data-group="enwk_g" href="../enwk_g/index.html">Wiki (Encrypted)</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <br data-group="days_g"/>
+                                <table data-group="days_g">
+                                    <thead>
+                                        <tr>
+                                            <th>Day</th>
+                                            <th>Activity</th>
+                                            <th>Start</th>
+                                            <th>End <gs-button href="https://www.sunnyserve.com/env/app/days_g/toccical.html" icon="angle-double-right" icononly></gs-button>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="toccical_upcoming_events">
+                                    </tbody>
+                                </table>
+                                <br data-group="meal_g"/>
+                                <h3 data-group="meal_g">Meals (Eating time is from 10AM to 7PM)</h3>
+                                <gs-listbox src="meal.qrytoday" suspend-inserted data-group="meal_g">
+                                    <template>
+                                        <table>
+                                            <tbody>
+                                                <tr>
+                                                    <td>{{! row.meal_name }}</td>
+                                                    <td>{{! row.courses }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </template>
+                                </gs-listbox>
+                            </gs-block>
+                            <gs-block>
+                                <br data-group="a8g_g"/>
+                                <gs-form data-group="a8g_g" suspend-inserted socket="ebSocket" src="(
+    WITH em AS (
+        SELECT dte.fom(transaction_date::text), taccount_groups.group_name, sum(CASE WHEN increase_or_decrease = 1 THEN amount * increase_or_decrease ELSE 0 END) AS income, sum(CASE WHEN increase_or_decrease = -1 THEN amount * increase_or_decrease ELSE 0 END) AS expense
+        FROM a8g.ttransaction
+        LEFT JOIN a8g.taccounts ON taccounts.id = ttransaction.account_id
+        LEFT JOIN a8g.taccount_groups ON taccount_groups.id = taccounts.grp
+        WHERE ttransaction.transfer = 0 AND taccount_groups.group_name NOT ILIKE '%test%'
+        GROUP BY taccount_groups.group_name, dte.fom(transaction_date::text)
+    )
+    SELECT string_agg(html, '<br /><br /><br />') AS html 
+    FROM (
+        SELECT '<b>' ||- group_name ||- '</b><table><thead><tr><th>Month</th><th>Income</th><th>Expenses</th><th>Cashflow</th></tr></thead><tbody>' ||- string_agg('<tr><td>' ||- fom::text ||- '</td><td>' ||- format_money(income) ||- '</td><td>' ||- format_money(expense) ||- '</td><td>' ||- format_money(income + expense) ||- '</td></tr>', '' ORDER BY fom) ||- '</tbody></table><b>Average Cashflow for Previous three months: ' ||- format_money((SELECT avg(income + expense) FROM em em2 WHERE em.group_name = em2.group_name AND em2.fom >= (dte.fom() - '3 months'::interval) AND em2.fom < dte.fom())) ||- '</b>' AS html
+        FROM em
+        WHERE fom >= (dte.fom() - '3 months'::interval) AND fom <= dte.fom()
+        GROUP BY group_name
+    ) em3
+) em2">
+                                    <template>
+                                        {{= row.html }}
+                                    </template>
+                                </gs-form>
+                                <br  data-group="todo_g"/>
+                                <gs-envelope id="todo_list_mainmenu" src="todo.frmtodo" no-hudlimit no-hudorderby data-group="todo_g" suspend-inserted><!-->-->
+                                    <template for="table">
+                                        <table>
+                                            <tbody>
+                                                <tr>
+                                                    <th style="width: 2em;" heading="#"><gs-static column="row_number"></gs-static></th>
+                                                    <td style="width: 2em;">
+                                                        <gs-checkbox type="smallint" column="done"></gs-checkbox>
+                                                    </td>
+                                                    <td>
+                                                        {{? row.done !== '-1' }}
+                                                            <gs-text red-text mini column="title"></gs-text>
+                                                        {{??}}
+                                                            <gs-text mini column="title"></gs-text>
+                                                        {{?}}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </template>
+                                    <template for="insert">
+                                        <gs-text column="title"></gs-text>
+                                    </template>
+                                </gs-envelope>
+                            </gs-block>
+                        </gs-grid>
+                    </div>
+                    
+                    <br data-group="cbl_g" />
+                    <div class="group-container" data-group="cbl_g">
+                        <h4><i>Cable Com Inc. Demo</i></h4>
+                        <span class="space"></span>
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button data-group="cbl_g" href="../cbl_g/item_master.html" target="_self" jumbo>Item Master</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button data-group="cbl_g" href="../cbl_g/quote_list.html" target="_self" jumbo>Quote List</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>
+                    
+                    <!--<br data-group="win_g" />
+                    <div class="group-container" data-group="win_g">
+                        <h4><i>Window Designer Demo</i></h4>
+                        <span class="space"></span>
+                        
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button target="_self" jumbo data-group="win_g" href="../win_g/index.html" bg-primary>Window Designer</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>-->
+                    
+                    <br data-group="developer_g" />
+                    <div class="group-container" data-group="developer_g">
+                        <h4><i>Developer</i></h4>
+                        <span class="space"></span>
+                        
+                        <gs-grid widths="1,1,1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button target="_blank" data-group="developer_g" href="../developer_g/greyspots-1.1.1/documentation/index.html" jumbo>Documentation</gs-button>
+                                <div style="height: 0.25em"></div>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button id="button-file-manager" target="_blank" data-group="developer_g" href="../all/file_manager/file_manager.html?socket=true" jumbo>File Manager</gs-button>
+                                <div style="height: 0.25em"></div>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button target="_blank" data-group="pdf_g" href="../pdf_g/pdf_list.html" jumbo>PDF Design</gs-button>
+                                <div style="height: 0.25em"></div>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo target="_blank" data-group="developer_g" href="/env/acs.accept_accessibility_metrics/accessibility_metrics.html">Accessibility Metrics</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo target="_blank" data-group="developer_g" href="../developer_g/jsonify.html">JSONIFY</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo target="_blank" data-group="developer_g" href="../developer_g/encodify.html">Encodify</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo target="_blank" data-group="developer_g" href="../developer_g/encodify_mini.html">Mini Encodify</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo onclick="buttonJSCompile()"><b>Compile JS</b></gs-button>
+                            </gs-block>
+                        </gs-grid>
+                        
+                        <div style="height: 0.25em"></div>
+                        
+                        <gs-grid widths="1,1,1,1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button jumbo onclick="buttonAbandon()" bg-danger txt-danger><b>Abandon</b></gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo onclick="buttonStatus()"><b>Status</b></gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo onclick="buttonCommit()"><b>Commit</b></gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo onclick="buttonPull()"><b>Pull</b></gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo onclick="buttonPush()"><b>Push</b></gs-button>
+                            </gs-block>
+                        </gs-grid>
+                        <div style="height: 0.25em"></div>
+                        
+                        <gs-grid widths="1,1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button jumbo onclick="buttonRefreshBackupFromLive()"><b>Live -> Backup</b></gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo onclick="buttonRefreshTestFromBackup()"><b>Backup -> Test</b></gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button jumbo onclick="buttonRefreshTestFromLive()"><b>Live -> Test</b></gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>
+                    
+                    
+                    <br data-group="fta_g" />
+                    <div class="group-container" data-group="fta_g">
+                        <h4><i>FTA</i></h4>
+                        <span class="space"></span>
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button target="_blank" data-group="fta_g" href="../fta_g/index.html" jumbo>Scripts</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>
+                    
+                    <br data-group="sls_g" />
+                    <div class="group-container" data-group="sls_g">
+                        <h4><i>CRM</i></h4>
+                        <span class="space"></span>
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button target="_blank" data-group="sls_g" href="../sls_g/account_search.html" jumbo>CRM Account Search</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button target="_blank" data-group="sls_g" href="../sls_g/activity.html" jumbo>CRM Activity</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button target="_blank" data-group="sls_g" href="../sls_g/calendar.html" jumbo>CRM Calendar</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button target="_blank" data-group="sls_g" href="../sls_g/multi-view.html" show-on-desktop jumbo>CRM Multi-View</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>
+                    
+                    <br data-group="ckt_g" />
+                    <div class="group-container" data-group="ckt_g">
+                        <h4><i>CKT</i></h4>
+                        <span class="space"></span>
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button target="_self" data-group="ckt_g" href="../ckt_g/report_quality.html?mode=eol" jumbo>EOL Defect Analytics</gs-button>
+                                <gs-button target="_self" data-group="ckt_g" href="../ckt_g/report_quality.html?mode=ri" jumbo>RI Defect Analytics</gs-button>
+                                <gs-button target="_self" data-group="ckt_g" href="../ckt_g/report_quality.html?mode=fi" jumbo>FI Defect Analytics</gs-button>
+                                <gs-button target="_self" data-group="ckt_g" href="../ckt_g/report_quality.html?mode=cs_one" jumbo>CS1 Defect Analytics</gs-button>
+                                <gs-button target="_self" data-group="ckt_g" href="../ckt_g/report_quality.html?mode=table" jumbo>Table Defect Analytics</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button target="_self" data-group="ckt_g" href="../ckt_g/defect_list_manager.html?mode=eol" jumbo>EOL Defect IDs</gs-button>
+                                <gs-button target="_self" data-group="ckt_g" href="../ckt_g/defect_list_manager.html?mode=ri" jumbo>RI Defect IDs</gs-button>
+                                <gs-button target="_self" data-group="ckt_g" href="../ckt_g/defect_list_manager.html?mode=fi" jumbo>FI Defect IDs</gs-button>
+                                <gs-button target="_self" data-group="ckt_g" href="../ckt_g/defect_list_manager.html?mode=cs_one" jumbo>CS1 Defect IDs</gs-button>
+                                <gs-button target="_self" data-group="ckt_g" href="../ckt_g/defect_list_manager.html?mode=table" jumbo>Table Defect IDs</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>
+                    
+                    <br data-group="ssi_g" />
+                    <div class="group-container" data-group="ssi_g">
+                        <h4><i>Demo</i></h4>
+                        <span class="space"></span>
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button target="_blank" data-group="ssi_g" href="../ssi_g/index.html?page_switch=order_header" jumbo>Orders</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>
+                    
+                    <br data-group="ndt_admin_g" />
+                    <div class="group-container" data-group="ndt_admin_g">
+                        <h4><i>North Dallas Tutoring Demo</i></h4>
+                        <span class="space"></span>
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button data-group="ndt_admin_g" href="/env/app/ndt_admin_g/config_courses.html" jumbo target="_self">Configure Courses</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>
+                    
+                    <br data-group="arg_g" />
+                    <div class="group-container" data-group="arg_g">
+                        <h4><i>Aeroglen Demo</i></h4>
+                        <span class="space"></span>
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button data-group="arg_g" href="/env/app/arg_g/inventory.html" jumbo target="_blank">Inventory</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button data-group="arg_g" href="/env/app/arg_g/item_master.html" jumbo target="_blank">Item Master</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button data-group="arg_g" href="/env/app/arg_g/order.html" jumbo target="_blank">Order</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>
                     
                     
                     
@@ -356,6 +760,7 @@
                     <br data-group="klr_g" />-->
                     
                     <gs-button target="_self" data-group="ftp_w" href="upload.html" jumbo bg-primary>Upload Your File</gs-button>
+                    <gs-button target="_self" data-group="ftp_denton_w" href="upload.html?mode=_denton" jumbo bg-primary>Upload file for Denton County</gs-button>
                     <br data-group="ftp_w" />
                     
                     <!--<br data-group="trc_g" />
@@ -385,17 +790,29 @@
                         </gs-grid>
                     </div>-->
                     
-                    <br data-group="rnd_g" />
-                    <div class="group-container" data-group="rnd_g">
-                        <h4><i>Randy Property Demo</i></h4>
+                    <!--<br data-group="abp_g" />
+                    <div class="group-container" data-group="abp_g">
+                        <h4><i>Auto Broker Program</i></h4>
                         <span class="space"></span>
                         
                         <gs-grid widths="1,1" reflow-at="500px" gutter>
                             <gs-block>
-                                <gs-button target="_self" jumbo data-group="rnd_g" href="../rnd_g/investor.html" bg-primary>Investors</gs-button>
+                                <gs-button jumbo data-group="abp_g" href="../abp_g/broker_search.html" bg-primary>Brokers</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>-->
+                    
+                    <br data-group="hsc_g" />
+                    <div class="group-container" data-group="hsc_g">
+                        <h4><i>FRS Submission Form</i></h4>
+                        <span class="space"></span>
+                        
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button target="_self" jumbo data-group="hsc_g" href="../hsc_g/pdf/index.html" bg-primary>Menu</gs-button>
                             </gs-block>
                             <gs-block>
-                                <gs-button target="_self" jumbo data-group="rnd_g" href="../rnd_g/property.html" bg-primary>Properties</gs-button>
+                                <gs-button target="_self" jumbo data-group="hsc_g" href="../hsc_g/pdf/frs_form.html" bg-primary>Submission Form</gs-button>
                             </gs-block>
                         </gs-grid>
                     </div>
@@ -429,7 +846,19 @@
                     </div>
                     <br data-group="pgi_g" />-->
                     
-                    
+                    <br data-group="ss_g" />
+                    <div class="group-container" data-group="ss_g">
+                        <h4><i>Salon supply</i></h4>
+                        <span class="space"></span>
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button target="_self" jumbo data-group="ss_g" href="../ss_g/inventory.html" bg-primary>Scan Inventory</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button target="_self" jumbo data-group="ss_g" href="../ss_g/menu.html" bg-primary>All Inventory</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>
                     <!--<br data-group="ss_g" />
                     <div class="group-container" data-group="ss_g">
                         <h4><i>Salon supply</i></h4>
@@ -671,18 +1100,6 @@
                     </div>
                     <br data-group="jcs_g" />-->
                     
-                    <br data-group="gvr_g" />
-                    <div class="group-container" data-group="gvr_g">
-                        <h4><i>GVR Demo</i></h4>
-                        <span class="space"></span>
-                        <gs-grid widths="1,1" reflow-at="500px" gutter>
-                            <gs-block>
-                                <gs-button target="_self" href="../gvr_g/calc.html" jumbo bg-primary>CALC Sheet Demo</gs-button>
-                            </gs-block>
-                        </gs-grid>
-                    </div>
-                    <br data-group="gvr_g" />
-                    
                     <br data-group="wsh_g" />
                     <div class="group-container" data-group="wsh_g">
                         <h4><i>Whoosh Animations Demo</i></h4>
@@ -695,230 +1112,7 @@
                     </div>
                     <br data-group="wsh_g" />
 
-                    <div class="group-container" data-group="tocci_g">
-                        <h4><i>Apps</i></h4>
-                        <span class="space"></span>
-                        <gs-button target="_blank" data-user="joseph@wfprod.com" href="../wiki_g/index.html?page_id=63243"><b>MENU</b></gs-button>
-                        
-                        <gs-grid widths="1,1" reflow-at="500px" gutter>
-                            <gs-block>
-                                <gs-button jumbo target="_blank" data-group="adr_g" href="../adr_g/index.html">Address Book</gs-button>
-                                <gs-button jumbo target="_blank" data-group="days_g" href="../days_g/ages.html">Ages</gs-button>
-                                <gs-button jumbo target="_blank" data-group="cal2_g" href="../cal2_g/calendar.html">Calendar</gs-button>
-                                <gs-button jumbo target="_blank" data-group="days_g" href="../days_g/index.html">Countdown</gs-button>
-                                <gs-button jumbo target="_blank" data-group="adr_g" href="../adr_g/clist/index.html">Craigslist ads</gs-button>
-                                <gs-button jumbo target="_blank" data-group="a8g_g" href="../a8g_g/index.html">EasyBooks</gs-button>
-                                <gs-button jumbo target="_blank" data-group="hebrew_g" href="../hebrew_g/bible.html">Hebrew Bible</gs-button>
-                                <gs-button jumbo target="_blank" data-group="hebrew_g" href="../hebrew_g/transliterate.html">Hebrew Transliterate</gs-button>
-                                <gs-button jumbo target="_blank" data-group="ide_g" href="../ide_g/index.html">Ideas</gs-button>
-                                <gs-button jumbo target="_blank" data-group="school_g" href="../school_g/index.html">Learning App</gs-button>
-                                <gs-button jumbo target="_blank" data-group="school_g" href="../school_g/math.html">Learning Latin Math</gs-button>
-                                <!--<gs-button jumbo target="_blank" data-group="lph_g" href="../lph_g/lph.html">LPH</gs-button>-->
-                                <gs-button jumbo target="_blank" data-group="meal_g" href="../meal_g/calendar.html">Meals 3.0</gs-button>
-                                <gs-button jumbo target="_blank" data-group="trkng_g" href="../trkng_g/index.html">Packages</gs-button>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button jumbo target="_blank" data-group="pvt_g" href="../pvt_g/index.html">Private</gs-button>
-                                <gs-button jumbo target="_blank" data-group="lin_g" href="../lin_g/main_menu.html">Production Lines</gs-button>
-                                <!--
-                                <gs-form src="post.rptdownload_new" data-group="tocci_g" style="overflow: visible;">
-                                    <template>
-                                        <gs-button jumbo target="_blank" href="../all/splashcount.html">
-                                            Splash Page Downloads (<gs-static mini inline column="day_new_users"></gs-static> New / <gs-static mini inline column="today_users"></gs-static> Total)
-                                        </gs-button>
-                                    </template>
-                                </gs-form>
-                                -->
-                                <gs-button jumbo target="_blank" data-group="adr_g" href="../adr_g/teleprompter.html">Teleprompter</gs-button>
-                                <gs-button jumbo target="_blank" data-group="shop_g" href="../shop_g/index.html">TEMP</gs-button>
-                                <gs-button jumbo target="_blank" data-group="tst_g" href="../tst_g/index.html">Testing Facility Monitor</gs-button>
-                                <gs-button jumbo target="_blank" data-group="wtkv2_g" href="../wtk_g/index.html">Timekeeping</gs-button>
-                                <gs-button jumbo target="_blank" data-group="wtkv2_g" href="../wtkv2_g/productivity.html">Timekeeping Productivity</gs-button>
-                                <gs-button jumbo target="_blank" data-group="days_g" href="../days_g/toccical.html">TocciCal</gs-button>
-                                <gs-button jumbo target="_blank" data-group="days_g" href="../todo_g/todo.html">Todo</gs-button>
-                                <gs-button jumbo target="_blank" data-group="days_g" href="file_manager/file_manager.html?socket=true&path=%2Frole%2Fftp_g">Uploads</gs-button>
-                                <gs-button jumbo target="_blank" data-group="wiki_g" href="../wiki_g/index.html">Wiki (Markdown)</gs-button>
-                                <gs-button jumbo target="_blank" data-group="wiki_g" href="../wiki_g/index_dotty.html">Wiki (Dotty XLD)</gs-button>
-                                <gs-button jumbo target="_blank" data-group="enwk_g" href="../enwk_g/index.html">Wiki (Encrypted)</gs-button>
-                            </gs-block>
-                            <gs-block>
-                                <br data-group="cal2_g"/>
-                                <gs-listbox src="days.qryupcoming" data-group="cal2_g" suspend-inserted>
-                                    <template>
-                                        <table>
-                                            <thead>
-                                                <tr>
-                                                    <th>Day</th>
-                                                    <th>Activity</th>
-                                                    <th>Start</th>
-                                                    <th>End</th>
-                                                    <th>
-                                                        <gs-button href="https://www.sunnyserve.com/env/app/cal2_g/calendar.html" icon="angle-double-right" icononly></gs-button>
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td>{{! row.event_day }}</td>
-                                                    <td>{{! row.activity }}</td>
-                                                    <td>{{! row.start_time }}</td>
-                                                    <td>{{! row.end_time }}</td>
-                                                    <td>
-                                                        {{? row.cal_id }}
-                                                        <gs-button href="https://www.sunnyserve.com/env/app/cal2_g/calendar_detail.html?id={{! row.cal_id }}" icon="angle-right" icononly></gs-button>
-                                                        {{?}}
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </template>
-                                </gs-listbox>
-                                <br data-group="meal_g"/>
-                                <h3 data-group="meal_g">Meals (Eating time is from 10AM to 7PM)</h3>
-                                <gs-listbox src="meal.qrytoday" suspend-inserted data-group="meal_g">
-                                    <template>
-                                        <table>
-                                            <tbody>
-                                                <tr>
-                                                    <td>{{! row.meal_name }}</td>
-                                                    <td>{{! row.courses }}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </template>
-                                </gs-listbox>
-                            </gs-block>
-                            <gs-block data-group="todo_g">
-                                <br/>
-                                <gs-envelope id="todo_list_mainmenu" src="todo.frmtodo" no-hudlimit no-hudorderby suspend-inserted>
-                                    <template for="hud"></template>
-                                    <template for="table">
-                                        <table>
-                                            <tbody>
-                                                <tr>
-                                                    <th style="width: 2em;" heading="#"><gs-static column="row_number"></gs-static></th>
-                                                    <td style="width: 2em;">
-                                                        <gs-checkbox type="smallint" column="done"></gs-checkbox>
-                                                    </td>
-                                                    <td>
-                                                        {{? row.done !== '-1' }}
-                                                            <gs-text red-text mini column="title"></gs-text>
-                                                        {{??}}
-                                                            <gs-text mini column="title"></gs-text>
-                                                        {{?}}
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </template>
-                                    <template for="insert">
-                                        <gs-text column="title"></gs-text>
-                                    </template>
-                                </gs-envelope>
-                            </gs-block>
-                        </gs-grid>
-                    </div>
                     
-                    <!--<br data-group="win_g" />
-                    <div class="group-container" data-group="win_g">
-                        <h4><i>Window Designer Demo</i></h4>
-                        <span class="space"></span>
-                        
-                        <gs-grid widths="1,1" reflow-at="500px" gutter>
-                            <gs-block>
-                                <gs-button target="_self" jumbo data-group="win_g" href="../win_g/index.html" bg-primary>Window Designer</gs-button>
-                            </gs-block>
-                        </gs-grid>
-                    </div>-->
-                    
-                    <br data-group="developer_g" />
-                    <div class="group-container" data-group="developer_g">
-                        <h4><i>Developer</i></h4>
-                        <span class="space"></span>
-                        
-                        <gs-grid widths="1,1,1,1" reflow-at="500px" gutter>
-                            <gs-block>
-                                <gs-button target="_blank" data-group="developer_g" href="../developer_g/greyspots-1.1.1/documentation/index.html" jumbo>Documentation</gs-button>
-                                <div style="height: 0.25em"></div>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button id="button-file-manager" target="_blank" data-group="developer_g" href="../all/file_manager/file_manager.html?socket=true" jumbo>File Manager</gs-button>
-                                <div style="height: 0.25em"></div>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button target="_blank" data-group="pdf_g" href="../pdf_g/pdf_list.html" jumbo>PDF Design</gs-button>
-                                <div style="height: 0.25em"></div>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button jumbo target="_blank" data-group="developer_g" href="/env/acs.accept_accessibility_metrics/accessibility_metrics.html">Accessibility Metrics</gs-button>
-                            </gs-block>
-                        </gs-grid>
-                        
-                        <gs-button jumbo onclick="buttonJSCompile()"><b>Compile JS</b></gs-button>
-                        <div style="height: 0.25em"></div>
-                        
-                        <gs-grid widths="1,1,1,1,1" reflow-at="500px" gutter>
-                            <gs-block>
-                                <gs-button jumbo onclick="buttonAbandon()" bg-danger txt-danger><b>Abandon</b></gs-button>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button jumbo onclick="buttonStatus()"><b>Status</b></gs-button>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button jumbo onclick="buttonCommit()"><b>Commit</b></gs-button>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button jumbo onclick="buttonPull()"><b>Pull</b></gs-button>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button jumbo onclick="buttonPush()"><b>Push</b></gs-button>
-                            </gs-block>
-                        </gs-grid>
-                        <div style="height: 0.25em"></div>
-                        
-                        <gs-grid widths="1,1,1" reflow-at="500px" gutter>
-                            <gs-block>
-                                <gs-button jumbo onclick="buttonRefreshBackupFromLive()"><b>Live -> Backup</b></gs-button>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button jumbo onclick="buttonRefreshTestFromBackup()"><b>Backup -> Test</b></gs-button>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button jumbo onclick="buttonRefreshTestFromLive()"><b>Live -> Test</b></gs-button>
-                            </gs-block>
-                        </gs-grid>
-                    </div>
-                    
-                    <br data-group="sls_g" />
-                    <div class="group-container" data-group="sls_g">
-                        <h4><i>CRM</i></h4>
-                        <span class="space"></span>
-                        <gs-grid widths="1,1" reflow-at="500px" gutter>
-                            <gs-block>
-                                <gs-button target="_blank" data-group="sls_g" href="../sls_g/account_search.html" jumbo>CRM Account Search</gs-button>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button target="_blank" data-group="sls_g" href="../sls_g/activity.html" jumbo>CRM Activity</gs-button>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button target="_blank" data-group="sls_g" href="../sls_g/calendar.html" jumbo>CRM Calendar</gs-button>
-                            </gs-block>
-                            <gs-block>
-                                <gs-button target="_blank" data-group="sls_g" href="../sls_g/multi-view.html" show-on-desktop jumbo>CRM Multi-View</gs-button>
-                            </gs-block>
-                        </gs-grid>
-                    </div>
-                    
-                    <br data-group="ssi_g" />
-                    <div class="group-container" data-group="ssi_g">
-                        <h4><i>Demo</i></h4>
-                        <span class="space"></span>
-                        <gs-grid widths="1,1" reflow-at="500px" gutter>
-                            <gs-block>
-                                <gs-button target="_blank" data-group="ssi_g" href="../ssi_g/index.html?page_switch=order_header" jumbo>Orders</gs-button>
-                            </gs-block>
-                        </gs-grid>
-                    </div>
                 </div>
             </gs-body>
         </gs-page>

@@ -165,7 +165,7 @@ window.addEventListener('design-register-element', function () {
         return strHTML;
     }
 
-    // GS.msgbox('test1', 'test2', ['cancel', 'ok'], function (strAnswer) { console.log(strAnswer); });
+    // GS.msgbox('test1', 'test2', ['cancel', 'ok'], function (strAnswer) {console.log(strAnswer); });
     GS.msgbox = function (strTitle, strMessage, buttons, callback) {
         var templateElement = document.createElement('template');
 
@@ -184,7 +184,7 @@ window.addEventListener('design-register-element', function () {
         });
     };
 
-    // GS.inputbox('test1', 'test2', function (strAnswer) { console.log(strAnswer); });
+    // GS.inputbox('test1', 'test2', function (strAnswer) {console.log(strAnswer); });
     GS.inputbox = function (strTitle, strMessage, callback) {
         var templateElement = document.createElement('template');
 
@@ -509,6 +509,7 @@ GS.closeDialog = function (dialog, strAnswer) {
 
         // handle autofocus
         arrElements = xtag.query(template.content, '[autofocus]');
+        //console.log('arrElements', arrElements, template.content);
 
         // if there are not autofocus elements: add autofocus to first control in the template
         if (arrElements.length === 0) {
@@ -552,7 +553,7 @@ GS.closeDialog = function (dialog, strAnswer) {
             var h4 = header.getElementsByTagName('h4')[0];
             var h5 = header.getElementsByTagName('h5')[0];
             var h6 = header.getElementsByTagName('h6')[0];
-            console.log(header, h1, h2, h3, h4, h5, h6);
+          //console.log(header, h1, h2, h3, h4, h5, h6);
 
             var h = h1 || h2 || h3 || h4 || h5 || h6;
             if (h) {
@@ -860,12 +861,12 @@ GS.closeDialog = function (dialog, strAnswer) {
         //// after open function call
         //if (typeof afterOpenFunction === 'function') {
         //    if (dialog.inserted === true) {
-        //        console.log('1***');
+        //      //console.log('1***');
         //        afterOpenFunction.apply(dialog, []);
         //    } else {
-        //        console.log('2***', new Date().getTime());
+        //      //console.log('2***', new Date().getTime());
         //        dialog.addEventListener('dialog-inserted', function () {
-        //            console.log('3***', new Date().getTime());
+        //          //console.log('3***', new Date().getTime());
         //            afterOpenFunction.apply(dialog, []);
         //        });
         //    }
@@ -950,7 +951,7 @@ GS.closeDialog = function (dialog, strAnswer) {
             var h4 = header.getElementsByTagName('h4')[0];
             var h5 = header.getElementsByTagName('h5')[0];
             var h6 = header.getElementsByTagName('h6')[0];
-            console.log(header, h1, h2, h3, h4, h5, h6);
+          //console.log(header, h1, h2, h3, h4, h5, h6);
 
             var h = h1 || h2 || h3 || h4 || h5 || h6;
             if (h) {
@@ -1162,6 +1163,7 @@ GS.closeDialog = function (dialog, strAnswer) {
             strDirectionRequest = 'down';
         }
         
+        /*
         positionHandlingFunction = function () {
             var intDialogTop = '', intDialogLeft = '', intDialogMarginTop = '', intDialogMarginLeft = '', strOldStyle,
                 arrElements, arrScrollingElements, i, len, strOverflow;
@@ -1359,7 +1361,22 @@ GS.closeDialog = function (dialog, strAnswer) {
                 dialogElement.style.marginLeft = intDialogMarginLeft + 'px';
             }
         };
-
+        
+        positionHandlingFunction();
+        window.addEventListener('resize', positionHandlingFunction);
+        window.addEventListener('orientationchange', positionHandlingFunction);
+        */
+        
+        var positionHandlingFunction;
+        
+        positionHandlingFunction = function () {
+            GS.positionHandlingFunction(dialogElement, elementTarget, intMargin, strDirectionRequest, 'full', function () {
+                window.removeEventListener('resize', positionHandlingFunction);
+                window.removeEventListener('orientationchange', positionHandlingFunction);
+                observer.disconnect();
+            })
+        };
+        
         positionHandlingFunction();
         window.addEventListener('resize', positionHandlingFunction);
         window.addEventListener('orientationchange', positionHandlingFunction);
@@ -1508,7 +1525,7 @@ GS.closeDialog = function (dialog, strAnswer) {
         events: {
             //'click:delegate([dialogclose])': function (event) {
             //    var dialogcloseElement = GS.findParentElement(event.target, '[dialogclose]');
-            //    console.log('running...');
+            //  //console.log('running...');
             //    GS.findParentTag(event.target, 'gs-dialog')
             //            .destroy(dialogcloseElement.textContent, event);
             //}

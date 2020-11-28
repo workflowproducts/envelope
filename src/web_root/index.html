@@ -1,10 +1,20 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <link rel="manifest" href="manifest.json">
+
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="application-name" content="FTAV Access">
+        <meta name="apple-mobile-web-app-title" content="FTAV Access">
+        <meta name="msapplication-starturl" content="/">
+        <!--<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">-->
+        <link rel="apple-touch-icon" sizes="192x192" href="/images/icons-192.png">
+        <link rel="apple-touch-icon" sizes="512x512" href="/images/icons-512.png">
+
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        <meta name="apple-mobile-web-app-title" content="FTAV Access">
+        <meta name="viewport" content="initial-scale=1, viewport-fit=cover" />
         
         <title>Log In</title>
         
@@ -12,97 +22,173 @@
         <link href="/css/greyspots.css" rel="stylesheet" type="text/css" />
         
         <script>
-            var bolCurl = false;
+/*jslint browser:true*/
+/*global GS,window*/
+var bolCurl = false;
+var request = new XMLHttpRequest();
 
-            function login() {
-                'use strict';
-                var strQueryString = GS.getQueryString();
+request.onreadystatechange = function () {
+    'use strict';
+    // if expired cookie: go to login page
+    if (request.readyState === 4) {
+        if (request.status === 200) {
+            window.location.replace(GS.qryGetVal(GS.getQueryString(), 'redirect') || '/env/app/all/index.html?cache=no');
+        }
+    }
+};
 
-                document.getElementById('error').textContent = '';
+request.open('POST', '/env/action_info' + '?anticache=' + ((new Date()).getMilliseconds() + Math.floor(Math.random() * 1e9)), true);
+request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+request.send('');
 
-                GS.addLoader('login', 'Logging In...');
-                GS.ajaxJSON((location.pathname.indexOf('/v1/') === 0 ? '/v1/' : '/') + 'env/auth'
-                            , 'action=login' +
-                               '&username=' + encodeURIComponent(document.getElementById('normal-uname').value) +
-                               '&password=' + encodeURIComponent(document.getElementById('normal-pword').value)
-                            , function (data, error) {
-                    GS.removeLoader('login');
+// for PWA
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+        'use strict';
+        navigator.serviceWorker.register('/js/sw/sw.js').then(function (registration) {
+            // Registration was successful
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        }, function (err) {
+            // registration failed :(
+            console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+    window.addEventListener('beforeinstallprompt', function (event) {
+        // Prevent Chrome 76 and later from showing the mini-infobar
+        event.preventDefault();
+        // Stash the event so it can be triggered later.
+        deferredPrompt = event;
+        GS.msgbox('Add to homescreen?', 'Would you like to add Sunnyserve to your homescreen?', ['No', 'Yes'], function (strAnswer) {
+            if (strAnswer === 'Yes') {
+                event.prompt();
+            }
+        });
+    });
 
-                    if (!error) {
-                        GS.setCookie('greyspots_uname', document.getElementById('normal-uname').value, 1000000);
+}
 
-                        if (GS.qryGetVal(strQueryString, 'redirect')) {
-                            window.location = GS.qryGetVal(strQueryString, 'redirect');
-                        } else {
-                            window.location = data.dat + '?cache=no';
-                        }
 
-                    } else {
-                        document.getElementById('error').innerHTML =
-                                encodeHTML(GS.trim(data.error_text.trim(), '"'))
-                                .replace(/\\n/gi, '<br />')
-                                .replace(/\\/gi, '');
-                        document.getElementById('normal-pword').value = '';
-                    }
-                });
+function login() {
+    'use strict';
+    var strQueryString = GS.getQueryString();
+
+    document.getElementById('error').textContent = '';
+    //document.getElementById('normal-uname').value = document.getElementById('normal-uname').value.toLowerCase();
+
+    GS.addLoader('login', 'Logging In...');
+    GS.ajaxJSON((location.pathname.indexOf('/v1/') === 0 ? '/v1/' : '/') + 'env/auth'
+                , 'action=login' +
+                   '&username=' + encodeURIComponent(document.getElementById('normal-uname').value) +
+                   '&password=' + encodeURIComponent(document.getElementById('normal-pword').value)
+                , function (data, error) {
+        GS.removeLoader('login');
+
+        if (!error) {
+            GS.setCookie('greyspots_uname', document.getElementById('normal-uname').value, 1000000);
+
+            if (GS.qryGetVal(strQueryString, 'redirect')) {
+                window.location = GS.qryGetVal(strQueryString, 'redirect');
+            } else {
+                if (document.getElementById('normal-uname').value === 'abbey.fowler@traviscountytx.gov') {
+                    window.location = 'https://www.sunnyserve.com/env/role/ftp_g/Discovery%20for%2017-1989.zip';
+                    
+                    document.body.innerHTML = 'Your file should begin to download immediately. Please keep this page open until your download is complete. If you need support, please contact Hector Saenz 817-735-2453.';
+                } else if (document.getElementById('normal-uname').value === 'lauren.marshall@dentoncounty.com' ||
+                    document.getElementById('normal-uname').value === 'lindsey.sheguit@dentoncounty.com') {
+                    window.location = 'https://www.sunnyserve.com/env/role/ftp_denton_g/18-2608.pdf.zip';
+                    
+                    document.body.innerHTML = 'Your file should begin to download immediately. Please keep this page open until your download is complete. If you need support, please contact Hector Saenz 817-735-2453.';
+                } else if (document.getElementById('normal-uname').value === 'eadixon@tarrantcountytx.gov') {
+                    window.location = 'https://www.sunnyserve.com/env/role/ftp_tarrant_g/18-0720%20Scanned%20Case%20Folder.pdf.zip';
+                    
+                    document.body.innerHTML = 'Your file should begin to download immediately. Please keep this page open until your download is complete. If you need support, please contact Hector Saenz 817-735-2453.';
+                } else if (document.getElementById('normal-uname').value === 'ewcofer@tarrantcountytx.gov') {
+                    window.location = 'https://www.sunnyserve.com/env/role/ftp_tarrant_g/UNT%2016-3310%20Scanned%20Case%20Folder.pdf.zip';
+                    
+                    document.body.innerHTML = 'Your file should begin to download immediately. Please keep this page open until your download is complete. If you need support, please contact Hector Saenz 817-735-2453.';
+                } else if (document.getElementById('normal-uname').value === 'ksfickes@tarrantcountytx.gov') {
+                    window.location = 'https://www.sunnyserve.com/env/role/ftp_tarrant_g/UNTCHI%2014-0403%20Discovery.zip';
+                    
+                    document.body.innerHTML = 'Your file should begin to download immediately. Please keep this page open until your download is complete. If you need support, please contact Hector Saenz 817-735-2453.';
+                } else if (document.getElementById('normal-uname').value === 'andrea.austin@traviscountytx.gov') {
+                    window.location = 'https://www.sunnyserve.com/env/role/ftp_g/UNTCHI%2018-2518%20Discovery.zip';
+                    
+                    document.body.innerHTML = 'Your file should begin to download immediately. Please keep this page open until your download is complete. If you need support, please contact Hector Saenz 817-735-2453.';
+                    
+                } else if (document.getElementById('normal-uname').value === 'mbagby') {
+                    window.location = 'https://www.sunnyserve.com/env/app/sav_g/index.html';
+                    
+                } else { 
+                    window.location = data.dat + '?cache=no';
+                }
             }
 
-            window.addEventListener('load', function () {
-                "use strict";
-                var strQueryString = GS.getQueryString();
-                var strUnameCookie = GS.getCookie('greyspots_uname');
+        } else {
+            document.getElementById('error').innerHTML =
+                encodeHTML(GS.trim(data.error_text.trim(), '"'))
+                .replace(/\\n/gi, '<br />')
+                .replace(/\\/gi, '');
+            document.getElementById('normal-pword').value = '';
+        }
+    });
+}
 
-                // if there is a username cookie: set the username input value
-                if (strUnameCookie) {
-                   document.getElementById('normal-uname').value = decodeURIComponent(strUnameCookie);
-                }
+window.addEventListener('load', function () {
+    "use strict";
+    var strQueryString = GS.getQueryString();
+    var strUnameCookie = GS.getCookie('greyspots_uname');
 
-                // if we are not on a touch device: put the focus into the first empty control out of "normal-uname" and "normal-pword"
-                if (!evt.touchDevice) {
-                    if (strUnameCookie) {
-                        document.getElementById('normal-pword').focus();
-                    } else {
-                        document.getElementById('normal-uname').focus();
-                    }
-                }
+    // if there is a username cookie: set the username input value
+    if (strUnameCookie) {
+       document.getElementById('normal-uname').value = decodeURIComponent(strUnameCookie);
+    }
 
-                // fill the error element with any error text from the query string (coalesce to empty string)
-                document.getElementById('error').textContent = GS.qryGetVal(strQueryString, 'error') || '';
+    // if we are not on a touch device: put the focus into the first empty control out of "normal-uname" and "normal-pword"
+    if (!evt.touchDevice) {
+        if (strUnameCookie) {
+            document.getElementById('normal-pword').focus();
+        } else {
+            document.getElementById('normal-uname').focus();
+        }
+    }
 
-                //// if there is error text in the query string: alert
-                //if (GS.qryGetVal(strQueryString, 'error')) {
-                //    alert(GS.qryGetVal(strQueryString, 'error'));
-                //    window.location.search = '';
-                //}
+    // fill the error element with any error text from the query string (coalesce to empty string)
+    document.getElementById('error').textContent = GS.qryGetVal(strQueryString, 'error') || '';
 
-                // bind keydown for the "normal-pword" field
-                document.getElementById('normal-pword').addEventListener('keydown', function (event) {
-                    if (event.keyCode === 13) {
-                        login();
-                    }
-                });
+    //// if there is error text in the query string: alert
+    //if (GS.qryGetVal(strQueryString, 'error')) {
+    //    alert(GS.qryGetVal(strQueryString, 'error'));
+    //    window.location.search = '';
+    //}
 
-                // bind click for the "button-login" button
-                document.getElementById('button-login').addEventListener('click', function () {
-                       login();
-                });
+    // bind keydown for the "normal-pword" field
+    document.getElementById('normal-pword').addEventListener('keydown', function (event) {
+        if (event.keyCode === 13) {
+            login();
+        }
+    });
 
-                // GS.ajaxJSON((location.pathname.indexOf('/v1/') === 0 ? '/v1/cluster' : '/env') + '/postage.actionnc_roles', '', function (data, error) {
-                //     var i, len, strHTML = '', selectElement = document.createElement('gs-select');
+    // bind click for the "button-login" button
+    document.getElementById('button-login').addEventListener('click', function () {
+       login();
+    });
 
-                //     if (!error) {
-                //         for (i = 0, len = data.dat.length; i < len; i += 1) {
-                //             strHTML +=  '<option>' + encodeHTML(data.dat[i]) + '</option>';
-                //         }
+    // GS.ajaxJSON((location.pathname.indexOf('/v1/') === 0 ? '/v1/cluster' : '/env') + '/postage.actionnc_roles', '', function (data, error) {
+    //     var i, len, strHTML = '', selectElement = document.createElement('gs-select');
 
-                //         selectElement.setAttribute('id', 'normal-uname');
-                //         selectElement.innerHTML = strHTML;
-                //         selectElement.value = strUnameCookie || '';
+    //     if (!error) {
+    //         for (i = 0, len = data.dat.length; i < len; i += 1) {
+    //             strHTML +=  '<option>' + encodeHTML(data.dat[i]) + '</option>';
+    //         }
 
-                //         document.getElementById('container').replaceChild(selectElement, document.getElementById('normal-uname'));
-                //     }
-                // });
-            });
+    //         selectElement.setAttribute('id', 'normal-uname');
+    //         selectElement.innerHTML = strHTML;
+    //         selectElement.value = strUnameCookie || '';
+
+    //         document.getElementById('container').replaceChild(selectElement, document.getElementById('normal-uname'));
+    //     }
+    // });
+});
         </script>
         <style>
             #container {

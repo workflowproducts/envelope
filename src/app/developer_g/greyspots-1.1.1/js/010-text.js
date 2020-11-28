@@ -6,7 +6,7 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('<gs-text> With Label', '<gs-text>', 'label for="${1:text-insert-account-name}">${2:Account Name}:</label>\n' +
                                                                '<gs-text id="${1:date-insert-account-name}" column="${3:account_name}"></gs-text>');
     
-    designRegisterElement('gs-text', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-text.html');
+    designRegisterElement('gs-text', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_text');
 
     window.designElementProperty_GSTEXT = function (selectedElement) {
         addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
@@ -146,20 +146,20 @@ window.addEventListener('design-register-element', function () {
 });
 // function getCaps() {
 //     var event = document.createEvent("KeyboardEvent");
-//     console.log(event, event.getModifierState('CapsLock'));
+//   //console.log(event, event.getModifierState('CapsLock'));
 //     var caps = event.getModifierState && event.getModifierState( 'CapsLock' );
 //     window.caps = caps;
-//     console.log(window.caps);
+//   //console.log(window.caps);
 // }
 
 window.addEventListener('keydown', function (event) {
     window.caps = event.getModifierState && event.getModifierState( 'CapsLock' );
-    // console.log(caps);
+    //console.log(caps);
 });
 
 window.addEventListener('try-password', function (event) {
     var elemsToRetry = xtag.query(document, 'gs-text[encrypted="' + event.keyVariable + '"], gs-memo[encrypted="' + event.keyVariable + '"]');
-    console.log(elemsToRetry);
+  //console.log(elemsToRetry);
     var i = 0, len = elemsToRetry.length;
     while (i < len) {
         elemsToRetry[i].syncView();
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
             element = GS.findParentTag(element, 'gs-text');
         }
         var temp_caps = event.getModifierState && event.getModifierState( 'CapsLock' );
-        // console.log(temp_caps);
+        //console.log(temp_caps);
         if (temp_caps) {
             element.classList.add('caps');
         } else {
@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function focusFunction(event) {
         // getCaps();
-        // console.log(window.caps);
+        //console.log(window.caps);
         var element = event.target;
         if (element.classList.contains('focus')) {
             return;
@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function findFor(element) {
         var forElem;
-        // console.log(element, element.previousElementSibling)
+        //console.log(element, element.previousElementSibling)
         if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
             && element.previousElementSibling.hasAttribute('for')
             && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
@@ -604,7 +604,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
             if (element.hasAttribute('id')) {
-                // console.log('running');
+                //console.log('running');
                 findFor(element);
             }
         }
@@ -650,6 +650,17 @@ document.addEventListener('DOMContentLoaded', function () {
                                     element.syncView();
                                 }
                             }
+                            var arrPassThroughAttributes = [
+                                    'placeholder', 'name', 'maxlength', 'autocorrect',
+                                    'autocapitalize', 'autocomplete', 'autofocus', 'spellcheck',
+                                    'readonly', 'disabled'
+                                ];
+                            if (element.hasAttribute(strAttrName) && arrPassThroughAttributes.indexOf(strAttrName) !== -1) {
+                                element.control.setAttribute(strAttrName, newValue);
+                            }
+                            if (!element.hasAttribute(strAttrName) && element.control.hasAttribute(strAttrName) && arrPassThroughAttributes.indexOf(strAttrName) !== -1) {
+                                element.control.removeAttribute(strAttrName);
+                            }
                         }
                     }
                 } else {
@@ -687,6 +698,19 @@ document.addEventListener('DOMContentLoaded', function () {
                             //      attribute and the valued in the front end: refresh the front end
                             if (newValue !== currentValue) {
                                 element.syncView();
+                            }
+                        }
+                        var arrPassThroughAttributes = [
+                                'placeholder', 'name', 'maxlength', 'autocorrect',
+                                'autocapitalize', 'autocomplete', 'autofocus', 'spellcheck',
+                                'readonly', 'disabled'
+                            ];
+                        if (element.control) {
+                            if (element.hasAttribute(strAttrName) && arrPassThroughAttributes.indexOf(strAttrName) !== -1) {
+                                element.control.setAttribute(strAttrName, newValue);
+                            }
+                            if (!element.hasAttribute(strAttrName) && element.control.hasAttribute(strAttrName) && arrPassThroughAttributes.indexOf(strAttrName) !== -1) {
+                                element.control.removeAttribute(strAttrName);
                             }
                         }
                     }
@@ -740,6 +764,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     } else {
                         this.setAttribute('value', strNewValue);
+                        this.syncView();
                     }
                 }
             }
@@ -818,7 +843,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.control.removeEventListener(evt.mouseout, mouseoutFunction);
                     element.control.addEventListener(evt.mouseout, mouseoutFunction);
                     
-                    element.control.removeEventListener(evt.mouseout, mouseoverFunction);
+                    element.control.removeEventListener(evt.mouseover, mouseoverFunction);
                     element.control.addEventListener(evt.mouseover, mouseoverFunction);
                     
                     // copy passthrough attributes to control

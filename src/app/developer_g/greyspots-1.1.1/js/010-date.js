@@ -1,40 +1,43 @@
 window.addEventListener('design-register-element', function () {
     'use strict';
-    
+
     registerDesignSnippet('<gs-date>', '<gs-date>', 'gs-date column="${1:name}"></gs-date>');
     registerDesignSnippet('<gs-date> With Label', '<gs-date>', 'label for="${1:date-insert-start_date}">${2:Start Date}:</label>\n' +
                                                                '<gs-date id="${1:date-insert-start_date}" column="${3:start_date}"></gs-date>');
-    
+
+    /*
+    TODO: there is no documentation
     designRegisterElement('gs-date', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-date.html');
-    
+    */
+
     window.designElementProperty_GSDATE = function(selectedElement) {
         addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'column', this.value);
         });
-        
+
         addProp('Value', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('value') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'value', this.value);
         });
-        
+
         addProp('Column In Querystring', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'qs', this.value, false);
         });
-        
+
         addProp('Placeholder', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('placeholder') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'placeholder', this.value);
         });
-        
+
         //console.log(selectedElement.hasAttribute('mini'));
-        
+
         addProp('Mini', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('mini')) + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'mini', (this.value === 'true'), true);
         });
-        
+
         addProp('Date Picker', true, '<gs-checkbox class="target" value="' + (!selectedElement.hasAttribute('no-picker')) + '" mini></gs-checkbox>', function () {
             return setOrRemoveBooleanAttribute(selectedElement, 'no-picker', (this.value === 'true'), false);
         });
-        
-        addProp('Format', true, '<gs-combo class="target" value="' + encodeHTML(selectedElement.getAttribute('format') || '') + '" mini>' + 
+
+        addProp('Format', true, '<gs-combo class="target" value="' + encodeHTML(selectedElement.getAttribute('format') || '') + '" mini>' +
                         ml(function () {/*<template>
                                             <table>
                                                 <tbody>
@@ -73,33 +76,61 @@ window.addEventListener('design-register-element', function () {
                                 */}), function () {
             return setOrRemoveTextAttribute(selectedElement, 'format', this.value);
         });
-        
+
         // TITLE attribute
         addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
         });
-        
+
         // TABINDEX attribute
         addProp('Tabindex', true, '<gs-number class="target" value="' + encodeHTML(selectedElement.getAttribute('tabindex') || '') + '" mini></gs-number>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'tabindex', this.value);
         });
-        
+
         addProp('Autocorrect', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocorrect') !== 'off') + '" mini></gs-checkbox>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'autocorrect', (this.value === 'false' ? 'off' : ''));
         });
-        
+
         addProp('Autocapitalize', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocapitalize') !== 'off') + '" mini></gs-checkbox>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'autocapitalize', (this.value === 'false' ? 'off' : ''));
         });
-        
+
         addProp('Autocomplete', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocomplete') !== 'off') + '" mini></gs-checkbox>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'autocomplete', (this.value === 'false' ? 'off' : ''));
         });
-        
+
         addProp('Spellcheck', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('spellcheck') !== 'false') + '" mini></gs-checkbox>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'spellcheck', (this.value === 'false' ? 'false' : ''));
         });
-        
+
+        addProp('Focus', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onfocus') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onfocus', this.value);
+        });
+        addProp('Blur', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onblur') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onblur', this.value);
+        });
+        addProp('Change', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onchange') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onchange', this.value);
+        });
+        addProp('Mousedown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousedown') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onmousedown', this.value);
+        });
+        addProp('Mouseup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmouseup') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onmouseup', this.value);
+        });
+        addProp('Mousemove', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousemove') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onmousemove', this.value);
+        });
+        addProp('Keydown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeydown') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onkeydown', this.value);
+        });
+        addProp('Keyup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeyup') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onkeyup', this.value);
+        });
+        addProp('Keypress', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeypress') || '') + '" mini></gs-text>', function () {
+            return setOrRemoveTextAttribute(selectedElement, 'onkeypress', this.value);
+        });
+
         // visibility attributes
         var strVisibilityAttribute = '';
         if (selectedElement.hasAttribute('hidden'))                   { strVisibilityAttribute = 'hidden'; }
@@ -860,7 +891,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function findFor(element) {
         var forElem;
-        // console.log(element, element.previousElementSibling)
+        //console.log(element, element.previousElementSibling)
         if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
             && element.previousElementSibling.hasAttribute('for')
             && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
@@ -1047,7 +1078,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         this.refresh();
                     } else if (strAttrName === 'value') {
                         //console.log(newValue);
-                        this.value = newValue;
+                        
+                        // This caused an infinite recursion
+                        //this.value = newValue;
+                        this.refresh();
                     }
                 }
             }
@@ -1539,13 +1573,13 @@ document.addEventListener('DOMContentLoaded', function () {
                                 
                                 // Get the character that they pressed
                                 newFieldValue = GS.charFromKeyCode(event);
-                                console.log(newFieldValue);
+                              //console.log(newFieldValue);
                                 // Cap the length to the format field's length by using
                                 // all characters in the field except the first one
                                 newFieldValue = currentValue.substring(currentFieldRange.start + 1, currentFieldRange.start + arrMatch[0].length) + newFieldValue;
-                                console.log(newFieldValue, currentValue);
+                              //console.log(newFieldValue, currentValue);
                                 
-                                console.log(currentFieldRange.start + 1, currentFieldRange.start + arrMatch[0].length);
+                              //console.log(currentFieldRange.start + 1, currentFieldRange.start + arrMatch[0].length);
                                 
                                 // Build the value using the current field range and the new field value we built above
                                 element.value = 
@@ -1554,7 +1588,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     currentValue.substring(currentFieldRange.end);
                                 
                                 
-                                console.log(currentValue.substring(0, currentFieldRange.start), newFieldValue, currentValue.substring(currentFieldRange.end));
+                              //console.log(currentValue.substring(0, currentFieldRange.start), newFieldValue, currentValue.substring(currentFieldRange.end));
                             
                                 // This is copied from above
                                 currentFieldRange = {
@@ -1763,7 +1797,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     var tempSelection = this.control ? GS.getInputSelection(this.control) : null;
                     
                     if (this.control) {
-                        console.log(newValue);
+                      //console.log(newValue);
                         if (newValue && typeof newValue === 'object') {
                             this.control.value = newValue.toLocaleDateString();
                         } else {
@@ -1776,15 +1810,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         
                     } else if (this.hasAttribute('disabled')) {
                         if (newValue && typeof newValue === 'object') {
-                            console.log(newValue, getFormatString(this), formatDate(newValue, getFormatString(this)));
+                          //console.log(newValue, getFormatString(this), formatDate(newValue, getFormatString(this)));
                             this.innerHTML = formatDate(newValue, getFormatString(this));
                         } else {
-                            console.log(newValue);
+                          //console.log(newValue);
                             this.innerHTML = newValue || '';
                         }
                         
                     } else {
-                        console.log(newValue);
+                      //console.log(newValue);
                         this.setAttribute('value', newValue);
                     }
                     

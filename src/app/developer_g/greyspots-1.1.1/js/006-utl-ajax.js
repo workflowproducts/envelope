@@ -210,6 +210,49 @@ window.addEventListener('design-register-element', function () {
         return request;
     };
     
+    GS.ajaxJSONNoRedirect = function (strLink, strParams, callback, intTimeout) {
+        var request = new XMLHttpRequest();
+        
+        callback = callback || function () {};
+        
+        request.onreadystatechange = function() {
+            var normalizedError;
+            
+            // if expired cookie: go to login page
+            if (request.readyState === 4) {
+                try {
+                    request.responseJSON = JSON.parse(request.responseText || request.response);
+                } catch (e) {
+                    //throw e;
+                }
+                
+                if (!ajaxCheckJSONResponseForError(request)) {
+                    callback(request.responseJSON);
+                    
+                } else {
+                    normalizedError = ajaxNormalizeError(request);
+                    callback(normalizedError, 'error');
+                }
+            }
+        };
+        
+        request.open('POST', strLink + '?anticache=' + ((new Date()).getMilliseconds() + Math.floor(Math.random() * 1e9)), true);
+        request.setRequestHeader('Content-type','application/x-www-form-urlencoded; charset=UTF-8');
+        request.send(strParams);
+        
+        // if intTimeout has been set: start a timer to abort
+        if (typeof intTimeout === 'number') {
+            if (request && request.readyState !== 4) {
+                setTimeout(function() {
+                    request.bolFrontEndTimeout = true;
+                    request.abort();
+                }, intTimeout);
+            }
+        }
+        
+        return request;
+    };
+    
     GS.ajaxText = function (strLink, strParams, callback, intTimeout) {
         var request = new XMLHttpRequest();
         
@@ -383,7 +426,7 @@ window.addEventListener('design-register-element', function () {
 var strLink = '/env/action_select?view=wtkv2.ttime&where=user_name%20%3D%20\'michael%40tocci.org\'&offset=0&limit=25&order_by=id%20DESC&header=true';
 
 document.addEventListener('dataready_' + encodeURIComponent(strLink), function (event) {
-    console.log(event);
+    //console.log(event);
 });f
 
 dataFetch(strLink, false);

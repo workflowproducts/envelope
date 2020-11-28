@@ -5,7 +5,7 @@ window.addEventListener('design-register-element', function () {
     
     registerDesignSnippet('<gs-combo>', '<gs-combo>', 'gs-combo src="${1:test.tpeople}" column="${2}"></gs-combo>');
     
-    designRegisterElement('gs-combo', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-combo.html');
+    designRegisterElement('gs-combo', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_combo');
     
     window.designElementProperty_GSCOMBO = function (selectedElement) {
         addProp('Source', true,
@@ -231,12 +231,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // loops through the records and finds a record using the parameter (if bolPartialMatchAllowed === true then only search the first td text)
     function findRecordFromString(element, strSearchString, bolPartialMatchAllowed) {
         var i, len, matchedRecord, arrTrs = xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr');
-        // console.log(arrTrs[0]);
-        // console.log(arrTrs[0].children[0].nodeName.toUpperCase());
-        if (arrTrs[0].children[0].nodeName.toUpperCase() === 'TH' && ((arrTrs[0].children[1]) ? arrTrs[0].children[1].nodeName.toUpperCase() === 'TH' : true)) {
+        //console.log(arrTrs[0]);
+        //console.log(arrTrs[0].children[0].nodeName.toUpperCase());
+        if (arrTrs && arrTrs[0] && arrTrs[0].children[0].nodeName.toUpperCase() === 'TH' && ((arrTrs[0].children[1]) ? arrTrs[0].children[1].nodeName.toUpperCase() === 'TH' : true)) {
             arrTrs.splice(0,1);
         }
-        // console.log(arrTrs);
+        //console.log(arrTrs);
         // if bolPartialMatchAllowed is true: only search the first td text (case insensitive)
         if (bolPartialMatchAllowed === true) {
             strSearchString = strSearchString.toLowerCase();
@@ -269,6 +269,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function selectRecord(element, record, bolChange) {
         // add the yellow selection to the record
         highlightRecord(element, record);
+        
+        element.selectedRecord = record;
 
         handleChange(element, bolChange);
     }
@@ -293,10 +295,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // else if limit to list (and no record was found):
         } else if (element.hasAttribute('limit-to-list') && bolChange) {
             if (strValue === '' && element.hasAttribute('allow-empty')) {
-                console.log('before value: "' + element.control.value + '"', element.changeOccured);
+              //console.log('before value: "' + element.control.value + '"', element.changeOccured);
                 clearSelection(element);
                 handleChange(element, bolChange);
-                console.log('after value: "' + element.control.value + '"', element.changeOccured);
+              //console.log('after value: "' + element.control.value + '"', element.changeOccured);
 
             } else {
                 alert('The text you entered is not in the list');
@@ -307,6 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // else (not limit to list and no record found):
         } else {
             clearSelection(element);
+            element.selectedRecord = record;
 
             if (!element.hasAttribute('limit-to-list')) {
                 element.control.value = strValue;
@@ -350,11 +353,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (bolChange) {
-            console.trace('test');
-            console.log('### arrSelectedTrs:', arrSelectedTrs);
-            console.log('### strHiddenValue:', strHiddenValue);
-            console.log('### strTextValue:  ', strTextValue);
-            console.log('### bolChange:     ', bolChange);
+            // console.trace('test');
+          //console.log('### arrSelectedTrs:', arrSelectedTrs);
+          //console.log('### strHiddenValue:', strHiddenValue);
+          //console.log('### strTextValue:  ', strTextValue);
+          //console.log('### bolChange:     ', bolChange);
         }
 
         // set innervalue and control value using the values we gather from the record
@@ -423,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function focusFunction(event) {
-        // console.log('focus', event.target);
+        //console.log('focus', event.target);
         var element = event.target, element2 = GS.findParentTag(element, 'gs-combo');
         if (element2 && element2.tagName == 'GS-COMBO') {
             element = element2;
@@ -468,7 +471,9 @@ document.addEventListener('DOMContentLoaded', function () {
           , observer;
 
         // focus control
-        element.control.focus();
+        if (!evt.touchDevice) {
+            element.control.focus();
+        }
         element.control.setAttribute('aria-owns', 'combo-list-' + element.internal.id);
 
         // create the dropdown element (and its children)
@@ -1130,6 +1135,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     envData = {'arr_column': element.arrColumnNames, 'dat': arrTotalRecords};
 
+                    element.internalData.records = envData;
+
                     handleData(element, bolInitalLoad, envData);
                     if (typeof callback === 'function') {
                         callback();
@@ -1287,7 +1294,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (element.hasAttribute('value') && element.hasAttribute('limit-to-list')) {
             if (findRecordFromString(element, element.getAttribute('value'), false) && findRecordFromString(element, element.getAttribute('value'), false).hasAttribute('value')) {
                 element.value = findRecordFromString(element, element.getAttribute('value'), false).getAttribute('value');
-                // console.log('run', findRecordFromString(element, element.getAttribute('value'), false), element, element.getAttribute('value'), false);
+                //console.log('run', findRecordFromString(element, element.getAttribute('value'), false), element, element.getAttribute('value'), false);
             }
         }
     }
@@ -1460,7 +1467,7 @@ document.addEventListener('DOMContentLoaded', function () {
         element.control.addEventListener('keyup', function (event) {
             // if the key was return
             if ((event.keyCode || event.which) === 13 && !element.hasAttribute('readonly')) {
-                // console.log('test', element.changeOccured);
+                //console.log('test', element.changeOccured);
                 if (element.changeOccured === true) {
                     element.changeOccured = false;
                 } else if (element.control.value !== element.lastValue) {
@@ -1642,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     function findFor(element) {
         var forElem;
-        // console.log(element, element.previousElementSibling)
+        //console.log(element, element.previousElementSibling)
         if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
             && element.previousElementSibling.hasAttribute('for')
             && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
@@ -1694,6 +1701,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!element.inserted) {
                 element.inserted = true;
                 element.internal = {};
+                element.internalData = {};
                 saveDefaultAttributes(element);
 
                 element.internal.id = comboID;
@@ -2016,6 +2024,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 closeDropDown(this);
             },
 
+            'column': function (strColumn) {
+                if (this.selectedRecord) {
+                    return this.internalData.records.dat[this.selectedRecord.rowIndex][this.internalData.records.arr_column.indexOf(strColumn)];
+                } else {
+                    return null;
+                }
+            },
+
             'toSpan': function () {
                 var element = this;
                 // var newControl = document.createElement('div');
@@ -2036,7 +2052,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 refreshControl(element, true);
                 element.control.value = element.value;
                 element.control.setInputSelectionRange = function () {
-                    console.log('Intercepted');
+                  //console.log('Intercepted');
                 };
                 if (element.getAttribute('placeholder') && element.control.innerHTML === '') {
                     element.control.classList.add('placeholder');
@@ -2053,10 +2069,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 var element = this;
                 // var controlWidth = element.control.offsetWidth + 'px';
                 // var elementStyle = getComputedStyle(element);
-                // console.log(elementStyle.marginLeft);
+                //console.log(elementStyle.marginLeft);
                 // var elementMargin = parseFloat((elementStyle.marginLeft.substring(0, elementStyle.marginLeft.length - 2) || 0), 10) + parseFloat((elementStyle.marginRight.substring(0, elementStyle.marginRight.length - 2) || 0), 10);
                 // var elementWidth = (element.offsetWidth - elementMargin) + 'px';
-                // console.log(element.control.offsetWidth, element.offsetWidth, elementMargin);
+                //console.log(element.control.offsetWidth, element.offsetWidth, elementMargin);
                 // element.control.removeEventListener('blur', blurFunction);
                 // var newControl = document.createElement('div');
                 // newControl.innerHTML = '<input gs-dynamic class="control" type="text" />';
@@ -2070,9 +2086,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 //console.log('test');
                 element.control.value = element.value;
                 // element.control.style.width = controlWidth;
-                // console.log(element.offsetWidth);
+                //console.log(element.offsetWidth);
                 // element.style.width = elementWidth;
-                // console.log(element.offsetWidth);
+                //console.log(element.offsetWidth);
                 selectRecordFromValue(element, element.value, false);
             }
         }

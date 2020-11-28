@@ -23,7 +23,7 @@ gs-select:after {
     
     text-align: center;
     
-    background-color: #FFFFFF;
+    background-color: transparent;
     color: #000000;
     pointer-events: none;
 }

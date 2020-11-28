@@ -4,8 +4,11 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('<gs-time> With Label', '<gs-time>', 'label for="${1:time-insert-start_time}">${2:Start Time}:</label>\n' +
                                                                '<gs-time id="${1:time-insert-start_time}" column="${3:start_time}"></gs-time>');
 
+    /*
+    TODO: there is no documentation
     designRegisterElement('gs-time', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-time.html');
-
+    */
+    
     window.designElementProperty_GSTIME = function(selectedElement) {
         addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
             return setOrRemoveTextAttribute(selectedElement, 'column', this.value);
@@ -715,7 +718,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function findFor(element) {
         var forElem;
-        // console.log(element, element.previousElementSibling)
+        //console.log(element, element.previousElementSibling)
         if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
             && element.previousElementSibling.hasAttribute('for')
             && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
