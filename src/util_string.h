@@ -45,6 +45,8 @@
 #include "util_error.h"
 #include "util_salloc.h"
 
+bool is_utf8(const char *string);
+
 size_t find_next_line(char *str, size_t int_len);
 
 /*

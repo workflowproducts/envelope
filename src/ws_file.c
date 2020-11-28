@@ -2580,13 +2580,18 @@ void ws_file_search_step5(EV_P, ev_check *w, int revents) {
 
 				snprintf(str_temp, 255, "%zd", client_file->int_line_number);
 
+                if (!is_utf8(client_file->str_line)) {
+                    SFREE(client_file->str_line);
+                    SFINISH_SNCAT(str_line, &int_line_length, "binary data", strlen("binary data"));
+                }
+
 				SFINISH_SNFCAT(
 					str_response, &int_response_len,
 					str_temp, strlen(str_temp),
 					":", (size_t)1,
 					str_line, int_line_length
 				);
-
+                // SINFO("str_response: %s", str_response);
 				WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 				DArray_push(client_request->arr_response, str_response);
 				str_response = NULL;
