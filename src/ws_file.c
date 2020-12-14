@@ -680,8 +680,8 @@ bool ws_file_read_step2(EV_P, void *cb_data, bool bol_group) {
 	client_file->int_read = 0;
 	ev_check_init(&client_request->check, ws_file_read_step3);
 	ev_check_start(EV_A, &client_request->check);
-	ev_idle_init_debug(&client_request->idle, idle_cb);
-	ev_idle_start_debug(EV_A, &client_request->idle);
+	ev_idle_init(&client_request->idle, idle_cb);
+	ev_idle_start(EV_A, &client_request->idle);
 
 finish:
 #ifdef _WIN32
@@ -765,7 +765,7 @@ void ws_file_read_step3(EV_P, ev_check *w, int revents) {
 
 	if (int_temp <= 0 || client_file->int_read == client_file->int_length) {
 		ev_check_stop(EV_A, &client_request->check);
-		ev_idle_stop_debug(EV_A, &client_request->idle);
+		ev_idle_stop(EV_A, &client_request->idle);
 		ws_file_read_step4(EV_A, client_request);
 	}
 
@@ -1046,8 +1046,8 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 
 	ev_check_init(&client_request->check, ws_file_write_step3);
 	ev_check_start(EV_A, &client_request->check);
-	ev_idle_init_debug(&client_request->idle, idle_cb);
-	ev_idle_start_debug(EV_A, &client_request->idle);
+	ev_idle_init(&client_request->idle, idle_cb);
+	ev_idle_start(EV_A, &client_request->idle);
 
 	bol_error_state = false;
 finish:
@@ -1134,7 +1134,7 @@ void ws_file_write_step3(EV_P, ev_check *w, int revents) {
 
 	if ((size_t)client_file->int_written == strlen(client_file->ptr_content)) {
 		ev_check_stop(EV_A, &client_request->check);
-		ev_idle_stop_debug(EV_A, &client_request->idle);
+		ev_idle_stop(EV_A, &client_request->idle);
 		ws_file_write_step4(EV_A, client_request);
 	}
 
@@ -2308,8 +2308,8 @@ bool ws_file_search_step2(EV_P, void *cb_data, bool bol_group) {
 
 		ev_check_init(&client_request_watcher->check, ws_file_search_step5);
 		ev_check_start(EV_A, &client_request_watcher->check);
-		ev_idle_init_debug(&client_request_watcher->idle, idle_cb);
-		ev_idle_start_debug(EV_A, &client_request_watcher->idle);
+		ev_idle_init(&client_request_watcher->idle, idle_cb);
+		ev_idle_start(EV_A, &client_request_watcher->idle);
 	}
 
 	bol_error_state = false;
@@ -2338,7 +2338,7 @@ finish:
 
         if (client_request_watcher != NULL) {
             ev_check_stop(EV_A, &client_request_watcher->check);
-            ev_idle_stop_debug(EV_A, &client_request_watcher->idle);
+            ev_idle_stop(EV_A, &client_request_watcher->idle);
         }
 		SFREE(client_request_watcher);
 	}
@@ -2430,8 +2430,8 @@ bool ws_file_search_step4(EV_P, void *cb_data, bool bol_success) {
 
 	ev_check_init(&client_request_watcher->check, ws_file_search_step5);
 	ev_check_start(EV_A, &client_request_watcher->check);
-	ev_idle_init_debug(&client_request_watcher->idle, idle_cb);
-	ev_idle_start_debug(EV_A, &client_request_watcher->idle);
+	ev_idle_init(&client_request_watcher->idle, idle_cb);
+	ev_idle_start(EV_A, &client_request_watcher->idle);
 
 finish:
 	if (str_response != NULL) {
@@ -2502,7 +2502,7 @@ void ws_file_search_step5(EV_P, ev_check *w, int revents) {
 		str_response = NULL;
 
 		ev_check_stop(EV_A, w);
-		ev_idle_stop_debug(EV_A, &client_request_watcher->idle);
+		ev_idle_stop(EV_A, &client_request_watcher->idle);
 		client_request->parent->client_request_watcher_search = NULL;
 		SFREE(client_request_watcher);
 
@@ -2625,7 +2625,7 @@ finish:
 		DArray_push(client_request->arr_response, str_response);
 
 		ev_check_stop(EV_A, w);
-		ev_idle_stop_debug(EV_A, &client_request_watcher->idle);
+		ev_idle_stop(EV_A, &client_request_watcher->idle);
 		client_request->parent->client_request_watcher_search = NULL;
 		SFREE(client_request_watcher);
 	}

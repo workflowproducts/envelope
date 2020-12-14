@@ -1,6 +1,6 @@
 #include "common_websocket.h"
 
-char *WS_handshakeResponse(char *str_request, size_t int_request_len, size_t *int_response_len, char *str_websocket_key) {
+char *WS_handshakeResponse(char *str_websocket_key, size_t *int_response_len) {
 	char *str_response = NULL;
 	char *str_temp = NULL;
 	char *str_temp1 = NULL;

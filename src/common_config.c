@@ -381,10 +381,6 @@ bool parse_options(int argc, char *const *argv) {
 #endif
 
 	int ch;
-#ifdef _WIN32
-#else
-	ssize_t bufsize;
-#endif
 
 #ifdef _WIN32
 #ifdef _WIN64

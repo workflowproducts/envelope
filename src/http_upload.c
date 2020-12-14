@@ -139,8 +139,8 @@ bool http_upload_step2(EV_P, void *cb_data, bool bol_group) {
 
 	ev_check_init(&client_upload->check, http_upload_step3);
 	ev_check_start(EV_A, &client_upload->check);
-	ev_idle_init_debug(&client_upload->idle, idle_cb);
-	ev_idle_start_debug(EV_A, &client_upload->idle);
+	ev_idle_init(&client_upload->idle, idle_cb);
+	ev_idle_start(EV_A, &client_upload->idle);
 
 finish:
 #ifdef _WIN32
@@ -190,6 +190,8 @@ finish:
 }
 
 void http_upload_step3(EV_P, ev_check *w, int revents) {
+	if (loop != NULL) {
+	} // get rid of unused parameter warning
 	if (revents != 0) {
 	} // get rid of unused parameter warning
 	struct sock_ev_client_upload *client_upload = (struct sock_ev_client_upload *)w;
@@ -286,7 +288,7 @@ void http_upload_free(struct sock_ev_client_upload *to_free) {
 	}
 #endif
     ev_check_stop(global_loop, &to_free->check);
-    ev_idle_stop_debug(global_loop, &to_free->idle);
+    ev_idle_stop(global_loop, &to_free->idle);
 	SFREE(to_free->str_canonical_start);
 	SFREE(to_free->str_file_name);
 	SFREE_SUN_UPLOAD(to_free->sun_current_upload);

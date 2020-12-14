@@ -2143,19 +2143,6 @@ id
 			['SOCKET CLOSE', 'websocket end']
         ]
     },
-    ws_search: {
-        tests: [
-			['SOCKET OPEN', 'websocket start'],
-
-			['APP FILE SEARCH', 'websocket', '', 'FILE\tSEARCH\t/app/trusted_g/\te\nRECURSIVE\n',
-				[
-					"TRANSACTION COMPLETED"
-				]
-			],
-
-			['SOCKET CLOSE', 'websocket end']
-        ]
-    },
     ws_file_app: {
         tests: [
 			['SOCKET OPEN', 'websocket start'],

@@ -68,9 +68,9 @@ var $ = {
         if (strNewClass === 'fail') {
             document.getElementById('status-note-' + key).textContent = '(ERROR) ' + $.tests[key].tests[intCurrent][0];
 			$.tests[key].error = true;
-			$.ajax('https://www.sunnyserve.com/env/tst.acceptnc_test', 'action=fail&id=' + $.intID + '&fail_name=' + encodeURIComponent(document.getElementById('test' + key + intCurrent + '_label').innerText), 'POST', function (data) {
+			// $.ajax('https://www.sunnyserve.com/env/tst.acceptnc_test', 'action=fail&id=' + $.intID + '&fail_name=' + encodeURIComponent(document.getElementById('test' + key + intCurrent + '_label').innerText), 'POST', function (data) {
 
-			});
+			// });
         } else {
             document.getElementById('status-note-' + key).textContent = '(RUNNING) ' + $.tests[key].tests[intCurrent][0];
         }
@@ -109,9 +109,9 @@ var $ = {
 					$.changeStatus(key, i, 'pass', 'waiting');
 				}
 
-				$.ajax('https://www.sunnyserve.com/env/tst.acceptnc_test', 'action=success&id=' + $.intID, 'POST', function (data) {
+				// $.ajax('https://www.sunnyserve.com/env/tst.acceptnc_test', 'action=success&id=' + $.intID, 'POST', function (data) {
 
-				});
+				// });
                 $.runTest(key, 0);
             } else {
 				$.tests[key].running = false;
@@ -129,9 +129,9 @@ var $ = {
 				if (key[0] !== '_' && bolEndTests && $.testsEnded !== true) {
 					$.testsEnded = true;
 					$.ajax('http://127.0.0.1:45654', '', 'GET', function (data) {});
-					$.ajax('https://www.sunnyserve.com/env/tst.acceptnc_test', 'action=end&id=' + $.intID, 'POST', function (data) {
+					// $.ajax('https://www.sunnyserve.com/env/tst.acceptnc_test', 'action=end&id=' + $.intID, 'POST', function (data) {
 						alert('Tests finished!');
-					});
+					// });
 				}
                 document.getElementById('status-note-' + key).textContent = ' (STOPPED)';
 				if (key[0] === '_') {
@@ -308,6 +308,7 @@ var $ = {
 					data = data.replace(/\\role/g, '/role');
 					data = data.replace(/\\trusted_g/g, '/trusted_g');
 					data = data.replace(/C\:\/Users\\nunzio\/AppData\/Roaming\//g, '/home/super/');
+					data = data.replace(/\/mnt\/disk3\/smbroot\/Groups\/tocci_group\/Nunzio\//g, '/home/super/');
 					data = data.replace(/\/mnt\/disk2\/smbroot\/Groups\/tocci_group\/Nunzio\//g, '/home/super/');
 					data = data.replace(/C\:\/Users\/Admin\/AppData\/Roaming\//g, '/home/super/');
 					data = data.replace(/\/home\/nunzio\//g, '/home/super/');

@@ -907,8 +907,9 @@ char *brstrstr(char *buff1, size_t len1, char *buff2, size_t len2) {
         return (char *)NULL;
     if (len1 < len2)
         return (char *)NULL;
-    size_t i;
-    for (i = (len1 - len2); i >= 0; i--) {
+    size_t i = (len1 - len2) + 1;
+    while (i > 0) {
+        i -= 1;
         if (memcmp(buff1 + i, buff2, len2) == 0) {
             return buff1 + i;
         }
@@ -953,8 +954,9 @@ char *brstrstri(char *buff1, size_t len1, char *buff2, size_t len2) {
         return (char *)NULL;
     if (len1 < len2)
         return (char *)NULL;
-    size_t i;
-    for (i = (len1 - len2); i >= 0; i--) {
+    size_t i = (len1 - len2) + 1;
+    while (i > 0) {
+        i -= 1;
         if (strncasecmp(buff1 + i, buff2, len2) == 0) {
             return buff1 + i;
         }

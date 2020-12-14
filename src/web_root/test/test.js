@@ -17,19 +17,19 @@ document.addEventListener('change', function (event) {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-	$.ajax('https://www.sunnyserve.com/env/tst.acceptnc_test', 'action=begin&program_name=envelope&user_agent=' +
-		encodeURIComponent(navigator.userAgent), 'POST', function (data) {
-		if (!isNaN(parseInt(data, 10))) {
-			$.intID = data;
+	// $.ajax('https://www.sunnyserve.com/env/tst.acceptnc_test', 'action=begin&program_name=envelope&user_agent=' +
+	// 	encodeURIComponent(navigator.userAgent), 'POST', function (data) {
+	// 	if (!isNaN(parseInt(data, 10))) {
+	// 		$.intID = data;
 
 			setTimeout(function () {
 				startTests();
 			}, 2000);
 
-		} else {
-			alert(data);
-		}
-	});
+	// 	} else {
+	// 		alert(data);
+	// 	}
+	// });
 });
 
 function startTests() {

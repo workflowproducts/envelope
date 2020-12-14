@@ -185,7 +185,7 @@ static void cnxn_reset_cb(EV_P, ev_io *w, int revents) {
 		cnxn_cb(EV_A, client_cnxn->parent, client_cnxn->parent->conn);
 		if (client_cnxn->parent->client_reconnect_timer != NULL) {
 			ev_prepare_stop(EV_A, &client_cnxn->parent->client_reconnect_timer->prepare);
-			ev_idle_stop_debug(EV_A, &client_cnxn->parent->client_reconnect_timer->idle);
+			ev_idle_stop(EV_A, &client_cnxn->parent->client_reconnect_timer->idle);
 			SFREE(client_cnxn->parent->client_reconnect_timer);
 		}
 
@@ -224,7 +224,7 @@ finish:
 		SFREE(client_cnxn);
 
 		ev_prepare_stop(EV_A, &client->client_reconnect_timer->prepare);
-		ev_idle_stop_debug(EV_A, &client_cnxn->parent->client_reconnect_timer->idle);
+		ev_idle_stop(EV_A, &client_cnxn->parent->client_reconnect_timer->idle);
 		SFREE(client->client_reconnect_timer);
 		
 		cnxn_cb(EV_A, client, client->conn);
@@ -243,7 +243,7 @@ void client_reconnect_timer_cb(EV_P, ev_prepare *w, int revents) {
 
 		if (client->client_reconnect_timer != NULL) {
 			ev_prepare_stop(EV_A, &client->client_reconnect_timer->prepare);
-			ev_idle_stop_debug(EV_A, &client->client_reconnect_timer->idle);
+			ev_idle_stop(EV_A, &client->client_reconnect_timer->idle);
 			SFREE(client->client_reconnect_timer);
 		}
 
@@ -293,8 +293,8 @@ void client_notify_cb(EV_P, ev_io *w, int revents) {
 		SERROR_SALLOC(client->client_reconnect_timer, sizeof(struct sock_ev_client_reconnect_timer));
 		ev_prepare_init(&client->client_reconnect_timer->prepare, client_reconnect_timer_cb);
 		ev_prepare_start(EV_A, &client->client_reconnect_timer->prepare);
-		ev_idle_init_debug(&client->client_reconnect_timer->idle, idle_cb);
-		ev_idle_start_debug(EV_A, &client->client_reconnect_timer->idle);
+		ev_idle_init(&client->client_reconnect_timer->idle, idle_cb);
+		ev_idle_start(EV_A, &client->client_reconnect_timer->idle);
 		client->client_reconnect_timer->parent = client;
 		client->client_reconnect_timer->close_time = ev_now(EV_A);
 
@@ -332,14 +332,12 @@ void client_cb(EV_P, ev_io *w, int revents) {
 	char *str_buffer = NULL;
 	ssize_t int_len = 0;
 	size_t int_response_len = 0;
-	size_t int_uri_length = 0;
 	size_t int_start = 0;
 	size_t int_next_line = 0;
 	size_t int_header_name_len = 0;
 	size_t int_temp_len = 0;
 	size_t int_current_header = 0;
 
-	char *str_temp = NULL;
 	SDEFINE_VAR_ALL(str_response, str_conninfo, str_query);
 	SDEFINE_VAR_MORE(str_session_id, str_client_cookie, str_session_client_cookie);
 	SDEFINE_VAR_MORE(str_header_name, str_header_value, str_boundary_temp);
@@ -468,7 +466,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 						client->bol_upload = true;
 
 						char *boundary_ptr = str_header_value + 30;
-						client->int_boundary_len = strlen(str_header_value) - (boundary_ptr - str_header_value);
+						client->int_boundary_len = strlen(str_header_value) - (size_t)(boundary_ptr - str_header_value);
 						SERROR_SALLOC(client->str_boundary, (size_t)client->int_boundary_len + 3); // extra and null byte
 						memcpy(client->str_boundary + 2, boundary_ptr, client->int_boundary_len);
 						client->str_boundary[0] = '-';
@@ -490,7 +488,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 					char *ptr_temp = bstrstr(client->str_client_ip, client->int_client_ip_len, ":", 1);
 					if (ptr_temp != NULL) {
 						*ptr_temp = 0;
-						client->int_client_ip_len = ptr_temp - client->str_client_ip;
+						client->int_client_ip_len = (size_t)(ptr_temp - client->str_client_ip);
 					}
 				}
 				if (strncasecmp(str_header_name, "Referer", 7) == 0) {
@@ -662,8 +660,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				}
 
 				////HANDSHAKE
-				SERROR_CHECK(
-					(str_response = WS_handshakeResponse(client->str_request, client->int_request_len, &int_response_len, client->str_websocket_key)) != NULL, "Error getting handshake response");
+				SERROR_CHECK((str_response = WS_handshakeResponse(client->str_websocket_key, &int_response_len)) != NULL, "Error getting handshake response");
 
 				SDEBUG("str_response       : %s", str_response);
 				SDEBUG("client->str_request: %s", client->str_request);
@@ -899,7 +896,7 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 				ptr_query2 + 16, ptr_end_query - (ptr_query2 + 16));
 		}
 
-		int_first_word_len = strncspn(ptr_query, ptr_end_query - ptr_query, "\t \012", (size_t)3);
+		int_first_word_len = strncspn(ptr_query, (size_t)(ptr_end_query - ptr_query), "\t \012", (size_t)3);
 		SERROR_SNCAT(str_first_word, &int_first_word_len,
 			ptr_query, int_first_word_len);
 
@@ -1097,8 +1094,8 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 					client_copy_check->client_request = client->cur_request;
 					ev_check_init(&client_copy_check->check, client_send_from_cb);
 					ev_check_start(EV_A, &client_copy_check->check);
-					ev_idle_init_debug(&client_copy_check->idle, idle_cb);
-					ev_idle_start_debug(EV_A, &client_copy_check->idle);
+					ev_idle_init(&client_copy_check->idle, idle_cb);
+					ev_idle_start(EV_A, &client_copy_check->idle);
 					client->client_copy_check = client_copy_check;
 				}
 			}
@@ -1128,7 +1125,7 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 		if (client_request != NULL) {
 			SDEBUG("Queue_send(%p, %p);", client->que_request, client_request);
 			Queue_send(client->que_request, client_request);
-			ev_idle_start_debug(EV_A, &client->idle_request_queue);
+			ev_idle_start(EV_A, &client->idle_request_queue);
 		}
 	}
 	bol_error_state = false;
@@ -1179,20 +1176,20 @@ void client_send_from_cb(EV_P, ev_check *w, int revents) {
 		if (client->client_paused_request != NULL) {
 			if (client->client_paused_request->revents == EV_CHECK) {
 				ev_check_start(EV_A, (ev_check *)client->client_paused_request->watcher);
-				ev_idle_init_debug(&client->client_paused_request->idle, idle_cb);
-				ev_idle_start_debug(EV_A, &client->client_paused_request->idle);
+				ev_idle_init(&client->client_paused_request->idle, idle_cb);
+				ev_idle_start(EV_A, &client->client_paused_request->idle);
 			} else {
 				ev_io_start(EV_A, (ev_io *)client->client_paused_request->watcher);
 			}
 			ev_feed_event(EV_A, client->client_paused_request->watcher, client->client_paused_request->revents);
 			SDEBUG("client->client_paused_request->bol_free_watcher: %s", client->client_paused_request->bol_free_watcher ? "true" : "false");
 			if (client->client_paused_request->bol_free_watcher) {
-				ev_idle_stop_debug(EV_A, &client->client_paused_request->idle);
+				ev_idle_stop(EV_A, &client->client_paused_request->idle);
 			}
 			SFREE(client->client_paused_request);
 		}
 		ev_check_stop(EV_A, w);
-		ev_idle_stop_debug(EV_A, &client_copy_check->idle);
+		ev_idle_stop(EV_A, &client_copy_check->idle);
 		client->client_copy_check = NULL;
 		SFREE(client_copy_check);
 	}
@@ -1263,7 +1260,7 @@ void _client_request_free(struct sock_ev_client_request *client_request) {
 		ev_io_stop(global_loop, &client_request->cb_data->io);
 		SFREE(client_request->cb_data);
 	}
-    ev_idle_stop_debug(global_loop, &client_request->idle);
+    ev_idle_stop(global_loop, &client_request->idle);
 	SFREE(client_request->str_current_response);
 	SFREE(client_request->str_message_id);
 	SFREE(client_request->str_transaction_id);
@@ -1294,7 +1291,7 @@ void client_request_queue_cb(EV_P, ev_check *w, int revents) {
 		// SDEBUG("%p->bol_request_in_progress: %s", client, client->bol_request_in_progress ? "true" : "false");
 	}
 	if (int_len == 0) {
-		ev_idle_stop_debug(EV_A, &client->idle_request_queue);
+		ev_idle_stop(EV_A, &client->idle_request_queue);
 	}
 
 	if (client->bol_connected && client->bol_request_in_progress == false && int_len > 0) {
@@ -1791,7 +1788,7 @@ bool client_close(struct sock_ev_client *client) {
 
 	if (client->client_request_watcher != NULL) {
 		ev_check_stop(global_loop, &client->client_request_watcher->check);
-		ev_idle_stop_debug(global_loop, &client->client_request_watcher->idle);
+		ev_idle_stop(global_loop, &client->client_request_watcher->idle);
 		SFREE(client->client_request_watcher);
 	}
 
@@ -1802,7 +1799,7 @@ bool client_close(struct sock_ev_client *client) {
 
 	if (client->client_reconnect_timer != NULL) {
 		ev_prepare_stop(global_loop, &client->client_reconnect_timer->prepare);
-		ev_idle_stop_debug(global_loop, &client->client_reconnect_timer->idle);
+		ev_idle_stop(global_loop, &client->client_reconnect_timer->idle);
 		SFREE(client->client_reconnect_timer);
 	}
 
@@ -2000,7 +1997,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 	}
 	if (client->client_copy_check != NULL) {
 		ev_check_stop(global_loop, &client->client_copy_check->check);
-		ev_idle_stop_debug(global_loop, &client->client_copy_check->idle);
+		ev_idle_stop(global_loop, &client->client_copy_check->idle);
 		DB_free_result(client->client_copy_check->res);
 		SFREE(client->client_copy_check->str_response);
 		SFREE(client->client_copy_check);
@@ -2063,7 +2060,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 			client_request->parent = NULL;
 			client_request_free(client_request);
 		}
-		ev_idle_stop_debug(global_loop, &client->idle_request_queue);
+		ev_idle_stop(global_loop, &client->idle_request_queue);
 		Queue_destroy(client->que_request);
 		client->que_request = NULL;
 	}
@@ -2072,12 +2069,12 @@ void client_close_immediate(struct sock_ev_client *client) {
 
 	if (client->client_request_watcher != NULL) {
 		ev_check_stop(global_loop, &client->client_request_watcher->check);
-		ev_idle_stop_debug(global_loop, &client->client_request_watcher->idle);
+		ev_idle_stop(global_loop, &client->client_request_watcher->idle);
 		SFREE(client->client_request_watcher);
 	}
 	if (client->client_request_watcher_search != NULL) {
 		ev_check_stop(global_loop, &client->client_request_watcher_search->check);
-		ev_idle_stop_debug(global_loop, &client->client_request_watcher_search->idle);
+		ev_idle_stop(global_loop, &client->client_request_watcher_search->idle);
 		SFREE(client->client_request_watcher_search);
 	}
 	if (client->client_copy_io != NULL) {
@@ -2129,7 +2126,7 @@ void client_paused_request_free(struct sock_ev_client_paused_request *client_pau
 			} else {
 				ev_io_stop(global_loop, (ev_io *)client_paused_request->watcher);
 			}
-			ev_idle_stop_debug(global_loop, &client_paused_request->idle);
+			ev_idle_stop(global_loop, &client_paused_request->idle);
 			SDEBUG("client_paused_request->revents: %x", client_paused_request->revents);
 			SDEBUG("client_paused_request: %p", client_paused_request);
 			SDEBUG("client_paused_request->watcher: %p", client_paused_request->watcher);

@@ -282,6 +282,7 @@ enum {
 #define EV_WATCHER(type)			\
   int active; /* private */			\
   int pending; /* private */			\
+  char initiator[32]; /* ro */		\
   EV_DECL_PRIORITY /* private */		\
   EV_COMMON /* rw */				\
   EV_CB_DECLARE (type) /* private */
@@ -683,11 +684,16 @@ EV_API_DECL void ev_resume  (EV_P) EV_THROW;
 
 /* these may evaluate ev multiple times, and the other arguments at most once */
 /* either use ev_init + ev_TYPE_set, or the ev_TYPE_init macro, below, to first initialise a watcher */
+#define S(x) #x
+#define S_(x) S(x)
+#define S__LINE__ S_(__LINE__)
 #define ev_init(ev,cb_) do {			\
   ((ev_watcher *)(void *)(ev))->active  =	\
   ((ev_watcher *)(void *)(ev))->pending = 0;	\
   ev_set_priority ((ev), 0);			\
   ev_set_cb ((ev), cb_);			\
+  memset((ev)->initiator, 0, 32);			\
+  strncpy((ev)->initiator, __FILE__ ":" S__LINE__, 31);			\
 } while (0)
 
 #define ev_io_set(ev,fd_,events_)            do { (ev)->fd = (fd_); (ev)->events = (events_) | EV__IOFDSET; } while (0)

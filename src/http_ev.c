@@ -1,70 +1,20 @@
 #include "http_ev.h"
 
-#ifndef _WIN32
-#else
-#ifndef EV_SELECT_IS_WINSOCKET
-#define EV_SELECT_IS_WINSOCKET 1
-#endif
-#endif
-
-#define NUMPRI (EV_MAXPRI - EV_MINPRI + 1)
-typedef ev_watcher *W;
-typedef ev_watcher_list *WL;
-typedef ev_watcher_time *WT;
-// a heap element
-typedef struct {
-	ev_tstamp at;
-	WT w;
-} ANHE;
-// file descriptor info structure
-typedef struct {
-	WL head;
-	unsigned char events; // the events watched for
-	unsigned char reify;  // flag set when this ANFD needs reification
-						  // (NFD_REIFY, EV__IOFDSET)
-	unsigned char emask;  // the epoll backend stores the actual kernel mask in here
-	unsigned char unused;
-#if EV_USE_EPOLL
-	unsigned int egen; // generation counter to counter epoll bugs
-#endif
-#if EV_SELECT_IS_WINSOCKET || EV_USE_IOCP
-	SOCKET handle;
-#endif
-#if EV_USE_IOCP
-	OVERLAPPED or, ow;
-#endif
-} ANFD;
-typedef struct {
-	W w;
-	int events; // the pending event set for the given watcher
-} ANPENDING;
-struct ev_global_loop {
-	ev_tstamp ev_rt_now;
-#define ev_rt_now ((global_loop)->ev_rt_now)
-#undef VAR
-#define VAR(name, decl) decl;
-#include "ev_vars.h"
-#undef VAR
-};
-
-#ifdef _WIN32
-void my_invalid_parameter(
-	const wchar_t *expression, const wchar_t *function, const wchar_t *file, unsigned int line, uintptr_t pReserved) {
-}
-#endif
+#include "ev.c"
 
 char *cb_to_name(void *cb);
 
 void http_ev_step1(struct sock_ev_client *client) {
 	char *str_response = NULL;
+	char str_response_len[255];
 	size_t int_response_len = 0;
 	size_t int_query_length = 0;
 	size_t int_action_length = 0;
 	size_t int_w_length = 0;
 	struct sock_ev_client_copy_io *client_copy_io = NULL;
 	struct sock_ev_client_copy_check *client_copy_check = NULL;
-	struct ev_global_loop *_loop = (struct ev_global_loop *)global_loop;
-	SDEFINE_VAR_ALL(str_args, str_action, str_w);
+	SDEFINE_VAR_ALL(str_args, str_action, str_w, _str_response, str_uri);
+    size_t int_uri_len;
 	char str_int_i[256] = {0};
 	char str_current_address[256] = {0};
 	char str_current_priority[256] = {0};
@@ -97,74 +47,167 @@ void http_ev_step1(struct sock_ev_client *client) {
 	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");
 	client_copy_check->client_request = client->cur_request;
 
-	SFINISH_SNCAT(client_copy_check->str_response, &int_response_len, "HTTP 200 OK\r\n\r\n", (size_t)15);
+	// idles
+    ssize_t int_idle_pri = NUMPRI;
+    while (int_idle_pri >= 0) {
+        snprintf(str_current_priority, 255, "%zd", int_idle_pri);
+        ssize_t int_idle_count = global_loop->idlecnt[int_idle_pri];
+        ssize_t int_current_idle = 0;
+        SDEBUG("int_idle_pri: %zd", int_idle_pri);
+        SDEBUG("int_idle_count: %zd", int_idle_count);
+        SDEBUG("global_loop->idles[int_idle_pri]: %p", global_loop->idles[int_idle_pri]);
+        while (global_loop->idles[int_idle_pri] != NULL && int_current_idle < int_idle_count) {
+            ev_idle *current_idle = global_loop->idles[int_idle_pri][int_current_idle];
 
-	ssize_t pendingpri = NUMPRI - 1;
-	while (pendingpri >= 0 && (bol_kill == false || bol_killed == false)) {
-		ssize_t int_i = _loop->pendingcnt[pendingpri] - 1;
-		while (int_i >= 0 && (bol_kill == false || bol_killed == false)) {
-			if (_loop->pendings[pendingpri] == NULL) {
-				int_i -= 1;
-				continue;
-			}
+			snprintf(str_current_address, 255, "%p", current_idle);
 
-			snprintf(str_current_address, 255, "%p", _loop->pendings[pendingpri][int_i].w);
-			snprintf(str_current_priority, 255, "%zu", pendingpri);
-			snprintf(str_current_events, 255, "0x%x", _loop->pendings[pendingpri][int_i].events);
+            char *ptr_cb_name = cb_to_name(current_idle->cb);
+            SFINISH_SNFCAT(
+                client_copy_check->str_response, &int_response_len,
+                "ev_idle watcher at ", (size_t)19,
+                str_current_address, strlen(str_current_address),
+                " with priority ", (size_t)15,
+                str_current_priority, strlen(str_current_priority),
+                " with callback ", (size_t)15,
+                ptr_cb_name, strlen(ptr_cb_name),
+                " initiator ", (size_t)11,
+                current_idle->initiator, strlen(current_idle->initiator),
+                "\n", (size_t)1
+            );
+            int_current_idle = int_current_idle + 1;
+        }
+        int_idle_pri = int_idle_pri - 1;
+    }
 
-			if (bol_kill) {
-				if (strcmp(str_current_address, str_w) == 0) {
-					ev_check_stop(global_loop, (ev_check *)_loop->pendings[pendingpri][int_i].w);
-					bol_killed = true;
-				}
-			} else {
-				char *ptr_cb_name = cb_to_name(_loop->pendings[pendingpri][int_i].w->cb);
-				SFINISH_SNFCAT(
-					client_copy_check->str_response, &int_response_len,
-					"	watcher at ", (size_t)12,
-					str_current_address, strlen(str_current_address),
-					" with priority ", (size_t)15,
-					str_current_priority, strlen(str_current_priority),
-					" with callback ", (size_t)15,
-					ptr_cb_name, strlen(ptr_cb_name),
-					":\n", (size_t)2
-				);
-				SFINISH_SNFCAT(
-					client_copy_check->str_response, &int_response_len,
-					"		events: ", (size_t)10,
-					str_current_events, strlen(str_current_events),
-					"\n", (size_t)1
-				);
-				SFINISH_SNFCAT(
-					client_copy_check->str_response, &int_response_len,
-					"			EV_IDLE			: ", (size_t)15,
-					_loop->pendings[pendingpri][int_i].events == EV_IDLE ? "true\n" : "false\n", (size_t)(_loop->pendings[pendingpri][int_i].events == EV_IDLE ? 5 : 6)
-				);
-				SFINISH_SNFCAT(
-					client_copy_check->str_response, &int_response_len,
-					"			EV_PREPARE		: ", (size_t)17,
-					_loop->pendings[pendingpri][int_i].events == EV_PREPARE ? "true\n" : "false\n", (size_t)(_loop->pendings[pendingpri][int_i].events == EV_PREPARE ? 5 : 6)
-				);
-				SFINISH_SNFCAT(
-					client_copy_check->str_response, &int_response_len,
-					"			EV_CHECK		: ", (size_t)15,
-					_loop->pendings[pendingpri][int_i].events == EV_CHECK ? "true\n\n" : "false\n\n", (size_t)(_loop->pendings[pendingpri][int_i].events == EV_CHECK ? 6 : 7)
-				);
-			}
+	// checks
+	ssize_t int_check_count = global_loop->checkcnt;
+	ssize_t int_current_check = 0;
+	SDEBUG("int_check_count: %zd", int_check_count);
+	SDEBUG("global_loop->checks: %p", global_loop->checks);
+	while (global_loop->checks != NULL && int_current_check < int_check_count) {
+		ev_check *current_check = global_loop->checks[int_current_check];
 
-			int_i -= 1;
-			SDEBUG("client_copy_check->str_response: %s", client_copy_check->str_response);
-		}
+		snprintf(str_current_address, 255, "%p", current_check);
 
-		pendingpri -= 1;
+		char *ptr_cb_name = cb_to_name(current_check->cb);
+		SFINISH_SNFCAT(
+			client_copy_check->str_response, &int_response_len,
+			"ev_check watcher at ", (size_t)20,
+			str_current_address, strlen(str_current_address),
+			" with callback ", (size_t)15,
+			ptr_cb_name, strlen(ptr_cb_name),
+			" initiator ", (size_t)11,
+			current_check->initiator, strlen(current_check->initiator),
+			"\n", (size_t)1
+		);
+		int_current_check = int_current_check + 1;
 	}
 
+	// prepares
+	ssize_t int_prepares_count = global_loop->preparecnt;
+	ssize_t int_current_prepare = 0;
+	SDEBUG("int_prepares_count: %zd", int_prepares_count);
+	SDEBUG("global_loop->prepares: %p", global_loop->prepares);
+	while (global_loop->prepares != NULL && int_current_prepare < int_prepares_count) {
+		ev_prepare *current_prepare = global_loop->prepares[int_current_prepare];
+
+		snprintf(str_current_address, 255, "%p", current_prepare);
+
+		char *ptr_cb_name = cb_to_name(current_prepare->cb);
+		SFINISH_SNFCAT(
+			client_copy_check->str_response, &int_response_len,
+			"ev_prepare watcher at ", (size_t)20,
+			str_current_address, strlen(str_current_address),
+			" with callback ", (size_t)15,
+			ptr_cb_name, strlen(ptr_cb_name),
+			" initiator ", (size_t)11,
+			current_prepare->initiator, strlen(current_prepare->initiator),
+			"\n", (size_t)1
+		);
+		int_current_prepare = int_current_prepare + 1;
+	}
+
+	// cleanups
+	ssize_t int_cleanup_count = global_loop->cleanupcnt;
+	ssize_t int_current_cleanup = 0;
+	SDEBUG("int_cleanup_count: %zd", int_cleanup_count);
+	SDEBUG("global_loop->cleanups: %p", global_loop->cleanups);
+	while (global_loop->cleanups != NULL && int_current_cleanup < int_cleanup_count) {
+		ev_cleanup *current_cleanup = global_loop->cleanups[int_current_cleanup];
+
+		snprintf(str_current_address, 255, "%p", current_cleanup);
+
+		char *ptr_cb_name = cb_to_name(current_cleanup->cb);
+		SFINISH_SNFCAT(
+			client_copy_check->str_response, &int_response_len,
+			"ev_cleanup watcher at ", (size_t)20,
+			str_current_address, strlen(str_current_address),
+			" with callback ", (size_t)15,
+			ptr_cb_name, strlen(ptr_cb_name),
+			" initiator ", (size_t)11,
+			current_cleanup->initiator, strlen(current_cleanup->initiator),
+			"\n", (size_t)1
+		);
+		int_current_cleanup = int_current_cleanup + 1;
+	}
+
+    // crashes
+	// // periodics
+	// ssize_t int_periodic_count = global_loop->periodiccnt;
+	// ssize_t int_current_periodic = 0;
+	// SDEBUG("int_periodic_count: %zd", int_periodic_count);
+	// SDEBUG("global_loop->periodics: %p", global_loop->periodics);
+	// while (global_loop->periodics != NULL && int_current_periodic < int_periodic_count) {
+	// 	ev_periodic *current_periodic = (ev_periodic *)global_loop->periodics[int_current_periodic].w;
+
+	// 	snprintf(str_current_address, 255, "%p", current_periodic);
+
+	// 	char *ptr_cb_name = cb_to_name(current_periodic->cb);
+    //     SFINISH_SNFCAT(
+    //         client_copy_check->str_response, &int_response_len,
+    //         "ev_timer watcher at ", (size_t)20,
+    //         str_current_address, strlen(str_current_address),
+    //         " with callback ", (size_t)15,
+    //         ptr_cb_name, strlen(ptr_cb_name),
+    //         " initiator ", (size_t)11,
+    //         current_periodic->initiator, strlen(current_periodic->initiator),
+    //         "\n", (size_t)1
+    //     );
+	// 	int_current_periodic = int_current_periodic + 1;
+	// }
+
+    // commented because they aren't used and because it uses similar code to the periodics (and the periodics code crashes)
+	// // timers
+	// ssize_t int_timer_count = global_loop->timercnt;
+	// ssize_t int_current_timer = 0;
+	// SDEBUG("int_timer_count: %zd", int_timer_count);
+	// SDEBUG("global_loop->timers: %p", global_loop->timers);
+	// while (global_loop->timers != NULL && int_current_timer < int_timer_count) {
+	// 	ev_timer *current_timer = (ev_timer *)global_loop->timers[int_current_timer].w;
+
+	// 	snprintf(str_current_address, 255, "%p", current_timer);
+
+	// 	char *ptr_cb_name = cb_to_name(current_timer->cb);
+	// 	SFINISH_SNFCAT(
+	// 		client_copy_check->str_response, &int_response_len,
+	// 		"ev_timer watcher at ", (size_t)20,
+	// 		str_current_address, strlen(str_current_address),
+	// 		" with callback ", (size_t)15,
+	// 		ptr_cb_name, strlen(ptr_cb_name),
+	// 		" initiator ", (size_t)11,
+	// 		current_timer->initiator, strlen(current_timer->initiator),
+	// 		"\n", (size_t)1
+	// 	);
+	// 	int_current_timer = int_current_timer + 1;
+	// }
+
+    // anfds (ios)
 #ifdef _WIN32
 	_invalid_parameter_handler oldHandler = _set_invalid_parameter_handler(my_invalid_parameter);
 #endif
-	ssize_t int_i = _loop->anfdmax;
-	while (int_i >= 0 && (bol_kill == false || bol_killed == false)) {
-		ANFD *anfd = &_loop->anfds[int_i];
+	ssize_t int_i = global_loop->anfdmax;
+	while (int_i >= 0) {
+		ANFD *anfd = &global_loop->anfds[int_i];
 
 #ifdef _WIN32
 		unsigned long arg = 0;
@@ -182,57 +225,191 @@ void http_ev_step1(struct sock_ev_client *client) {
 #endif
 
 		ev_io *node = (ev_io *)anfd->head;
-		while (node != NULL && (bol_kill == false || bol_killed == false)) {
+		while (node != NULL) {
 			snprintf(str_int_i, 255, "%zu", int_i);
 			snprintf(str_current_address, 255, "%p", node);
 			snprintf(str_current_events, 255, "0x%x", node->events);
 
-			if (bol_kill) {
-				if (strcmp(str_current_address, str_w) == 0) {
-					ev_io_stop(global_loop, node);
-					bol_killed = true;
-					break;
-				}
-			} else {
-				char *ptr_cb_name = cb_to_name(node->cb);
-				SFINISH_SNFCAT(
-					client_copy_check->str_response, &int_response_len,
-					"	watcher at ", (size_t)12,
-					str_current_address, strlen(str_current_address),
-					" on fd ", (size_t)7,
-					str_int_i, strlen(str_int_i),
-					" with callback ", (size_t)15,
-					ptr_cb_name, strlen(ptr_cb_name),
-					":\n", (size_t)2
-				);
-				SFINISH_SNFCAT(
-					client_copy_check->str_response, &int_response_len,
-					"		events: ", (size_t)10,
-					str_current_events, strlen(str_current_events),
-					"\n", (size_t)1
-				);
-				SFINISH_SNFCAT(
-					client_copy_check->str_response, &int_response_len,
-					"			EV_READ			: ", (size_t)15,
-					(node->events & EV_READ) == EV_READ ? "true\n" : "false\n", (size_t)((node->events & EV_READ) == EV_READ ? 5 : 6)
-				);
-				SFINISH_SNFCAT(
-					client_copy_check->str_response, &int_response_len,
-					"			EV_WRITE		: ", (size_t)15,
-					(node->events & EV_WRITE) == EV_WRITE ? "true\n\n" : "false\n\n", (size_t)((node->events & EV_WRITE) == EV_WRITE ? 6 : 7)
-				);
-			}
+            char *ptr_cb_name = cb_to_name(node->cb);
+            SFINISH_SNFCAT(
+                client_copy_check->str_response, &int_response_len,
+                "	ev_io watcher at ", (size_t)12,
+                str_current_address, strlen(str_current_address),
+                " on fd ", (size_t)7,
+                str_int_i, strlen(str_int_i),
+                " with callback ", (size_t)15,
+                ptr_cb_name, strlen(ptr_cb_name),
+                ":\n", (size_t)2
+            );
+            SFINISH_SNFCAT(
+                client_copy_check->str_response, &int_response_len,
+                "		events: ", (size_t)10,
+                str_current_events, strlen(str_current_events),
+                "\n", (size_t)1
+            );
+            SFINISH_SNFCAT(
+                client_copy_check->str_response, &int_response_len,
+                "			EV_READ			: ", (size_t)15,
+                (node->events & EV_READ) == EV_READ ? "true\n" : "false\n", (size_t)((node->events & EV_READ) == EV_READ ? 5 : 6)
+            );
+            SFINISH_SNFCAT(
+                client_copy_check->str_response, &int_response_len,
+                "			EV_WRITE		: ", (size_t)15,
+                (node->events & EV_WRITE) == EV_WRITE ? "true\n" : "false\n", (size_t)((node->events & EV_WRITE) == EV_WRITE ? 5 : 6)
+            );
 
 			SDEBUG("client_copy_check->str_response: %s", client_copy_check->str_response);
 			node = (ev_io *)((WL)node)->next;
 		}
-		int_i -= 1;
+		int_i = int_i - 1;
 	}
 #ifdef _WIN32
 	_set_invalid_parameter_handler(oldHandler);
 #endif
 
-	client_copy_check->int_response_len = (ssize_t)int_response_len;
+	// pendings?
+	// ssize_t pendingpri = NUMPRI - 1;
+	// while (pendingpri >= 0 && (bol_kill == false || bol_killed == false)) {
+	// 	ssize_t int_i = global_loop->pendingcnt[pendingpri] - 1;
+	// 	while (int_i >= 0 && (bol_kill == false || bol_killed == false)) {
+	// 		if (global_loop->pendings[pendingpri] == NULL) {
+	// 			int_i -= 1;
+	// 			continue;
+	// 		}
+
+	// 		snprintf(str_current_address, 255, "%p", global_loop->pendings[pendingpri][int_i].w);
+	// 		snprintf(str_current_priority, 255, "%zu", pendingpri);
+	// 		snprintf(str_current_events, 255, "0x%x", global_loop->pendings[pendingpri][int_i].events);
+
+	// 		if (bol_kill) {
+	// 			if (strcmp(str_current_address, str_w) == 0) {
+	// 				ev_check_stop(global_loop, (ev_check *)global_loop->pendings[pendingpri][int_i].w);
+	// 				bol_killed = true;
+	// 			}
+	// 		} else {
+	// 			char *ptr_cb_name = cb_to_name(global_loop->pendings[pendingpri][int_i].w->cb);
+	// 			SFINISH_SNFCAT(
+	// 				client_copy_check->str_response, &int_response_len,
+	// 				"	watcher at ", (size_t)12,
+	// 				str_current_address, strlen(str_current_address),
+	// 				" with priority ", (size_t)15,
+	// 				str_current_priority, strlen(str_current_priority),
+	// 				" with callback ", (size_t)15,
+	// 				ptr_cb_name, strlen(ptr_cb_name),
+	// 				" initiator ", (size_t)11,
+	// 				global_loop->pendings[pendingpri][int_i].w->initiator, strlen(global_loop->pendings[pendingpri][int_i].w->initiator),
+	// 				":\n", (size_t)2
+	// 			);
+	// 			SFINISH_SNFCAT(
+	// 				client_copy_check->str_response, &int_response_len,
+	// 				"		events: ", (size_t)10,
+	// 				str_current_events, strlen(str_current_events),
+	// 				"\n", (size_t)1
+	// 			);
+	// 			SFINISH_SNFCAT(
+	// 				client_copy_check->str_response, &int_response_len,
+	// 				"			EV_IDLE			: ", (size_t)15,
+	// 				global_loop->pendings[pendingpri][int_i].events == EV_IDLE ? "true\n" : "false\n", (size_t)(global_loop->pendings[pendingpri][int_i].events == EV_IDLE ? 5 : 6)
+	// 			);
+	// 			SFINISH_SNFCAT(
+	// 				client_copy_check->str_response, &int_response_len,
+	// 				"			EV_PREPARE		: ", (size_t)17,
+	// 				global_loop->pendings[pendingpri][int_i].events == EV_PREPARE ? "true\n" : "false\n", (size_t)(global_loop->pendings[pendingpri][int_i].events == EV_PREPARE ? 5 : 6)
+	// 			);
+	// 			SFINISH_SNFCAT(
+	// 				client_copy_check->str_response, &int_response_len,
+	// 				"			EV_CHECK		: ", (size_t)15,
+	// 				global_loop->pendings[pendingpri][int_i].events == EV_CHECK ? "true\n\n" : "false\n\n", (size_t)(global_loop->pendings[pendingpri][int_i].events == EV_CHECK ? 6 : 7)
+	// 			);
+	// 		}
+
+	// 		int_i -= 1;
+	// 		SDEBUG("client_copy_check->str_response: %s", client_copy_check->str_response);
+	// 	}
+
+	// 	pendingpri -= 1;
+	// }
+
+    SFINISH_SNFCAT(
+        client_copy_check->str_response, &int_response_len,
+        "\015\012\015\012\015\012\015\012Connected clients:\015\012", (size_t)28
+    );
+    ListNode *client_node = _server.list_client->first;
+    while (client_node) {
+        struct sock_ev_client *client = client_node->value;
+        SFINISH_SNFCAT(
+            client_copy_check->str_response, &int_response_len,
+            "        ", (size_t)8,
+            client->str_client_ip, client->int_client_ip_len,
+            client->str_websocket_key ? " (WS)" : " (HTTP)", (size_t)(client->str_websocket_key ? 5 : 7),
+            client->str_websocket_key &&client->bol_is_open ? " (CLOSING)" : "", (size_t)(client->str_websocket_key && client->bol_is_open ? 10 : 0),
+            "\015\012", (size_t)2
+        );
+        if (client->str_websocket_key) {
+            struct sock_ev_client_request *client_request = client->cur_request;
+            char *str_request_type;
+            if (client_request) {
+                str_request_type = request_type_string(client_request->int_req_type);
+                SFINISH_SNFCAT(
+                    client_copy_check->str_response, &int_response_len,
+                    "        ", (size_t)8,
+                    "        ", (size_t)8,
+                    "current request: ", (size_t)17,
+                    str_request_type, strlen(str_request_type),
+                    "\015\012", (size_t)2
+                );
+            }
+
+            ListNode *request_node = client->que_request->last;
+            while (request_node) {
+                client_request = request_node->value;
+                str_request_type = request_type_string(client_request->int_req_type);
+                SFINISH_SNFCAT(
+                    client_copy_check->str_response, &int_response_len,
+                    "        ", (size_t)8,
+                    "        ", (size_t)8,
+                    str_request_type, strlen(str_request_type)
+                );
+                request_node = client_node->prev;
+            }
+        } else {
+            str_uri = str_uri_path(client->str_request, client->int_request_len, &int_uri_len);
+            if (!str_uri) {
+                SFINISH_SNCAT(
+                    str_uri, &int_uri_len,
+                    "failed to get uri", (size_t)17
+                );
+            }
+            SFINISH_SNFCAT(
+                client_copy_check->str_response, &int_response_len,
+                "        ", (size_t)8,
+                "        ", (size_t)8,
+                str_uri, int_uri_len,
+                "\015\012", (size_t)2
+            );
+            SFREE(str_uri);
+        }
+        client_node = client_node->next;
+    }
+
+    snprintf(str_response_len, 255, "%zu", int_response_len);
+    _str_response = client_copy_check->str_response;
+    SDEBUG("client_copy_check->str_response: %s", client_copy_check->str_response);
+    client_copy_check->int_response_len = (ssize_t)int_response_len;
+    SFINISH_SNCAT(
+        client_copy_check->str_response, &int_response_len,
+        "HTTP/1.1 200 OK\015\012", strlen("HTTP/1.1 200 OK\015\012"),
+        "Content-Length: ", strlen("Content-Length: "),
+        str_response_len, strlen(str_response_len),
+        "\015\012", strlen("\015\012"),
+        "Refresh: 1\015\012", strlen("Refresh: 1\015\012"),
+        "Content-Type: text/plain\015\012", strlen("Content-Type: text/plain\015\012"),
+        "\015\012", strlen("\015\012"),
+        _str_response, client_copy_check->int_response_len
+    );
+    client_copy_check->int_response_len = (ssize_t)int_response_len;
+    SFREE(_str_response);
+    SDEBUG("client_copy_check->str_response: %s", client_copy_check->str_response);
 
 	ev_io_init(&client_copy_io->io, http_ev_step2, client->int_ev_sock, EV_WRITE);
 	ev_io_start(global_loop, &client_copy_io->io);

@@ -98,7 +98,7 @@ struct sock_ev_client_message {
 	ev_io io;
 	WSFrame *frame;
 	bool bol_have_header;
-	uint8_t int_ioctl_count;
+	uint64_t int_ioctl_count;
 	uint64_t int_message_header_length;
 	uint64_t int_length;
 	uint64_t int_written;
@@ -212,6 +212,24 @@ enum {
 	ENVELOPE_REQ_STANDARD = 13
 };
 
+#define request_type_string(a) \
+    ( \
+        a == ENVELOPE_REQ_SELECT ? "SELECT" : \
+        a == ENVELOPE_REQ_INSERT ? "INSERT" : \
+        a == ENVELOPE_REQ_UPDATE ? "UPDATE" : \
+        a == ENVELOPE_REQ_DELETE ? "DELETE" : \
+        a == ENVELOPE_REQ_BEGIN ? "BEGIN" : \
+        a == ENVELOPE_REQ_COMMIT ? "COMMIT" : \
+        a == ENVELOPE_REQ_ROLLBACK ? "ROLLBACK" : \
+        a == ENVELOPE_REQ_RAW ? "RAW" : \
+        a == ENVELOPE_REQ_FILE ? "FILE" : \
+        a == ENVELOPE_REQ_INFO ? "INFO" : \
+        a == ENVELOPE_REQ_ACTION ? "ACTION" : \
+        a == ENVELOPE_REQ_ACCEPT ? "ACCEPT" : \
+        a == ENVELOPE_REQ_AUTH ? "AUTH" : \
+        a == ENVELOPE_REQ_STANDARD ? "STANDARD" : \
+        "OTHER" \
+    )
 
 typedef struct sock_ev_client_request_data *sock_ev_client_request_datap;
 typedef void(*sock_ev_client_request_data_free_func)(sock_ev_client_request_datap);

@@ -83,7 +83,7 @@ char *get_cookie(char *str_all_cookie, size_t int_all_cookie_len, char *str_cook
 	SDEBUG("str_cookie 3");
 
 	// get cookie length
-	ptr_cookie_end_semi = bstrstr(ptr_cookie, int_all_cookie_len - (ptr_cookie - str_all_cookie), ";", (size_t)1);
+	ptr_cookie_end_semi = bstrstr(ptr_cookie, int_all_cookie_len - (size_t)(ptr_cookie - str_all_cookie), ";", (size_t)1);
 	int_cookie_end_semi = (size_t)(ptr_cookie_end_semi - ptr_cookie);
 	*int_cookie_value_len = int_all_cookie_len - (size_t)(ptr_cookie - str_all_cookie);
 	*int_cookie_value_len = ptr_cookie_end_semi != NULL && int_cookie_end_semi < (*int_cookie_value_len) ? int_cookie_end_semi : (*int_cookie_value_len);
@@ -178,9 +178,9 @@ bool check_referer(char *_str_referer, size_t _int_referer_len, char *_str_refer
 	SDEBUG("ptr_referer_start: %s", ptr_referer_start);
 	ptr_referer_end = strstr(ptr_referer_start, "/");
 	if (ptr_referer_end != NULL) {
-		int_referer_len = (ptr_referer_end - ptr_referer_start);
+		int_referer_len = (size_t)(ptr_referer_end - ptr_referer_start);
 	} else {
-        int_referer_len = _int_referer_len - (ptr_referer_start - _str_referer);
+        int_referer_len = _int_referer_len - (size_t)(ptr_referer_start - _str_referer);
     }
 	SDEBUG("ptr_referer_end: %s", ptr_referer_end);
 	SDEBUG("int_referer_len: %d", int_referer_len);
@@ -241,7 +241,6 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 	char *ptr_name_end = NULL;
 	size_t int_temp = 0;
 	size_t int_next_line = 0;
-	size_t int_name_len = 0;
 
 	SERROR_CHECK(client->str_boundary != NULL, "boundary is null");
 
@@ -251,32 +250,32 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		, client->str_boundary, client->int_boundary_len
 	);
 	SERROR_CHECK(ptr_request != NULL, "couldn't find boundary in string");
-	int_temp = find_next_line(ptr_request, ptr_request_end - ptr_request);
+	int_temp = find_next_line(ptr_request, (size_t)(ptr_request_end - ptr_request));
 	SERROR_CHECK(int_temp > 0, "malformed upload request");
 
 	// is it the file name?
 	ptr_name = bstrstr(
-		ptr_request, ptr_request_end - ptr_request
+		ptr_request, (size_t)(ptr_request_end - ptr_request)
 		, "name=\"", 6
 	);
 	SERROR_CHECK(ptr_name != NULL, "malformed upload request");
 	ptr_name = ptr_name + 6;
 
 	ptr_name_end = bstrstr(
-		ptr_name, ptr_request_end - ptr_name
+		ptr_name, (size_t)(ptr_request_end - ptr_name)
 		, "\"", 1
 	);
 	SERROR_CHECK(ptr_name_end != NULL, "malformed upload request");
 
 	if (strncmp(ptr_name, "file_name", 9) == 0) {
 		// grab file name
-		int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_name);
+		int_next_line = find_next_line(ptr_name, (size_t)(ptr_request_end - ptr_name));
 		ptr_file_content = ptr_name;
 		while (int_next_line > 0) {
 			ptr_name = ptr_name + int_next_line;
 			if (int_next_line < 3) {
 				// this is the name length
-				int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_name);
+				int_next_line = find_next_line(ptr_name, (size_t)(ptr_request_end - ptr_name));
 				while (ptr_name[int_next_line - 1] == '\015' || ptr_name[int_next_line - 1] == '\012') {
 					int_next_line = int_next_line - 1;
 				}
@@ -286,7 +285,7 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 
 				break;
 			}
-			int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_name);
+			int_next_line = find_next_line(ptr_name, (size_t)(ptr_request_end - ptr_name));
 		}
 
 		// get second chunk, make sure it's the content, then store the pointer/length
@@ -298,7 +297,7 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		SDEBUG("ptr_request: %s", ptr_request);
 		ptr_request = ptr_request + 1;
 		ptr_request = bstrstr(
-			ptr_request, client->int_request_len - (ptr_request - client->str_request)
+			ptr_request, client->int_request_len - (size_t)(ptr_request - client->str_request)
 			, client->str_boundary, client->int_boundary_len
 		);
 		SERROR_CHECK(ptr_request_end != NULL, "malformed upload request");
@@ -309,12 +308,12 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		);
 		SERROR_CHECK(ptr_request != NULL, "malformed upload request");
 		SDEBUG("ptr_request_end: %s", ptr_request_end);
-		int_temp = find_next_line(ptr_request, ptr_request_end - ptr_request);
+		int_temp = find_next_line(ptr_request, (size_t)(ptr_request_end - ptr_request));
 		SERROR_CHECK(int_temp > 0, "malformed upload request");
 
 		// is it the file content?
 		ptr_name = bstrstr(
-			ptr_request, ptr_request_end - ptr_request
+			ptr_request, (size_t)(ptr_request_end - ptr_request)
 			, "name=\"", 6
 		);
 		SERROR_CHECK(ptr_name != NULL, "malformed upload request");
@@ -322,7 +321,7 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		ptr_name = ptr_name + 6;
 
 		ptr_name_end = bstrstr(
-			ptr_name, ptr_request_end - ptr_name
+			ptr_name, (size_t)(ptr_request_end - ptr_name)
 			, "\"", 1
 		);
 		SERROR_CHECK(ptr_name_end != NULL, "malformed upload request");
@@ -330,12 +329,12 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 
 		SERROR_CHECK(strncmp(ptr_name, "file_content", 12) == 0, "malformed upload request");
 		ptr_file_content = ptr_name;
-		int_next_line = find_next_line(ptr_file_content, ptr_request_end - ptr_file_content);
+		int_next_line = find_next_line(ptr_file_content, (size_t)(ptr_request_end - ptr_file_content));
 		while (int_next_line > 3) {
 			ptr_file_content = ptr_file_content + int_next_line;
-			int_next_line = find_next_line(ptr_file_content, ptr_request_end - ptr_file_content);
+			int_next_line = find_next_line(ptr_file_content, (size_t)(ptr_request_end - ptr_file_content));
 		}
-		int_next_line = find_next_line(ptr_file_content, ptr_request_end - ptr_file_content);
+		int_next_line = find_next_line(ptr_file_content, (size_t)(ptr_request_end - ptr_file_content));
 		ptr_file_content = ptr_file_content + int_next_line;
 		SDEBUG("ptr_file_content: %s", ptr_file_content);
 		// we're here
@@ -352,7 +351,7 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 			ptr_file_content_end = ptr_file_content_end - 1;
 		}
 
-		sun_return->int_file_content_len = ptr_file_content_end - ptr_file_content;
+		sun_return->int_file_content_len = (size_t)(ptr_file_content_end - ptr_file_content);
 		SDEBUG("ptr_file_content_end: %s", ptr_file_content_end);
 		SDEBUG("sun_return->int_file_content_len: %d", sun_return->int_file_content_len);
 
@@ -360,12 +359,12 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		// make sure its the content, then store the pointer/length
 		SERROR_CHECK(strncmp(ptr_name, "file_content", 12) == 0, "malformed upload request");
 		ptr_file_content = ptr_name;
-		int_next_line = find_next_line(ptr_file_content, ptr_request_end - ptr_file_content);
+		int_next_line = find_next_line(ptr_file_content, (size_t)(ptr_request_end - ptr_file_content));
 		while (int_next_line > 3) {
 			ptr_file_content = ptr_file_content + int_next_line;
-			int_next_line = find_next_line(ptr_file_content, ptr_request_end - ptr_file_content);
+			int_next_line = find_next_line(ptr_file_content, (size_t)(ptr_request_end - ptr_file_content));
 		}
-		int_next_line = find_next_line(ptr_file_content, ptr_request_end - ptr_file_content);
+		int_next_line = find_next_line(ptr_file_content, (size_t)(ptr_request_end - ptr_file_content));
 		ptr_file_content = ptr_file_content + int_next_line;
 		// we're here
 		sun_return->ptr_file_content = ptr_file_content;
@@ -377,7 +376,7 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		SERROR_CHECK(ptr_file_content_end != NULL, "malformed upload request");
 
 		ptr_file_content_end = brstrstr(
-			client->str_request, ptr_file_content_end - client->str_request,
+			client->str_request, (size_t)(ptr_file_content_end - client->str_request),
 			client->str_boundary, client->int_boundary_len
 		);
 		SERROR_CHECK(ptr_file_content_end != NULL, "malformed upload request");
@@ -387,7 +386,7 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 			ptr_file_content_end = ptr_file_content_end - 1;
 		}
 
-		sun_return->int_file_content_len = ptr_file_content_end - ptr_file_content;
+		sun_return->int_file_content_len = (size_t)(ptr_file_content_end - ptr_file_content);
 		SDEBUG("ptr_file_content_end: %s", ptr_file_content_end);
 		SDEBUG("sun_return->int_file_content_len: %d", sun_return->int_file_content_len);
 
@@ -399,36 +398,36 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		);
 		SERROR_CHECK(ptr_request_end != NULL, "malformed upload request");
 		ptr_request = brstrstr(
-			client->str_request, ptr_request_end - client->str_request
+			client->str_request, (size_t)(ptr_request_end - client->str_request)
 			, client->str_boundary, client->int_boundary_len
 		);
 		SERROR_CHECK(ptr_request != NULL, "malformed upload request");
-		int_temp = find_next_line(ptr_request, ptr_request_end - ptr_request);
+		int_temp = find_next_line(ptr_request, (size_t)(ptr_request_end - ptr_request));
 		SERROR_CHECK(int_temp > 0, "malformed upload request");
 
 		// is it the file name?
 		ptr_name = bstrstr(
-			ptr_request, ptr_request_end - ptr_request
+			ptr_request, (size_t)(ptr_request_end - ptr_request)
 			, "name=\"", 6
 		);
 		SERROR_CHECK(ptr_name != NULL, "malformed upload request");
 		ptr_name = ptr_name + 6;
 
 		ptr_name_end = bstrstr(
-			ptr_name, ptr_request_end - ptr_name
+			ptr_name, (size_t)(ptr_request_end - ptr_name)
 			, "\"", 1
 		);
 		SERROR_CHECK(ptr_name_end != NULL, "malformed upload request");
 
 		if (strncmp(ptr_name, "file_name", 9) == 0) {
 			// grab file name
-			int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_name);
+			int_next_line = find_next_line(ptr_name, (size_t)(ptr_request_end - ptr_name));
 			ptr_file_content = ptr_name;
 			while (int_next_line > 0) {
 				ptr_name = ptr_name + int_next_line;
 				if (int_next_line < 3) {
 					// this is the name length
-					int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_name);
+					int_next_line = find_next_line(ptr_name, (size_t)(ptr_request_end - ptr_name));
 					while (ptr_name[int_next_line - 1] == '\015' || ptr_name[int_next_line - 1] == '\012') {
 						int_next_line = int_next_line - 1;
 					}
@@ -438,7 +437,7 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 
 					break;
 				}
-				int_next_line = find_next_line(ptr_name, ptr_request_end - ptr_name);
+				int_next_line = find_next_line(ptr_name, (size_t)(ptr_request_end - ptr_name));
 			}
 		}
 	}

@@ -578,10 +578,8 @@ finish:
 bool ws_insert_step3(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client_request->client_request_data);
-	size_t int_len_content;
 	SDEFINE_VAR_ALL(str_sql, str_where, str_real_table_name_literal);
 	size_t int_sql_len = 0;
-	size_t int_where_len = 0;
 	char *str_response = NULL;
 	size_t int_response_len = 0;
 	bool bol_ret = true;
@@ -677,11 +675,8 @@ finish:
 
 bool ws_insert_step4(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
-	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client_request->client_request_data);
-	size_t int_len_content;
+	// struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client_request->client_request_data);
 	SDEFINE_VAR_ALL(str_sql, str_where, str_real_table_name_literal);
-	size_t int_sql_len = 0;
-	size_t int_where_len = 0;
 	char *str_response = NULL;
 	size_t int_response_len = 0;
 	bool bol_ret = true;
@@ -1170,7 +1165,6 @@ bool ws_insert_view_step4(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client_request->client_request_data);
 	char *str_response = NULL;
 	bool bol_ret = true;
-	size_t int_temp_len = 0;
 	size_t int_response_len = 0;
 	size_t int_sql_len = 0;
 	SDEFINE_VAR_ALL(str_temp, str_sql);
@@ -1355,10 +1349,8 @@ finish:
 bool ws_insert_table_step2(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client_request->client_request_data);
-	size_t int_len_content;
 	SDEFINE_VAR_ALL(str_sql, str_where, str_real_table_name_literal);
 	size_t int_sql_len = 0;
-	size_t int_where_len = 0;
 	char *str_response = NULL;
 	size_t int_response_len = 0;
 	bool bol_ret = true;
@@ -1460,7 +1452,6 @@ bool ws_insert_table_step3(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client_request->client_request_data);
 	char *str_response = NULL;
 	bool bol_ret = true;
-	size_t int_temp_len = 0;
 	size_t int_response_len = 0;
 	size_t int_sql_len = 0;
 	SDEFINE_VAR_ALL(str_temp, str_sql);

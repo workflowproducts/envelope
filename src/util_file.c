@@ -42,8 +42,8 @@ bool canonical_recurse_directory(EV_P, char *str_canonical_start, char *str_part
 
 	ev_check_init(&rec_data->check, canonical_recurse_directory_check_cb);
 	ev_check_start(EV_A, &rec_data->check);
-	ev_idle_init_debug(&rec_data->idle, idle_cb);
-	ev_idle_start_debug(EV_A, &rec_data->idle);
+	ev_idle_init(&rec_data->idle, idle_cb);
+	ev_idle_start(EV_A, &rec_data->idle);
 
 	return true;
 error:
@@ -352,7 +352,7 @@ error:
 
 void free_recursive_callback_data(recursive_callback_data *rec_data) {
     ev_check_stop(global_loop, &rec_data->check);
-    ev_idle_stop_debug(global_loop, &rec_data->idle);
+    ev_idle_stop(global_loop, &rec_data->idle);
 	size_t int_i = 0, int_len = DArray_end(rec_data->darr_directory);
 	for (; int_i < int_len; int_i += 1) {
 		free_recursive_directory_data(DArray_get(rec_data->darr_directory, int_i));

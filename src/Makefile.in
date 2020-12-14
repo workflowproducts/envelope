@@ -23,13 +23,13 @@ V=0
 
 db_framework_pq_SOURCES = $(wildcard ../db_framework_pq/*.c)
 
-envelope_SOURCES = $(sort $(db_framework_pq_SOURCES) $(filter-out util_getopt.c, $(filter-out util_strptime.c, $(filter-out util_exec.c, $(wildcard *.c)))))
+envelope_SOURCES = $(sort $(db_framework_pq_SOURCES) $(filter-out http_ev.c, $(filter-out util_getopt.c, $(filter-out util_strptime.c, $(filter-out util_exec.c, $(wildcard *.c))))))
 envelope_OBJECTS = $(envelope_SOURCES:.c=.o)
 
 libtre_SOURCES = $(wildcard ../dependencies/tre/lib/*.c)
 libtre_OBJECTS = $(libtre_SOURCES:.c=.o)
 
-libev_SOURCES = ../dependencies/libev/ev.c
+libev_SOURCES = http_ev.c
 libev_OBJECTS = $(libev_SOURCES:.c=.o)
 
 .PHONY: all all-format destroy check

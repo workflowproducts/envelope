@@ -6,9 +6,7 @@ void ws_update_step1(struct sock_ev_client_request *client_request) {
 	SDEFINE_VAR_ALL(str_col_name, str_sql, str_temp);
 	char *str_response = NULL;
 	char *str_temp1 = NULL;
-	char *str_where_temp = NULL;
 	size_t int_length;
-	size_t int_where_temp_len = 0;
 	size_t int_temp_col_list_len = 0;
 	size_t int_col_name_len = 0;
 	size_t int_temp_len = 0;

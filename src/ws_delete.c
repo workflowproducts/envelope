@@ -10,7 +10,6 @@ void ws_delete_step1(struct sock_ev_client_request *client_request) {
 	size_t int_i = 0;
 	size_t int_x = 0;
 	size_t int_y = 0;
-	size_t int_where_temp_len = 0;
 	size_t int_col_name_len = 0;
 	size_t int_temp_len = 0;
 	size_t int_temp_col_list_len = 0;

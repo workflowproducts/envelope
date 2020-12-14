@@ -13,6 +13,7 @@
 #endif
 
 #include "common_server.h"
+#include "util_string.h"
 #include <openssl/crypto.h>
 #include <stdio.h>
 
@@ -215,6 +216,8 @@ void free_last_activity(EV_P, ev_periodic *w, int revents) {
 
 static const char *str_postgres_timestamp_format = "%Y/%m/%d %H:%M:%S";
 void connect_cb_log_queries_over(EV_P, void *cb_data, DB_conn *conn) {
+	if (cb_data != NULL) {
+	} // get rid of unused parameter warning
 	SERROR_CHECK(conn->int_status == 1, "%s", conn->str_response);
 	
 	return;
@@ -223,6 +226,10 @@ error:
 }
 
 bool log_queries_over_query_cb(EV_P, void *cb_data, DB_result *res) {
+	if (loop != NULL) {
+	} // get rid of unused parameter warning
+	if (cb_data != NULL) {
+	} // get rid of unused parameter warning
 	SDEBUG("connect_cb_env_step2");
 	SDEFINE_VAR_ALL(str_diag);
 	str_diag = DB_get_diagnostic(log_queries_over_conn, res);
@@ -238,9 +245,14 @@ error:
 }
 
 void check_running_queries(EV_P, ev_periodic *w, int revents) {
+	if (loop != NULL) {
+	} // get rid of unused parameter warning
+	if (w != NULL) {
+	} // get rid of unused parameter warning
+	if (revents != 0) {
+	} // get rid of unused parameter warning
 	QueryInfo *query_info = NULL;
 	char *str_sql = NULL;
-	size_t int_sql_len = 0;
 	char *str_qs = NULL;
 	size_t int_qs_len = 0;
 	char *str_query_enc = NULL;
@@ -252,7 +264,7 @@ void check_running_queries(EV_P, ev_periodic *w, int revents) {
 			if ((now - query_info->tim_start) > int_global_log_queries_over && (now - query_info->tim_start) < (int_global_log_queries_over * 2)) {
 				SALWAYS_LOG("Query has been running for %zu seconds!", (size_t)(now - query_info->tim_start));
 				SALWAYS_LOG("Pid: %d", query_info->int_pid);
-				time_t tim_rawtime = query_info->tim_start;
+				time_t tim_rawtime = (time_t)query_info->tim_start;
 				struct tm tm_timeinfo;
 #ifdef _WIN32
 				SERROR_CHECK(localtime_s(&tm_timeinfo, &tim_rawtime) == 0, "localtime_s %d (%s)", errno, strerror(errno));
@@ -312,6 +324,12 @@ error:
 }
 
 void sig_cb(EV_P, ev_signal *w, int revents) {
+	if (loop != NULL) {
+	} // get rid of unused parameter warning
+	if (w != NULL) {
+	} // get rid of unused parameter warning
+	if (revents != 0) {
+	} // get rid of unused parameter warning
     program_exit();
     exit(0);
 }

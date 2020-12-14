@@ -105,6 +105,7 @@ Runs a regular expression and returns the result.
 Take a URI Encoded string and decode it.
 */
 char *uri_to_cstr(char *ptr_loop, size_t *int_inputstring_len);
+char *cstr_to_uri(char *ptr_loop, size_t *int_inputstring_len);
 
 /*
 Searchs a URI Encoded query string and returns the value for the `str_key`.
