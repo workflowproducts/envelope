@@ -225,13 +225,13 @@ void http_ev_step1(struct sock_ev_client *client) {
 			int_i -= 1;
 			continue;
 		}
-#else
-		unsigned long arg = 0;
-		// All of our sockets are non-blocking
-		if ((fcntl((int)int_i, F_GETFL, &arg) & O_NONBLOCK) == O_NONBLOCK) {
-			int_i -= 1;
-			continue;
-		}
+// #else
+// 		unsigned long arg = 0;
+// 		// All of our sockets are non-blocking
+// 		if ((fcntl((int)int_i, F_GETFL, &arg) & O_NONBLOCK) == O_NONBLOCK) {
+// 			int_i -= 1;
+// 			continue;
+// 		}
 #endif
 
 		ev_io *node = (ev_io *)anfd->head;
