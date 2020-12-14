@@ -1,6 +1,16 @@
 #include "http_ev.h"
 
+#ifdef _WIN32
+#ifndef EV_CONFIG_H
+#define EV_CONFIG_H "ev_config.h.win32"
+#include "../dependencies/libev/ev.c"
+#endif // EV_CONFIG_H
+void my_invalid_parameter(
+	const wchar_t *expression, const wchar_t *function, const wchar_t *file, unsigned int line, uintptr_t pReserved) {
+}
+#else
 #include "ev.c"
+#endif
 
 char *cb_to_name(void *cb);
 
@@ -116,7 +126,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 		char *ptr_cb_name = cb_to_name(current_prepare->cb);
 		SFINISH_SNFCAT(
 			client_copy_check->str_response, &int_response_len,
-			"ev_prepare watcher at ", (size_t)20,
+			"ev_prepare watcher at ", (size_t)22,
 			str_current_address, strlen(str_current_address),
 			" with callback ", (size_t)15,
 			ptr_cb_name, strlen(ptr_cb_name),
@@ -140,7 +150,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 		char *ptr_cb_name = cb_to_name(current_cleanup->cb);
 		SFINISH_SNFCAT(
 			client_copy_check->str_response, &int_response_len,
-			"ev_cleanup watcher at ", (size_t)20,
+			"ev_cleanup watcher at ", (size_t)22,
 			str_current_address, strlen(str_current_address),
 			" with callback ", (size_t)15,
 			ptr_cb_name, strlen(ptr_cb_name),
@@ -233,12 +243,14 @@ void http_ev_step1(struct sock_ev_client *client) {
             char *ptr_cb_name = cb_to_name(node->cb);
             SFINISH_SNFCAT(
                 client_copy_check->str_response, &int_response_len,
-                "	ev_io watcher at ", (size_t)12,
+                "ev_io watcher at ", (size_t)17,
                 str_current_address, strlen(str_current_address),
                 " on fd ", (size_t)7,
                 str_int_i, strlen(str_int_i),
                 " with callback ", (size_t)15,
                 ptr_cb_name, strlen(ptr_cb_name),
+				" initiator ", (size_t)11,
+				node->initiator, strlen(node->initiator),
                 ":\n", (size_t)2
             );
             SFINISH_SNFCAT(

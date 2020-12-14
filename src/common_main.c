@@ -4,10 +4,6 @@
 #include <ws2tcpip.h>
 //#include <crtdbg.h>
 
-#ifndef EV_CONFIG_H
-#define EV_CONFIG_H "ev_config.h.win32"
-#include "../dependencies/libev/ev.c"
-#endif // EV_CONFIG_H
 #else
 #include <ev.h>
 #endif

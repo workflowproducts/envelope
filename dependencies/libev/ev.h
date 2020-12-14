@@ -687,6 +687,16 @@ EV_API_DECL void ev_resume  (EV_P) EV_THROW;
 #define S(x) #x
 #define S_(x) S(x)
 #define S__LINE__ S_(__LINE__)
+#ifdef _WIN32
+#define ev_init(ev,cb_) do {			\
+  ((ev_watcher *)(void *)(ev))->active  =	\
+  ((ev_watcher *)(void *)(ev))->pending = 0;	\
+  ev_set_priority ((ev), 0);			\
+  ev_set_cb ((ev), cb_);			\
+  memset((ev)->initiator, 0, 32);			\
+  strncpy((ev)->initiator, (strrchr(__FILE__ ":" S__LINE__, '\\') ? strrchr(__FILE__ ":" S__LINE__, '\\') + 1 : __FILE__ ":" S__LINE__), 31);			\
+} while (0)
+#else
 #define ev_init(ev,cb_) do {			\
   ((ev_watcher *)(void *)(ev))->active  =	\
   ((ev_watcher *)(void *)(ev))->pending = 0;	\
@@ -695,6 +705,7 @@ EV_API_DECL void ev_resume  (EV_P) EV_THROW;
   memset((ev)->initiator, 0, 32);			\
   strncpy((ev)->initiator, __FILE__ ":" S__LINE__, 31);			\
 } while (0)
+#endif
 
 #define ev_io_set(ev,fd_,events_)            do { (ev)->fd = (fd_); (ev)->events = (events_) | EV__IOFDSET; } while (0)
 #define ev_timer_set(ev,after_,repeat_)      do { ((ev_watcher_time *)(ev))->at = (after_); (ev)->repeat = (repeat_); } while (0)
