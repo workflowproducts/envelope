@@ -1821,7 +1821,7 @@ bool client_close(struct sock_ev_client *client) {
 		for (int_i = 0, int_len = DArray_end(_server.arr_client_last_activity); int_i < int_len; int_i += 1) {
 			client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(_server.arr_client_last_activity, int_i);
 			if (client_last_activity &&
-				strncmp(client_last_activity->str_client_ip, client->str_client_ip, INET_ADDRSTRLEN) == 0 &&
+				strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0 &&
 				strncmp(client_last_activity->str_cookie, client->str_cookie, int_cookie_len) == 0) {
 				client->int_last_activity_i = (ssize_t)int_i;
 				break;
@@ -1835,7 +1835,7 @@ bool client_close(struct sock_ev_client *client) {
 		if (client->int_last_activity_i == -1) {
 			client_last_activity = NULL;
 			SERROR_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
-			memcpy(client_last_activity->str_client_ip, client->str_client_ip, INET_ADDRSTRLEN);
+			memcpy(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip));
 			SERROR_SNCAT(client_last_activity->str_cookie, &int_cookie_len,
 				client->str_cookie, int_cookie_len);
 			client->int_last_activity_i = (ssize_t)DArray_push(_server.arr_client_last_activity, client_last_activity);

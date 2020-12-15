@@ -94,7 +94,7 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 					SDEBUG("client_last_activity->str_cookie    = %s", client_last_activity->str_cookie);
 				}
 				if (client_last_activity != NULL &&
-					strncmp(client_last_activity->str_client_ip, client->str_client_ip, INET_ADDRSTRLEN) == 0 &&
+					strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0 &&
 					strncmp(client_last_activity->str_cookie, str_cookie_encrypted, int_cookie_len) == 0) {
 					client->int_last_activity_i = int_i;
 					break;

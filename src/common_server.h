@@ -47,7 +47,7 @@ It will create a client struct for every accept()ed socket.
 void server_cb(EV_P, ev_io *w, int revents);
 
 struct sock_ev_client_last_activity {
-	char str_client_ip[INET_ADDRSTRLEN];
+	char *str_client_ip;
 	char *str_cookie;
 	ev_tstamp last_activity_time;
 };
