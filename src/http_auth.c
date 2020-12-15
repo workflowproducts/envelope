@@ -1084,7 +1084,7 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 		}
 		if (client->int_last_activity_i == -1) {
 			SFINISH_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
-            SERROR_SALLOC(client_last_activity->str_client_ip, 50);
+            SFINISH_SALLOC(client_last_activity->str_client_ip, 50);
 			memcpy(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip));
 			SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
 			client_last_activity->last_activity_time = ev_now(EV_A);
