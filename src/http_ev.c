@@ -57,6 +57,72 @@ void http_ev_step1(struct sock_ev_client *client) {
 	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");
 	client_copy_check->client_request = client->cur_request;
 
+    SFINISH_SNFCAT(
+        client_copy_check->str_response, &int_response_len,
+        "Connected clients:\015\012", (size_t)20
+    );
+    ListNode *client_node = _server.list_client->first;
+    while (client_node) {
+        struct sock_ev_client *client = client_node->value;
+        SFINISH_SNFCAT(
+            client_copy_check->str_response, &int_response_len,
+            "        ", (size_t)8,
+            client->str_client_ip, client->int_client_ip_len,
+            client->str_websocket_key ? " (WS)" : " (HTTP)", (size_t)(client->str_websocket_key ? 5 : 7),
+            client->str_websocket_key &&client->bol_is_open ? " (CLOSING)" : "", (size_t)(client->str_websocket_key && client->bol_is_open ? 10 : 0),
+            "\015\012", (size_t)2
+        );
+        if (client->str_websocket_key) {
+            struct sock_ev_client_request *client_request = client->cur_request;
+            char *str_request_type;
+            if (client_request) {
+                str_request_type = request_type_string(client_request->int_req_type);
+                SFINISH_SNFCAT(
+                    client_copy_check->str_response, &int_response_len,
+                    "        ", (size_t)8,
+                    "        ", (size_t)8,
+                    "current request: ", (size_t)17,
+                    str_request_type, strlen(str_request_type),
+                    "\015\012", (size_t)2
+                );
+            }
+
+            ListNode *request_node = client->que_request->last;
+            while (request_node) {
+                client_request = request_node->value;
+                str_request_type = request_type_string(client_request->int_req_type);
+                SFINISH_SNFCAT(
+                    client_copy_check->str_response, &int_response_len,
+                    "        ", (size_t)8,
+                    "        ", (size_t)8,
+                    str_request_type, strlen(str_request_type)
+                );
+                request_node = request_node->prev;
+            }
+        } else {
+            str_uri = str_uri_path(client->str_request, client->int_request_len, &int_uri_len);
+            if (!str_uri) {
+                SFINISH_SNCAT(
+                    str_uri, &int_uri_len,
+                    "failed to get uri", (size_t)17
+                );
+            }
+            SFINISH_SNFCAT(
+                client_copy_check->str_response, &int_response_len,
+                "        ", (size_t)8,
+                "        ", (size_t)8,
+                str_uri, int_uri_len,
+                "\015\012", (size_t)2
+            );
+            SFREE(str_uri);
+        }
+        client_node = client_node->next;
+    }
+    SFINISH_SNFCAT(
+        client_copy_check->str_response, &int_response_len,
+        "\015\012\015\012\015\012\015\012", (size_t)8
+    );
+
 	// idles
     ssize_t int_idle_pri = NUMPRI;
     while (int_idle_pri >= 0) {
@@ -215,7 +281,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 #ifdef _WIN32
 	_invalid_parameter_handler oldHandler = _set_invalid_parameter_handler(my_invalid_parameter);
 #endif
-	ssize_t int_i = global_loop->anfdmax;
+	ssize_t int_i = global_loop->anfdmax - 1;
 	while (int_i >= 0) {
 		ANFD *anfd = &global_loop->anfds[int_i];
 
@@ -341,68 +407,6 @@ void http_ev_step1(struct sock_ev_client *client) {
 
 	// 	pendingpri -= 1;
 	// }
-
-    SFINISH_SNFCAT(
-        client_copy_check->str_response, &int_response_len,
-        "\015\012\015\012\015\012\015\012Connected clients:\015\012", (size_t)28
-    );
-    ListNode *client_node = _server.list_client->first;
-    while (client_node) {
-        struct sock_ev_client *client = client_node->value;
-        SFINISH_SNFCAT(
-            client_copy_check->str_response, &int_response_len,
-            "        ", (size_t)8,
-            client->str_client_ip, client->int_client_ip_len,
-            client->str_websocket_key ? " (WS)" : " (HTTP)", (size_t)(client->str_websocket_key ? 5 : 7),
-            client->str_websocket_key &&client->bol_is_open ? " (CLOSING)" : "", (size_t)(client->str_websocket_key && client->bol_is_open ? 10 : 0),
-            "\015\012", (size_t)2
-        );
-        if (client->str_websocket_key) {
-            struct sock_ev_client_request *client_request = client->cur_request;
-            char *str_request_type;
-            if (client_request) {
-                str_request_type = request_type_string(client_request->int_req_type);
-                SFINISH_SNFCAT(
-                    client_copy_check->str_response, &int_response_len,
-                    "        ", (size_t)8,
-                    "        ", (size_t)8,
-                    "current request: ", (size_t)17,
-                    str_request_type, strlen(str_request_type),
-                    "\015\012", (size_t)2
-                );
-            }
-
-            ListNode *request_node = client->que_request->last;
-            while (request_node) {
-                client_request = request_node->value;
-                str_request_type = request_type_string(client_request->int_req_type);
-                SFINISH_SNFCAT(
-                    client_copy_check->str_response, &int_response_len,
-                    "        ", (size_t)8,
-                    "        ", (size_t)8,
-                    str_request_type, strlen(str_request_type)
-                );
-                request_node = client_node->prev;
-            }
-        } else {
-            str_uri = str_uri_path(client->str_request, client->int_request_len, &int_uri_len);
-            if (!str_uri) {
-                SFINISH_SNCAT(
-                    str_uri, &int_uri_len,
-                    "failed to get uri", (size_t)17
-                );
-            }
-            SFINISH_SNFCAT(
-                client_copy_check->str_response, &int_response_len,
-                "        ", (size_t)8,
-                "        ", (size_t)8,
-                str_uri, int_uri_len,
-                "\015\012", (size_t)2
-            );
-            SFREE(str_uri);
-        }
-        client_node = client_node->next;
-    }
 
     snprintf(str_response_len, 255, "%zu", int_response_len);
     _str_response = client_copy_check->str_response;
