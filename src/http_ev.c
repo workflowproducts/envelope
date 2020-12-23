@@ -69,7 +69,7 @@ void http_ev_step1(struct sock_ev_client *client) {
             "        ", (size_t)8,
             client->str_client_ip, client->int_client_ip_len,
             client->str_websocket_key ? " (WS)" : " (HTTP)", (size_t)(client->str_websocket_key ? 5 : 7),
-            client->str_websocket_key &&client->bol_is_open ? " (CLOSING)" : "", (size_t)(client->str_websocket_key && client->bol_is_open ? 10 : 0),
+            client->str_websocket_key && client->bol_is_open ? " (CLOSING)" : "", (size_t)(client->str_websocket_key && client->bol_is_open ? 10 : 0),
             "\015\012", (size_t)2
         );
         if (client->str_websocket_key) {
@@ -95,7 +95,9 @@ void http_ev_step1(struct sock_ev_client *client) {
                     client_copy_check->str_response, &int_response_len,
                     "        ", (size_t)8,
                     "        ", (size_t)8,
-                    str_request_type, strlen(str_request_type)
+                    "queued request", (size_t)14,
+                    str_request_type, strlen(str_request_type),
+                "\015\012", (size_t)2
                 );
                 request_node = request_node->prev;
             }
