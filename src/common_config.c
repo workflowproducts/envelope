@@ -126,7 +126,7 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 		SERROR_SNCAT(str_global_web_root, &int_len,
 			str_value, strlen(str_value));
 
-	} else if (SMATCH("", "" SUN_PROGRAM_LOWER_NAME "_port")) {
+	} else if (SMATCH("", "envelope_port")) {
 		SFREE(str_global_port);
 		SERROR_SNCAT(str_global_port, &int_len,
 			str_value, strlen(str_value));
@@ -404,24 +404,24 @@ bool parse_options(int argc, char *const *argv) {
 	SERROR_SNCAT(
 		str_global_config_file, &int_global_len,
 		ENVELOPE_PREFIX, int_prefix_len,
-		"\\" SUN_PROGRAM_WORD_NAME "\\config\\" SUN_PROGRAM_LOWER_NAME ".conf",
-			strlen("\\" SUN_PROGRAM_WORD_NAME "\\config\\" SUN_PROGRAM_LOWER_NAME ".conf"));
+		"\\Envelope\\config\\envelope.conf",
+			strlen("\\Envelope\\config\\envelope.conf"));
 	SERROR_SNCAT(
 		str_global_connection_file, &int_global_len,
 		ENVELOPE_PREFIX, int_prefix_len,
-		"\\" SUN_PROGRAM_WORD_NAME "\\config\\" SUN_PROGRAM_LOWER_NAME "-connections.conf",
-			strlen("\\" SUN_PROGRAM_WORD_NAME "\\config\\" SUN_PROGRAM_LOWER_NAME "-connections.conf"));
+		"\\Envelope\\config\\envelope-connections.conf",
+			strlen("\\Envelope\\config\\envelope-connections.conf"));
 #else
 	SERROR_SNCAT(
 		str_global_config_file, &int_global_len,
 		ENVELOPE_PREFIX, int_prefix_len,
-		"/etc/" SUN_PROGRAM_LOWER_NAME "/" SUN_PROGRAM_LOWER_NAME ".conf",
-			strlen("/etc/" SUN_PROGRAM_LOWER_NAME "/" SUN_PROGRAM_LOWER_NAME ".conf"));
+		"/etc/envelope/envelope.conf",
+			strlen("/etc/envelope/envelope.conf"));
 	SERROR_SNCAT(
 		str_global_connection_file, &int_global_len,
 		ENVELOPE_PREFIX, int_prefix_len,
-		"/etc/" SUN_PROGRAM_LOWER_NAME "/" SUN_PROGRAM_LOWER_NAME "-connections.conf",
-			strlen("/etc/" SUN_PROGRAM_LOWER_NAME "/" SUN_PROGRAM_LOWER_NAME "-connections.conf"));
+		"/etc/envelope/envelope-connections.conf",
+			strlen("/etc/envelope/envelope-connections.conf"));
 #endif
 	SERROR_SNCAT(str_global_public_username, &int_global_len,
 		"", (size_t)0);
@@ -449,7 +449,7 @@ bool parse_options(int argc, char *const *argv) {
 		{"local-only",						required_argument,		NULL,	'x'},
 		{"web-root",						required_argument,		NULL,	'r'},
 		{"data-root",						required_argument,		NULL,	'a'},
-		{""SUN_PROGRAM_LOWER_NAME"-port",	required_argument,		NULL,	'p'},
+		{"envelope-port",	                required_argument,		NULL,	'p'},
 		{"tls-cert",						required_argument,		NULL,	'j'},
 		{"tls-key",							required_argument,		NULL,	'k'},
 		{"super-only",						required_argument,		NULL,	's'},
@@ -476,7 +476,7 @@ bool parse_options(int argc, char *const *argv) {
 			usage();
 			goto error;
 		} else if (ch == 'v') {
-			printf(SUN_PROGRAM_WORD_NAME " %s\n", VERSION);
+			printf("Envelope %s\n", VERSION);
 			goto error;
 		} else if (ch == 'c') {
 			SFREE(str_global_config_file);

@@ -52,6 +52,7 @@ DB_conn *DB_connect(EV_P, void *cb_data, char *str_connstring, char *str_user,
 	size_t int_escape_username_len = int_user_len;
 	size_t int_escape_password_len = int_password_len;
 	size_t int_conn_len = 0;
+	size_t int_response_len = 0;
 	SDEFINE_VAR_ALL(str_conn, str_escape_username, str_escape_password);
 
 	SFINISH_SALLOC(conn, sizeof(DB_conn));
@@ -120,8 +121,8 @@ finish:
 		conn->int_status = -1;
 		conn->cb_data = cb_data;
 		conn->connect_cb = connect_cb;
-		SFINISH_SNCAT(conn->str_response, &conn->int_response_len,
-			str_response + 6, strlen(str_response + 6));
+        // +/-6 is to cut off FATAL\012
+        SFINISH_SNCAT(conn->str_response, &conn->int_response_len, str_response + 6, int_response_len - 6);
 		ev_check_init(&conn->check, db_conn_error_cb);
 		ev_check_start(EV_A, &conn->check);
 		ev_idle_init(&conn->idle, idle_cb);
@@ -1051,6 +1052,7 @@ bool db_conn_cb_context_data(EV_P, void *cb_data, DB_result *res) {
 	char *str_response = NULL;
 	DB_poll *conn_poll = cb_data;
 	DB_conn *conn = conn_poll->conn;
+    size_t int_response_len;
 
 	SFINISH_CHECK(res != NULL, "failed to set context data");
 	SFINISH_CHECK(res->status == DB_RES_COMMAND_OK, "failed to set context data, res->status = %d: %s", res->status, res->conn->str_response);
@@ -1063,7 +1065,8 @@ finish:
 	if (str_response != NULL) {
 		conn->int_status = -1;
 		SFREE(conn->str_response);
-		conn->str_response = strdup(str_response + 6);
+        // +/-6 is to cut off FATAL\012
+        SFINISH_SNCAT(conn->str_response, &conn->int_response_len, str_response + 6, int_response_len - 6);
 		SFREE(str_response);
 		conn->conn_poll = NULL;
 		conn_poll->connect_cb(EV_A, conn_poll->cb_data, conn);
@@ -1083,6 +1086,7 @@ static void db_cnxn_cb(EV_P, ev_io *w, int revents) {
 	char *str_response = NULL;
 	char *str_sql = NULL;
 	size_t int_sql_len = 0;
+	size_t int_response_len = 0;
 
 	PostgresPollingStatusType status = PQconnectPoll(conn->conn);
 
@@ -1165,7 +1169,8 @@ finish:
 		ev_io_stop(EV_A, w);
 		conn->int_status = -1;
 		SFREE(conn->str_response);
-		conn->str_response = strdup(str_response + 6);
+        // +/-6 is to cut off FATAL\012
+        SFINISH_SNCAT(conn->str_response, &conn->int_response_len, str_response + 6, int_response_len - 6);
 		SFREE(str_response);
 		conn->conn_poll = NULL;
 		conn_poll->connect_cb(EV_A, conn_poll->cb_data, conn);

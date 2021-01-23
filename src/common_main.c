@@ -37,7 +37,7 @@ This function is run when the program exits
 ev_signal exitsig;
 void program_exit() {
     ev_signal_stop(global_loop, &exitsig);
-	fprintf(stderr, SUN_PROGRAM_UPPER_NAME" IS SHUTTING DOWN\n");
+	fprintf(stderr, "ENVELOPE IS SHUTTING DOWN\n");
 	if (global_loop != NULL) {
 		size_t int_i, int_len;
 

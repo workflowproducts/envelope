@@ -5,6 +5,7 @@ extern DB_conn *log_queries_over_conn;
 // response with redirect
 void http_auth(struct sock_ev_client_auth *client_auth) {
 	char *str_response = NULL;
+	size_t int_response_len = 0;
 	char *str_session_id_temp = NULL;
 	SDEFINE_VAR_ALL(str_form_data, str_expires);
 	SDEFINE_VAR_MORE(str_uri_expires, str_cookie_decrypted);
@@ -22,6 +23,14 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 #endif
 	char *ptr_end_uri = NULL;
 	size_t int_uri_len = 0;
+	size_t int_query_length = 0;
+	size_t int_action_length = 0;
+	size_t int_expiration_len = 0;
+	size_t int_cookie_len = 0;
+	size_t int_uri_new_password_len = 0;
+	size_t int_uri_expiration_len = 0;
+	size_t int_conn_length = 0;
+
 	// get path
 	str_uri = str_uri_path(client_auth->parent->str_request, client_auth->parent->int_request_len, &int_uri_len);
 	SFINISH_CHECK(str_uri, "str_uri_path failed");
@@ -36,16 +45,6 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		*ptr_end_uri = '\0';
 		int_uri_len = (size_t)(ptr_end_uri - str_uri);
 	}
-
-	size_t int_query_length = 0;
-	size_t int_action_length = 0;
-	size_t int_expiration_len = 0;
-	size_t int_cookie_len = 0;
-	size_t int_response_len = 0;
-	size_t int_uri_new_password_len = 0;
-	size_t int_uri_expiration_len = 0;
-	size_t int_conn_length = 0;
-
 	struct sock_ev_client_request *client_request =
 		create_request(client_auth->parent, NULL, NULL, NULL, NULL, 0, ENVELOPE_REQ_AUTH, NULL);
 	SFINISH_CHECK(client_request != NULL, "Could not create request data!");
@@ -74,7 +73,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 
 	// LOGGING IN, SET COOKIE
 	if (strncmp(client_auth->str_action, "login", 6) == 0) {
-		SINFO("REQUEST TYPE: " SUN_PROGRAM_LOWER_NAME " LOGIN");
+		SINFO("REQUEST TYPE: envelope LOGIN");
 		if (strncmp(str_uri, "/env/authnc", 12) == 0 || strncmp(str_uri, "/env/authnc/", 13) == 0) {
 			SFINISH_SNCAT(client_auth->str_user, &client_auth->int_user_length, str_global_public_username, strlen(str_global_public_username));
 			SFINISH_SNCAT(client_auth->str_password, &client_auth->int_password_length, str_global_public_password, strlen(str_global_public_password));
@@ -216,7 +215,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 				client_auth->parent->int_last_activity_i =
 					(ssize_t)DArray_push(client_auth->parent->server->arr_client_last_activity, client_last_activity);
 			}
-			SDEBUG("" SUN_PROGRAM_LOWER_NAME " COOKIE SET");
+			SDEBUG("envelope COOKIE SET");
 
 		} else {
 			char *str_temp = get_connection_info("", &client_auth->int_connection_index);
@@ -380,7 +379,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 #endif
 
 	} else if (strncmp(client_auth->str_action, "logout", 7) == 0) {
-		SINFO("REQUEST TYPE: LOGOUT " SUN_PROGRAM_LOWER_NAME "");
+		SINFO("REQUEST TYPE: LOGOUT envelope");
 
 		str_error = getpar(str_form_data, "error", int_query_length, &int_error_len);
 		str_error_uri = snuri(str_error, int_error_len, &int_error_uri_len);
@@ -418,7 +417,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 		}
 		char *str_temp1 =
 			"HTTP/1.1 303 See Other\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
+			"Server: envelope\015\012"
 			"Connection: close\015\012"
 			"Set-Cookie: envelope=";
 		size_t int_temp1 = strlen(str_temp1);
@@ -502,7 +501,6 @@ finish:
 	SFREE_PWORD(str_new_password_literal);
 	SBFREE_PWORD(str_session_id_temp, 32);
 	SFREE_ALL();
-
 }
 
 bool http_auth_login_step2_env(EV_P, void *cb_data, DB_result *res);
@@ -738,7 +736,6 @@ bool http_auth_login_step3_env(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(res != NULL, "DB_exec failed");
     SFINISH_CHECK(res->status == DB_RES_COMMAND_OK, "DB_exec failed: %s", str_diag);
 
-	bol_error_state = false;
 	SDEBUG("client_auth->str_action: %s", client_auth->str_action);
 	if (strncmp(client_auth->str_action, "login", 6) == 0) {
 		SDEBUG("CALLING NEXT LOGIN STEP");
@@ -748,6 +745,7 @@ bool http_auth_login_step3_env(EV_P, void *cb_data, DB_result *res) {
 		http_auth_change_pw_step2(EV_A, client_auth, client_auth->parent->conn);
 	}
 
+	bol_error_state = false;
 finish:
 	DB_free_result(res);
 	SFREE_ALL();
@@ -998,13 +996,13 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 	DB_free_result(res);
 
 	if (bol_global_super_only == true && strncmp(str_rolsuper, "FALSE", 5) == 0) {
-		char *str_temp1 = "{\"stat\": false, \"dat\": \"You must login as a super user to use " SUN_PROGRAM_WORD_NAME ". If you would like to use a non-superuser role, change the `super_only` parameter to false in envelope.conf\"}";
+		char *str_temp1 = "{\"stat\": false, \"dat\": \"You must login as a super user to use Envelope. If you would like to use a non-superuser role, change the `super_only` parameter to false in envelope.conf\"}";
 		SFINISH_SNCAT(str_temp, &int_temp, str_temp1, strlen(str_temp1));
 		char str_length[50];
 		snprintf(str_length, 50, "%zu", strlen(str_temp));
 		str_temp1 =
 			"HTTP/1.1 403 Forbidden\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
+			"Server: envelope\015\012"
 			"Connection: close\015\012"
 			"Content-Length: ";
 		SFINISH_SNCAT(
@@ -1016,7 +1014,7 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 		);
 		SFREE(str_temp);
 	} else if (str_global_login_group != NULL && strncmp(str_rolgroup, "FALSE", 5) == 0) {
-		size_t int_content_length = 76 + strlen(str_global_login_group) + strlen(SUN_PROGRAM_WORD_NAME);
+		size_t int_content_length = 76 + strlen(str_global_login_group) + strlen("Envelope");
 		// 255 chars should be enough
 		SFINISH_SALLOC(str_content_length, 255 + 1);
 		snprintf(str_content_length, 255, "%zu", int_content_length);
@@ -1024,14 +1022,14 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 
 		char *str_temp1 =
 			"HTTP/1.1 403 Forbidden\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
+			"Server: envelope\015\012"
 			"Connection: close\015\012"
 			"Content-Length: ";
 		char *str_temp2 =
 			"{\"stat\": false, \"dat\": \"You must login as a member "
 			"of the group '";
 		char *str_temp3 =
-			"' to use " SUN_PROGRAM_WORD_NAME "\"}";
+			"' to use Envelope\"}";
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
 			str_temp1, strlen(str_temp1),
@@ -1091,7 +1089,7 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 			client_auth->parent->int_last_activity_i =
 				(ssize_t)DArray_push(client_auth->parent->server->arr_client_last_activity, client_last_activity);
 		}
-		SDEBUG("" SUN_PROGRAM_LOWER_NAME " COOKIE SET");
+		SDEBUG("envelope COOKIE SET");
 	}
 
 	SDEBUG("str_response: %s", str_response);

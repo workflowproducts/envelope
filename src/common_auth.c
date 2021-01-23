@@ -7,6 +7,7 @@ bool connect_cb_env_step3(EV_P, void *cb_data, DB_result *res);
 // get connection string from cookie
 DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	char *str_response = NULL;
+	size_t int_response_len = 0;
 	SDEFINE_VAR_ALL(str_cookie_encrypted, str_cookie_decrypted, str_password, str_uri, str_temp, str_conn_index);
 	SDEFINE_VAR_MORE(str_conn_debug, str_username, str_connname, str_database, str_uri_temp, str_context_data);
 	SDEFINE_VAR_MORE(str_uri_ip_address, str_uri_host, str_uri_user_agent);
@@ -21,7 +22,6 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	size_t int_cookie_len = 0;
 	size_t int_host_len = 0;
 	size_t int_user_agent_len = 0;
-	size_t int_response_len = 0;
 	size_t int_context_data_len = 0;
 	size_t int_uri_ip_address_len = 0;
 	size_t int_uri_host_len = 0;
@@ -420,7 +420,7 @@ finish://|/usr/libexec/abrt-hook-ccpp %s %c %p %u %g %t e
 		char *str_response_temp = "You need to login.";
 		SFINISH_SNCAT(str_response, &int_response_len,
 			"\x03\xf3", (size_t)2, // close reason 1011
-			str_response_temp, strlen(str_response_temp)
+			str_response_temp, int_response_len
 		);
 		WS_sendFrame(global_loop, client, true, 0x08, str_response, int_response_len);
 		client->bol_is_open = false;
@@ -458,6 +458,7 @@ void connect_cb_env(EV_P, void *cb_data, DB_conn *conn) {
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
 	size_t int_temp = 0;
+	size_t int_response_len = 0;
 	SDEFINE_VAR_ALL(str_user_ident, str_diag, str_sql);
 
 	SFINISH_CHECK(conn->int_status == 1, "%s", conn->str_response);
@@ -513,6 +514,7 @@ finish:
 	if (bol_error_state == true) {
 		SFREE(conn->str_response);
 		conn->str_response = str_response;
+		conn->int_response_len = int_response_len;
 		conn->int_status = -1;
 		client->connect_cb(EV_A, client, conn);
 	}
@@ -525,6 +527,7 @@ bool connect_cb_env_step2(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
 	size_t int_temp = 0;
+	size_t int_response_len = 0;
 	SDEFINE_VAR_ALL(str_diag, str_app, str_app_literal, str_sql);
 	str_diag = DB_get_diagnostic(client->conn, res);
 
@@ -552,11 +555,13 @@ bool connect_cb_env_step2(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, connect_cb_env_step3), "DB_exec failed");
 
+	bol_error_state = false;
 finish:
 	DB_free_result(res);
 	if (bol_error_state == true) {
 		SFREE(client->conn->str_response);
 		client->conn->str_response = str_response;
+		client->conn->int_response_len = int_response_len;
 		client->conn->int_status = -1;
 		client->connect_cb(EV_A, client, client->conn);
 	}
@@ -569,6 +574,7 @@ bool connect_cb_env_step3(EV_P, void *cb_data, DB_result *res) {
 	SDEBUG("connect_cb_env_step3");
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
+    size_t int_response_len;
 	SDEFINE_VAR_ALL(str_diag);
 	str_diag = DB_get_diagnostic(client->conn, res);
 
@@ -577,11 +583,13 @@ bool connect_cb_env_step3(EV_P, void *cb_data, DB_result *res) {
 
 	client->connect_cb(EV_A, client, client->conn);
 
+	bol_error_state = false;
 finish:
 	DB_free_result(res);
 	if (bol_error_state == true) {
 		SFREE(client->conn->str_response);
 		client->conn->str_response = str_response;
+		client->conn->int_response_len = int_response_len;
 		client->conn->int_status = -1;
 		client->connect_cb(EV_A, client, client->conn);
 	}

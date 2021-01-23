@@ -25,6 +25,8 @@ struct sock_ev_client_query_callback_watcher {
 #define UNDEF_SOCKET
 #define SOCKET int
 #endif
+#else
+typedef SSIZE_T ssize_t;
 #endif
 
 #define GET_CLIENT_PQ_SOCKET(A) A->conn->int_sock
@@ -153,6 +155,14 @@ struct sock_ev_client {
 
 	char *str_request;
 	char *str_response;
+
+	char *str_http_response;
+    size_t int_http_written;
+    size_t int_http_response_len;
+
+	char *str_http_header;
+    size_t int_http_header_written;
+    size_t int_http_header_len;
 
 	int int_ev_sock;
 	SOCKET int_sock;

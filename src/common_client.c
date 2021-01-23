@@ -363,8 +363,19 @@ void client_cb(EV_P, ev_io *w, int revents) {
 			client->int_request_len > 0 || int_len != 0, "Libev said EV_READ, but there is nothing to read. Closing socket");
 
 		if (int_len >= 0) {
-			if ((client->int_request_len == 0 || int_len == 0) && bstrstr(str_buffer, (size_t)int_len, "HTTP", 4) == NULL) {
-				SERROR("Someone is trying to connect with TLS!");
+			if ((client->int_request_len == 0 || int_len == 0) &&
+                !(
+                    strncmp(str_buffer, "GET", 3) == 0
+                    || strncmp(str_buffer, "HEAD", 4) == 0
+                    || strncmp(str_buffer, "POST", 4) == 0
+                    || strncmp(str_buffer, "PUT", 3) == 0
+                    || strncmp(str_buffer, "DELETE", 6) == 0
+                    || strncmp(str_buffer, "CONNECT", 7) == 0
+                    || strncmp(str_buffer, "OPTIONS", 7) == 0
+                    || strncmp(str_buffer, "TRACE", 5) == 0
+                    || strncmp(str_buffer, "PATH", 4) == 0
+                )) {
+				SERROR("Someone is trying to connect with TLS! %s", str_buffer);
 			}
 
 			if (client->int_form_data_length > 0 && client->int_request_full_len == 0) {
@@ -755,8 +766,7 @@ error:
 
 // **************************************************************************************
 // **************************************************************************************
-// ************************************* FRAME READY
-// ************************************
+// ************************************* FRAME READY ************************************
 // **************************************************************************************
 // **************************************************************************************
 
@@ -1150,8 +1160,7 @@ error:
 
 // **************************************************************************************
 // **************************************************************************************
-// ***************************** SEND FROM CHECK CALLBACK
-// *******************************
+// ***************************** SEND FROM CHECK CALLBACK *******************************
 // **************************************************************************************
 // **************************************************************************************
 
@@ -1197,8 +1206,7 @@ void client_send_from_cb(EV_P, ev_check *w, int revents) {
 
 // **************************************************************************************
 // **************************************************************************************
-// ********************************** REQUEST STRUCT
-// ************************************
+// ********************************** REQUEST STRUCT ************************************
 // **************************************************************************************
 // **************************************************************************************
 
@@ -1269,8 +1277,7 @@ void _client_request_free(struct sock_ev_client_request *client_request) {
 
 // **************************************************************************************
 // **************************************************************************************
-// *********************************** REQUEST QUEUE
-// ************************************
+// *********************************** REQUEST QUEUE ************************************
 // **************************************************************************************
 // **************************************************************************************
 
@@ -1425,6 +1432,92 @@ finish:
 	SFREE_ALL();
 	bol_error_state = false;
 	return;
+}
+
+// **************************************************************************************
+// **************************************************************************************
+// ******************************** SEND HTTP RESPONSES *********************************
+// **************************************************************************************
+// **************************************************************************************
+
+void client_write_http_cb(EV_P, ev_io *w, int revents) {
+	if (revents != 0) {
+	} // get rid of unused parameter warning
+	SINFO("client_write_http_cb");
+	struct sock_ev_client *client = (struct sock_ev_client *)w;
+	ssize_t int_http_response_len = (ssize_t)client->int_http_response_len - (ssize_t)client->int_http_written;
+	if (int_http_response_len > MB) {
+		int_http_response_len = MB;
+	}
+
+	int_http_response_len = write(client->int_sock, client->str_http_response + client->int_http_written, (size_t)int_http_response_len);
+
+	SDEBUG("write(%i, %p, %i): %i", client->int_sock, client->str_http_response + client->int_http_written,
+		client->int_http_response_len - client->int_http_written, int_response_len);
+
+	if (int_http_response_len < 0 && errno != EAGAIN) {
+		SERROR("write(%i, %p, %i) failed: %i", client->int_sock, client->str_http_response + client->int_http_written,
+				client->int_http_response_len - client->int_http_written, int_http_response_len);
+	} else {
+		client->int_http_written += (size_t)int_http_response_len;
+	}
+
+	if (client->int_http_written == client->int_http_response_len) {
+		SFREE(client->str_http_response);
+		ev_io_stop(EV_A, w);
+		SERROR_CLIENT_CLOSE(client);
+		client = NULL;
+	}
+	bol_error_state = false;
+	errno = 0;
+	return;
+error:
+	SFREE(client->str_http_response);
+	SERROR_CLIENT_CLOSE_NORESPONSE(client);
+	bol_error_state = false;
+	errno = 0;
+}
+
+// this version writes the headers, then uses the above
+// function to write the content itself
+// this is so that (for example) http_file doesn't copy the
+// entire response (that could be very large) into a new pointer
+void client_write_http_headers_cb(EV_P, ev_io *w, int revents) {
+	if (revents != 0) {
+	} // get rid of unused parameter warning
+	SINFO("client_write_http_headers_cb");
+	struct sock_ev_client *client = (struct sock_ev_client *)w;
+	ssize_t int_http_header_len = (ssize_t)client->int_http_header_len - (ssize_t)client->int_http_header_written;
+	if (int_http_header_len > MB) {
+		int_http_header_len = MB;
+	}
+
+	int_http_header_len = write(client->int_sock, client->str_http_header + client->int_http_header_written, (size_t)int_http_header_len);
+
+	SDEBUG("write(%i, %p, %i): %i", client->int_sock, client->str_http_header + client->int_http_header_written,
+		client->int_http_header_len - client->int_http_header_written, int_header_len);
+
+	if (int_http_header_len < 0 && errno != EAGAIN) {
+		SERROR("write(%i, %p, %i) failed: %i", client->int_sock, client->str_http_header + client->int_http_header_written,
+				client->int_http_header_len - client->int_http_header_written, int_http_header_len);
+	} else {
+		client->int_http_header_written += (size_t)int_http_header_len;
+	}
+
+	if (client->int_http_header_written == client->int_http_header_len) {
+		SFREE(client->str_http_header);
+		ev_io_stop(EV_A, w);
+        ev_io_init(w, client_write_http_cb, w->fd, revents);
+        ev_io_start(EV_A, w);
+	}
+	bol_error_state = false;
+	errno = 0;
+	return;
+error:
+	SFREE(client->str_http_header);
+	SERROR_CLIENT_CLOSE_NORESPONSE(client);
+	bol_error_state = false;
+	errno = 0;
 }
 
 // **************************************************************************************
@@ -1669,8 +1762,7 @@ finish:
 
 // **************************************************************************************
 // **************************************************************************************
-// *************************** CHECK IF CLIENT IS STILL THERE
-// ***************************
+// *************************** CHECK IF CLIENT IS STILL THERE ***************************
 // **************************************************************************************
 // **************************************************************************************
 
@@ -1835,6 +1927,7 @@ bool client_close(struct sock_ev_client *client) {
 		if (client->int_last_activity_i == -1) {
 			client_last_activity = NULL;
 			SERROR_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
+			SERROR_SALLOC(client_last_activity->str_client_ip, strlen(client->str_client_ip) + 1);
 			memcpy(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip));
 			SERROR_SNCAT(client_last_activity->str_cookie, &int_cookie_len,
 				client->str_cookie, int_cookie_len);
@@ -2097,6 +2190,8 @@ void client_close_immediate(struct sock_ev_client *client) {
 	SFREE(client->str_client_ip);
 	SFREE(client->str_connname_folder);
 	SFREE(client->str_referer);
+	SFREE(client->str_http_header);
+	SFREE(client->str_http_response);
 	// DEBUG("%p->str_cookie: %p", client, client->str_cookie);
 	SFREE_PWORD(client->str_cookie);
 	SFREE_PWORD(client->str_all_cookie);

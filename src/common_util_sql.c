@@ -683,6 +683,7 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 		}
 	}
 
+	bol_error_state = false;
 finish:
 	if (bol_error_state == true) {
 		bol_error_state = false;

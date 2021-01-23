@@ -543,7 +543,6 @@ char *cb_to_name(void *cb) {
 		: (cb == http_auth_change_database_step2) ? "http_auth_change_database_step2"
 		: (cb == http_file_step2) ? "http_file_step2"
 		: (cb == http_file_step3) ? "http_file_step3"
-		: (cb == http_file_write_cb) ? "http_file_write_cb"
 		: (cb == http_upload_step2) ? "http_upload_step2"
 		: (cb == http_upload_step3) ? "http_upload_step3"
 		: (cb == client_cb) ? "client_cb"

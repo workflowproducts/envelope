@@ -131,6 +131,7 @@ char *warn_response_root(char *str_file, int int_line_no, char *str_function, ch
 	bol_error_state = true;                                                                                                      \
 	SFREE(str_response);                                                                                                         \
 	str_response = SWARN_RESPONSE(M, ##__VA_ARGS__);                                                                             \
+	int_response_len = strlen(str_response);                                                                                     \
 	goto finish;
 
 #define SFINISH_ERROR(M, ...)                                                                                                    \

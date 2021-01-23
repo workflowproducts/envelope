@@ -191,3 +191,41 @@ error:
 	SFREE(vod_ptr);
 	return NULL;
 }
+
+DArray *_DArray_from_strings(size_t int_count, ...) {
+	va_list ap;
+	size_t int_i = 0;
+	char *ptr_temp = NULL;
+    char *str_temp = NULL;
+    size_t int_temp_len = 0;
+    // without the + 1, the array would get grown at the last push
+    // an extra 8 bytes to store a pointer is less overhead than
+    // re-allocating something that is likely not to be modified
+    // (this function is intended for when you need to pass an array as an argument)
+    DArray *darr_ret = DArray_create(sizeof(char *), int_count + 1);
+    SERROR_CHECK(darr_ret != NULL, "DArray_create failed");
+
+	va_start(ap, int_count);
+
+	for (int_i = 0; int_i < int_count; int_i += 1) {
+		ptr_temp = va_arg(ap, char *);
+        if (ptr_temp != NULL) {
+		    SERROR_SNCAT(str_temp, &int_temp_len, ptr_temp, strlen(ptr_temp));
+            DArray_push(darr_ret, str_temp);
+            SDEBUG("push: %s", str_temp);
+            str_temp = NULL;
+        }
+	}
+	va_end(ap);
+
+    SFREE(str_temp);
+
+    return darr_ret;
+error:
+    SFREE(str_temp);
+    if (darr_ret != NULL) {
+        DArray_clear_destroy(darr_ret);
+        darr_ret = NULL;
+    }
+    return NULL;
+}

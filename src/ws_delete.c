@@ -732,6 +732,7 @@ bool ws_delete_step6(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_SALLOC(str_rows, 20);
 	sprintf(str_rows, "%zd", DB_rows_affected(res));
 	str_rows = *str_rows == '\0' ? strdup("0") : str_rows;
+	SFINISH_CHECK(str_rows, "strdup failed");
 
 	DB_free_result(res);
 	// Build first response (tells the client how many rows deleted)

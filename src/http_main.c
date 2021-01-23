@@ -196,6 +196,7 @@ void http_main(struct sock_ev_client *client) {
 	client->bol_request_in_progress = true;
 	SDEFINE_VAR_ALL(str_uri, str_conninfo);
 	char *str_response = NULL;
+    size_t int_response_len;
 	char *ptr_end_uri = NULL;
 	size_t int_uri_len = 0;
 	// get path
@@ -268,22 +269,21 @@ finish:
 bool http_client_info_cb(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
+    size_t int_response_len;
 	bool bol_ret = true;
 	DArray *arr_values = NULL;
 	int int_i = 0;
 	DB_fetch_status status = DB_FETCH_OK;
+	size_t int_groups_len = 0;
+	size_t int_version_len = 0;
+	size_t int_user_len = 0;
+	size_t int_json_version_len = 0;
+	size_t int_json_user_len = 0;
+	size_t int_json_item_len = 0;
 	SDEFINE_VAR_ALL(str_json_item, str_conn_desc, str_conn_desc_enc, str_user, str_json_user, str_version, str_json_version, str_groups);
 
 	SFINISH_CHECK(res != NULL, "DB_exec failed");
 	SFINISH_CHECK(res->status == DB_RES_TUPLES_OK, "DB_exec failed");
-
-	size_t int_groups_len = 0;
-	size_t int_version_len = 0;
-	size_t int_user_len = 0;
-	size_t int_response_len = 0;
-	size_t int_json_version_len = 0;
-	size_t int_json_user_len = 0;
-	size_t int_json_item_len = 0;
 
 	SFINISH_SNCAT(str_groups, &int_groups_len,
 		"[", (size_t)1);
@@ -336,7 +336,7 @@ bool http_client_info_cb(EV_P, void *cb_data, DB_result *res) {
 		str_global_port, strlen(str_global_port),
 		", \"database_version\": ", (size_t)22,
 		str_json_version, int_json_version_len,
-		",\"" SUN_PROGRAM_LOWER_NAME "\": \"", strlen(",\"" SUN_PROGRAM_LOWER_NAME "\": \""),
+		",\"envelope\": \"", (size_t)14,
 		VERSION, strlen(VERSION),
 		"\"}}", (size_t)3);
 

@@ -112,6 +112,7 @@ void ws_action_step1(struct sock_ev_client_request *client_request) {
 		DB_copy_out(global_loop, client_request->parent->conn, client_request, str_sql, ws_copy_check_cb), "DB_copy_out failed");
 	SDEBUG("str_sql: %s", str_sql);
 
+	bol_error_state = false;
 finish:
 	if (bol_error_state == true) {
 		bol_error_state = false;

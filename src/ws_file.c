@@ -683,6 +683,7 @@ bool ws_file_read_step2(EV_P, void *cb_data, bool bol_group) {
 	ev_idle_init(&client_request->idle, idle_cb);
 	ev_idle_start(EV_A, &client_request->idle);
 
+	bol_error_state = false;
 finish:
 #ifdef _WIN32
 	if (strErrorText != NULL) {
@@ -1709,6 +1710,7 @@ bool ws_file_copy_step4(EV_P, void *cb_data, char *str_path) {
 		}
 	}
 	SFREE(str_global_error);
+	bol_error_state = false;
 finish:
 	if (bol_error_state) {
 		bol_error_state = false;
@@ -1988,6 +1990,7 @@ bool ws_file_delete_step3(EV_P, void *cb_data, char *str_path) {
 	SDEBUG("str_new_path: %s", str_new_path);
 
 	SFINISH_CHECK(canonical_delete(client_file->str_canonical_start, str_new_path), "canonical_delete failed");
+	bol_error_state = false;
 finish:
 	if (bol_error_state) {
 		bol_error_state = false;

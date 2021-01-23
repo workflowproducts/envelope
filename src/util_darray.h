@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "util_string.h"
 #include "util_error.h"
 #include "util_salloc.h"
 
@@ -56,3 +57,6 @@ int darray_strcmp(char **a, char **b);
 void DArray_qsort(DArray *array, DArray_compare cmp);
 
 DArray *split_cstr(char *str_to_split, const char *str_delim);
+DArray *_DArray_from_strings(size_t int_count, ...);
+
+#define DArray_from_strings(...) _DArray_from_strings(VA_NUM_ARGS(__VA_ARGS__), ##__VA_ARGS__)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "util_response.h"
 #include "http_main.h"
 #include <time.h>
 
@@ -21,6 +22,10 @@ struct sock_ev_client_http_file {
 	ssize_t int_read_len;
 	bool bol_download;
 	size_t int_written;
+    char *str_etag;
+    char *str_last_modified;
+    char *str_content;
+    size_t int_content_len;
 
 	struct sock_ev_client *parent;
 };
@@ -54,15 +59,6 @@ Once it has finished reading the file, it will set up the write callback on the
 socket
 */
 void http_file_step3(EV_P, ev_check *w, int revents);
-
-/*
-This function is run whenever the socket is ready for us to send data
-
-What it does, is write as much as it can to the socket, then return control back
-to the event loop
-Once it has finished writing, it free()s the data associated with this request
-*/
-void http_file_write_cb(EV_P, ev_io *w, int revents);
 
 /*
 This function free()s everything inside an http_file struct

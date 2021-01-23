@@ -102,6 +102,9 @@ can it fires of the next request
 */
 void client_request_queue_cb(EV_P, ev_check *w, int revents);
 
+void client_write_http_cb(EV_P, ev_io *w, int revents);
+void client_write_http_headers_cb(EV_P, ev_io *w, int revents);
+
 /*
 This function finishes the postgresql connection we started in client_cb
 */
