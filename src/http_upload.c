@@ -12,6 +12,7 @@ void http_upload_step1(struct sock_ev_client *client) {
 #endif
 
 	SFINISH_SALLOC(client_upload, sizeof(struct sock_ev_client_upload));
+    client->client_upload = client_upload;
 	client_upload->parent = client;
 	client_upload->int_written = 0;
 #ifdef _WIN32
@@ -64,39 +65,27 @@ void http_upload_step1(struct sock_ev_client *client) {
 		"permissions_write_check() failed");
 	SFREE(str_temp);
 
+    bol_error_state = false;
 finish:
-	bol_error_state = false;
 	SFREE_ALL();
-	if (str_response != NULL) {
-		SDEBUG("str_response: %s", str_response);
-		char *_str_response = str_response;
-		char str_length[50];
-		snprintf(str_length, 50, "%zu", strlen(_str_response));
+	if (bol_error_state) {
+		bol_error_state = false;
 
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ",
-			strlen("HTTP/1.1 500 Internal Server Error\015\012"
-				"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-				"Connection: close\015\012"
-				"Content-Length: "),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, strlen(_str_response));
-
-		SFREE(_str_response);
-		if (write(client->int_sock, str_response, int_response_len) < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-		// Unlikely, but possible
-		if (client_upload != NULL) {
-			http_upload_free(client_upload);
-		}
-		SFREE(str_response);
+        SFREE(client->str_http_header);
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client->str_http_response, &client->int_http_response_len
+            ), "build_http_response failed");
+	}
+    SFREE(str_response);
+    // if client->str_http_header is non-empty, we are already taken care of
+	if (client->str_http_response != NULL && client->str_http_header == NULL) {
 		ev_io_stop(global_loop, &client->io);
-		SERROR_CLIENT_CLOSE_NORESPONSE(client);
+		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client->io);
 	}
 }
 
@@ -142,6 +131,7 @@ bool http_upload_step2(EV_P, void *cb_data, bool bol_group) {
 	ev_idle_init(&client_upload->idle, idle_cb);
 	ev_idle_start(EV_A, &client_upload->idle);
 
+	bol_error_state = false;
 finish:
 #ifdef _WIN32
 	if (strErrorText != NULL) {
@@ -149,42 +139,25 @@ finish:
 		strErrorText = NULL;
 	}
 #endif
-	bol_error_state = false;
-	if (client_upload != NULL) {
-		SFREE(client_upload->str_file_name);
-	}
 	SFREE_ALL();
-	if (str_response != NULL) {
-		SDEBUG("str_response: %s", str_response);
-		char *_str_response = str_response;
-		char str_length[50];
-		snprintf(str_length, 50, "%zu", strlen(_str_response));
+	if (bol_error_state) {
+		bol_error_state = false;
 
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ",
-			strlen("HTTP/1.1 500 Internal Server Error\015\012"
-				"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-				"Connection: close\015\012"
-				"Content-Length: "),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, strlen(_str_response));
-
-		SFREE(_str_response);
-		if (write(client->int_sock, str_response, int_response_len) < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-		// Unlikely, but possible
-		if (client_upload != NULL) {
-			http_upload_free(client_upload);
-		}
-		// This prevents an infinite loop if CLIENT_CLOSE fails
-		SFREE(str_response);
-		ev_io_stop(EV_A, &client->io);
-		SERROR_CLIENT_CLOSE_NORESPONSE(client);
+        SFREE(client->str_http_header);
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client->str_http_response, &client->int_http_response_len
+            ), "build_http_response failed");
+	}
+    SFREE(str_response);
+    // if client->str_http_header is non-empty, we are already taken care of
+	if (client->str_http_response != NULL && client->str_http_header == NULL) {
+		ev_io_stop(global_loop, &client->io);
+		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client->io);
 	}
 	return true;
 }
@@ -224,54 +197,36 @@ void http_upload_step3(EV_P, ev_check *w, int revents) {
 	client_upload->int_written += int_temp;
 
 	if (client_upload->int_written == (ssize_t)client_upload->sun_current_upload->int_file_content_len) {
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"HTTP/1.1 200 OK\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: 17\015\012"
-			"\015\012"
-			"Upload Succeeded\012",
-				strlen("HTTP/1.1 200 OK\015\012"
-				"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-				"Connection: close\015\012"
-				"Content-Length: 17\015\012"
-				"\015\012"
-				"Upload Succeeded\012"));
-		if (write(client->int_sock, str_response, int_response_len) < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-		SFREE(str_response);
-
-		http_upload_free(client_upload);
-		SERROR_CLIENT_CLOSE_NORESPONSE(client);
+        SFINISH_CHECK(build_http_response(
+                "200 OK"
+                , "Upload Succeeded\012", strlen("Upload Succeeded\012")
+                , "text/plain"
+                , NULL
+                , &client->str_http_response, &client->int_http_response_len
+            ), "build_http_response failed");
+        ev_check_stop(EV_A, w);
 	}
 
 	bol_error_state = false;
 finish:
-	if (bol_error_state == true) {
+	if (bol_error_state) {
 		bol_error_state = false;
-		char *_str_response = str_response;
-		char str_length[50];
-		snprintf(str_length, 50, "%zu", strlen(_str_response));
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ",
-				strlen("HTTP/1.1 500 Internal Server Error\015\012"
-				"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-				"Connection: close\015\012"
-				"Content-Length: "),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, strlen(_str_response));
-		SFREE(_str_response);
-		if (write(client->int_sock, str_response, int_response_len) < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-		http_upload_free(client_upload);
-		SFREE(str_response);
-		SERROR_CLIENT_CLOSE_NORESPONSE(client);
+
+        SFREE(client->str_http_header);
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client->str_http_response, &client->int_http_response_len
+            ), "build_http_response failed");
+	}
+    SFREE(str_response);
+    // if client->str_http_header is non-empty, we are already taken care of
+	if (client->str_http_response != NULL && client->str_http_header == NULL) {
+		ev_io_stop(global_loop, &client->io);
+		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client->io);
 	}
 }
 

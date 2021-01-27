@@ -16,12 +16,14 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 	SDEFINE_VAR_MORE(str_new_cookie, str_user_quote, str_new_password_literal);
 	SDEFINE_VAR_MORE(str_uri_timeout, str_one_day_expire, str_cookie_name, str_session_id);
 	SDEFINE_VAR_MORE(str_error, str_error_uri, str_uri);
+    DArray *darr_headers = NULL;
 	size_t int_error_len = 0;
 	size_t int_error_uri_len = 0;
 #ifndef ENVELOPE_INTERFACE_LIBPQ
 	LPSTR strErrorText = NULL;
 #endif
 	char *ptr_end_uri = NULL;
+	size_t int_temp_len = 0;
 	size_t int_uri_len = 0;
 	size_t int_query_length = 0;
 	size_t int_action_length = 0;
@@ -173,23 +175,30 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 
 		if (strncmp(str_uri, "/env/authnc", 12) == 0 || strncmp(str_uri, "/env/authnc/", 13) == 0) {
 			char *str_temp1 =
-				"HTTP/1.1 200 OK\015\012"
-				"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-				"Connection: close\015\012"
-				"Set-Cookie: envelope=";
+				"envelope=";
 			char *str_temp2 =
-				"; HttpOnly;\015\012\015\012"
-				"{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}";
+				"; HttpOnly;";
 			SFREE(str_expires);
 			str_expires = str_expire_one_day();
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
+				str_temp, &int_temp_len,
 				str_temp1, strlen(str_temp1),
 				client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
 				"; path=/; expires=", (size_t)18,
 				str_expires, strlen(str_expires),
 				str_temp2, strlen(str_temp2)
 			);
+            darr_headers = DArray_from_strings(
+                "Set-Cookie", str_temp
+            );
+            SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
+            SFINISH_CHECK(build_http_response(
+                    "200 OK"
+                    , "{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}", strlen("{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}")
+                    , "application/json"
+                    , darr_headers
+                    , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+                ), "build_http_response failed");
 
 			struct sock_ev_client *client = client_auth->parent;
 			size_t int_i, int_len;
@@ -209,6 +218,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 			if (client->int_last_activity_i == -1) {
 				size_t int_temp;
 				SFINISH_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
+				SFINISH_SALLOC(client_last_activity->str_client_ip, strlen(client_auth->parent->str_client_ip));
 				memcpy(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip));
 				SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
 				client_last_activity->last_activity_time = ev_now(global_loop);
@@ -415,40 +425,33 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 				SDEBUG("node: %p", node);
 			}
 		}
-		char *str_temp1 =
-			"HTTP/1.1 303 See Other\015\012"
-			"Server: envelope\015\012"
-			"Connection: close\015\012"
-			"Set-Cookie: envelope=";
-		size_t int_temp1 = strlen(str_temp1);
-		char *str_temp2 =
-			"; path=/; expires=Tue, 01 Jan 1990 00:00:00 GMT"
-			"; HttpOnly\015\012"
-			"Location: /index.html";
-		size_t int_temp2 = strlen(str_temp2);
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp1, int_temp1,
-			str_temp2, int_temp2,
-			int_error_uri_len > 0 ? "?error=" : "", int_error_uri_len > 0 ? (size_t)7 : (size_t)0,
-			int_error_uri_len > 0 ? str_error_uri : "", int_error_uri_len,
-			"\015\012\015\012", (size_t)4
-		);
+
+        darr_headers = DArray_from_strings(
+            "Location", "/index.html"
+            , "Set-Cookie", "envelope=; path=/; expires=Tue, 01 Jan 1990 00:00:00 GMT; HttpOnly"
+        );
+        SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
+        SFINISH_CHECK(build_http_response(
+                "303 See Other"
+                , NULL, 0
+                , NULL
+                , darr_headers
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
 		SFREE_PWORD(str_form_data);
 	} else {
 		SINFO("REQUEST TYPE: Not a valid action.");
 
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012\015\012"
-			"Not a valid action.";
-		SFINISH_SNCAT(str_response, &int_response_len, str_temp, strlen(str_temp));
+		SFINISH("Not a valid action.");
 
 		SFREE_PWORD(str_form_data);
 	}
 	bol_error_state = false;
 finish:
+    if (darr_headers != NULL) {
+        DArray_clear_destroy(darr_headers);
+        darr_headers = NULL;
+    }
 #ifndef ENVELOPE_INTERFACE_LIBPQ
 	if (strErrorText != NULL) {
 		LocalFree(strErrorText);
@@ -460,35 +463,24 @@ finish:
 		SDEBUG("client_auth->parent: %p", client_auth->parent);
 	}
 
-	ssize_t int_write_len = 0;
-	if (bol_error_state == true) {
-		SDEBUG("str_response: %s", str_response);
-		char *_str_response = str_response;
-		char str_length[50];
-		snprintf(str_length, 50, "%zu", (int_response_len != 0 ? int_response_len : strlen(_str_response)));
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ";
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp, strlen(str_temp),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, (int_response_len != 0 ? int_response_len : strlen(_str_response))
-		);
-		SFREE(_str_response);
+	if (bol_error_state) {
+		bol_error_state = false;
+
+        SFREE(client_auth->parent->str_http_header);
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
 	}
-
-	if (str_response != NULL) {
-		if ((int_write_len = write(client_auth->parent->int_sock, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-		SFREE(str_response);
-
-		struct sock_ev_client *client = client_auth->parent;
-		SERROR_CLIENT_CLOSE_NORESPONSE(client);
+    SFREE(str_response);
+    // if client_auth->parent->str_http_header is non-empty, we are already taken care of
+	if (client_auth->parent->str_http_response != NULL && client_auth->parent->str_http_header == NULL) {
+		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client_auth->parent->io);
 	}
 
 	SFREE_PWORD(str_form_data);
@@ -565,37 +557,25 @@ void http_auth_login_step15(EV_P, void *cb_data, DB_conn *conn) {
 	bol_error_state = false;
 finish:
 	SFREE(conn->str_response);
-	ssize_t int_len2 = 0;
-	if (bol_error_state == true) {
-		SDEBUG("str_response: %s", str_response);
-		char *_str_response = str_response;
-		char str_length[50];
-		snprintf(str_length, 50, "%zu", (int_response_len != 0 ? int_response_len : strlen(_str_response)));
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ";
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp, strlen(str_temp),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, (int_response_len != 0 ? int_response_len : strlen(_str_response))
-		);
-		SFREE(_str_response);
-	}
-	if (str_response != NULL) {
-		if ((int_len2 = write(client_auth->parent->int_sock, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-		SFREE(str_response);
 
-		struct sock_ev_client *client = client_auth->parent;
-		SERROR_CLIENT_CLOSE_NORESPONSE(client);
-	}
-	bol_error_state = false;
 	SFREE_ALL();
+	if (bol_error_state) {
+		bol_error_state = false;
+
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
+	}
+    SFREE(str_response);
+	if (client_auth->parent->str_http_response != NULL) {
+		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client_auth->parent->io);
+	}
 }
 
 bool http_auth_login_step2_env(EV_P, void *cb_data, DB_result *res) {
@@ -679,49 +659,33 @@ finish:
 	}
 	SFREE_ALL();
 
-	ssize_t int_len = 0;
-
-	if (bol_error_state == true) {
+    if (client_auth->parent->conn->str_response != NULL && client_auth->parent->conn->str_response[0] != 0) {
+        SFINISH_SNFCAT(
+            str_response, &int_response_len,
+            ":\n", (size_t)2,
+            client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
+        );
+    }
+    SFREE(client_auth->parent->conn->str_response);
+	if (bol_error_state) {
+		bol_error_state = false;
         SERROR_NORESPONSE("Login failed from ip: %s", client_auth->parent->str_client_ip);
-		SFREE(str_global_error);
-		SDEBUG("str_response: %s", str_response);
-		char *_str_response = str_response;
-		char str_length[50];
-		snprintf(str_length, 50, "%zu", strlen(_str_response));
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ";
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp, strlen(str_temp),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, (int_response_len != 0 ? int_response_len : strlen(_str_response))
-		);
-		SFREE(_str_response);
-		if (client_auth->parent->conn->str_response != NULL && client_auth->parent->conn->str_response[0] != 0) {
-			SFINISH_SNFCAT(
-				str_response, &int_response_len,
-				":\n", (size_t)2,
-				client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
-			);
-		}
-		SFREE(client_auth->parent->conn->str_response);
+        SFREE(str_global_error);
+
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
 	}
-
-	if (str_response != NULL) {
-		if ((int_len = write(client_auth->parent->int_sock, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-		SFREE(str_response);
-
-		struct sock_ev_client *client = client_auth->parent;
-		SERROR_CLIENT_CLOSE_NORESPONSE(client);
+    SFREE(str_response);
+	if (client_auth->parent->str_http_response != NULL) {
+		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client_auth->parent->io);
 	}
-
-	bol_error_state = false;
 	return true;
 }
 
@@ -750,47 +714,31 @@ finish:
 	DB_free_result(res);
 	SFREE_ALL();
 
-	ssize_t int_len = 0;
+    if (client_auth->parent->conn->str_response != NULL && client_auth->parent->conn->str_response[0] != 0) {
+        SFINISH_SNFCAT(
+            str_response, &int_response_len,
+            ":\n", (size_t)2,
+            client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
+        );
+    }
+    SFREE(client_auth->parent->conn->str_response);
+	if (bol_error_state) {
+		bol_error_state = false;
 
-	if (bol_error_state == true) {
-		SDEBUG("str_response: %s", str_response);
-		char *_str_response = str_response;
-		char str_length[50];
-		snprintf(str_length, 50, "%zu", strlen(_str_response));
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ";
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp, strlen(str_temp),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, (int_response_len != 0 ? int_response_len : strlen(_str_response))
-		);
-		SFREE(_str_response);
-		if (client_auth->parent->conn->str_response != NULL && client_auth->parent->conn->str_response[0] != 0) {
-			SFINISH_SNFCAT(
-				str_response, &int_response_len,
-				":\n", (size_t)2,
-				client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
-			);
-		}
-		SFREE(client_auth->parent->conn->str_response);
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
 	}
-
-	if (str_response != NULL) {
-		if ((int_len = write(client_auth->parent->int_sock, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-		SFREE(str_response);
-
-		struct sock_ev_client *client = client_auth->parent;
-		SERROR_CLIENT_CLOSE_NORESPONSE(client);
+    SFREE(str_response);
+	if (client_auth->parent->str_http_response != NULL) {
+		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client_auth->parent->io);
 	}
-
-	bol_error_state = false;
 	return true;
 }
 
@@ -802,6 +750,8 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 	size_t int_response_len = 0;
 	size_t int_user_literal_len = 0;
 	size_t int_group_literal_len = 0;
+	size_t int_temp_len = 0;
+    DArray *darr_headers = NULL;
 	SDEBUG("http_auth_login_step2");
 	SDEBUG("client_auth: %p", client_auth);
 	SDEBUG("client_auth->parent: %p", client_auth->parent);
@@ -859,22 +809,32 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 		);
 	} else {
 		char *str_temp1 =
-			"HTTP/1.1 200 OK\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Set-Cookie: envelope=";
+			"envelope=";
 		char *str_temp2 =
 			"; HttpOnly;\015\012Set-Cookie: DB=SS; path=/;\015\012Content-Length: 48\015\012\015\012"
 			"{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}";
 		str_expires = str_expire_one_day();
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
+			str_temp, &int_temp_len,
 			str_temp1, strlen(str_temp1),
 			client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
 			"; path=/; expires=", (size_t)18,
 			str_expires, strlen(str_expires),
 			str_temp2, strlen(str_temp2)
 		);
+        darr_headers = DArray_from_strings(
+            "Set-Cookie", str_temp
+        );
+        SFREE(str_temp);
+        SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
+
+        SFINISH_CHECK(build_http_response(
+                "200 OK"
+                , "{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}", strlen("{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}")
+                , "application/json"
+                , darr_headers
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
 
 		struct sock_ev_client *client = client_auth->parent;
 		size_t int_i, int_len;
@@ -893,6 +853,7 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 		}
 		if (client->int_last_activity_i == -1) {
 			SFINISH_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
+		    SFINISH_SALLOC(client_last_activity->str_client_ip, strlen(client_auth->parent->str_client_ip));
 			memcpy(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip));
 			size_t int_temp = 0;
 			SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
@@ -916,40 +877,31 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 
 	bol_error_state = false;
 finish:
-	SFREE(conn->str_response);
-	ssize_t int_len = 0;
-	if (bol_error_state == true) {
-        SDEBUG("str_response: %s", str_response);
-        SERROR_NORESPONSE("Login failed from ip: %s", client_auth->parent->str_client_ip);
-		SFREE(str_global_error);
-		char *_str_response = str_response;
-		char str_length[50];
-		snprintf(str_length, 50, "%zu", (int_response_len != 0 ? int_response_len : strlen(_str_response)));
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ";
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp, strlen(str_temp),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, (int_response_len != 0 ? int_response_len : strlen(_str_response))
-		);
-		SFREE(_str_response);
-	}
-	if (str_response != NULL) {
-		if ((int_len = write(client_auth->parent->int_sock, str_response, (int_response_len != 0 ? int_response_len : strlen(str_response)))) < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-		SFREE(str_response);
-
-		struct sock_ev_client *client = client_auth->parent;
-		SERROR_CLIENT_CLOSE_NORESPONSE(client);
-	}
-	bol_error_state = false;
+    if (darr_headers != NULL) {
+        DArray_clear_destroy(darr_headers);
+    }
 	SFREE_ALL();
+
+    SFREE(client_auth->parent->conn->str_response);
+	if (bol_error_state) {
+		bol_error_state = false;
+        SERROR_NORESPONSE("Login failed from ip: %s", client_auth->parent->str_client_ip);
+        SFREE(str_global_error);
+
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
+	}
+    SFREE(str_response);
+	if (client_auth->parent->str_http_response != NULL) {
+		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client_auth->parent->io);
+	}
 }
 
 bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
@@ -962,8 +914,10 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 	DArray *arr_row_values = NULL;
 	DArray *arr_row_lengths = NULL;
 	size_t int_temp = 0;
+	size_t int_temp_len = 0;
 	size_t int_response_len = 0;
 	DB_fetch_status status = 0;
+    DArray *darr_headers = NULL;
 	SDEBUG("http_auth_login_step3");
 
 	SFINISH_CHECK(res != NULL, "DB_exec failed");
@@ -998,72 +952,64 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 	if (bol_global_super_only == true && strncmp(str_rolsuper, "FALSE", 5) == 0) {
 		char *str_temp1 = "{\"stat\": false, \"dat\": \"You must login as a super user to use Envelope. If you would like to use a non-superuser role, change the `super_only` parameter to false in envelope.conf\"}";
 		SFINISH_SNCAT(str_temp, &int_temp, str_temp1, strlen(str_temp1));
-		char str_length[50];
-		snprintf(str_length, 50, "%zu", strlen(str_temp));
-		str_temp1 =
-			"HTTP/1.1 403 Forbidden\015\012"
-			"Server: envelope\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ";
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp1, strlen(str_temp1),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			str_temp, strlen(str_temp)
-		);
+        SFINISH_CHECK(build_http_response(
+                "403 Forbidden"
+                , str_temp, strlen(str_temp)
+                , "application/json"
+                , darr_headers
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
 		SFREE(str_temp);
-	} else if (str_global_login_group != NULL && strncmp(str_rolgroup, "FALSE", 5) == 0) {
-		size_t int_content_length = 76 + strlen(str_global_login_group) + strlen("Envelope");
-		// 255 chars should be enough
-		SFINISH_SALLOC(str_content_length, 255 + 1);
-		snprintf(str_content_length, 255, "%zu", int_content_length);
-		str_content_length[255] = 0;
 
+	} else if (str_global_login_group != NULL && strncmp(str_rolgroup, "FALSE", 5) == 0) {
 		char *str_temp1 =
-			"HTTP/1.1 403 Forbidden\015\012"
-			"Server: envelope\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ";
-		char *str_temp2 =
 			"{\"stat\": false, \"dat\": \"You must login as a member "
 			"of the group '";
-		char *str_temp3 =
+		char *str_temp2 =
 			"' to use Envelope\"}";
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
 			str_temp1, strlen(str_temp1),
-			str_content_length, strlen(str_content_length),
-			"\015\012\015\012", (size_t)4,
-			str_temp2, strlen(str_temp2),
 			str_global_login_group, strlen(str_global_login_group),
-			str_temp3, strlen(str_temp3)
+			str_temp2, strlen(str_temp2)
 		);
+        SFINISH_CHECK(build_http_response(
+                "403 Forbidden"
+                , str_response, int_response_len
+                , "application/json"
+                , darr_headers
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
 
 		SFREE(str_content_length);
 	} else {
-		str_expires = str_expire_one_day();
-		char *str_temp1 =
-			"HTTP/1.1 200 OK\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Set-Cookie: envelope=";
-		char *str_temp2 =
-			"; HttpOnly;\015\012Set-Cookie: DB=";
-		char *str_temp3 =
-			"; path=/;\015\012Content-Length: 48\015\012\015\012"
-			"{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}";
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp1, strlen(str_temp1),
-			client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
-			"; path=/; expires=", (size_t)18,
-			str_expires, strlen(str_expires),
-			str_temp2, strlen(str_temp2),
-			(DB_connection_driver(client_auth->parent->conn) == DB_DRIVER_POSTGRES ? "PG" : "SS"), (size_t)2,
-			str_temp3, strlen(str_temp3)
-		);
-		SFREE(str_expires);
+        char *str_temp1 =
+            "envelope=";
+        char *str_temp2 =
+            "; HttpOnly;";
+        SFREE(str_expires);
+        str_expires = str_expire_one_day();
+        SFINISH_SNCAT(
+            str_temp, &int_temp_len,
+            str_temp1, strlen(str_temp1),
+            client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
+            "; path=/; expires=", (size_t)18,
+            str_expires, strlen(str_expires),
+            str_temp2, strlen(str_temp2)
+        );
+        darr_headers = DArray_from_strings(
+            "Set-Cookie", str_temp
+            , "Set-Cookie", (DB_connection_driver(client_auth->parent->conn) == DB_DRIVER_POSTGRES ? "DB=PG" : "DB=SS")
+        );
+		SFREE(str_temp);
+        SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
+        SFINISH_CHECK(build_http_response(
+                "200 OK"
+                , "{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}", strlen("{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}")
+                , "application/json"
+                , darr_headers
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
 
 		struct sock_ev_client *client = client_auth->parent;
 		size_t int_i, int_len;
@@ -1082,7 +1028,7 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 		}
 		if (client->int_last_activity_i == -1) {
 			SFINISH_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
-            SFINISH_SALLOC(client_last_activity->str_client_ip, 50);
+		    SFINISH_SALLOC(client_last_activity->str_client_ip, strlen(client_auth->parent->str_client_ip));
 			memcpy(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip));
 			SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
 			client_last_activity->last_activity_time = ev_now(EV_A);
@@ -1097,6 +1043,9 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 
 	bol_error_state = false;
 finish:
+	if (darr_headers != NULL) {
+		DArray_clear_destroy(darr_headers);
+	}
 	DB_free_result(res);
 	if (arr_row_values != NULL) {
 		DArray_clear_destroy(arr_row_values);
@@ -1106,48 +1055,34 @@ finish:
 	}
 	SFREE_ALL();
 
-	ssize_t int_len = 0;
+    if (client_auth->parent->conn->str_response != NULL && client_auth->parent->conn->str_response[0] != 0) {
+        SFINISH_SNFCAT(
+            str_response, &int_response_len,
+            ":\n", (size_t)2,
+            client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
+        );
+    }
+    SFREE(client_auth->parent->conn->str_response);
 
-	if (bol_error_state == true) {
-		SDEBUG("str_response: %s", str_response);
-		char *_str_response = str_response;
-		str_response = DB_get_diagnostic(client_request->parent->conn, res);
-		int_response_len = strlen(_str_response);
-		SFINISH_SNFCAT(_str_response, &int_response_len, ":\n", (size_t)2, str_response, strlen(str_response));
-		SFREE(str_response);
-		char str_length[50];
-		snprintf(str_length, 50, "%zu", strlen(_str_response));
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ";
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp, strlen(str_temp),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, (int_response_len != 0 ? int_response_len : strlen(_str_response))
-		);
-		SFREE(_str_response);
-		if (client_request->parent->conn->str_response != NULL && client_request->parent->conn->str_response[0] != 0) {
-			SFINISH_SNFCAT(
-				str_response, &int_response_len,
-				":\n", (size_t)2,
-				client_request->parent->conn->str_response, strlen(client_request->parent->conn->str_response)
-			);
-		}
-		SFREE(client_request->parent->conn->str_response);
+	if (bol_error_state) {
+		bol_error_state = false;
+        SERROR_NORESPONSE("Login failed from ip: %s", client_auth->parent->str_client_ip);
+        SFREE(str_global_error);
+
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
 	}
-
-	if ((int_len = write(client_auth->parent->int_sock, str_response, strlen(str_response))) < 0) {
-		SERROR_NORESPONSE("write() failed");
+    SFREE(str_response);
+	if (client_auth->parent->str_http_response != NULL) {
+		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client_auth->parent->io);
 	}
-	SFREE(str_response);
-	struct sock_ev_client *client = client_request->parent;
-	SFINISH_CLIENT_CLOSE(client);
-
-	bol_error_state = false;
 	return true;
 }
 
@@ -1227,34 +1162,33 @@ void http_auth_change_pw_step2(EV_P, void *cb_data, DB_conn *conn) {
 finish:
 	SFREE_PWORD_ALL();
 
-	if (str_response != NULL) {
-		SDEBUG("str_response: %s", str_response);
-		char *_str_response = str_response;
-		char str_length[50];
-		ssize_t int_len = 0;
-		snprintf(str_length, 50, "%zu", strlen(_str_response));
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ";
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp, strlen(str_temp),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, strlen(_str_response)
-		);
-		SFREE(_str_response);
-		if ((int_len = write(client_auth->parent->int_sock, str_response, int_response_len)) < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-		// This prevents an infinite loop if CLIENT_CLOSE fails
-		SFREE(str_response);
-		struct sock_ev_client *client = client_auth->parent;
-		SFINISH_CLIENT_CLOSE(client);
+    if (client_auth->parent->conn->str_response != NULL && client_auth->parent->conn->str_response[0] != 0) {
+        SFINISH_SNFCAT(
+            str_response, &int_response_len,
+            ":\n", (size_t)2,
+            client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
+        );
+    }
+    SFREE(client_auth->parent->conn->str_response);
+
+	if (bol_error_state) {
+		bol_error_state = false;
+        SFREE(str_global_error);
+
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
 	}
-	bol_error_state = false;
+    SFREE(str_response);
+	if (client_auth->parent->str_http_response != NULL) {
+		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client_auth->parent->io);
+	}
 }
 
 bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res) {
@@ -1262,8 +1196,10 @@ bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_auth *client_auth = (struct sock_ev_client_auth *)(client_request->client_request_data);
 	char *str_response = NULL;
 	size_t int_response_len = 0;
+	size_t int_temp_len = 0;
 	size_t int_temp = 0;
-	SDEFINE_VAR_ALL(str_expires);
+    DArray *darr_headers = NULL;
+	SDEFINE_VAR_ALL(str_expires, str_temp1);
 
 	SDEBUG("res->status: %d", res->status);
 
@@ -1277,121 +1213,30 @@ bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res) {
 	SDEBUG("PASSWORD CHANGE");
 	str_expires = str_expire_one_day();
 
-	char *str_temp1 =
-		"HTTP/1.1 200 OK\015\012"
-		"Server: " SUN_PROGRAM_LOWER_NAME "\015\012Content-Type: application/json; charset=UTF-8\015\012"
-			"Connection: close\015\012"
-		"Set-Cookie: envelope=";
-	char *str_temp2 = "; HttpOnly\015\012\015\012{\"stat\": true, \"dat\": \"OK\"}";
-	SFINISH_SNCAT(str_response, &int_response_len,
-		str_temp1, strlen(str_temp1),
-		client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
-		"; path=/; expires=", (size_t)18,
-		str_expires, strlen(str_expires),
-		str_temp2, strlen(str_temp2));
-
-	client_auth->parent->int_last_activity_i = -1;
-	for (int_i = 0, int_len = DArray_end(client_auth->parent->server->arr_client_last_activity); int_i < int_len; int_i += 1) {
-		struct sock_ev_client_last_activity *client_last_activity =
-			(struct sock_ev_client_last_activity *)DArray_get(client_auth->parent->server->arr_client_last_activity, int_i);
-		if (client_last_activity &&
-			strncmp(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip)) == 0 &&
-			strncmp(client_last_activity->str_cookie, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len) == 0) {
-			client_auth->parent->int_last_activity_i = (ssize_t)int_i;
-			break;
-		}
-	}
-	SDEBUG("client_auth->parent->int_last_activity_i: %d", client_auth->parent->int_last_activity_i);
-	if (client_auth->parent->int_last_activity_i != -1) {
-		struct sock_ev_client_last_activity *client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(
-			client_auth->parent->server->arr_client_last_activity, (size_t)client_auth->parent->int_last_activity_i);
-		SFREE(client_last_activity->str_cookie);
-		SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
-		SDEBUG("New cookie is %s", client_last_activity->str_cookie);
-	} else {
-		struct sock_ev_client_last_activity *client_last_activity;
-		SFINISH_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
-		memcpy(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip));
-		SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
-		client_last_activity->last_activity_time = ev_now(EV_A);
-		client_auth->parent->int_last_activity_i =
-			(ssize_t)DArray_push(client_auth->parent->server->arr_client_last_activity, client_last_activity);
-		SDEBUG("New cookie is %s", client_last_activity->str_cookie);
-	}
-
-	bol_error_state = false;
-finish:
-	SFREE_ALL();
-
-	if (bol_error_state == true) {
-		SDEBUG("str_response: %s", str_response);
-		char *_str_response = str_response;
-		str_response = DB_get_diagnostic(client_request->parent->conn, res);
-		int_response_len = strlen(_str_response);
-		SFINISH_SNFCAT(_str_response, &int_response_len, ":\n", (size_t)2, str_response, strlen(str_response));
-		SFREE(str_response);
-		char str_length[50];
-		snprintf(str_length, 50, "%zu", strlen(_str_response));
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Content-Length: ";
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp, strlen(str_temp),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, int_response_len
-		);
-		SFREE(_str_response);
-	}
-	DB_free_result(res);
-
-	if (write(client_auth->parent->int_sock, str_response, int_response_len) < 0) {
-		SERROR_NORESPONSE("write() failed");
-	}
-	SFREE(str_response);
-	struct sock_ev_client *client = client_request->parent;
-	client_request_free(client_request);
-	SFINISH_CLIENT_CLOSE(client);
-	bol_error_state = false;
-	// This causes query_callback to stop looping
-	return true;
-}
-
-void http_auth_change_database_step2(EV_P, void *cb_data, DB_conn *conn) {
-	struct sock_ev_client_auth *client_auth = cb_data;
-	SDEFINE_VAR_ALL(str_expires, str_temp1, str_user, str_open, str_closed);
-	char *str_response = NULL;
-	size_t int_response_len = 0;
-	size_t int_temp = 0;
-
-	SFINISH_CHECK(conn->int_status == 1, "%s", conn->str_response);
-
-	size_t int_len = 0, int_i = 0;
-
-	SDEBUG("DATABASE CHANGE");
-	str_expires = str_expire_one_day();
-
 	char *str_temp2 =
-		"HTTP/1.1 200 OK\015\012"
-		"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-		"Content-Type: application/json; charset=UTF-8\015\012"
-		"Set-Cookie: envelope=";
+		"envelope=";
 	char *str_temp3 =
-		"; HttpOnly\015\012"
-		"Content-Length: 27\015\012\015\012"
-		"{\"stat\": true, \"dat\": \"OK\"}";
+		"; HttpOnly";
 	SFINISH_SNFCAT(
-		str_response, &int_response_len,
+		str_temp1, &int_temp_len,
 		str_temp2, strlen(str_temp2),
 		client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
 		"; path=/; expires=", (size_t)18,
 		str_expires, strlen(str_expires),
 		str_temp3, strlen(str_temp3)
 	);
+    darr_headers = DArray_from_strings(
+        "Set-Cookie", str_temp1
+    );
+    SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
+    SFINISH_CHECK(build_http_response(
+            "200 OK"
+            , "{\"stat\": true, \"dat\": \"OK\"}", strlen("{\"stat\": true, \"dat\": \"OK\"}")
+            , "application/json"
+            , darr_headers
+            , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+        ), "build_http_response failed");
+    SINFO("client_auth->parent->str_http_response: %s", client_auth->parent->str_http_response);
 
 	client_auth->parent->int_last_activity_i = -1;
 	for (int_i = 0, int_len = DArray_end(client_auth->parent->server->arr_client_last_activity); int_i < int_len; int_i += 1) {
@@ -1414,6 +1259,7 @@ void http_auth_change_database_step2(EV_P, void *cb_data, DB_conn *conn) {
 	} else {
 		struct sock_ev_client_last_activity *client_last_activity;
 		SFINISH_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
+        SFINISH_SALLOC(client_last_activity->str_client_ip, strlen(client_auth->parent->str_client_ip));
 		memcpy(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip));
 		SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
 		client_last_activity->last_activity_time = ev_now(EV_A);
@@ -1424,36 +1270,40 @@ void http_auth_change_database_step2(EV_P, void *cb_data, DB_conn *conn) {
 
 	bol_error_state = false;
 finish:
-
+	if (darr_headers != NULL) {
+		DArray_clear_destroy(darr_headers);
+	}
 	SFREE_ALL();
 
-	if (bol_error_state == true) {
-		SDEBUG("str_response: %s", str_response);
-		char *_str_response = str_response;
-		char str_length[50];
-		snprintf(str_length, 50, "%zu", strlen(_str_response));
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Connection: close\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Content-Length: ";
-		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp, strlen(str_temp),
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, (int_response_len != 0 ? int_response_len : strlen(_str_response))
-		);
-		SFREE(_str_response);
-	}
+    if (client_auth->parent->conn->str_response != NULL && client_auth->parent->conn->str_response[0] != 0) {
+        SFINISH_SNFCAT(
+            str_response, &int_response_len,
+            ":\n", (size_t)2,
+            client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
+        );
+    }
+    SFREE(client_auth->parent->conn->str_response);
 
-	if (write(client_auth->parent->int_sock, str_response, int_response_len) < 0) {
-		SERROR_NORESPONSE("write() failed");
+	if (bol_error_state) {
+		bol_error_state = false;
+        SFREE(str_global_error);
+
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
 	}
-	SFREE(str_response);
-	struct sock_ev_client *client = client_auth->parent;
-	SFINISH_CLIENT_CLOSE(client);
-	bol_error_state = false;
+    SFREE(str_response);
+	if (client_auth->parent->str_http_response != NULL) {
+		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client_auth->parent->io);
+	}
+	// This causes DB_exec to stop looping
+	return true;
 }
 
 void http_auth_free(struct sock_ev_client_request_data *client_request_data) {

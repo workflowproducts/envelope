@@ -1895,6 +1895,13 @@ bool client_close(struct sock_ev_client *client) {
 		SFREE(client->client_reconnect_timer);
 	}
 
+	if (client->client_upload != NULL) {
+		ev_check_stop(global_loop, &client->client_upload->check);
+		ev_idle_stop(global_loop, &client->client_upload->idle);
+		http_upload_free(client->client_upload);
+        client->client_upload = NULL;
+	}
+
 	LIST_FOREACH(client->server->list_client, first, next, node) {
 		other_client = node->value;
 		if (client == other_client) {

@@ -53,10 +53,6 @@ char *get_hash_where(DB_driver driver,  char *str_columns, size_t int_columns_le
 This function handles the copy out functionality for websockets.
 */
 bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char *str_response, size_t int_len);
-/*
-This function handles the copy out functionality for http.
-*/
-bool http_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char *str_response, size_t int_len);
 
 typedef bool (*readable_cb_t)(EV_P, void *cb_data, bool bol_group);
 typedef struct {

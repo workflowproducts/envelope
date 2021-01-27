@@ -185,7 +185,7 @@ struct sock_ev_client {
 	struct sock_ev_client_request_watcher *client_request_watcher;
 	struct sock_ev_client_request_watcher *client_request_watcher_search;
 	struct sock_ev_client_copy_check *client_copy_check;
-	struct sock_ev_client_copy_io *client_copy_io;
+	struct sock_ev_client_upload *client_upload;
 	bool bol_request_in_progress;
 
 	struct sock_ev_client_notify_watcher *notify_watcher;
@@ -288,12 +288,6 @@ struct sock_ev_client_copy_check {
 	ssize_t int_written;
 	char *str_response;
 	struct sock_ev_client_request *client_request;
-};
-
-struct sock_ev_client_copy_io {
-	ev_io io;
-
-	struct sock_ev_client_copy_check *client_copy_check;
 };
 
 #ifdef _WIN32

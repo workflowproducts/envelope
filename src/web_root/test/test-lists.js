@@ -88,7 +88,8 @@ no username*/ })],
 			ml(function () {/*FATAL
 no username*/ })],
  			['Login Fail 8', 'ajax', 500, '/env/auth', '',
- 				ml(function () {/*Not a valid action.*/ })],
+ 				ml(function () {/*FATAL
+Not a valid action.*/ })],
  			['Login Fail 9', 'ajax', 500, '/env/auth', 'action=login',
 			ml(function () {/*FATAL
 no username*/ })],
@@ -105,13 +106,16 @@ Connect failed: FATAL:  password authentication failed for user "postgres"
 Connect failed: FATAL:  password authentication failed for user "test!@#$%^&*()|<>?,./:+-/*=ƒ©˙∆test"
 */ })],
  			['Login Fail 13', 'ajax', 500, '/env/auth', 'action=' + encodeURIComponent('loginπ'),
-				ml(function () {/*Not a valid action.*/ })],
+				ml(function () {/*FATAL
+Not a valid action.*/ })],
  			['Login Fail 14', 'ajax', 500, '/env/auth', 'action=loginbasdf',
-				ml(function () {/*Not a valid action.*/ })],
+				ml(function () {/*FATAL
+Not a valid action.*/ })],
  			['Login Fail 15', 'ajax', 404, '/env/authasdf', '',
  				ml(function () {/*The file you are requesting is not here.*/ })],
  			['Login Fail 16', 'ajax', 500, '/env/auth', 'test=test&a@&#=te=st',
-				ml(function () {/*Not a valid action.*/ })],
+				ml(function () {/*FATAL
+Not a valid action.*/ })],
  			['Logout before login *', 'ajax spam', 200, '/env/auth', 'action=logout', ''],
 			['ACCEPTNC FAIL 1', 'ajax', 500, '/env/public.acceptnc_testing1', 'testingnitset', ml(function () {/*FATAL
 DB_exec failed:
@@ -379,6 +383,12 @@ error_position	8
 common_util_sql.c:query_is_safe: SQL Injection detected!
 SQL Injection detected*/})],
 			['CGINC', 'ajax', 200, '/env/public.cginc_testing', 'testingnitset', 'testingnitset'],
+			['DELETE', 'ajax', 200, '/env/action_delete', 'src=rtesting_table&id=-100', '{"stat": true, "dat": ""}'],
+			['INSERT', 'ajax', 200, '/env/action_insert', 'src=rtesting_table&data=' + encodeURIComponent('id=-100&test_name=askdjfhaksdjhf'), '{"stat": true, "dat": {"lastval": -100}}'],
+			['SELECT', 'ajax', 200, '/env/action_select', 'src=rtesting_table&where=id%3D-100', '{"stat": true, "dat": {"arr_column": ["id","test_name","test_name2","select","test@test"], "dat": [[-100,"askdjfhaksdjhf",null,null,null]], "row_count": 1}}'],
+			['UPDATE', 'ajax', 200, '/env/action_update', 'src=rtesting_table&where=id%3D-100&column=test_name&value=testingnitset', '{"stat": true, "dat": ["-100","testingnitset",null,null,null]}'],
+			['SELECT', 'ajax', 200, '/env/action_select', 'src=rtesting_table&where=id%3D-100', '{"stat": true, "dat": {"arr_column": ["id","test_name","test_name2","select","test@test"], "dat": [[-100,"testingnitset",null,null,null]], "row_count": 1}}'],
+			['DELETE', 'ajax', 200, '/env/action_delete', 'src=rtesting_table&id=-100', '{"stat": true, "dat": ""}'],
 			['action_info', 'ajax', 200, '/env/action_info', '', '']
 		]
 	},

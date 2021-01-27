@@ -79,34 +79,29 @@ void http_accept_step1(struct sock_ev_client *client) {
 finish:
 	SFREE_ALL();
 	if (bol_error_state) {
-		char *_str_response = str_response;
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012\015\012",
-			strlen("HTTP/1.1 500 Internal Server Error\015\012"
-				"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012\015\012"),
-			_str_response, strlen(_str_response));
-		SFREE(_str_response);
+		bol_error_state = false;
+
+        SFREE(client->str_http_header);
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client->str_http_response, &client->int_http_response_len
+            ), "build_http_response failed");
 	}
-	if (str_response != NULL && (int_len = write(client->int_sock, str_response, strlen(str_response))) < 0) {
-		SERROR_NORESPONSE("write() failed");
-	}
-	SFREE(str_response);
-	if (int_len != 0) {
+    SFREE(str_response);
+    // if client->str_http_header is non-empty, we are already taken care of
+	if (client->str_http_response != NULL && client->str_http_header == NULL) {
 		ev_io_stop(global_loop, &client->io);
-		SFREE(client->str_request);
-		SERROR_CHECK_NORESPONSE(client_close(client), "Error closing Client");
+		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client->io);
 	}
 }
 
 bool http_accept_step2(EV_P, void *cb_data, DB_result *res) {
-	struct sock_ev_client_copy_io *client_copy_io = NULL;
-	struct sock_ev_client_copy_check *client_copy_check = NULL;
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
-	char *_str_response = NULL;
 	ssize_t int_len = 0;
 	DArray *arr_row_values = NULL;
 	DArray *arr_row_lengths = NULL;
@@ -121,27 +116,11 @@ bool http_accept_step2(EV_P, void *cb_data, DB_result *res) {
 	arr_row_lengths = DB_get_row_lengths(res);
 	SFINISH_CHECK(arr_row_lengths != NULL, "DB_get_row_lengths failed");
 
-	str_response = DArray_get(arr_row_values, 0);
-	SFINISH_CHECK(str_response != NULL, "Function returned null");
-	SDEBUG("str_response: %s", str_response);
-	SFINISH_CHECK(strncmp(str_response, "HTTP", 4) == 0, "Bad accept_ output: %s", str_response);
-
-	client->cur_request = create_request(client, NULL, NULL, NULL, NULL, 0, ENVELOPE_REQ_ACCEPT, NULL);
-	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");
-	SFINISH_SALLOC(client_copy_check, sizeof(struct sock_ev_client_copy_check));
-
-	client_copy_check->str_response = str_response;
-	str_response = NULL;
-	client_copy_check->int_response_len = (*(ssize_t *)DArray_get(arr_row_lengths, 0));
-	client_copy_check->client_request = client->cur_request;
-	SFINISH_CHECK(client_copy_check->int_response_len > -1, "Function returned null");
-
-	SFINISH_SALLOC(client_copy_io, sizeof(struct sock_ev_client_copy_io));
-
-	client_copy_io->client_copy_check = client_copy_check;
-
-	ev_io_init(&client_copy_io->io, http_accept_step3, client->int_ev_sock, EV_WRITE);
-	ev_io_start(EV_A, &client_copy_io->io);
+	client->str_http_response = DArray_get(arr_row_values, 0);
+	SFINISH_CHECK(client->str_http_response != NULL, "Function returned null");
+	SDEBUG("client->str_http_response: %s", client->str_http_response);
+	SFINISH_CHECK(strncmp(client->str_http_response, "HTTP", 4) == 0, "Bad accept_ output: %s", client->str_http_response);
+    client->int_http_response_len = (*(ssize_t *)DArray_get(arr_row_lengths, 0));
 
 	bol_error_state = false;
 finish:
@@ -153,122 +132,25 @@ finish:
 		// we copy the length into the struct, so we can free it in the array
 		DArray_clear_destroy(arr_row_lengths);
 	}
-	SFREE(_str_response);
-	_str_response = str_response;
+	DB_free_result(res);
 	if (bol_error_state) {
 		bol_error_state = false;
 
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012\015\012",
-			strlen("HTTP/1.1 500 Internal Server Error\015\012"
-				"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012\015\012"),
-			_str_response, strlen(_str_response));
-		SFREE(_str_response);
-		_str_response = DB_get_diagnostic(client->conn, res);
-		SFINISH_SNFCAT(str_response, &int_response_len,
-			":\n", (size_t)2,
-			_str_response, strlen(_str_response));
-		SFREE(_str_response);
+        SFREE(client->str_http_header);
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client->str_http_response, &client->int_http_response_len
+            ), "build_http_response failed");
 	}
-	if (str_response != NULL && (int_len = write(client->int_sock, str_response, strlen(str_response))) < 0) {
-		SERROR_NORESPONSE("write() failed");
-	}
-	DB_free_result(res);
-	SFREE(str_response);
-	if (int_len != 0) {
-		ev_io_stop(EV_A, &client->io);
-		SFREE(client->str_request);
-		SERROR_CHECK_NORESPONSE(client_close(client), "Error closing Client");
+    SFREE(str_response);
+    // if client->str_http_header is non-empty, we are already taken care of
+	if (client->str_http_response != NULL && client->str_http_header == NULL) {
+		ev_io_stop(global_loop, &client->io);
+		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client->io);
 	}
 	return true;
-}
-
-void http_accept_step3(EV_P, ev_io *w, int revents) {
-	if (revents != 0) {
-	} // get rid of unused parameter warning
-	struct sock_ev_client_copy_io *client_copy_io = (struct sock_ev_client_copy_io *)w;
-	struct sock_ev_client_copy_check *client_copy_check = client_copy_io->client_copy_check;
-	struct sock_ev_client_request *client_request = client_copy_check->client_request;
-//	struct sock_ev_client *client = client_request->parent;
-	char *str_response = NULL;
-	char *_str_response = NULL;
-	size_t int_response_len = 0;
-
-	// SDEBUG("client_copy_check->str_response: %s", client_copy_check->str_response);
-
-	ssize_t int_client_write_len =
-		write(client_request->parent->int_sock, client_copy_check->str_response + client_copy_check->int_written,
-		(size_t)(client_copy_check->int_response_len - client_copy_check->int_written));
-
-	SDEBUG("write(%i, %p, %i): %z", client_request->parent->int_sock,
-		client_copy_check->str_response + client_copy_check->int_written,
-		client_copy_check->int_response_len - client_copy_check->int_written, int_client_write_len);
-
-	if (int_client_write_len == -1 && errno != EAGAIN) {
-		SFINISH("write(%i, %p, %i) failed: %i", client_request->parent->int_sock,
-			client_copy_check->str_response + client_copy_check->int_written,
-			client_copy_check->int_response_len - client_copy_check->int_written, int_client_write_len);
-	} else {
-		// int_client_write_len can't be negative at this point
-		client_copy_check->int_written += (ssize_t)int_client_write_len;
-	}
-
-	if (client_copy_check->int_written == client_copy_check->int_response_len) {
-		ev_io_stop(EV_A, w);
-
-		SFREE(client_copy_check->str_response);
-		SFREE(client_copy_check);
-		SFREE(client_copy_io);
-
-		SDEBUG("DONE");
-		struct sock_ev_client *client = client_request->parent;
-		SFINISH_CLIENT_CLOSE(client);
-		client_request = NULL;
-	}
-
-	// If this line is not here, we close the client below
-	// then libev calls a function on the socket and crashes and burns on windows
-	// so... don't touch
-	int_client_write_len = 0;
-
-	bol_error_state = false;
-finish:
-	_str_response = str_response;
-	if (bol_error_state) {
-		if (client_copy_check != NULL) {
-			ev_io_stop(EV_A, w);
-			SFREE(client_copy_check->str_response);
-			SFREE(client_copy_check);
-			SFREE(client_copy_io);
-		}
-		str_response = NULL;
-		bol_error_state = false;
-
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012\015\012",
-			strlen("HTTP/1.1 500 Internal Server Error\015\012"
-				"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-				"Connection: close\015\012\015\012"),
-			_str_response, strlen(_str_response));
-		SFREE(_str_response);
-	}
-	if (str_response != NULL) {
-		int_client_write_len = write(client_request->parent->int_sock, str_response, strlen(str_response));
-		SDEBUG("int_client_write_len: %d", int_client_write_len);
-		if (int_client_write_len < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-	}
-	SFREE(str_response);
-	if (int_client_write_len != 0) {
-		ev_io_stop(EV_A, &client_request->parent->io);
-		SFREE(client_request->parent->str_request);
-		SDEBUG("ERROR");
-		SERROR_CHECK_NORESPONSE(client_close(client_request->parent), "Error closing Client");
-	}
 }

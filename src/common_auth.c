@@ -26,6 +26,8 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	size_t int_uri_ip_address_len = 0;
 	size_t int_uri_host_len = 0;
 	size_t int_uri_user_agent_len = 0;
+	size_t int_temp_len = 0;
+    DArray *darr_headers = NULL;
 	ListNode *other_client_node = NULL;
 
 	str_uri_temp = str_uri_path(client->str_request, client->int_request_len, &int_uri_length);
@@ -381,40 +383,35 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	SFREE_PWORD(str_password);
 	bol_error_state = false;
 finish://|/usr/libexec/abrt-hook-ccpp %s %c %p %u %g %t e
+    if (darr_headers != NULL) {
+        DArray_clear_destroy(darr_headers);
+    }
 	if (str_response != NULL && client->bol_http &&
 		(strstr(str_response, "\012Session expired") != NULL || strstr(str_response, "\012No Cookie") != NULL)) {
 		SFREE(str_response);
 		str_temp = str_uri_path(client->str_request, client->int_request_len, &int_uri_length);
 		str_uri = snuri(str_temp, int_uri_length, &int_uri_length);
 		SFREE(str_temp);
-		struct struct_connection *conn_info = DArray_get(darr_global_connection, int_conn_index);
 
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"HTTP/1.1 440 Login Timeout\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-			"Set-Cookie: ",
-			strlen(
-				"HTTP/1.1 440 Login Timeout\015\012"
-				"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012"
-				"Set-Cookie: "
-			),
-			"envelope", (size_t)8,
-			"=; path=/; expires=Tue, 01 Jan 1990 00:00:00 GMT", (size_t)48,
-			"; HttpOnly\015\012", (size_t)12
+        SFINISH_SNFCAT(str_temp, &int_temp_len,
+            "0; url=/index.html?error=Connection%20timed%20out&redirect=", (size_t)68,
+            str_uri, int_uri_length);
+		darr_headers = DArray_from_strings(
+            "Set-Cookie", "envelope=; path=/; expires=Tue, 01 Jan 1990 00:00:00 GMT; HttpOnly"
+            , "Refresh", str_temp
 		);
-		if (conn_info != NULL) {
-			SFINISH_SNFCAT(str_response, &int_response_len,
-				"Refresh: 0; url=/index.html?error=Connection%20timed%20out&redirect=", (size_t)68,
-				str_uri, strlen(str_uri),
-				"\015\012\015\012", (size_t)4);
-		} else {
-			SFINISH_SNFCAT(str_response, &int_response_len,
-				"Refresh: 0; url=/index.html\015\012\015\012", (size_t)31);
-		}
-		SFINISH_SNFCAT(str_response, &int_response_len,
-			"You need to login.\012", (size_t)19);
+		SFREE(str_temp);
+        SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
+        SFINISH_CHECK(build_http_response(
+                "440 Login Timeout"
+                , "You need to login.\012", strlen("You need to login.\012")
+                , "text/plain"
+                , darr_headers
+                , &client->str_http_response, &client->int_http_response_len
+            ), "build_http_response failed");
+        DArray_clear_destroy(darr_headers);
+        darr_headers = NULL;
+        
 	} else if (str_response != NULL && client->bol_handshake) {
 		SFREE(str_response);
 		char *str_response_temp = "You need to login.";
@@ -442,14 +439,12 @@ finish://|/usr/libexec/abrt-hook-ccpp %s %c %p %u %g %t e
 
 	SFREE_ALL();
 
-	if (str_response != NULL) {
-		if ((int_len = write(client->int_sock, str_response, strlen(str_response))) < 0) {
-			SERROR_NORESPONSE("write() failed");
-			SFINISH_CLIENT_CLOSE(client);
-		}
-		SFREE_PWORD(str_response);
+    SFREE(str_response);
+	if (client->str_http_response != NULL) {
+		ev_io_stop(global_loop, &client->io);
+		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client->io);
 	}
-	bol_error_state = false;
 	return client ? client->conn : NULL;
 }
 

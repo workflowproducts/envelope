@@ -118,6 +118,7 @@ error:
 void client_last_activity_free(struct sock_ev_client_last_activity *client_last_activity) {
 	if (client_last_activity != NULL) {
 		SFREE(client_last_activity->str_cookie);
+		SFREE(client_last_activity->str_client_ip);
 	}
 	SFREE(client_last_activity);
 }

@@ -40,6 +40,7 @@ struct sock_ev_client_insert {
 	char *str_table_return_where;
 	size_t int_table_return_where_len;
 	char *str_sequence_name;
+    bool bol_pk_provided;
 	char *str_result;
 	char *str_identity_column_name;
 	size_t int_currval_len;

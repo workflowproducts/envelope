@@ -9,15 +9,14 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 	SDEBUG("http_main_cnxn_cb");
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
-	char *_str_response = NULL;
 	char *str_uri = NULL;
 	char *str_uri_temp = NULL;
 	char *str_sql = NULL;
 	char *ptr_end_uri = NULL;
-	char str_length[50];
 	size_t int_uri_len = 0;
 	size_t int_sql_len = 0;
 	size_t int_response_len = 0;
+    bool bol_handoff = false;
 
 	SDEBUG("conn->str_response: >%s<", conn->str_response);
 	SFINISH_CHECK(conn->int_status == 1, "%s", conn->str_response);
@@ -42,26 +41,32 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		http_upload_step1(client);
+        bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/action_ev", 15) == 0) {
 		// SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		// SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		http_ev_step1(client);
+        bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/action_select", 19) == 0 || strncmp(str_uri, "/env/actionnc_select", 21) == 0) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		http_select_step1(client);
+        bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/action_insert", 19) == 0 || strncmp(str_uri, "/env/actionnc_insert", 21) == 0) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		http_insert_step1(client);
+        bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/action_update", 19) == 0 || strncmp(str_uri, "/env/actionnc_update", 21) == 0) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		http_update_step1(client);
+        bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/action_delete", 19) == 0 || strncmp(str_uri, "/env/actionnc_delete", 21) == 0) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 		http_delete_step1(client);
+        bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/action_info", 17) == 0) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
@@ -118,8 +123,10 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 			SFINISH_CHECK(client->bol_public || client->str_referer != NULL, "Referer header required for this request");
 			SFINISH_CHECK(client->bol_public || check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 			http_accept_step1(client);
+            bol_handoff = true;
 		} else {
 			http_file_step1(client);
+            bol_handoff = true;
 		}
 	} else if (strstr(str_uri, "action_") != NULL || strstr(str_uri, "actionnc_") != NULL) {
 		char *ptr_dot = strstr(str_uri, ".");
@@ -137,8 +144,10 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 			SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 			SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 			http_action_step1(client);
+            bol_handoff = true;
 		} else {
 			http_file_step1(client);
+            bol_handoff = true;
 		}
 	} else if (strstr(str_uri, "cgi_") != NULL || strstr(str_uri, "cginc_") != NULL) {
 		char *ptr_dot = strstr(str_uri, ".");
@@ -156,38 +165,40 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 			SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 			SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
 			http_cgi_step1(client);
+            bol_handoff = true;
 		} else {
 			http_file_step1(client);
+            bol_handoff = true;
 		}
 	} else {
 		SDEBUG("http_file_step1");
 		http_file_step1(client);
+        bol_handoff = true;
 	}
-finish:
 	bol_error_state = false;
-	if (str_response != NULL) {
-		_str_response = str_response;
-		snprintf(str_length, 50, "%zu", strlen(_str_response));
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"HTTP/1.1 500 Internal Server Error\015\012Content-Length: ", (size_t)52,
-			str_length, strlen(str_length),
-			"\015\012Connection: close\015\012\015\012", (size_t)23,
-			_str_response, strlen(_str_response));
-		SFREE(_str_response);
-		if (write(client->int_sock, str_response, int_response_len) < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-		if (str_response == client->str_response) {
-			client->str_response = NULL;
-		}
-		SFREE(str_response);
+finish:
+	if (!bol_handoff && bol_error_state) {
+		bol_error_state = false;
 
-		SFINISH_CLIENT_CLOSE(client);
+        SFREE(client->str_http_header);
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client->str_http_response, &client->int_http_response_len
+            ), "build_http_response failed");
 	}
 	SFREE(str_uri_temp);
 	SFREE(str_uri);
 	SFREE(str_sql);
-	bol_error_state = false;
+    SFREE(str_response);
+    // if client->str_http_header is non-empty, we are already taken care of
+	if (!bol_handoff && client->str_http_response != NULL && client->str_http_header == NULL) {
+		ev_io_stop(EV_A, &client->io);
+		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
+        ev_io_start(EV_A, &client->io);
+	}
 }
 
 void http_main(struct sock_ev_client *client) {
@@ -199,6 +210,7 @@ void http_main(struct sock_ev_client *client) {
     size_t int_response_len;
 	char *ptr_end_uri = NULL;
 	size_t int_uri_len = 0;
+    bool bol_handoff = false;
 	// get path
 	str_uri = str_uri_path(client->str_request, client->int_request_len, &int_uri_len);
 	SFINISH_CHECK(str_uri, "str_uri_path failed");
@@ -233,29 +245,42 @@ void http_main(struct sock_ev_client *client) {
 		client_auth->parent = client;
 
 		http_auth(client_auth);
+        bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/", 5) == 0) {
 		// set_cnxn does its own error handling
 		SDEBUG("str_uri: %s", str_uri);
 
-		if ((client->conn = set_cnxn(client, http_main_cnxn_cb)) == NULL) {
-			SFINISH_CLIENT_CLOSE(client);
-		}
+		SFINISH_CHECK((client->conn = set_cnxn(client, http_main_cnxn_cb)) != NULL, "set_cnxn failed");
 		// DEBUG("str_conninfo: %s", str_conninfo);
 	} else {
 		http_file_step1(client);
+        bol_handoff = true;
 	}
 	SDEBUG("str_response: %s", str_response);
 
-finish:
 	bol_error_state = false;
+finish:
 	SFREE_PWORD_ALL();
-	ssize_t int_client_write_len = 0;
-	if (str_response != NULL && (int_client_write_len = write(client->int_sock, str_response, strlen(str_response))) < 0) {
-		SERROR_NORESPONSE("write() failed");
+	if (bol_error_state) {
+		bol_error_state = false;
+
+        // set_cnxn does it's own error handling in some cases
+        if (client->str_http_response != NULL) {
+            SFINISH_CHECK(build_http_response(
+                    "500 Internal Server Error"
+                    , str_response, int_response_len
+                    , "text/plain"
+                    , NULL
+                    , &client->str_http_response, &client->int_http_response_len
+                ), "build_http_response failed");
+        }
 	}
-	SFREE(str_response);
-	if (int_client_write_len != 0) {
-		SFINISH_CLIENT_CLOSE(client);
+    SFREE(str_response);
+    // if client->str_http_header is non-empty, we are already taken care of
+	if (!bol_handoff && client->str_http_response != NULL && client->str_http_header == NULL) {
+		ev_io_stop(global_loop, &client->io);
+		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client->io);
 	}
 }
 
@@ -340,6 +365,14 @@ bool http_client_info_cb(EV_P, void *cb_data, DB_result *res) {
 		VERSION, strlen(VERSION),
 		"\"}}", (size_t)3);
 
+    SFINISH_CHECK(build_http_response(
+            "200 OK"
+            , str_response, int_response_len
+            , "application/json"
+            , NULL
+            , &client->str_http_response, &client->int_http_response_len
+        ), "build_http_response failed");
+
 	bol_error_state = false;
 	bol_ret = true;
 finish:
@@ -363,37 +396,27 @@ finish:
 		SFREE(client->conn->str_response);
 	}
 
-	_str_response = str_response;
-	char str_length[50];
-	snprintf(str_length, 50, "%zu", strlen(_str_response));
-	if (bol_error_state) {
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Connection: close\015\012Content-Length: ", (size_t)71,
-			str_length, strlen(str_length),
-			"\015\012\015\012", (size_t)4,
-			_str_response, strlen(_str_response))
-	} else {
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"HTTP/1.1 200 OK\015\012"
-			"Connection: close\015\012Content-Length: ", (size_t)52,
-			str_length, strlen(str_length),
-			"\015\012Content-Type: application/json\015\012\015\012", (size_t)36,
-			_str_response, strlen(_str_response));
-	}
-	SFREE(_str_response);
-	if (write(client->int_sock, str_response, strlen(str_response)) < 0) {
-		SERROR_NORESPONSE("write() failed");
-	}
 	DB_free_result(res);
 
-	ev_io_stop(EV_A, &client->io);
-	SFINISH_CLIENT_CLOSE(client);
-
-	if (bol_error_state == true) {
-		bol_ret = false;
+	if (bol_error_state) {
 		bol_error_state = false;
+		bol_ret = false;
+
+        SFREE(client->str_http_header);
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client->str_http_response, &client->int_http_response_len
+            ), "build_http_response failed");
 	}
-	SFREE(str_response);
+    SFREE(str_response);
+    // if client->str_http_header is non-empty, we are already taken care of
+	if (client->str_http_response != NULL && client->str_http_header == NULL) {
+		ev_io_stop(EV_A, &client->io);
+		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
+        ev_io_start(EV_A, &client->io);
+	}
 	return bol_ret;
 }

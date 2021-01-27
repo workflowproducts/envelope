@@ -236,6 +236,7 @@ finish:
                 , &client->str_http_response, &client->int_http_response_len
             ), "build_http_response failed");
 	}
+    SFREE(str_response);
 	if (client->str_http_response != NULL) {
 		http_file_free(client_http_file);
 		client_http_file = NULL;
@@ -330,6 +331,7 @@ finish:
                 , &client->str_http_response, &client->int_http_response_len
             ), "build_http_response failed");
 	}
+    SFREE(str_response);
 	if (client->str_http_response != NULL) {
 		http_file_free(client_http_file);
 		client_http_file = NULL;
@@ -442,6 +444,7 @@ finish:
                 , &client->str_http_response, &client->int_http_response_len
             ), "build_http_response failed");
 	}
+    SFREE(str_response);
 	if (client->str_http_response != NULL) {
 		ev_check_stop(EV_A, &client_copy_check->check);
 		ev_idle_stop(EV_A, &client_copy_check->idle);
@@ -575,6 +578,7 @@ finish:
                 , &client->str_http_response, &client->int_http_response_len
             ), "build_http_response failed");
 	}
+    SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
         if (client_copy_check != NULL) {

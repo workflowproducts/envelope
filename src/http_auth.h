@@ -93,15 +93,6 @@ void http_auth_change_pw_step2(EV_P, void *cb_data, DB_conn *conn);
 bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res);
 
 /*
-These two functions handle the steps of change database after authentication
-
-http_auth_change_database_step2 will:
-1. update our internal data structures to reflect the new cookie
-2. then tell the browser we had a success and give them the new cookie
-*/
-void http_auth_change_database_step2(EV_P, void *cb_data, DB_conn *conn);
-
-/*
 This function free()s the members of the struct that you give it, and then
 free()s the struct
 */

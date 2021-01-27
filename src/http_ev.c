@@ -21,8 +21,6 @@ void http_ev_step1(struct sock_ev_client *client) {
 	size_t int_query_length = 0;
 	size_t int_action_length = 0;
 	size_t int_w_length = 0;
-	struct sock_ev_client_copy_io *client_copy_io = NULL;
-	struct sock_ev_client_copy_check *client_copy_check = NULL;
 	SDEFINE_VAR_ALL(str_args, str_action, str_w, _str_response, str_uri);
     size_t int_uri_len;
 	char str_int_i[256] = {0};
@@ -31,6 +29,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 	char str_current_events[256] = {0};
 	bool bol_kill = false;
 	bool bol_killed = false;
+    DArray *darr_headers = NULL;
 
 	str_args = query(client->str_request, client->int_request_len, &int_query_length);
 	SFINISH_CHECK(str_args != NULL, "query() failed");
@@ -40,32 +39,22 @@ void http_ev_step1(struct sock_ev_client *client) {
 	SDEBUG("str_action: %s", str_action);
 	if (strcmp(str_action, "list") == 0) {
 		bol_kill = false;
-	} else if (strcmp(str_action, "kill") == 0) {
-		str_w = getpar(str_args, "w", int_query_length, &int_w_length);
-		SFINISH_CHECK(str_w != NULL && int_w_length > 0, "Invalid w");
-
-		bol_kill = true;
 	} else {
 		SFINISH("Invalid action");
 	}
 
-	SFINISH_SALLOC(client_copy_io, sizeof(struct sock_ev_client_copy_io));
-	SFINISH_SALLOC(client_copy_check, sizeof(struct sock_ev_client_copy_check));
-	client_copy_io->client_copy_check = client_copy_check;
-
 	client->cur_request = create_request(client, NULL, NULL, NULL, NULL, 0, ENVELOPE_REQ_STANDARD, NULL);
 	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");
-	client_copy_check->client_request = client->cur_request;
 
     SFINISH_SNFCAT(
-        client_copy_check->str_response, &int_response_len,
+        str_response, &int_response_len,
         "Connected clients:\015\012", (size_t)20
     );
     ListNode *client_node = _server.list_client->first;
     while (client_node) {
         struct sock_ev_client *client = client_node->value;
         SFINISH_SNFCAT(
-            client_copy_check->str_response, &int_response_len,
+            str_response, &int_response_len,
             "        ", (size_t)8,
             client->str_client_ip, client->int_client_ip_len,
             client->str_websocket_key ? " (WS)" : " (HTTP)", (size_t)(client->str_websocket_key ? 5 : 7),
@@ -78,7 +67,7 @@ void http_ev_step1(struct sock_ev_client *client) {
             if (client_request) {
                 str_request_type = request_type_string(client_request->int_req_type);
                 SFINISH_SNFCAT(
-                    client_copy_check->str_response, &int_response_len,
+                    str_response, &int_response_len,
                     "        ", (size_t)8,
                     "        ", (size_t)8,
                     "current request: ", (size_t)17,
@@ -92,7 +81,7 @@ void http_ev_step1(struct sock_ev_client *client) {
                 client_request = request_node->value;
                 str_request_type = request_type_string(client_request->int_req_type);
                 SFINISH_SNFCAT(
-                    client_copy_check->str_response, &int_response_len,
+                    str_response, &int_response_len,
                     "        ", (size_t)8,
                     "        ", (size_t)8,
                     "queued request", (size_t)14,
@@ -110,7 +99,7 @@ void http_ev_step1(struct sock_ev_client *client) {
                 );
             }
             SFINISH_SNFCAT(
-                client_copy_check->str_response, &int_response_len,
+                str_response, &int_response_len,
                 "        ", (size_t)8,
                 "        ", (size_t)8,
                 str_uri, int_uri_len,
@@ -121,7 +110,7 @@ void http_ev_step1(struct sock_ev_client *client) {
         client_node = client_node->next;
     }
     SFINISH_SNFCAT(
-        client_copy_check->str_response, &int_response_len,
+        str_response, &int_response_len,
         "\015\012\015\012\015\012\015\012", (size_t)8
     );
 
@@ -141,7 +130,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 
             char *ptr_cb_name = cb_to_name(current_idle->cb);
             SFINISH_SNFCAT(
-                client_copy_check->str_response, &int_response_len,
+                str_response, &int_response_len,
                 "ev_idle watcher at ", (size_t)19,
                 str_current_address, strlen(str_current_address),
                 " with priority ", (size_t)15,
@@ -169,7 +158,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 
 		char *ptr_cb_name = cb_to_name(current_check->cb);
 		SFINISH_SNFCAT(
-			client_copy_check->str_response, &int_response_len,
+			str_response, &int_response_len,
 			"ev_check watcher at ", (size_t)20,
 			str_current_address, strlen(str_current_address),
 			" with callback ", (size_t)15,
@@ -193,7 +182,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 
 		char *ptr_cb_name = cb_to_name(current_prepare->cb);
 		SFINISH_SNFCAT(
-			client_copy_check->str_response, &int_response_len,
+			str_response, &int_response_len,
 			"ev_prepare watcher at ", (size_t)22,
 			str_current_address, strlen(str_current_address),
 			" with callback ", (size_t)15,
@@ -217,7 +206,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 
 		char *ptr_cb_name = cb_to_name(current_cleanup->cb);
 		SFINISH_SNFCAT(
-			client_copy_check->str_response, &int_response_len,
+			str_response, &int_response_len,
 			"ev_cleanup watcher at ", (size_t)22,
 			str_current_address, strlen(str_current_address),
 			" with callback ", (size_t)15,
@@ -242,7 +231,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 
 	// 	char *ptr_cb_name = cb_to_name(current_periodic->cb);
     //     SFINISH_SNFCAT(
-    //         client_copy_check->str_response, &int_response_len,
+    //         str_response, &int_response_len,
     //         "ev_timer watcher at ", (size_t)20,
     //         str_current_address, strlen(str_current_address),
     //         " with callback ", (size_t)15,
@@ -267,7 +256,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 
 	// 	char *ptr_cb_name = cb_to_name(current_timer->cb);
 	// 	SFINISH_SNFCAT(
-	// 		client_copy_check->str_response, &int_response_len,
+	// 		str_response, &int_response_len,
 	// 		"ev_timer watcher at ", (size_t)20,
 	// 		str_current_address, strlen(str_current_address),
 	// 		" with callback ", (size_t)15,
@@ -310,7 +299,7 @@ void http_ev_step1(struct sock_ev_client *client) {
 
             char *ptr_cb_name = cb_to_name(node->cb);
             SFINISH_SNFCAT(
-                client_copy_check->str_response, &int_response_len,
+                str_response, &int_response_len,
                 "ev_io watcher at ", (size_t)17,
                 str_current_address, strlen(str_current_address),
                 " on fd ", (size_t)7,
@@ -322,23 +311,23 @@ void http_ev_step1(struct sock_ev_client *client) {
                 ":\n", (size_t)2
             );
             SFINISH_SNFCAT(
-                client_copy_check->str_response, &int_response_len,
+                str_response, &int_response_len,
                 "		events: ", (size_t)10,
                 str_current_events, strlen(str_current_events),
                 "\n", (size_t)1
             );
             SFINISH_SNFCAT(
-                client_copy_check->str_response, &int_response_len,
+                str_response, &int_response_len,
                 "			EV_READ			: ", (size_t)15,
                 (node->events & EV_READ) == EV_READ ? "true\n" : "false\n", (size_t)((node->events & EV_READ) == EV_READ ? 5 : 6)
             );
             SFINISH_SNFCAT(
-                client_copy_check->str_response, &int_response_len,
+                str_response, &int_response_len,
                 "			EV_WRITE		: ", (size_t)15,
                 (node->events & EV_WRITE) == EV_WRITE ? "true\n" : "false\n", (size_t)((node->events & EV_WRITE) == EV_WRITE ? 5 : 6)
             );
 
-			SDEBUG("client_copy_check->str_response: %s", client_copy_check->str_response);
+			SDEBUG("str_response: %s", str_response);
 			node = (ev_io *)((WL)node)->next;
 		}
 		int_i = int_i - 1;
@@ -347,190 +336,44 @@ void http_ev_step1(struct sock_ev_client *client) {
 	_set_invalid_parameter_handler(oldHandler);
 #endif
 
-	// pendings?
-	// ssize_t pendingpri = NUMPRI - 1;
-	// while (pendingpri >= 0 && (bol_kill == false || bol_killed == false)) {
-	// 	ssize_t int_i = global_loop->pendingcnt[pendingpri] - 1;
-	// 	while (int_i >= 0 && (bol_kill == false || bol_killed == false)) {
-	// 		if (global_loop->pendings[pendingpri] == NULL) {
-	// 			int_i -= 1;
-	// 			continue;
-	// 		}
-
-	// 		snprintf(str_current_address, 255, "%p", global_loop->pendings[pendingpri][int_i].w);
-	// 		snprintf(str_current_priority, 255, "%zu", pendingpri);
-	// 		snprintf(str_current_events, 255, "0x%x", global_loop->pendings[pendingpri][int_i].events);
-
-	// 		if (bol_kill) {
-	// 			if (strcmp(str_current_address, str_w) == 0) {
-	// 				ev_check_stop(global_loop, (ev_check *)global_loop->pendings[pendingpri][int_i].w);
-	// 				bol_killed = true;
-	// 			}
-	// 		} else {
-	// 			char *ptr_cb_name = cb_to_name(global_loop->pendings[pendingpri][int_i].w->cb);
-	// 			SFINISH_SNFCAT(
-	// 				client_copy_check->str_response, &int_response_len,
-	// 				"	watcher at ", (size_t)12,
-	// 				str_current_address, strlen(str_current_address),
-	// 				" with priority ", (size_t)15,
-	// 				str_current_priority, strlen(str_current_priority),
-	// 				" with callback ", (size_t)15,
-	// 				ptr_cb_name, strlen(ptr_cb_name),
-	// 				" initiator ", (size_t)11,
-	// 				global_loop->pendings[pendingpri][int_i].w->initiator, strlen(global_loop->pendings[pendingpri][int_i].w->initiator),
-	// 				":\n", (size_t)2
-	// 			);
-	// 			SFINISH_SNFCAT(
-	// 				client_copy_check->str_response, &int_response_len,
-	// 				"		events: ", (size_t)10,
-	// 				str_current_events, strlen(str_current_events),
-	// 				"\n", (size_t)1
-	// 			);
-	// 			SFINISH_SNFCAT(
-	// 				client_copy_check->str_response, &int_response_len,
-	// 				"			EV_IDLE			: ", (size_t)15,
-	// 				global_loop->pendings[pendingpri][int_i].events == EV_IDLE ? "true\n" : "false\n", (size_t)(global_loop->pendings[pendingpri][int_i].events == EV_IDLE ? 5 : 6)
-	// 			);
-	// 			SFINISH_SNFCAT(
-	// 				client_copy_check->str_response, &int_response_len,
-	// 				"			EV_PREPARE		: ", (size_t)17,
-	// 				global_loop->pendings[pendingpri][int_i].events == EV_PREPARE ? "true\n" : "false\n", (size_t)(global_loop->pendings[pendingpri][int_i].events == EV_PREPARE ? 5 : 6)
-	// 			);
-	// 			SFINISH_SNFCAT(
-	// 				client_copy_check->str_response, &int_response_len,
-	// 				"			EV_CHECK		: ", (size_t)15,
-	// 				global_loop->pendings[pendingpri][int_i].events == EV_CHECK ? "true\n\n" : "false\n\n", (size_t)(global_loop->pendings[pendingpri][int_i].events == EV_CHECK ? 6 : 7)
-	// 			);
-	// 		}
-
-	// 		int_i -= 1;
-	// 		SDEBUG("client_copy_check->str_response: %s", client_copy_check->str_response);
-	// 	}
-
-	// 	pendingpri -= 1;
-	// }
-
-    snprintf(str_response_len, 255, "%zu", int_response_len);
-    _str_response = client_copy_check->str_response;
-    SDEBUG("client_copy_check->str_response: %s", client_copy_check->str_response);
-    client_copy_check->int_response_len = (ssize_t)int_response_len;
-    SFINISH_SNCAT(
-        client_copy_check->str_response, &int_response_len,
-        "HTTP/1.1 200 OK\015\012", strlen("HTTP/1.1 200 OK\015\012"),
-        "Content-Length: ", strlen("Content-Length: "),
-        str_response_len, strlen(str_response_len),
-        "\015\012", strlen("\015\012"),
-        "Refresh: 1\015\012", strlen("Refresh: 1\015\012"),
-        "Content-Type: text/plain\015\012", strlen("Content-Type: text/plain\015\012"),
-        "\015\012", strlen("\015\012"),
-        _str_response, client_copy_check->int_response_len
+    darr_headers = DArray_from_strings(
+        "Refresh", "1"
     );
-    client_copy_check->int_response_len = (ssize_t)int_response_len;
-    SFREE(_str_response);
-    SDEBUG("client_copy_check->str_response: %s", client_copy_check->str_response);
+    SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
 
-	ev_io_init(&client_copy_io->io, http_ev_step2, client->int_ev_sock, EV_WRITE);
-	ev_io_start(global_loop, &client_copy_io->io);
+    SFINISH_CHECK(build_http_response(
+            "200 OK"
+            , str_response, int_response_len
+            , "text/plain"
+            , darr_headers
+            , &client->str_http_response, &client->int_http_response_len
+        ), "build_http_response failed");
 
 	bol_error_state = false;
 finish:
-	if (bol_error_state) {
-		bol_error_state = false;
-
-		char *_str_response = str_response;
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012\015\012";
-		SFINISH_SNCAT(str_response, &int_response_len, str_temp, strlen(str_temp), _str_response, strlen(_str_response));
-		SFREE(_str_response);
-	}
+    if (darr_headers != NULL) {
+        DArray_clear_destroy(darr_headers);
+    }
 	SFREE_ALL();
-	ssize_t int_len_response = 0;
-	if (str_response != NULL && (int_len_response = write(client->int_sock, str_response, strlen(str_response))) < 0) {
-		SERROR_NORESPONSE("write() failed");
-		ev_io_stop(global_loop, &client->io);
-		SFREE(client->str_request);
-		SERROR_CHECK_NORESPONSE(client_close(client), "Error closing Client");
-	}
-	SFREE(str_response);
-}
-
-void http_ev_step2(EV_P, ev_io *w, int revents) {
-	if (revents != 0) {
-	} // get rid of unused parameter warning
-	struct sock_ev_client_copy_io *client_copy_io = (struct sock_ev_client_copy_io *)w;
-	struct sock_ev_client_copy_check *client_copy_check = client_copy_io->client_copy_check;
-	struct sock_ev_client_request *client_request = client_copy_check->client_request;
-	char *str_response = NULL;
-	char *_str_response = NULL;
-
-	SDEBUG("client_copy_check->str_response: %s", client_copy_check->str_response);
-
-	ssize_t int_response_len =
-		write(client_request->parent->int_sock, client_copy_check->str_response + client_copy_check->int_written,
-			(size_t)(client_copy_check->int_response_len - client_copy_check->int_written));
-
-	SDEBUG("write(%i, %p, %i): %z", client_request->parent->int_sock,
-		client_copy_check->str_response + client_copy_check->int_written,
-		client_copy_check->int_response_len - client_copy_check->int_written, int_response_len);
-
-	if (int_response_len < 0 && errno != EAGAIN) {
-		SFINISH("write(%i, %p, %i) failed: %i", client_request->parent->int_sock,
-			client_copy_check->str_response + client_copy_check->int_written,
-			client_copy_check->int_response_len - client_copy_check->int_written, int_response_len);
-	} else {
-		// int_response_len can't be negative at this point
-		client_copy_check->int_written += (ssize_t)int_response_len;
-	}
-
-	if (client_copy_check->int_written == client_copy_check->int_response_len) {
-		ev_io_stop(EV_A, w);
-
-		SFREE(client_copy_check->str_response);
-		SFREE(client_copy_check);
-		SFREE(client_copy_io);
-
-		SDEBUG("DONE");
-		struct sock_ev_client *client = client_request->parent;
-		SFINISH_CLIENT_CLOSE(client);
-		client_request = NULL;
-	}
-
-	bol_error_state = false;
-finish:
-	_str_response = str_response;
 	if (bol_error_state) {
-		if (client_copy_check != NULL) {
-			ev_io_stop(EV_A, w);
-			SFREE(client_copy_check->str_response);
-			SFREE(client_copy_check);
-			SFREE(client_copy_io);
-		}
-		str_response = NULL;
 		bol_error_state = false;
 
-		char *str_temp =
-			"HTTP/1.1 500 Internal Server Error\015\012"
-			"Server: " SUN_PROGRAM_LOWER_NAME "\015\012"
-			"Connection: close\015\012\015\012";
-		SFINISH_SNCAT(str_response, (size_t *)&int_response_len,
-			str_temp, strlen(str_temp),
-			_str_response, strlen(_str_response));
-		SFREE(_str_response);
+        SFREE(client->str_http_header);
+        SFINISH_CHECK(build_http_response(
+                "500 Internal Server Error"
+                , str_response, int_response_len
+                , "text/plain"
+                , NULL
+                , &client->str_http_response, &client->int_http_response_len
+            ), "build_http_response failed");
 	}
-	if (str_response != NULL) {
-		int_response_len = write(client_request->parent->int_sock, str_response, strlen(str_response));
-		SDEBUG("int_response_len: %d", int_response_len);
-		if (int_response_len < 0) {
-			SERROR_NORESPONSE("write() failed");
-		}
-		ev_io_stop(EV_A, &client_request->parent->io);
-		SFREE(client_request->parent->str_request);
-		SDEBUG("ERROR");
-		SERROR_CHECK_NORESPONSE(client_close(client_request->parent), "Error closing Client");
+    SFREE(str_response);
+    // if client->str_http_header is non-empty, we are already taken care of
+	if (client->str_http_response != NULL && client->str_http_header == NULL) {
+		ev_io_stop(global_loop, &client->io);
+		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
+        ev_io_start(global_loop, &client->io);
 	}
-	SFREE(str_response);
 }
 
 char *cb_to_name(void *cb) {
@@ -540,7 +383,6 @@ char *cb_to_name(void *cb) {
 		: (cb == http_auth_login_step3) ? "http_auth_login_step3"
 		: (cb == http_auth_change_pw_step2) ? "http_auth_change_pw_step2"
 		: (cb == http_auth_change_pw_step3) ? "http_auth_change_pw_step3"
-		: (cb == http_auth_change_database_step2) ? "http_auth_change_database_step2"
 		: (cb == http_file_step2) ? "http_file_step2"
 		: (cb == http_file_step3) ? "http_file_step3"
 		: (cb == http_upload_step2) ? "http_upload_step2"
