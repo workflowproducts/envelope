@@ -175,7 +175,9 @@ bool _DB_exec(
 
 	return true;
 error:
-	SFREE(query_info->str_query);
+	if (query_info != NULL) {
+		SFREE(query_info->str_query);
+	}
 	SFREE(query_info);
 	conn->res_poll = NULL;
 	DB_res_poll_free(res_poll);
@@ -1052,7 +1054,7 @@ bool db_conn_cb_context_data(EV_P, void *cb_data, DB_result *res) {
 	char *str_response = NULL;
 	DB_poll *conn_poll = cb_data;
 	DB_conn *conn = conn_poll->conn;
-    size_t int_response_len;
+    size_t int_response_len = 0;
 
 	SFINISH_CHECK(res != NULL, "failed to set context data");
 	SFINISH_CHECK(res->status == DB_RES_COMMAND_OK, "failed to set context data, res->status = %d: %s", res->status, res->conn->str_response);

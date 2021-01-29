@@ -1,6 +1,6 @@
 #include "ws_insert.h"
 
-void ws_insert_step1(struct sock_ev_client_request *client_request) {
+void ws_insert_step1(EV_P, struct sock_ev_client_request *client_request) {
 	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client_request->client_request_data);
 	SDEFINE_VAR_ALL(str_temp, str_temp1, str_sql, str_col_name, str_col_seq);
 	char *str_response = NULL;
@@ -345,7 +345,7 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 			client_insert->str_real_table_name, client_insert->int_real_table_name_len,
 			" LIMIT 0;", (size_t)9);
 		SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
-		SFINISH_CHECK(DB_exec(global_loop, client_request->parent->conn, client_request, str_sql, ws_insert_step2), "DB_exec failed");
+		SFINISH_CHECK(DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_insert_step2), "DB_exec failed");
 	} else {
 #ifndef ENVELOPE_INTERFACE_LIBPQ
 		if (client_insert->str_identity_column_name != NULL) {
@@ -365,7 +365,7 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 				";", (size_t)1);
 			SDEBUG("str_sql: %s", str_sql);
 			SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
-			SFINISH_CHECK(DB_exec(global_loop, client_request->parent->conn, client_request, str_sql, ws_insert_step15_sql_server), "DB_exec failed");
+			SFINISH_CHECK(DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_insert_step15_sql_server), "DB_exec failed");
 		} else {
 			SFINISH_SNCAT(str_sql, &int_sql_len,
 				"IF OBJECT_ID('tempdb..", (size_t)22,
@@ -380,7 +380,7 @@ void ws_insert_step1(struct sock_ev_client_request *client_request) {
 				";", (size_t)1);
 			SDEBUG("str_sql: %s", str_sql);
 			SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
-			SFINISH_CHECK(DB_exec(global_loop, client_request->parent->conn, client_request, str_sql, ws_insert_step2), "DB_exec failed");
+			SFINISH_CHECK(DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_insert_step2), "DB_exec failed");
 		}
 #endif
 	}
@@ -412,7 +412,7 @@ finish:
 			_str_response, strlen(_str_response));
 		SFREE(_str_response);
 
-		WS_sendFrame(global_loop, client_request->parent, true, 0x01, str_response, strlen(str_response));
+		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, strlen(str_response));
 		DArray_push(client_request->arr_response, str_response);
 		str_response = NULL;
 	}

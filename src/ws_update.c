@@ -1,6 +1,6 @@
 #include "ws_update.h"
 
-void ws_update_step1(struct sock_ev_client_request *client_request) {
+void ws_update_step1(EV_P, struct sock_ev_client_request *client_request) {
 	struct sock_ev_client_update *client_update = (struct sock_ev_client_update *)(client_request->client_request_data);
 	// DEBUG("UPDATE BEGIN");
 	SDEFINE_VAR_ALL(str_col_name, str_sql, str_temp);
@@ -369,7 +369,7 @@ void ws_update_step1(struct sock_ev_client_request *client_request) {
 		SDEBUG("str_sql: %s", str_sql);
 		SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 		SFINISH_CHECK(
-			DB_exec(global_loop, client_request->parent->conn, client_request, str_sql, ws_update_step2), "DB_exec failed");
+			DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_update_step2), "DB_exec failed");
 	} else {
 #ifndef ENVELOPE_INTERFACE_LIBPQ
 		SDEBUG("client_update->str_insert_column_names: %p", client_update->str_insert_column_names);
@@ -393,7 +393,7 @@ void ws_update_step1(struct sock_ev_client_request *client_request) {
 			SDEBUG("str_sql: %s", str_sql);
 			SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 			SFINISH_CHECK(
-				DB_exec(global_loop, client_request->parent->conn, client_request, str_sql, ws_update_step15_sql_server),
+				DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_update_step15_sql_server),
 				"DB_exec failed");
 		} else {
 			SFINISH_SNCAT(str_sql, &int_sql_len,
@@ -412,7 +412,7 @@ void ws_update_step1(struct sock_ev_client_request *client_request) {
 			SDEBUG("str_sql: %s", str_sql);
 			SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 			SFINISH_CHECK(
-				DB_exec(global_loop, client_request->parent->conn, client_request, str_sql, ws_update_step2), "DB_exec failed");
+				DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_update_step2), "DB_exec failed");
 		}
 		SDEBUG("client_update->str_insert_column_names: %p", client_update->str_insert_column_names);
 		SDEBUG("client_update->str_insert_column_names: %s", client_update->str_insert_column_names);
@@ -448,7 +448,7 @@ finish:
 			_str_response, strlen(_str_response));
 		SFREE(_str_response);
 
-		WS_sendFrame(global_loop, client_request->parent, true, 0x01, str_response, int_response_len);
+		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 		DArray_push(client_request->arr_response, str_response);
 		str_response = NULL;
 	}
@@ -565,7 +565,7 @@ bool ws_update_step2(EV_P, void *cb_data, DB_result *res) {
 	int_len_content = client_request->frame->int_length - (size_t)(client_update->ptr_query - client_request->frame->str_message);
 	SFINISH_CHECK(int_len_content > 0, "No update data");
 	SFINISH_CHECK(DB_copy_in(EV_A, client_request->parent->conn, client_request, client_update->ptr_query, int_len_content,
-					  str_sql, ws_update_step4),
+					  str_sql, ws_update_step3),
 		"DB_copy_in failed");
 
 	DB_free_result(res);
@@ -613,7 +613,7 @@ finish:
 	return bol_ret;
 }
 
-bool ws_update_step4(EV_P, void *cb_data, DB_result *res) {
+bool ws_update_step3(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_update *client_update = (struct sock_ev_client_update *)(client_request->client_request_data);
 	SDEFINE_VAR_ALL(str_sql, str_hash_where_clause);
@@ -678,10 +678,10 @@ bool ws_update_step4(EV_P, void *cb_data, DB_result *res) {
 				";", (size_t)1);
 		}
 	}
-	SDEBUG("str_sql: %s", str_sql);
+	SWARN_NORESPONSE("str_sql: %s", str_sql);
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
-	SFINISH_CHECK(DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_update_step5), "DB_exec failed");
+	SFINISH_CHECK(DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_update_step4), "DB_exec failed");
 
 	bol_error_state = false;
 	bol_ret = true;
@@ -724,7 +724,7 @@ finish:
 	return bol_ret;
 }
 
-bool ws_update_step5(EV_P, void *cb_data, DB_result *res) {
+bool ws_update_step4(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_update *client_update = (struct sock_ev_client_update *)(client_request->client_request_data);
 	SDEFINE_VAR_ALL(str_sql);
@@ -789,7 +789,7 @@ bool ws_update_step5(EV_P, void *cb_data, DB_result *res) {
 	}
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
-	SFINISH_CHECK(DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_update_step6), "DB_exec failed");
+	SFINISH_CHECK(DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_update_step5), "DB_exec failed");
 
 	bol_error_state = false;
 	bol_ret = true;
@@ -838,7 +838,7 @@ finish:
 	return bol_ret;
 }
 
-bool ws_update_step6(EV_P, void *cb_data, DB_result *res) {
+bool ws_update_step5(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_update *client_update = (struct sock_ev_client_update *)(client_request->client_request_data);
 	bool bol_ret = true;

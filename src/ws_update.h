@@ -87,7 +87,7 @@ This function will:
 and pk)
 2. create first temp table to hold data the client sent
 */
-void ws_update_step1(struct sock_ev_client_request *client_request);
+void ws_update_step1(EV_P, struct sock_ev_client_request *client_request);
 
 #ifndef ENVELOPE_INTERFACE_LIBPQ
 /*
@@ -107,7 +107,7 @@ copy came back
 This function will get the count of rows currently in the database matching the
 hash and pk where clauses generated from the input
 */
-bool ws_update_step4(EV_P, void *cb_data, DB_result *res);
+bool ws_update_step3(EV_P, void *cb_data, DB_result *res);
 
 /*
 the count of rows query came back
@@ -115,14 +115,14 @@ This function will:
 1. check returned counts against the number of rows the user gives us
 2. update the actual table
 */
-bool ws_update_step5(EV_P, void *cb_data, DB_result *res);
+bool ws_update_step4(EV_P, void *cb_data, DB_result *res);
 
 /*
 update query came back
 This function will start copy command from the real table (using the pk where
 clause)
 */
-bool ws_update_step6(EV_P, void *cb_data, DB_result *res);
+bool ws_update_step5(EV_P, void *cb_data, DB_result *res);
 
 /*
 This function will free the data associated with the client_update struct

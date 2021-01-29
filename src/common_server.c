@@ -1,6 +1,6 @@
 #include "common_server.h"
 
-struct ev_loop *global_loop = NULL;
+struct ev_loop *EV_A = NULL;
 struct sock_ev_serv _server;
 
 // set a socket to not blocking

@@ -38,7 +38,7 @@ When you call this function, it parses the request to figure out:
 2. whether or not we are downloading it
 Then it opens the file.
 */
-void http_file_step1(struct sock_ev_client *client);
+void http_file_step1(EV_P, struct sock_ev_client *client);
 
 bool http_file_step15_envelope(EV_P, void *cb_data, bool bol_group);
 

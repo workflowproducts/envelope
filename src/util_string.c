@@ -130,7 +130,7 @@ size_t find_line_len(char *str, size_t int_len) {
 // This is based on OpenBSD strcspn
 size_t strncspn(const char *str_search, size_t int_search_len, const char *str_chars, size_t int_chars_len) {
 	const char *p, *spanp;
-	char c, sc;
+	char c;
 	size_t int_i = 0;
 	size_t int_j = 0;
 
@@ -140,7 +140,7 @@ size_t strncspn(const char *str_search, size_t int_search_len, const char *str_c
 		spanp = str_chars;
 		int_j = 0;
 		do {
-			if ((sc = *spanp++) == c) {
+			if (( *spanp++) == c) {
 				return (size_t)(p - 1 - str_search);
 			}
 			int_j += 1;
@@ -152,7 +152,7 @@ size_t strncspn(const char *str_search, size_t int_search_len, const char *str_c
 // This is based on OpenBSD strcspn
 size_t strnspn(const char *str_search, size_t int_search_len, const char *str_chars, size_t int_chars_len) {
 	const char *p, *spanp;
-	char c, sc;
+	char c;
 	size_t int_i = 0;
 	size_t int_j = 0;
 	bool bol_match = false;
@@ -164,7 +164,7 @@ size_t strnspn(const char *str_search, size_t int_search_len, const char *str_ch
 		int_j = 0;
 		bol_match = false;
 		do {
-			if ((sc = *spanp++) == c) {
+			if ((*spanp++) == c) {
 				bol_match = true;
 			}
 			if (!bol_match) {

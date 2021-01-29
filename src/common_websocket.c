@@ -242,7 +242,7 @@ void WS_readFrame_step2(EV_P, ev_io *w, int revents) {
 				_server.arr_client_last_activity, (size_t)frame->parent->int_last_activity_i);
 			if (client_last_activity != NULL) {
 				SDEBUG("client->int_last_activity_i          : %d", frame->parent->int_last_activity_i);
-				SDEBUG("ev_now(global_loop)               : %f", ev_now(EV_A));
+				SDEBUG("ev_now(EV_A)               : %f", ev_now(EV_A));
 				SDEBUG("client_last_activity                 : %p", client_last_activity);
 				SDEBUG("client_last_activity->last_activity_time: %f", client_last_activity->last_activity_time);
 				client_last_activity->last_activity_time = ev_now(EV_A);
@@ -423,7 +423,7 @@ void WS_sendFrame_step2(EV_P, ev_io *w, int revents) {
 				_server.arr_client_last_activity, (size_t)frame->parent->int_last_activity_i);
 			if (client_last_activity != NULL) {
 				SDEBUG("client->int_last_activity_i          : %d", frame->parent->int_last_activity_i);
-				SDEBUG("ev_now(global_loop)               : %f", ev_now(EV_A));
+				SDEBUG("ev_now(EV_A)               : %f", ev_now(EV_A));
 				SDEBUG("client_last_activity                 : %p", client_last_activity);
 				SDEBUG("client_last_activity->last_activity_time: %f", client_last_activity->last_activity_time);
 				client_last_activity->last_activity_time = ev_now(EV_A);
@@ -446,9 +446,6 @@ error:
 		SFREE(str_global_error);
 		bol_error_state = false;
 	} else if (int_len == -1 || errno == EPIPE) {
-		// This prevents an infinite loop if CLIENT_CLOSE fails
-        // Also, EPIPE can happen on a search that returns thousands of messages
-		int_len = 0;
 		SDEBUG("disconnect");
 
 		ev_io_stop(EV_A, w);
@@ -457,7 +454,7 @@ error:
 		WS_client_message_free(client_message);
 		WS_freeFrame(frame);
 
-		SERROR_CLIENT_CLOSE(client);
+		SERROR_CLIENT_CLOSE_NORESPONSE(client);
 		bol_error_state = false;
 	}
 }

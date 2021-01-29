@@ -59,7 +59,7 @@ initiate a postgresql connection
 In all other cases:
 This function will gather what the client wants, then just send it
 */
-void http_auth(struct sock_ev_client_auth *client_auth);
+void http_auth(EV_P, struct sock_ev_client_auth *client_auth);
 
 /*
 These three functions handle the steps of login after authentication

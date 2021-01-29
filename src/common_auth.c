@@ -5,7 +5,7 @@ bool connect_cb_env_step2(EV_P, void *cb_data, DB_result *res);
 bool connect_cb_env_step3(EV_P, void *cb_data, DB_result *res);
 
 // get connection string from cookie
-DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
+DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) {
 	char *str_response = NULL;
 	size_t int_response_len = 0;
 	SDEFINE_VAR_ALL(str_cookie_encrypted, str_cookie_decrypted, str_password, str_uri, str_temp, str_conn_index);
@@ -14,7 +14,6 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 	char *str_conn = NULL;
 	ssize_t int_i = 0;
 	ssize_t int_len = 0;
-	size_t int_conn_index = 0;
 	client->bol_public = false;
 	size_t int_uri_length = 0;
 	size_t int_user_length = 0;
@@ -131,9 +130,9 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 			client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(
 				client->server->arr_client_last_activity, (size_t)client->int_last_activity_i);
 
-			SDEBUG(" ev_now(global_loop)                                            : %f", ev_now(global_loop));
+			SDEBUG(" ev_now(EV_A)                                            : %f", ev_now(EV_A));
 			SDEBUG("                       client_last_activity->last_activity_time : %f", client_last_activity->last_activity_time);
-			SDEBUG("(ev_now(global_loop) - client_last_activity->last_activity_time): %f", (ev_now(global_loop) - client_last_activity->last_activity_time));
+			SDEBUG("(ev_now(EV_A) - client_last_activity->last_activity_time): %f", (ev_now(EV_A) - client_last_activity->last_activity_time));
 		}
 		// Grab the other client if we have it
 		struct sock_ev_client *other_client = NULL;
@@ -155,8 +154,8 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 					(
 						int_global_login_timeout == 0 ||
 						(
-							ev_now(global_loop) - client_last_activity->last_activity_time
-						) < int_global_login_timeout
+							ev_now(EV_A) - client_last_activity->last_activity_time
+						) < (double)int_global_login_timeout
 					)
 				)
 			)
@@ -369,13 +368,13 @@ DB_conn *set_cnxn(struct sock_ev_client *client, connect_cb_t connect_cb) {
 			// The only difference here is the callback and no user/pw
 			SDEBUG("SET SESSION CONN");
 			client->connect_cb = connect_cb;
-			client->conn = DB_connect(global_loop, client, str_conn,
+			client->conn = DB_connect(EV_A, client, str_conn,
 				NULL, 0, NULL, 0,
 				str_context_data, connect_cb_env);
 		} else {
 			SDEBUG("NORMAL CONN");
 			SDEBUG("str_username: >%s<", str_username);
-			client->conn = DB_connect(global_loop, client, str_conn,
+			client->conn = DB_connect(EV_A, client, str_conn,
 				str_username, int_user_length, str_password, int_password_length,
 				str_context_data, connect_cb);
 		}
@@ -419,7 +418,7 @@ finish://|/usr/libexec/abrt-hook-ccpp %s %c %p %u %g %t e
 			"\x03\xf3", (size_t)2, // close reason 1011
 			str_response_temp, int_response_len
 		);
-		WS_sendFrame(global_loop, client, true, 0x08, str_response, int_response_len);
+		WS_sendFrame(EV_A, client, true, 0x08, str_response, int_response_len);
 		client->bol_is_open = false;
 		SFREE(str_response);
 	}
@@ -441,9 +440,9 @@ finish://|/usr/libexec/abrt-hook-ccpp %s %c %p %u %g %t e
 
     SFREE(str_response);
 	if (client->str_http_response != NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 	return client ? client->conn : NULL;
 }
@@ -569,7 +568,7 @@ bool connect_cb_env_step3(EV_P, void *cb_data, DB_result *res) {
 	SDEBUG("connect_cb_env_step3");
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
-    size_t int_response_len;
+    size_t int_response_len = 0;
 	SDEFINE_VAR_ALL(str_diag);
 	str_diag = DB_get_diagnostic(client->conn, res);
 

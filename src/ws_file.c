@@ -7,7 +7,7 @@ struct custom_check_callback {
 	struct sock_ev_client_request *client_request;
 };
 
-void ws_file_step1(struct sock_ev_client_request *client_request) {
+void ws_file_step1(EV_P, struct sock_ev_client_request *client_request) {
 	SDEFINE_VAR_ALL(str_path_temp, str_path, str_connstring, str_local_path_root, str_temp_connstring, str_change_stamp,
 		str_query, str_search_temp);
 	struct sock_ev_client_file *client_file = (struct sock_ev_client_file *)(client_request->client_request_data);
@@ -54,7 +54,7 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 	ptr_query += 1;
 	*(ptr_query - 1) = 0;
 
-	if (strcmp(str_request_type, "LIST") == 0) {
+	if (strncmp(str_request_type, "LIST", 5) == 0) {
 		client_file->file_type = ENVELOPE_FILE_LIST;
 
 		client_file->str_input_path = ptr_query;
@@ -87,7 +87,7 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 			SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<",
 				client_file->str_canonical_start, client_file->str_partial_path);
 
-			SFINISH_CHECK(permissions_check(global_loop, client_request->parent->conn, client_file->str_input_path,
+			SFINISH_CHECK(permissions_check(EV_A, client_request->parent->conn, client_file->str_input_path,
 							  client_request, ws_file_list_step2),
 				"permissions_check() failed");
 		} else {
@@ -97,14 +97,12 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 			);
 		}
 
-	} else if (strcmp(str_request_type, "READ") == 0) {
+	} else if (strncmp(str_request_type, "READ", 5) == 0) {
 		client_file->file_type = ENVELOPE_FILE_READ;
 		client_file->str_input_path = ptr_query;
 		ptr_query = strstr(client_file->str_input_path, "\012");
 		if (ptr_query != NULL) {
 			*ptr_query = 0;
-		} else {
-			ptr_query = client_file->str_input_path + strlen(client_file->str_input_path);
 		}
 
 		str_temp = client_file->str_input_path;
@@ -121,11 +119,11 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
 			client_file->str_partial_path);
 
-		SFINISH_CHECK(permissions_check(global_loop, client_request->parent->conn, client_file->str_input_path, client_request,
+		SFINISH_CHECK(permissions_check(EV_A, client_request->parent->conn, client_file->str_input_path, client_request,
 						  ws_file_read_step2),
 			"permissions_check() failed");
 
-	} else if (strcmp(str_request_type, "WRITE") == 0) {
+	} else if (strncmp(str_request_type, "WRITE", 6) == 0) {
 		client_file->file_type = ENVELOPE_FILE_WRITE;
 		SNOTICE("FILE WRITE");
 		client_file->ptr_content = strstr(ptr_query, "\012") + 1;
@@ -159,11 +157,11 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
 			client_file->str_partial_path);
 
-		SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path, client_request, ws_file_write_step2),
+		SFINISH_CHECK(permissions_write_check(EV_A, client_request->parent->conn, client_file->str_input_path, client_request, ws_file_write_step2),
 			"permissions_write_check() failed");
 
-	} else if (strcmp(str_request_type, "MOVE") == 0 || strcmp(str_request_type, "COPY") == 0) {
-		client_file->file_type = strcmp(str_request_type, "MOVE") == 0 ? ENVELOPE_FILE_MOVE : ENVELOPE_FILE_COPY;
+	} else if (strncmp(str_request_type, "MOVE", 5) == 0 || strncmp(str_request_type, "COPY", 5) == 0) {
+		client_file->file_type = strncmp(str_request_type, "MOVE", 5) == 0 ? ENVELOPE_FILE_MOVE : ENVELOPE_FILE_COPY;
 		SNOTICE("FILE %s", client_file->file_type == ENVELOPE_FILE_MOVE ? "MOVE" : "COPY");
 		str_temp = ptr_query;
 		ptr_query = strstr(str_temp, "\t");
@@ -182,8 +180,6 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 		ptr_query = strstr(str_temp, "\012");
 		if (ptr_query != NULL) {
 			*ptr_query = 0;
-		} else {
-			ptr_query = client_file->str_input_path + strlen(client_file->str_input_path);
 		}
 
 		int_input_path_to_len = strlen(str_temp);
@@ -214,11 +210,11 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(access(client_file->str_path_to, F_OK) == -1, "File exists");
 		errno = 0;
 
-		SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path,
+		SFINISH_CHECK(permissions_write_check(EV_A, client_request->parent->conn, client_file->str_input_path,
 			client_request, ws_file_move_step2),
 			"permissions_write_check() failed");
 
-	} else if (strcmp(str_request_type, "DELETE") == 0) {
+	} else if (strncmp(str_request_type, "DELETE", 7) == 0) {
 		client_file->file_type = ENVELOPE_FILE_DELETE;
 		SNOTICE("FILE DELETE");
 		SDEBUG("ptr_query: %s", ptr_query);
@@ -241,13 +237,13 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
 			client_file->str_partial_path);
 
-		SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path,
+		SFINISH_CHECK(permissions_write_check(EV_A, client_request->parent->conn, client_file->str_input_path,
 						  client_request, ws_file_delete_step2),
 			"permissions_write_check() failed");
 
-	} else if (strcmp(str_request_type, "CREATE_FOLDER") == 0 || strcmp(str_request_type, "CREATE_FILE") == 0) {
+	} else if (strncmp(str_request_type, "CREATE_FOLDER", 14) == 0 || strncmp(str_request_type, "CREATE_FILE", 12) == 0) {
 		client_file->file_type =
-			strcmp(str_request_type, "CREATE_FOLDER") == 0 ? ENVELOPE_FILE_CREATE_FOLDER : ENVELOPE_FILE_CREATE_FILE;
+			strncmp(str_request_type, "CREATE_FOLDER", 14) == 0 ? ENVELOPE_FILE_CREATE_FOLDER : ENVELOPE_FILE_CREATE_FILE;
 		SNOTICE("FILE %s", client_file->file_type == ENVELOPE_FILE_CREATE_FOLDER ? "CREATE_FOLDER" : "CREATE_FILE");
 		SDEBUG("ptr_query: %s", ptr_query);
 		str_temp = ptr_query;
@@ -271,17 +267,17 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 
 		SDEBUG("client_file->str_path: %s", client_file->str_path);
 		if (client_file->file_type == ENVELOPE_FILE_CREATE_FOLDER) {
-			SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path,
+			SFINISH_CHECK(permissions_write_check(EV_A, client_request->parent->conn, client_file->str_input_path,
 							  client_request, ws_file_create_step2),
 				"permissions_write_check() failed");
 		} else {
 			client_file->ptr_content = "";
-			SFINISH_CHECK(permissions_write_check(global_loop, client_request->parent->conn, client_file->str_input_path,
+			SFINISH_CHECK(permissions_write_check(EV_A, client_request->parent->conn, client_file->str_input_path,
 							  client_request, ws_file_write_step2),
 				"permissions_write_check() failed");
 		}
 
-	} else if (strcmp(str_request_type, "SEARCH") == 0) {
+	} else if (strncmp(str_request_type, "SEARCH", 7) == 0) {
 		client_file->file_type = ENVELOPE_FILE_SEARCH;
 		SNOTICE("FILE SEARCH");
 		SDEBUG("ptr_query: %s", ptr_query);
@@ -346,7 +342,7 @@ void ws_file_step1(struct sock_ev_client_request *client_request) {
 			}
 		}
 
-		SFINISH_CHECK(permissions_check(global_loop, client_request->parent->conn, client_file->str_input_path,
+		SFINISH_CHECK(permissions_check(EV_A, client_request->parent->conn, client_file->str_input_path,
 						  client_request, ws_file_search_step2),
 			"permissions_check() failed");
 
@@ -374,7 +370,7 @@ finish:
 			"\012", (size_t)1,
 			_str_response, strlen(_str_response)
 		);
-		WS_sendFrame(global_loop, client_request->parent, true, 0x01, str_response, int_response_len);
+		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 		DArray_push(client_request->arr_response, str_response);
 		SFREE(_str_response);
 
@@ -390,7 +386,7 @@ finish:
 				str_temp1, strlen(str_temp1),
 				"\012TRANSACTION COMPLETED", (size_t)22
 			);
-			WS_sendFrame(global_loop, client_request->parent, true, 0x01, str_response, int_response_len);
+			WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 			DArray_push(client_request->arr_response, str_response);
 			str_response = NULL;
 		}

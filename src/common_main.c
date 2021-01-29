@@ -36,20 +36,21 @@ This function is run when the program exits
 */
 ev_signal exitsig;
 void program_exit() {
-    ev_signal_stop(global_loop, &exitsig);
+	EV_P = global_loop;
+    ev_signal_stop(EV_A, &exitsig);
 	fprintf(stderr, "ENVELOPE IS SHUTTING DOWN\n");
-	if (global_loop != NULL) {
+	if (EV_A != NULL) {
 		size_t int_i, int_len;
 
-		ev_io_stop(global_loop, &_server.io);
+		ev_io_stop(EV_A, &_server.io);
 		if (int_global_login_timeout > 0) {
-			ev_periodic_stop(global_loop, &last_activity_free_timer);
+			ev_periodic_stop(EV_A, &last_activity_free_timer);
 		}
 		if (int_global_log_queries_over > 0) {
 			if (log_queries_over_conn != NULL) {
 				DB_finish(log_queries_over_conn);
 			}
-			ev_periodic_stop(global_loop, &check_running_queries_timer);
+			ev_periodic_stop(EV_A, &check_running_queries_timer);
 		}
 
 		if (_server.list_client != NULL) {
@@ -108,9 +109,9 @@ void program_exit() {
 		ERR_remove_thread_state(NULL);
 #endif
 
-		ev_break(global_loop, EVBREAK_ALL);
-		ev_loop_destroy(global_loop);
-		global_loop = NULL;
+		ev_break(EV_A, EVBREAK_ALL);
+		ev_loop_destroy(EV_A);
+		EV_A = NULL;
 
 #ifdef _WIN32
 		WSACleanup();
@@ -136,7 +137,7 @@ void free_last_activity(EV_P, ev_periodic *w, int revents) {
 		for (int_i = 0, int_len = DArray_end(_server.arr_client_last_activity); int_i < int_len; int_i += 1) {
 			client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(_server.arr_client_last_activity, int_i);
 			if (client_last_activity != NULL &&
-				(ev_now(global_loop) - client_last_activity->last_activity_time) >= int_global_login_timeout) {
+				(ev_now(EV_A) - client_last_activity->last_activity_time) >= (double)int_global_login_timeout) {
 				bol_no_clients = true;
 				LIST_FOREACH(_server.list_client, first, next, node) {
 					client = node->value;
@@ -257,7 +258,7 @@ void check_running_queries(EV_P, ev_periodic *w, int revents) {
 		query_info = node->value;
 		if (query_info != NULL) {
 			ev_tstamp now = ev_now(EV_A);
-			if ((now - query_info->tim_start) > int_global_log_queries_over && (now - query_info->tim_start) < (int_global_log_queries_over * 2)) {
+			if ((now - query_info->tim_start) > (double)int_global_log_queries_over && (now - query_info->tim_start) < ((double)int_global_log_queries_over * 2)) {
 				SALWAYS_LOG("Query has been running for %zu seconds!", (size_t)(now - query_info->tim_start));
 				SALWAYS_LOG("Pid: %d", query_info->int_pid);
 				time_t tim_rawtime = (time_t)query_info->tim_start;
@@ -334,6 +335,7 @@ void sig_cb(EV_P, ev_signal *w, int revents) {
 Program entry point
 */
 int main(int argc, char *const *argv) {
+	EV_P = NULL;
 #ifdef _WIN32
 	WORD w_version_requested;
 	WSADATA wsa_data;
@@ -359,27 +361,27 @@ int main(int argc, char *const *argv) {
 	}
 	SINFO("Configuration finished");
 
-	global_loop = ev_default_loop(0);
-	SERROR_CHECK(global_loop != NULL, "ev_default_loop failed!");
+	EV_A = global_loop = ev_default_loop(0);
+	SERROR_CHECK(EV_A != NULL, "ev_default_loop failed!");
     ev_signal_init(&exitsig, sig_cb, SIGINT);
-    ev_signal_start(global_loop, &exitsig);
+    ev_signal_start(EV_A, &exitsig);
 
 	if (int_global_login_timeout > 0) {
 		memset(&last_activity_free_timer, 0, sizeof(ev_periodic));
 		ev_periodic_init(&last_activity_free_timer, free_last_activity, 0, (ev_tstamp)(int_global_login_timeout) / 10, NULL);
-		ev_periodic_start(global_loop, &last_activity_free_timer);
+		ev_periodic_start(EV_A, &last_activity_free_timer);
 	}
 
 	if (int_global_log_queries_over > 0) {
 		if (str_global_log_queries_over_action_name != NULL) {
-			log_queries_over_conn = DB_connect(global_loop, NULL, get_connection_info("", NULL),
+			log_queries_over_conn = DB_connect(EV_A, NULL, get_connection_info("", NULL),
 				str_global_public_username, strlen(str_global_public_username),
 				str_global_public_password, strlen(str_global_public_password),
 				"", connect_cb_log_queries_over);
 		}
 		memset(&check_running_queries_timer, 0, sizeof(ev_periodic));
 		ev_periodic_init(&check_running_queries_timer, check_running_queries, 0, (ev_tstamp)(int_global_log_queries_over) / 10, NULL);
-		ev_periodic_start(global_loop, &check_running_queries_timer);
+		ev_periodic_start(EV_A, &check_running_queries_timer);
 	}
 
 	memset(&_server, 0, sizeof(_server));
@@ -441,17 +443,17 @@ int main(int argc, char *const *argv) {
 #else
 	ev_io_init(&_server.io, server_cb, int_sock, EV_READ);
 #endif
-	ev_io_start(global_loop, &_server.io);
+	ev_io_start(EV_A, &_server.io);
 
 	printf("\n\nOpen http://<this computer's ip>:%s/ in your web browser\n", str_global_port);
 	fflush(0);
 
-	ev_run(global_loop, 0);
+	ev_run(EV_A, 0);
 
 	program_exit();
 	return 0;
 error:
-	if (global_loop != NULL) {
+	if (EV_A != NULL) {
 		program_exit();
 	}
 	return 1;

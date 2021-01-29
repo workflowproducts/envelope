@@ -1,6 +1,6 @@
 #include "ws_delete.h"
 
-void ws_delete_step1(struct sock_ev_client_request *client_request) {
+void ws_delete_step1(EV_P, struct sock_ev_client_request *client_request) {
 	struct sock_ev_client_delete *client_delete = (struct sock_ev_client_delete *)(client_request->client_request_data);
 	SDEBUG("DELETE BEGIN");
 	char *str_response = NULL;
@@ -254,7 +254,7 @@ void ws_delete_step1(struct sock_ev_client_request *client_request) {
 		SDEBUG("str_sql: %s", str_sql);
 		SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 		SFINISH_CHECK(
-			DB_exec(global_loop, client_request->parent->conn, client_request, str_sql, ws_delete_step2), "DB_exec failed");
+			DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_delete_step2), "DB_exec failed");
 	} else {
 #ifndef ENVELOPE_INTERFACE_LIBPQ
 		if (client_delete->str_identity_column_name != NULL) {
@@ -276,7 +276,7 @@ void ws_delete_step1(struct sock_ev_client_request *client_request) {
 			SDEBUG("str_sql: %s", str_sql);
 			SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 			SFINISH_CHECK(
-				DB_exec(global_loop, client_request->parent->conn, client_request, str_sql, ws_delete_step15_sql_server),
+				DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_delete_step15_sql_server),
 				"DB_exec failed");
 		} else {
 			SFINISH_SNCAT(str_sql, &int_sql_len,
@@ -295,7 +295,7 @@ void ws_delete_step1(struct sock_ev_client_request *client_request) {
 			SDEBUG("str_sql: %s", str_sql);
 			SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 			SFINISH_CHECK(
-				DB_exec(global_loop, client_request->parent->conn, client_request, str_sql, ws_delete_step2), "DB_exec failed");
+				DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_delete_step2), "DB_exec failed");
 		}
 #endif
 	}
@@ -329,7 +329,7 @@ finish:
 			_str_response, strlen(_str_response));
 		SFREE(_str_response);
 
-		WS_sendFrame(global_loop, client_request->parent, true, 0x01, str_response, strlen(str_response));
+		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, strlen(str_response));
 		DArray_push(client_request->arr_response, str_response);
 		str_response = NULL;
 	}
@@ -449,7 +449,7 @@ bool ws_delete_step2(EV_P, void *cb_data, DB_result *res) {
 
 	SDEBUG("client_delete->ptr_query: %s", client_delete->ptr_query);
 	SFINISH_CHECK(DB_copy_in(EV_A, client_request->parent->conn, client_request, client_delete->ptr_query, int_len_content,
-					  str_sql, ws_delete_step4),
+					  str_sql, ws_delete_step3),
 		"DB_copy_in failed");
 
 	bol_error_state = false;
@@ -494,7 +494,7 @@ finish:
 	return bol_ret;
 }
 
-bool ws_delete_step4(EV_P, void *cb_data, DB_result *res) {
+bool ws_delete_step3(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_delete *client_delete = (struct sock_ev_client_delete *)(client_request->client_request_data);
 	char str_temp[101];
@@ -563,7 +563,7 @@ bool ws_delete_step4(EV_P, void *cb_data, DB_result *res) {
 	SDEBUG("str_sql: %s", str_sql);
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
-	SFINISH_CHECK(DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_delete_step5), "DB_exec failed");
+	SFINISH_CHECK(DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_delete_step4), "DB_exec failed");
 
 	bol_error_state = false;
 	bol_ret = true;
@@ -607,7 +607,7 @@ finish:
 	return bol_ret;
 }
 
-bool ws_delete_step5(EV_P, void *cb_data, DB_result *res) {
+bool ws_delete_step4(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_delete *client_delete = (struct sock_ev_client_delete *)(client_request->client_request_data);
 	SDEFINE_VAR_ALL(str_sql);
@@ -667,7 +667,7 @@ bool ws_delete_step5(EV_P, void *cb_data, DB_result *res) {
 	SFREE(client_delete->str_pk_where_clause);
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
-	SFINISH_CHECK(DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_delete_step6), "DB_exec failed");
+	SFINISH_CHECK(DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, ws_delete_step5), "DB_exec failed");
 
 	bol_error_state = false;
 	bol_ret = true;
@@ -714,7 +714,7 @@ finish:
 	return bol_ret;
 }
 
-bool ws_delete_step6(EV_P, void *cb_data, DB_result *res) {
+bool ws_delete_step5(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	// UNNEEDED IN THIS FUNCTION
 	//struct sock_ev_client_delete *client_delete = (struct sock_ev_client_delete *)(client_request->client_request_data);

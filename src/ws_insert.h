@@ -86,7 +86,7 @@ This function will:
 1. parse request into variables
 2. create first temp table to hold data the client sent
 */
-void ws_insert_step1(struct sock_ev_client_request *client_request);
+void ws_insert_step1(EV_P, struct sock_ev_client_request *client_request);
 
 #ifndef ENVELOPE_INTERFACE_LIBPQ
 /*

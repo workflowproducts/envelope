@@ -2,7 +2,7 @@
 
 static const char *str_date_format = "%a, %d %b %Y %H:%M:%S GMT";
 
-void http_file_step1(struct sock_ev_client *client) {
+void http_file_step1(EV_P, struct sock_ev_client *client) {
 	SDEBUG("http_file_step1");
 	char *str_response = NULL;
 	size_t int_response_len = 0;
@@ -157,7 +157,7 @@ void http_file_step1(struct sock_ev_client *client) {
 
 	if (bol_permission_check == true) {
 		SINFO("client_http_file->str_uri_part: %s", client_http_file->str_uri_part);
-		SFINISH_CHECK(permissions_check(global_loop, client_http_file->parent->conn, str_uri_for_permission_check,
+		SFINISH_CHECK(permissions_check(EV_A, client_http_file->parent->conn, str_uri_for_permission_check,
 			client_http_file, http_file_step15_envelope),
 			"permissions_check() failed");
 	} else {
@@ -209,9 +209,9 @@ void http_file_step1(struct sock_ev_client *client) {
 		client_copy_check->client_request = (struct sock_ev_client_request *)client_http_file;
 
 		ev_check_init(&client_copy_check->check, http_file_step2);
-		ev_check_start(global_loop, &client_copy_check->check);
+		ev_check_start(EV_A, &client_copy_check->check);
 		ev_idle_init(&client_copy_check->idle, idle_cb);
-		ev_idle_start(global_loop, &client_copy_check->idle);
+		ev_idle_start(EV_A, &client_copy_check->idle);
 	}
 	bol_error_state = false;
 finish:
@@ -240,9 +240,9 @@ finish:
 	if (client->str_http_response != NULL) {
 		http_file_free(client_http_file);
 		client_http_file = NULL;
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
@@ -324,7 +324,7 @@ finish:
 		bol_error_state = false;
 
         SFINISH_CHECK(build_http_response(
-                "500 Internal Server Error"
+                !bol_group ? "403 Forbidden" : "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
@@ -335,9 +335,9 @@ finish:
 	if (client->str_http_response != NULL) {
 		http_file_free(client_http_file);
 		client_http_file = NULL;
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 	return true;
 }
@@ -452,9 +452,9 @@ finish:
 
 		http_file_free(client_http_file);
 		client_http_file = NULL;
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
@@ -591,17 +591,18 @@ finish:
 		    http_file_free(client_http_file);
         }
 		client_http_file = NULL;
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
 void http_file_free(struct sock_ev_client_http_file *client_http_file) {
+	EV_P = global_loop;
 	if (client_http_file != NULL) {
 		if (client_http_file->io.fd != INVALID_SOCKET) {
 			SDEBUG("test");
-			ev_io_stop(global_loop, &client_http_file->io);
+			ev_io_stop(EV_A, &client_http_file->io);
 		}
 #ifdef _WIN32
 		if (client_http_file->h_file != INVALID_HANDLE_VALUE) {

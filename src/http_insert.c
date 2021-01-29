@@ -1,6 +1,6 @@
 #include "http_select.h"
 
-void http_insert_step1(struct sock_ev_client *client) {
+void http_insert_step1(EV_P, struct sock_ev_client *client) {
 	SDEBUG("http_insert_step1");
 	struct sock_ev_client_insert *client_insert = NULL;
 	SDEFINE_VAR_ALL(str_uri, str_uri_temp, str_action_name, str_temp);
@@ -129,12 +129,12 @@ void http_insert_step1(struct sock_ev_client *client) {
 		";", (size_t)1);
 
 	if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
-		SFINISH_CHECK(DB_exec(global_loop, client->conn, client, "BEGIN;", http_insert_step2), "DB_exec failed");
+		SFINISH_CHECK(DB_exec(EV_A, client->conn, client, "BEGIN;", http_insert_step2), "DB_exec failed");
 	} else if (DB_connection_driver(client->conn) == DB_DRIVER_SQL_SERVER) {
-		SFINISH_CHECK(DB_exec(global_loop, client->conn, client, "BEGIN TRANSACTION;", http_insert_step2), "DB_exec failed");
+		SFINISH_CHECK(DB_exec(EV_A, client->conn, client, "BEGIN TRANSACTION;", http_insert_step2), "DB_exec failed");
 	} else {
 		SFINISH_CHECK(query_is_safe(client_insert->str_sql), "SQL Injection detected");
-		SFINISH_CHECK(DB_get_column_types_for_query(global_loop, client->conn, client_insert->str_sql, client, http_insert_step3),
+		SFINISH_CHECK(DB_get_column_types_for_query(EV_A, client->conn, client_insert->str_sql, client, http_insert_step3),
 			"DB_get_column_types_for_query failed");
 	}
 
@@ -158,9 +158,9 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
@@ -196,9 +196,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
@@ -228,7 +228,7 @@ bool http_insert_step3(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_insert *client_insert = (struct sock_ev_client_insert *)(client->cur_request->client_request_data);
 	char *str_response = NULL;
 	size_t int_response_len = 0;
-	size_t i = 0, int_len = 0;
+	size_t i = 0, int_len = 0, int_temp_len = 0;
 	SDEFINE_VAR_ALL(str_temp);
 
 	SFINISH_CHECK(res != NULL, "query_callback failed!");
@@ -257,15 +257,22 @@ bool http_insert_step3(EV_P, void *cb_data, DB_result *res) {
 
 	int_len = DArray_end(client_insert->darr_column_types);
 	for (i = 0; i < int_len; i += 1) {
-		str_temp = DB_escape_literal(client->conn, DArray_get(client_insert->darr_column_values, i),
-			strlen(DArray_get(client_insert->darr_column_values, i)));
-		SFINISH_CHECK(str_temp != NULL, "DB_escape_literal failed");
+        str_temp = DB_escape_literal(client->conn, DArray_get(client_insert->darr_column_values, i),
+            strlen(DArray_get(client_insert->darr_column_values, i)));
+        SFINISH_CHECK(str_temp != NULL, "DB_escape_literal failed");
 		if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
-			SFINISH_SNFCAT(client_insert->str_sql, &client_insert->int_sql_len,
-				str_temp, strlen(str_temp),
-				"::", (size_t)2,
-				DArray_get(client_insert->darr_column_types, i),
-				strlen(DArray_get(client_insert->darr_column_types, i)));
+            if (DArray_get(client_insert->darr_column_types, i) != NULL && strncmp(DArray_get(client_insert->darr_column_types, i), "character", 9) == 0) {
+                SFREE(client_insert->darr_column_types->contents[i]);
+                SFINISH_SNCAT(
+                    client_insert->darr_column_types->contents[i], &int_temp_len,
+                    "text", 4
+                );
+            }
+            SFINISH_SNFCAT(client_insert->str_sql, &client_insert->int_sql_len,
+                str_temp, strlen(str_temp),
+                "::", (size_t)2,
+                DArray_get(client_insert->darr_column_types, i),
+                strlen(DArray_get(client_insert->darr_column_types, i)));
 		} else if (DB_connection_driver(client->conn) == DB_DRIVER_SQL_SERVER) {
 			SFINISH_SNFCAT(client_insert->str_sql, &client_insert->int_sql_len,
 				"CAST(", (size_t)5,
@@ -286,7 +293,6 @@ bool http_insert_step3(EV_P, void *cb_data, DB_result *res) {
 				");", (size_t)2);
 		}
 	}
-	int_len = 0;
 	DArray_clear_destroy(client_insert->darr_column_types);
 	client_insert->darr_column_types = NULL;
 
@@ -308,9 +314,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
@@ -409,9 +415,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
@@ -480,9 +486,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
@@ -561,9 +567,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);

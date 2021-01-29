@@ -53,7 +53,7 @@ This function will:
 (optional) and pk)
 2. create temp table to hold data the client sent
 */
-void ws_delete_step1(struct sock_ev_client_request *client_request);
+void ws_delete_step1(EV_P, struct sock_ev_client_request *client_request);
 
 #ifndef ENVELOPE_INTERFACE_LIBPQ
 /*
@@ -74,7 +74,7 @@ Copy came back
 This function will get the count of rows currently in the database matching the
 hash and pk where clauses generated from the input
 */
-bool ws_delete_step4(EV_P, void *cb_data, DB_result *res);
+bool ws_delete_step3(EV_P, void *cb_data, DB_result *res);
 
 /*
 This function will:
@@ -82,12 +82,12 @@ This function will:
 2. check returned counts against the number of rows the user gives us
 3. delete from the real table
 */
-bool ws_delete_step5(EV_P, void *cb_data, DB_result *res);
+bool ws_delete_step4(EV_P, void *cb_data, DB_result *res);
 
 /*
 This function will get the number of rows deleted and tell the client
 */
-bool ws_delete_step6(EV_P, void *cb_data, DB_result *res);
+bool ws_delete_step5(EV_P, void *cb_data, DB_result *res);
 
 /*
 This function will free the data associated with the client_delete struct

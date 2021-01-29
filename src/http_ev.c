@@ -12,9 +12,11 @@ void my_invalid_parameter(
 #include "ev.c"
 #endif
 
+struct ev_loop *global_loop = NULL;
+
 char *cb_to_name(void *cb);
 
-void http_ev_step1(struct sock_ev_client *client) {
+void http_ev_step1(EV_P, struct sock_ev_client *client) {
 	char *str_response = NULL;
 	char str_response_len[255];
 	size_t int_response_len = 0;
@@ -27,8 +29,8 @@ void http_ev_step1(struct sock_ev_client *client) {
 	char str_current_address[256] = {0};
 	char str_current_priority[256] = {0};
 	char str_current_events[256] = {0};
-	bool bol_kill = false;
-	bool bol_killed = false;
+	// bool bol_kill = false;
+	// bool bol_killed = false;
     DArray *darr_headers = NULL;
 
 	str_args = query(client->str_request, client->int_request_len, &int_query_length);
@@ -38,7 +40,8 @@ void http_ev_step1(struct sock_ev_client *client) {
 	SFINISH_CHECK(str_action != NULL && int_action_length > 0, "Invalid action");
 	SDEBUG("str_action: %s", str_action);
 	if (strcmp(str_action, "list") == 0) {
-		bol_kill = false;
+		// bol_kill = false;
+		SDEBUG("listing watchers");
 	} else {
 		SFINISH("Invalid action");
 	}
@@ -118,13 +121,13 @@ void http_ev_step1(struct sock_ev_client *client) {
     ssize_t int_idle_pri = NUMPRI;
     while (int_idle_pri >= 0) {
         snprintf(str_current_priority, 255, "%zd", int_idle_pri);
-        ssize_t int_idle_count = global_loop->idlecnt[int_idle_pri];
+        ssize_t int_idle_count = EV_A->idlecnt[int_idle_pri];
         ssize_t int_current_idle = 0;
         SDEBUG("int_idle_pri: %zd", int_idle_pri);
         SDEBUG("int_idle_count: %zd", int_idle_count);
-        SDEBUG("global_loop->idles[int_idle_pri]: %p", global_loop->idles[int_idle_pri]);
-        while (global_loop->idles[int_idle_pri] != NULL && int_current_idle < int_idle_count) {
-            ev_idle *current_idle = global_loop->idles[int_idle_pri][int_current_idle];
+        SDEBUG("EV_A->idles[int_idle_pri]: %p", EV_A->idles[int_idle_pri]);
+        while (EV_A->idles[int_idle_pri] != NULL && int_current_idle < int_idle_count) {
+            ev_idle *current_idle = EV_A->idles[int_idle_pri][int_current_idle];
 
 			snprintf(str_current_address, 255, "%p", current_idle);
 
@@ -147,12 +150,12 @@ void http_ev_step1(struct sock_ev_client *client) {
     }
 
 	// checks
-	ssize_t int_check_count = global_loop->checkcnt;
+	ssize_t int_check_count = EV_A->checkcnt;
 	ssize_t int_current_check = 0;
 	SDEBUG("int_check_count: %zd", int_check_count);
-	SDEBUG("global_loop->checks: %p", global_loop->checks);
-	while (global_loop->checks != NULL && int_current_check < int_check_count) {
-		ev_check *current_check = global_loop->checks[int_current_check];
+	SDEBUG("EV_A->checks: %p", EV_A->checks);
+	while (EV_A->checks != NULL && int_current_check < int_check_count) {
+		ev_check *current_check = EV_A->checks[int_current_check];
 
 		snprintf(str_current_address, 255, "%p", current_check);
 
@@ -171,12 +174,12 @@ void http_ev_step1(struct sock_ev_client *client) {
 	}
 
 	// prepares
-	ssize_t int_prepares_count = global_loop->preparecnt;
+	ssize_t int_prepares_count = EV_A->preparecnt;
 	ssize_t int_current_prepare = 0;
 	SDEBUG("int_prepares_count: %zd", int_prepares_count);
-	SDEBUG("global_loop->prepares: %p", global_loop->prepares);
-	while (global_loop->prepares != NULL && int_current_prepare < int_prepares_count) {
-		ev_prepare *current_prepare = global_loop->prepares[int_current_prepare];
+	SDEBUG("EV_A->prepares: %p", EV_A->prepares);
+	while (EV_A->prepares != NULL && int_current_prepare < int_prepares_count) {
+		ev_prepare *current_prepare = EV_A->prepares[int_current_prepare];
 
 		snprintf(str_current_address, 255, "%p", current_prepare);
 
@@ -195,12 +198,12 @@ void http_ev_step1(struct sock_ev_client *client) {
 	}
 
 	// cleanups
-	ssize_t int_cleanup_count = global_loop->cleanupcnt;
+	ssize_t int_cleanup_count = EV_A->cleanupcnt;
 	ssize_t int_current_cleanup = 0;
 	SDEBUG("int_cleanup_count: %zd", int_cleanup_count);
-	SDEBUG("global_loop->cleanups: %p", global_loop->cleanups);
-	while (global_loop->cleanups != NULL && int_current_cleanup < int_cleanup_count) {
-		ev_cleanup *current_cleanup = global_loop->cleanups[int_current_cleanup];
+	SDEBUG("EV_A->cleanups: %p", EV_A->cleanups);
+	while (EV_A->cleanups != NULL && int_current_cleanup < int_cleanup_count) {
+		ev_cleanup *current_cleanup = EV_A->cleanups[int_current_cleanup];
 
 		snprintf(str_current_address, 255, "%p", current_cleanup);
 
@@ -220,12 +223,12 @@ void http_ev_step1(struct sock_ev_client *client) {
 
     // crashes
 	// // periodics
-	// ssize_t int_periodic_count = global_loop->periodiccnt;
+	// ssize_t int_periodic_count = EV_A->periodiccnt;
 	// ssize_t int_current_periodic = 0;
 	// SDEBUG("int_periodic_count: %zd", int_periodic_count);
-	// SDEBUG("global_loop->periodics: %p", global_loop->periodics);
-	// while (global_loop->periodics != NULL && int_current_periodic < int_periodic_count) {
-	// 	ev_periodic *current_periodic = (ev_periodic *)global_loop->periodics[int_current_periodic].w;
+	// SDEBUG("EV_A->periodics: %p", EV_A->periodics);
+	// while (EV_A->periodics != NULL && int_current_periodic < int_periodic_count) {
+	// 	ev_periodic *current_periodic = (ev_periodic *)EV_A->periodics[int_current_periodic].w;
 
 	// 	snprintf(str_current_address, 255, "%p", current_periodic);
 
@@ -245,12 +248,12 @@ void http_ev_step1(struct sock_ev_client *client) {
 
     // commented because they aren't used and because it uses similar code to the periodics (and the periodics code crashes)
 	// // timers
-	// ssize_t int_timer_count = global_loop->timercnt;
+	// ssize_t int_timer_count = EV_A->timercnt;
 	// ssize_t int_current_timer = 0;
 	// SDEBUG("int_timer_count: %zd", int_timer_count);
-	// SDEBUG("global_loop->timers: %p", global_loop->timers);
-	// while (global_loop->timers != NULL && int_current_timer < int_timer_count) {
-	// 	ev_timer *current_timer = (ev_timer *)global_loop->timers[int_current_timer].w;
+	// SDEBUG("EV_A->timers: %p", EV_A->timers);
+	// while (EV_A->timers != NULL && int_current_timer < int_timer_count) {
+	// 	ev_timer *current_timer = (ev_timer *)EV_A->timers[int_current_timer].w;
 
 	// 	snprintf(str_current_address, 255, "%p", current_timer);
 
@@ -272,9 +275,9 @@ void http_ev_step1(struct sock_ev_client *client) {
 #ifdef _WIN32
 	_invalid_parameter_handler oldHandler = _set_invalid_parameter_handler(my_invalid_parameter);
 #endif
-	ssize_t int_i = global_loop->anfdmax - 1;
+	ssize_t int_i = EV_A->anfdmax - 1;
 	while (int_i >= 0) {
-		ANFD *anfd = &global_loop->anfds[int_i];
+		ANFD *anfd = &EV_A->anfds[int_i];
 
 #ifdef _WIN32
 		unsigned long arg = 0;
@@ -370,9 +373,9 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
@@ -427,11 +430,11 @@ char *cb_to_name(void *cb) {
 		: (cb == canonical_recurse_directory) ? "canonical_recurse_directory"
 		: (cb == permissions_check) ? "permissions_check"
 		: (cb == permissions_write_check) ? "permissions_write_check"
-		: (cb == ws_select_step4) ? "ws_select_step4"
+		: (cb == ws_select_step2) ? "ws_select_step2"
 		: (cb == ws_update_step2) ? "ws_update_step2"
+		: (cb == ws_update_step3) ? "ws_update_step3"
 		: (cb == ws_update_step4) ? "ws_update_step4"
 		: (cb == ws_update_step5) ? "ws_update_step5"
-		: (cb == ws_update_step6) ? "ws_update_step6"
 		: (cb == DB_connect) ? "DB_connect"
 		: (cb == DB_get_column_types_for_query) ? "DB_get_column_types_for_query"
 		: (cb == DB_get_column_types) ? "DB_get_column_types"

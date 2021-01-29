@@ -270,7 +270,6 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 	if (strncmp(ptr_name, "file_name", 9) == 0) {
 		// grab file name
 		int_next_line = find_next_line(ptr_name, (size_t)(ptr_request_end - ptr_name));
-		ptr_file_content = ptr_name;
 		while (int_next_line > 0) {
 			ptr_name = ptr_name + int_next_line;
 			if (int_next_line < 3) {
@@ -422,7 +421,6 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		if (strncmp(ptr_name, "file_name", 9) == 0) {
 			// grab file name
 			int_next_line = find_next_line(ptr_name, (size_t)(ptr_request_end - ptr_name));
-			ptr_file_content = ptr_name;
 			while (int_next_line > 0) {
 				ptr_name = ptr_name + int_next_line;
 				if (int_next_line < 3) {

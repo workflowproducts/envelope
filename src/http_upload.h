@@ -34,7 +34,7 @@ When you call this function, it parses the request to figure out:
 
 Then it checks the permissions to the folder you are writing to
 */
-void http_upload_step1(struct sock_ev_client *client);
+void http_upload_step1(EV_P, struct sock_ev_client *client);
 
 /*
 once we know the permissions to the folder,

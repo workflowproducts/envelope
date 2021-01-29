@@ -1,10 +1,9 @@
 #include "http_action.h"
 
-void http_action_step1(struct sock_ev_client *client) {
+void http_action_step1(EV_P, struct sock_ev_client *client) {
 	SDEFINE_VAR_ALL(str_uri, str_uri_temp, str_action_name, str_temp, str_args, str_sql);
 	char *str_response = NULL;
 	char *ptr_end_uri = NULL;
-	ssize_t int_len = 0;
 	size_t int_uri_len = 0;
 	size_t int_args_len = 0;
 	size_t int_action_name_len = 0;
@@ -55,7 +54,7 @@ void http_action_step1(struct sock_ev_client *client) {
 			";", (size_t)1);
 	}
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
-	SFINISH_CHECK(DB_exec(global_loop, client->conn, client, str_sql, http_action_step2), "DB_exec failed");
+	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, http_action_step2), "DB_exec failed");
 	SDEBUG("str_sql: %s", str_sql);
 
 	bol_error_state = false;
@@ -76,18 +75,16 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
 bool http_action_step2(EV_P, void *cb_data, DB_result *res) {
-	struct sock_ev_client_copy_check *client_copy_check = NULL;
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
 	char *_str_response = NULL;
-	ssize_t int_len = 0;
 	size_t int_response_len = 0;
 	size_t _int_response_len = 0;
 	DArray *arr_row_values = NULL;
@@ -150,9 +147,9 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 	return true;
 }

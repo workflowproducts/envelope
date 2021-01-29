@@ -351,8 +351,9 @@ error:
 }
 
 void free_recursive_callback_data(recursive_callback_data *rec_data) {
-    ev_check_stop(global_loop, &rec_data->check);
-    ev_idle_stop(global_loop, &rec_data->idle);
+	EV_P = global_loop;
+    ev_check_stop(EV_A, &rec_data->check);
+    ev_idle_stop(EV_A, &rec_data->idle);
 	size_t int_i = 0, int_len = DArray_end(rec_data->darr_directory);
 	for (; int_i < int_len; int_i += 1) {
 		free_recursive_directory_data(DArray_get(rec_data->darr_directory, int_i));

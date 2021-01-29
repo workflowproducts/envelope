@@ -1,11 +1,10 @@
 #include "http_cgi.h"
 
-void http_cgi_step1(struct sock_ev_client *client) {
+void http_cgi_step1(EV_P, struct sock_ev_client *client) {
 	SDEFINE_VAR_ALL(str_uri, str_uri_temp, str_uri_temp2, str_action_name, str_sql, str_args);
 	char *str_response = NULL;
 	char *str_temp = NULL;
 	char *ptr_end_uri = NULL;
-	ssize_t int_len = 0;
 	size_t int_args_len = 0;
 	size_t int_uri_len = 0;
 	size_t int_temp_len = 0;
@@ -65,7 +64,7 @@ void http_cgi_step1(struct sock_ev_client *client) {
 			";", (size_t)1);
 	}
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
-	SFINISH_CHECK(DB_exec(global_loop, client->conn, client, str_sql, http_cgi_step2), "DB_exec failed");
+	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, http_cgi_step2), "DB_exec failed");
 	SDEBUG("str_sql: %s", str_sql);
 
 	bol_error_state = false;
@@ -86,16 +85,15 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
 bool http_cgi_step2(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
-	ssize_t int_len = 0;
 	DArray *arr_row_values = NULL;
 	DArray *arr_row_lengths = NULL;
 	size_t int_response_len = 0;
@@ -113,7 +111,7 @@ bool http_cgi_step2(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(client->str_http_response != NULL, "Function returned null");
 	SDEBUG("client->str_http_response: %s", client->str_http_response);
 	SFINISH_CHECK(strncmp(client->str_http_response, "HTTP", 4) == 0, "Bad accept_ output: %s", client->str_http_response);
-    client->int_http_response_len = (*(ssize_t *)DArray_get(arr_row_lengths, 0));
+    client->int_http_response_len = (size_t)(*(ssize_t *)DArray_get(arr_row_lengths, 0));
 
 	bol_error_state = false;
 finish:
@@ -141,9 +139,9 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 	return true;
 }

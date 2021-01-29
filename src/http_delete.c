@@ -1,6 +1,6 @@
 #include "http_delete.h"
 
-void http_delete_step1(struct sock_ev_client *client) {
+void http_delete_step1(EV_P, struct sock_ev_client *client) {
 	SDEBUG("http_delete_step1");
 	struct sock_ev_client_delete *client_delete = NULL;
 	SDEFINE_VAR_ALL(str_uri, str_uri_temp, str_action_name, str_temp);
@@ -45,7 +45,7 @@ void http_delete_step1(struct sock_ev_client *client) {
 		client_delete->str_real_table_name =
 			getpar(str_args, "view", int_query_len, &client_delete->int_real_table_name_len);
 	}
-	SFINISH_ERROR_CHECK(client_delete->str_real_table_name != NULL, "Failed to get table name from query");
+	SFINISH_ERROR_CHECK(client_delete->str_real_table_name != NULL && client_delete->str_real_table_name[0] != 0, "Failed to get table name from query");
 
 	// Get return columns
 	str_data = getpar(str_args, "id", int_query_len, &int_data_len);
@@ -70,9 +70,9 @@ void http_delete_step1(struct sock_ev_client *client) {
 
 	SDEBUG("client_delete->str_sql: %s", client_delete->str_sql);
 	if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
-		SFINISH_CHECK(DB_exec(global_loop, client->conn, client, "BEGIN;", http_delete_step2), "DB_exec failed");
+		SFINISH_CHECK(DB_exec(EV_A, client->conn, client, "BEGIN;", http_delete_step2), "DB_exec failed");
 	} else {
-		SFINISH_CHECK(DB_exec(global_loop, client->conn, client, "BEGIN TRANSACTION;", http_delete_step2), "DB_exec failed");
+		SFINISH_CHECK(DB_exec(EV_A, client->conn, client, "BEGIN TRANSACTION;", http_delete_step2), "DB_exec failed");
 	}
 
 	// SFINISH("Only WHERE, ORDER BY, LIMIT and OFFSET are allowed in the SELECT request");
@@ -95,9 +95,9 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
@@ -129,9 +129,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
@@ -185,9 +185,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
@@ -244,9 +244,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);

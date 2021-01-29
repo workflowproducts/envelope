@@ -1,6 +1,6 @@
 #include "http_update.h"
 
-void http_update_step1(struct sock_ev_client *client) {
+void http_update_step1(EV_P, struct sock_ev_client *client) {
 	struct sock_ev_client_update *client_update = NULL;
 	SDEFINE_VAR_ALL(str_action_name, str_temp, str_args, str_sql, str_loop, str_col_ident, str_one_col, str_one_val);
 	char *str_response = NULL;
@@ -132,7 +132,7 @@ void http_update_step1(struct sock_ev_client *client) {
 
 	SFINISH_CHECK(query_is_safe(client_update->str_type_sql), "SQL Injection detected");
 	SFINISH_CHECK(
-		DB_get_column_types_for_query(global_loop, client->conn, client_update->str_type_sql, client, http_update_step2),
+		DB_get_column_types_for_query(EV_A, client->conn, client_update->str_type_sql, client, http_update_step2),
 		"DB_get_column_types_for_query failed");
 
 	bol_error_state = false;
@@ -153,9 +153,9 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
@@ -190,7 +190,13 @@ bool http_update_step2(EV_P, void *cb_data, DB_result *res) {
 		client_update->str_col_data_type, &client_update->int_col_data_type_len,
 		DArray_get(darr_column_types, 0), strlen(DArray_get(darr_column_types, 0))
 	);
-
+    if (strncmp(client_update->str_col_data_type, "character", 9) == 0) {
+        SFREE(client_update->str_col_data_type);
+        SFINISH_SNCAT(
+            client_update->str_col_data_type, &client_update->int_col_data_type_len,
+            "text", 4
+        );
+    }
 
 	int_len = DArray_count(darr_column_names);
 	SDEBUG("client_update->str_columns: %s", client_update->str_columns);
@@ -413,9 +419,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
@@ -519,9 +525,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
@@ -585,9 +591,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
@@ -615,7 +621,6 @@ finish:
 bool http_update_step5(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
-	char *_str_response = NULL;
 	size_t y = 0;
 	size_t maxy = 0;
 	DArray *darr_data = NULL;
@@ -696,9 +701,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);

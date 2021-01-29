@@ -56,7 +56,7 @@ This function will:
 2. build select sql
 3. prepare statement so that we can get the column types from it
 */
-void ws_select_step1(struct sock_ev_client_request *client_request);
+void ws_select_step1(EV_P, struct sock_ev_client_request *client_request);
 
 /*
 results of second query came back
@@ -65,9 +65,9 @@ This function will:
 2. deallocates prepared statement
 3. run the copy statement
 */
-// bool ws_select_step4(EV_P, PGresult *res, ExecStatusType result, struct
+// bool ws_select_step2(EV_P, PGresult *res, ExecStatusType result, struct
 // sock_ev_client_request *client_request);
-bool ws_select_step4(EV_P, void *cb_data, DB_result *_res);
+bool ws_select_step2(EV_P, void *cb_data, DB_result *_res);
 
 /*
 This function will free the data associated with the client_select struct

@@ -3,7 +3,7 @@
 extern DB_conn *log_queries_over_conn;
 
 // response with redirect
-void http_auth(struct sock_ev_client_auth *client_auth) {
+void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 	char *str_response = NULL;
 	size_t int_response_len = 0;
 	char *str_session_id_temp = NULL;
@@ -221,7 +221,7 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 				SFINISH_SALLOC(client_last_activity->str_client_ip, strlen(client_auth->parent->str_client_ip));
 				memcpy(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip));
 				SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
-				client_last_activity->last_activity_time = ev_now(global_loop);
+				client_last_activity->last_activity_time = ev_now(EV_A);
 				client_auth->parent->int_last_activity_i =
 					(ssize_t)DArray_push(client_auth->parent->server->arr_client_last_activity, client_last_activity);
 			}
@@ -251,12 +251,12 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 			SDEBUG("bol_global_set_user: %s", bol_global_set_user ? "true" : "false");
 			if (bol_global_set_user) {
 				// The only difference here is the callback and no user/pw
-				SFINISH_CHECK((client_auth->parent->conn = DB_connect(global_loop, client_auth, str_conn, NULL,
+				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, str_conn, NULL,
 					0, NULL, 0, "",
 					http_auth_login_step15)) != NULL,
 					"DB_connect failed");
 			} else {
-				SFINISH_CHECK((client_auth->parent->conn = DB_connect(global_loop, client_auth, str_conn, client_auth->str_user,
+				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, str_conn, client_auth->str_user,
 					client_auth->int_user_length, client_auth->str_password, client_auth->int_password_length, "",
 					http_auth_login_step2)) != NULL,
 					"DB_connect failed");
@@ -275,13 +275,13 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 				}
 				CloseHandle(hToken);
 
-				SFINISH_CHECK((client_auth->parent->conn = DB_connect(global_loop, client_auth, str_conn, NULL,
+				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, str_conn, NULL,
 					0, NULL, 0, "",
 					http_auth_login_step15)) != NULL,
 					"DB_connect failed");
 
 			} else {
-				SFINISH_CHECK((client_auth->parent->conn = DB_connect(global_loop, client_auth, str_conn, client_auth->str_user,
+				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, str_conn, client_auth->str_user,
 					client_auth->int_user_length, client_auth->str_password, client_auth->int_password_length, "",
 					http_auth_login_step2)) != NULL,
 					"DB_connect failed");
@@ -374,13 +374,13 @@ void http_auth(struct sock_ev_client_auth *client_auth) {
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 		if (bol_global_set_user) {
 			// The only difference here is the callback and no user/pw
-			SFINISH_CHECK((client_auth->parent->conn = DB_connect(global_loop, client_auth, str_conn, NULL,
+			SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, str_conn, NULL,
 				0, NULL, 0, "",
 				http_auth_login_step15)) != NULL,
 				"DB_connect failed");
 		} else {
 #endif
-		SFINISH_CHECK((client_auth->parent->conn = DB_connect(global_loop, client_auth, str_conn, client_auth->str_user,
+		SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, str_conn, client_auth->str_user,
 			client_auth->int_user_length, client_auth->str_password, client_auth->int_password_length, "",
 			http_auth_change_pw_step2)) != NULL,
 			"DB_connect failed");
@@ -478,9 +478,9 @@ finish:
     SFREE(str_response);
     // if client_auth->parent->str_http_header is non-empty, we are already taken care of
 	if (client_auth->parent->str_http_response != NULL && client_auth->parent->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_stop(EV_A, &client_auth->parent->io);
 		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client_auth->parent->io);
+        ev_io_start(EV_A, &client_auth->parent->io);
 	}
 
 	SFREE_PWORD(str_form_data);
@@ -572,9 +572,9 @@ finish:
 	}
     SFREE(str_response);
 	if (client_auth->parent->str_http_response != NULL) {
-		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_stop(EV_A, &client_auth->parent->io);
 		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client_auth->parent->io);
+        ev_io_start(EV_A, &client_auth->parent->io);
 	}
 }
 
@@ -682,9 +682,9 @@ finish:
 	}
     SFREE(str_response);
 	if (client_auth->parent->str_http_response != NULL) {
-		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_stop(EV_A, &client_auth->parent->io);
 		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client_auth->parent->io);
+        ev_io_start(EV_A, &client_auth->parent->io);
 	}
 	return true;
 }
@@ -735,9 +735,9 @@ finish:
 	}
     SFREE(str_response);
 	if (client_auth->parent->str_http_response != NULL) {
-		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_stop(EV_A, &client_auth->parent->io);
 		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client_auth->parent->io);
+        ev_io_start(EV_A, &client_auth->parent->io);
 	}
 	return true;
 }
@@ -898,9 +898,9 @@ finish:
 	}
     SFREE(str_response);
 	if (client_auth->parent->str_http_response != NULL) {
-		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_stop(EV_A, &client_auth->parent->io);
 		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client_auth->parent->io);
+        ev_io_start(EV_A, &client_auth->parent->io);
 	}
 }
 
@@ -1079,9 +1079,9 @@ finish:
 	}
     SFREE(str_response);
 	if (client_auth->parent->str_http_response != NULL) {
-		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_stop(EV_A, &client_auth->parent->io);
 		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client_auth->parent->io);
+        ev_io_start(EV_A, &client_auth->parent->io);
 	}
 	return true;
 }
@@ -1185,9 +1185,9 @@ finish:
 	}
     SFREE(str_response);
 	if (client_auth->parent->str_http_response != NULL) {
-		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_stop(EV_A, &client_auth->parent->io);
 		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client_auth->parent->io);
+        ev_io_start(EV_A, &client_auth->parent->io);
 	}
 }
 
@@ -1298,9 +1298,9 @@ finish:
 	}
     SFREE(str_response);
 	if (client_auth->parent->str_http_response != NULL) {
-		ev_io_stop(global_loop, &client_auth->parent->io);
+		ev_io_stop(EV_A, &client_auth->parent->io);
 		ev_io_init(&client_auth->parent->io, client_write_http_cb, client_auth->parent->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client_auth->parent->io);
+        ev_io_start(EV_A, &client_auth->parent->io);
 	}
 	// This causes DB_exec to stop looping
 	return true;

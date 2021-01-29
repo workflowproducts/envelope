@@ -1,10 +1,9 @@
 #include "http_accept.h"
 
-void http_accept_step1(struct sock_ev_client *client) {
+void http_accept_step1(EV_P, struct sock_ev_client *client) {
 	SDEFINE_VAR_ALL(str_uri, str_uri_temp, str_action_name, str_temp, str_args, str_sql);
 	char *str_response = NULL;
 	char *ptr_end_uri = NULL;
-	ssize_t int_len = 0;
 	size_t int_uri_len = 0;
 	size_t int_args_len = 0;
 	size_t int_temp_len = 0;
@@ -72,7 +71,7 @@ void http_accept_step1(struct sock_ev_client *client) {
 			";", (size_t)1);
 	}
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
-	SFINISH_CHECK(DB_exec(global_loop, client->conn, client, str_sql, http_accept_step2), "DB_exec failed");
+	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, http_accept_step2), "DB_exec failed");
 	SDEBUG("str_sql: %s", str_sql);
 
 	bol_error_state = false;
@@ -93,22 +92,21 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
 bool http_accept_step2(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
-	ssize_t int_len = 0;
 	DArray *arr_row_values = NULL;
 	DArray *arr_row_lengths = NULL;
 	size_t int_response_len = 0;
 
 	SFINISH_CHECK(res != NULL, "DB_exec failed");
-	SFINISH_CHECK(res->status == DB_RES_TUPLES_OK, "DB_exec failed");
+	SFINISH_CHECK(res->status == DB_RES_TUPLES_OK, "DB_exec failed", res->status);
 
 	SFINISH_CHECK(DB_fetch_row(res) == DB_FETCH_OK, "DB_fetch_row failed");
 	arr_row_values = DB_get_row_values(res);
@@ -120,7 +118,7 @@ bool http_accept_step2(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(client->str_http_response != NULL, "Function returned null");
 	SDEBUG("client->str_http_response: %s", client->str_http_response);
 	SFINISH_CHECK(strncmp(client->str_http_response, "HTTP", 4) == 0, "Bad accept_ output: %s", client->str_http_response);
-    client->int_http_response_len = (*(ssize_t *)DArray_get(arr_row_lengths, 0));
+    client->int_http_response_len = (size_t)(*(ssize_t *)DArray_get(arr_row_lengths, 0));
 
 	bol_error_state = false;
 finish:
@@ -132,11 +130,20 @@ finish:
 		// we copy the length into the struct, so we can free it in the array
 		DArray_clear_destroy(arr_row_lengths);
 	}
-	DB_free_result(res);
 	if (bol_error_state) {
 		bol_error_state = false;
 
-        SFREE(client->str_http_header);
+		char *_str_response1 = str_response;
+		char *_str_response2 = DB_get_diagnostic(client->conn, res);
+		SFINISH_SNCAT(
+			str_response, &int_response_len,
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
+			":\n", (size_t)2,
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+		);
+		SFREE(_str_response1);
+		SFREE(_str_response2);
+
         SFINISH_CHECK(build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
@@ -145,12 +152,13 @@ finish:
                 , &client->str_http_response, &client->int_http_response_len
             ), "build_http_response failed");
 	}
+	DB_free_result(res);
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 	return true;
 }

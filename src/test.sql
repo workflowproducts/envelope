@@ -10,12 +10,11 @@ GRANT envelope_g TO postgres;
 GRANT envelope_g TO test_user;
 GRANT public_g TO public_user;
 CREATE TABLE public.rtesting_table (
-  id integer NOT NULL,
+  id integer,
   test_name character varying(150),
   test_name2 character varying(150),
   "select" character varying(150),
-  "test@test" character varying(150),
-  CONSTRAINT rtesting_table_pk PRIMARY KEY (id)
+  "test@test" character varying(150)
 ) WITH (
   OIDS=FALSE
 );
@@ -76,6 +75,8 @@ DECLARE
     
 BEGIN
     DELETE FROM rtesting_table
+    	WHERE id::text ILIKE (str_args || '%');
+    DELETE FROM rtesting_table2
     	WHERE id::text ILIKE (str_args || '%');
     DELETE FROM ttesting_view2
         WHERE id_1::text ILIKE (str_args || '%');
@@ -242,3 +243,18 @@ RETURN E'HTTP/1.1 200 OK\r\n\r\n' || 'testingnitset';
 END
 $BODY$ LANGUAGE plpgsql VOLATILE;
 GRANT EXECUTE ON FUNCTION public.cginc_testing(str_args text) TO public_g;
+
+
+
+CREATE OR REPLACE FUNCTION public.raise_exception(str_args text)
+  RETURNS text AS
+$BODY$
+BEGIN
+RAISE EXCEPTION '%', str_args;
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+ALTER FUNCTION public.raise_exception(str_args text) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.raise_exception(str_args text) FROM public;

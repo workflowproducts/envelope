@@ -1,6 +1,6 @@
 #include "http_select.h"
 
-void http_select_step1(struct sock_ev_client *client) {
+void http_select_step1(EV_P, struct sock_ev_client *client) {
 	SDEBUG("http_select_step1");
 	struct sock_ev_client_select *client_select = NULL;
 	SDEFINE_VAR_ALL(str_uri, str_uri_temp, str_action_name, str_temp, str_args, str_sql);
@@ -131,7 +131,7 @@ void http_select_step1(struct sock_ev_client *client) {
 
 	SDEBUG("client_select->str_sql: %s", client_select->str_sql);
 	SFINISH_CHECK(query_is_safe(client_select->str_sql), "SQL Injection detected");
-	SFINISH_CHECK(DB_get_column_types_for_query(global_loop, client->conn, client_select->str_sql, client, http_select_step2),
+	SFINISH_CHECK(DB_get_column_types_for_query(EV_A, client->conn, client_select->str_sql, client, http_select_step2),
 		"DB_get_column_types_for_query failed");
 
 	// SFINISH("Only WHERE, ORDER BY, LIMIT and OFFSET are allowed in the SELECT request");
@@ -154,9 +154,9 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
@@ -300,9 +300,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
@@ -389,9 +389,9 @@ finish:
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
 			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1),
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
 			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2)
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);

@@ -182,8 +182,9 @@ var $ = {
                     $.changeStatus(key, intCurrent, 'running', 'pass');
                     $.runTest(key, intCurrent + 1);
                 } else {
-                    console.log(strExpectedOutput.length, (strExpectedOutput.replace ? strExpectedOutput.replace(/\n/g, '\\n').replace(/\r/g, '\\r') : strExpectedOutput));
-					console.log(data.length, (data.replace ? data.replace(/\n/g, '\\n').replace(/\r/g, '\\r') : data));
+                    console.log(intStatusCode, strExpectedOutput.length, (strExpectedOutput.replace ? strExpectedOutput.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t') : strExpectedOutput));
+					console.log(ajax.status, data.length, (data.replace ? data.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t') : data));
+					console.log(ajax.status, data.length, 'ml(function () {/*' + data + '*/})');
 
                     document.getElementById('actual-status-' + key).value = ajax.status;
                     document.getElementById('actual-output-' + key).value = data;

@@ -1,6 +1,6 @@
 #include "http_upload.h"
 
-void http_upload_step1(struct sock_ev_client *client) {
+void http_upload_step1(EV_P, struct sock_ev_client *client) {
 	SDEBUG("http_upload_step1");
 	size_t int_response_len = 0;
 
@@ -61,7 +61,7 @@ void http_upload_step1(struct sock_ev_client *client) {
 	SDEBUG("client_upload->str_canonical_start: %s", client_upload->str_canonical_start);
 	SDEBUG("client_upload->str_file_name: %s", client_upload->str_file_name);
 
-	SFINISH_CHECK(permissions_write_check(global_loop, client->conn, str_temp, client_upload, http_upload_step2),
+	SFINISH_CHECK(permissions_write_check(EV_A, client->conn, str_temp, client_upload, http_upload_step2),
 		"permissions_write_check() failed");
 	SFREE(str_temp);
 
@@ -83,9 +83,9 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
@@ -155,9 +155,9 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 	return true;
 }
@@ -224,13 +224,14 @@ finish:
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
 void http_upload_free(struct sock_ev_client_upload *to_free) {
+	EV_P = global_loop;
 #ifdef _WIN32
 	if (to_free->h_file != INVALID_HANDLE_VALUE) {
 		CloseHandle(to_free->h_file);
@@ -242,8 +243,8 @@ void http_upload_free(struct sock_ev_client_upload *to_free) {
 		to_free->int_fd = -1;
 	}
 #endif
-    ev_check_stop(global_loop, &to_free->check);
-    ev_idle_stop(global_loop, &to_free->idle);
+    ev_check_stop(EV_A, &to_free->check);
+    ev_idle_stop(EV_A, &to_free->idle);
 	SFREE(to_free->str_canonical_start);
 	SFREE(to_free->str_file_name);
 	SFREE_SUN_UPLOAD(to_free->sun_current_upload);

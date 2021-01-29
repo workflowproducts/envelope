@@ -40,32 +40,32 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 	if (strncmp(str_uri, "/env/upload", 12) == 0) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
-		http_upload_step1(client);
+		http_upload_step1(EV_A, client);
         bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/action_ev", 15) == 0) {
 		// SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		// SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
-		http_ev_step1(client);
+		http_ev_step1(EV_A, client);
         bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/action_select", 19) == 0 || strncmp(str_uri, "/env/actionnc_select", 21) == 0) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
-		http_select_step1(client);
+		http_select_step1(EV_A, client);
         bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/action_insert", 19) == 0 || strncmp(str_uri, "/env/actionnc_insert", 21) == 0) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
-		http_insert_step1(client);
+		http_insert_step1(EV_A, client);
         bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/action_update", 19) == 0 || strncmp(str_uri, "/env/actionnc_update", 21) == 0) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
-		http_update_step1(client);
+		http_update_step1(EV_A, client);
         bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/action_delete", 19) == 0 || strncmp(str_uri, "/env/actionnc_delete", 21) == 0) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 		SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
-		http_delete_step1(client);
+		http_delete_step1(EV_A, client);
         bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/action_info", 17) == 0) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
@@ -122,10 +122,10 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 		) {
 			SFINISH_CHECK(client->bol_public || client->str_referer != NULL, "Referer header required for this request");
 			SFINISH_CHECK(client->bol_public || check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
-			http_accept_step1(client);
+			http_accept_step1(EV_A, client);
             bol_handoff = true;
 		} else {
-			http_file_step1(client);
+			http_file_step1(EV_A, client);
             bol_handoff = true;
 		}
 	} else if (strstr(str_uri, "action_") != NULL || strstr(str_uri, "actionnc_") != NULL) {
@@ -143,10 +143,10 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 			) {
 			SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 			SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
-			http_action_step1(client);
+			http_action_step1(EV_A, client);
             bol_handoff = true;
 		} else {
-			http_file_step1(client);
+			http_file_step1(EV_A, client);
             bol_handoff = true;
 		}
 	} else if (strstr(str_uri, "cgi_") != NULL || strstr(str_uri, "cginc_") != NULL) {
@@ -164,15 +164,15 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 			) {
 			SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for this request");
 			SFINISH_CHECK(check_referer(client->str_referer, client->int_referer_len, (client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)), "Invalid Referer header");
-			http_cgi_step1(client);
+			http_cgi_step1(EV_A, client);
             bol_handoff = true;
 		} else {
-			http_file_step1(client);
+			http_file_step1(EV_A, client);
             bol_handoff = true;
 		}
 	} else {
 		SDEBUG("http_file_step1");
-		http_file_step1(client);
+		http_file_step1(EV_A, client);
         bol_handoff = true;
 	}
 	bol_error_state = false;
@@ -201,13 +201,13 @@ finish:
 	}
 }
 
-void http_main(struct sock_ev_client *client) {
-	ev_io_stop(global_loop, &client->io);
+void http_main(EV_P, struct sock_ev_client *client) {
+	ev_io_stop(EV_A, &client->io);
 	SDEBUG("http_main %p", client);
 	client->bol_request_in_progress = true;
 	SDEFINE_VAR_ALL(str_uri, str_conninfo);
 	char *str_response = NULL;
-    size_t int_response_len;
+    size_t int_response_len = 0;
 	char *ptr_end_uri = NULL;
 	size_t int_uri_len = 0;
     bool bol_handoff = false;
@@ -244,23 +244,22 @@ void http_main(struct sock_ev_client *client) {
 		SDEBUG("client_auth: %p", client_auth);
 		client_auth->parent = client;
 
-		http_auth(client_auth);
+		http_auth(EV_A, client_auth);
         bol_handoff = true;
 	} else if (strncmp(str_uri, "/env/", 5) == 0) {
 		// set_cnxn does its own error handling
 		SDEBUG("str_uri: %s", str_uri);
 
-		SFINISH_CHECK((client->conn = set_cnxn(client, http_main_cnxn_cb)) != NULL, "set_cnxn failed");
+		SFINISH_CHECK((client->conn = set_cnxn(EV_A, client, http_main_cnxn_cb)) != NULL, "set_cnxn failed");
 		// DEBUG("str_conninfo: %s", str_conninfo);
 	} else {
-		http_file_step1(client);
+		http_file_step1(EV_A, client);
         bol_handoff = true;
 	}
 	SDEBUG("str_response: %s", str_response);
 
 	bol_error_state = false;
 finish:
-	SFREE_PWORD_ALL();
 	if (bol_error_state) {
 		bol_error_state = false;
 
@@ -275,12 +274,13 @@ finish:
                 ), "build_http_response failed");
         }
 	}
+	SFREE_PWORD_ALL();
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (!bol_handoff && client->str_http_response != NULL && client->str_http_header == NULL) {
-		ev_io_stop(global_loop, &client->io);
+		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
-        ev_io_start(global_loop, &client->io);
+        ev_io_start(EV_A, &client->io);
 	}
 }
 
@@ -294,7 +294,7 @@ finish:
 bool http_client_info_cb(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
-    size_t int_response_len;
+    size_t int_response_len = 0;
 	bool bol_ret = true;
 	DArray *arr_values = NULL;
 	int int_i = 0;

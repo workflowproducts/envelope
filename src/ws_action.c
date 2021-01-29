@@ -1,6 +1,6 @@
 #include "ws_select.h"
 
-void ws_action_step1(struct sock_ev_client_request *client_request) {
+void ws_action_step1(EV_P, struct sock_ev_client_request *client_request) {
 	SDEFINE_VAR_ALL(str_schema, str_action_name, str_action_full_name, str_args, str_sql);
 	char *str_response = NULL;
 	char *ptr_schema = NULL;
@@ -109,7 +109,7 @@ void ws_action_step1(struct sock_ev_client_request *client_request) {
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 	SFINISH_CHECK(
-		DB_copy_out(global_loop, client_request->parent->conn, client_request, str_sql, ws_copy_check_cb), "DB_copy_out failed");
+		DB_copy_out(EV_A, client_request->parent->conn, client_request, str_sql, ws_copy_check_cb), "DB_copy_out failed");
 	SDEBUG("str_sql: %s", str_sql);
 
 	bol_error_state = false;
@@ -138,7 +138,7 @@ finish:
 			_str_response, strlen(_str_response));
 		SFREE(_str_response);
 
-		WS_sendFrame(global_loop, client_request->parent, true, 0x01, str_response, strlen(str_response));
+		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, strlen(str_response));
 		DArray_push(client_request->arr_response, str_response);
 		str_response = NULL;
 	}

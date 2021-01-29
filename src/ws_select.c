@@ -5,7 +5,7 @@
 // 2. We check if there is a semicolon that would cause another query to run
 // 3. Only SELECT is allowed in a FROM
 
-void ws_select_step1(struct sock_ev_client_request *client_request) {
+void ws_select_step1(EV_P, struct sock_ev_client_request *client_request) {
 	SDEBUG("ws_select_step1");
 	struct sock_ev_client_select *client_select = (struct sock_ev_client_select *)(client_request->client_request_data);
 	char *str_response = NULL;
@@ -196,7 +196,7 @@ void ws_select_step1(struct sock_ev_client_request *client_request) {
 	SFINISH_CHECK(query_is_safe(client_select->str_sql), "SQL Injection detected");
 	
 	SFINISH_CHECK(DB_get_column_types_for_query(
-						global_loop, client_request->parent->conn, client_select->str_sql, client_request, ws_select_step4),
+						EV_A, client_request->parent->conn, client_select->str_sql, client_request, ws_select_step2),
 		"DB_get_column_types_for_query failed");
 
 	/*
@@ -237,18 +237,18 @@ finish:
 			_str_response, strlen(_str_response));
 		SFREE(_str_response);
 
-		WS_sendFrame(global_loop, client_request->parent, true, 0x01, str_response, strlen(str_response));
+		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, strlen(str_response));
 		DArray_push(client_request->arr_response, str_response);
 		str_response = NULL;
 	}
 	SFREE_ALL();
 }
 
-// bool ws_select_step4(EV_P, PGresult *res, ExecStatusType result, struct
+// bool ws_select_step2(EV_P, PGresult *res, ExecStatusType result, struct
 // sock_ev_client_request *client_request) {
-bool ws_select_step4(EV_P, void *cb_data, DB_result *res) {
+bool ws_select_step2(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
-	SDEBUG("ws_select_step4");
+	SDEBUG("ws_select_step2");
 	struct sock_ev_client_select *client_select = (struct sock_ev_client_select *)(client_request->client_request_data);
 	SDEFINE_VAR_ALL(str_temp, str_temp1, str_oid_type, str_int_mod, str_sql, str_inner_top, str_col);
 

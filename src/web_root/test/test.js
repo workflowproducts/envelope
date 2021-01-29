@@ -52,8 +52,6 @@ function startTests() {
                     list.setAttribute('id', 'test-list-' + key);
                     var strHTML = '';
                     for (i = 0, len = $.tests[key].tests.length; i < len; i++) {
-                        var arrCurrent = $.tests[key].tests[i];
-                        var strName = arrCurrent[0];
                         strHTML +=
                             '<div id="test' + key + i + '_label" class="test-block waiting"></div>';
                     }

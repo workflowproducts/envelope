@@ -56,6 +56,7 @@ error:
 }
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 void _send_notices(struct sock_ev_client *client) {
+	EV_P = global_loop;
 	char str_temp[101] = {0};
 	char *str_temp2 = NULL;
 	char *str_response = NULL;
@@ -90,7 +91,7 @@ void _send_notices(struct sock_ev_client *client) {
 			client->str_notice != NULL ? client->str_notice : "",
 			client->str_notice != NULL ? strlen(client->str_notice) : (size_t)0);
 		SFREE(client->str_notice);
-		WS_sendFrame(global_loop, client, true, 0x01, str_response, strlen(str_response));
+		WS_sendFrame(EV_A, client, true, 0x01, str_response, strlen(str_response));
 		if (client->cur_request != NULL) {
 			DArray_push(client->cur_request->arr_response, str_response);
 		} else {
@@ -124,7 +125,7 @@ void _send_notices(struct sock_ev_client *client) {
 		pg_notify_current = PQnotifies(client->cnxn);
 	}
 	if (str_response != NULL) {
-		WS_sendFrame(global_loop, client, true, 0x01, str_response, strlen(str_response));
+		WS_sendFrame(EV_A, client, true, 0x01, str_response, strlen(str_response));
 	}
 finish:
 	errno = 0;
@@ -143,6 +144,7 @@ static void cnxn_reset_cb(EV_P, ev_io *w, int revents) {
 	} // get rid of unused parameter warning
 	struct sock_ev_client_cnxn *client_cnxn = (struct sock_ev_client_cnxn *)w;
 	char *str_response = NULL;
+    size_t int_response_len = 0;
 
 	PostgresPollingStatusType status = PQresetPoll(client_cnxn->parent->conn->conn);
 
@@ -224,7 +226,7 @@ finish:
 		SFREE(client_cnxn);
 
 		ev_prepare_stop(EV_A, &client->client_reconnect_timer->prepare);
-		ev_idle_stop(EV_A, &client_cnxn->parent->client_reconnect_timer->idle);
+		ev_idle_stop(EV_A, &client->client_reconnect_timer->idle);
 		SFREE(client->client_reconnect_timer);
 		
 		cnxn_cb(EV_A, client, client->conn);
@@ -673,10 +675,11 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				////HANDSHAKE
 				SERROR_CHECK((str_response = WS_handshakeResponse(client->str_websocket_key, &int_response_len)) != NULL, "Error getting handshake response");
 
+				// TODO: USE WS MESSAGE QUEUE TO SEND
 				SDEBUG("str_response       : %s", str_response);
 				SDEBUG("client->str_request: %s", client->str_request);
 				// return handshake response
-				if ((int_len = write(client->int_sock, str_response, int_response_len)) < 0) {
+				if (write(client->int_sock, str_response, int_response_len) < 0) {
 					SERROR_CLIENT_CLOSE(client);
 					SERROR("write() failed");
 				}
@@ -695,7 +698,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				if (client->conn == NULL) {
 					SDEBUG("client->str_request: %p", client->str_request);
 					// set_cnxn does its own error handling
-					if (set_cnxn(client, cnxn_cb) == NULL) {
+					if (set_cnxn(EV_A, client, cnxn_cb) == NULL) {
 						//SERROR_CLIENT_CLOSE(client);
 
 					}
@@ -704,7 +707,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				} else {
 					// The reason for this, is because later functions depend on the
 					// values this function sets
-					if (set_cnxn(client, NULL) == NULL) {
+					if (set_cnxn(EV_A, client, NULL) == NULL) {
 						//SERROR_CLIENT_CLOSE(client);
 					}
 				}
@@ -713,7 +716,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				SDEBUG("http request");
 				ev_io_stop(EV_A, &client->io);
                 client->bol_http = true;
-				http_main(client);
+				http_main(EV_A, client);
 				client = NULL; // it is http_main's responsibility now.
 			}
 		}
@@ -1243,6 +1246,7 @@ error:
 }
 
 void _client_request_free(struct sock_ev_client_request *client_request) {
+	EV_P = global_loop;
 	SDEBUG("Freeing request with messageid %s at location %p", client_request->str_message_id, client_request);
 	if (client_request->client_request_data != NULL) {
 		client_request->client_request_data->free(client_request->client_request_data);
@@ -1265,10 +1269,10 @@ void _client_request_free(struct sock_ev_client_request *client_request) {
 		WS_freeFrame(client_request->frame);
 	}
 	if (client_request->cb_data != NULL) {
-		ev_io_stop(global_loop, &client_request->cb_data->io);
+		ev_io_stop(EV_A, &client_request->cb_data->io);
 		SFREE(client_request->cb_data);
 	}
-    ev_idle_stop(global_loop, &client_request->idle);
+    ev_idle_stop(EV_A, &client_request->idle);
 	SFREE(client_request->str_current_response);
 	SFREE(client_request->str_message_id);
 	SFREE(client_request->str_transaction_id);
@@ -1309,19 +1313,19 @@ void client_request_queue_cb(EV_P, ev_check *w, int revents) {
 		switch (client_request->int_req_type) {
 			case ENVELOPE_REQ_SELECT:
 				client->bol_request_in_progress = true;
-				ws_select_step1(client_request);
+				ws_select_step1(EV_A, client_request);
 				break;
 			case ENVELOPE_REQ_INSERT:
 				client->bol_request_in_progress = true;
-				ws_insert_step1(client_request);
+				ws_insert_step1(EV_A, client_request);
 				break;
 			case ENVELOPE_REQ_UPDATE:
 				client->bol_request_in_progress = true;
-				ws_update_step1(client_request);
+				ws_update_step1(EV_A, client_request);
 				break;
 			case ENVELOPE_REQ_DELETE:
 				client->bol_request_in_progress = true;
-				ws_delete_step1(client_request);
+				ws_delete_step1(EV_A, client_request);
 				break;
 			case ENVELOPE_REQ_BEGIN:
 			case ENVELOPE_REQ_COMMIT:
@@ -1372,11 +1376,11 @@ void client_request_queue_cb(EV_P, ev_check *w, int revents) {
 				break;
 			case ENVELOPE_REQ_FILE:
 				client->bol_request_in_progress = true;
-				ws_file_step1(client_request);
+				ws_file_step1(EV_A, client_request);
 				break;
 			case ENVELOPE_REQ_ACTION:
 				client->bol_request_in_progress = true;
-				ws_action_step1(client_request);
+				ws_action_step1(EV_A, client_request);
 				break;
 			case ENVELOPE_REQ_INFO:
 				client->bol_request_in_progress = true;
@@ -1838,6 +1842,7 @@ error:
 }
 
 bool client_close(struct sock_ev_client *client) {
+	EV_P = global_loop;
 	size_t int_cookie_len = 0;
 	size_t int_i = 0;
 	size_t int_len = 0;
@@ -1851,16 +1856,16 @@ bool client_close(struct sock_ev_client *client) {
 	if (client->que_message != NULL && client->bol_handshake == true && client->bol_is_open == true) {
 		while (client->que_message->first != NULL) {
 			client_message = client->que_message->first->value;
-			ev_io_stop(global_loop, &client_message->io);
+			ev_io_stop(EV_A, &client_message->io);
 			WSFrame *frame = client_message->frame;
 			// This removes this node from the queue, so that the next element we want
 			// is the first one
 			WS_client_message_free(client_message);
 			WS_freeFrame(frame);
 		}
-		WS_sendFrame(global_loop, client, true, 0x08, "\01\00", 2);
+		WS_sendFrame(EV_A, client, true, 0x08, "\01\00", 2);
 	}
-	ev_io_stop(global_loop, &client->io);
+	ev_io_stop(EV_A, &client->io);
 
 	if ((client->que_message == NULL || client->que_message->first == NULL) && client->bol_socket_is_open == true) {
 		if (client->que_message != NULL) {
@@ -1879,25 +1884,25 @@ bool client_close(struct sock_ev_client *client) {
 	}
 
 	if (client->client_request_watcher != NULL) {
-		ev_check_stop(global_loop, &client->client_request_watcher->check);
-		ev_idle_stop(global_loop, &client->client_request_watcher->idle);
+		ev_check_stop(EV_A, &client->client_request_watcher->check);
+		ev_idle_stop(EV_A, &client->client_request_watcher->idle);
 		SFREE(client->client_request_watcher);
 	}
 
 	if (client->notify_watcher != NULL) {
-		ev_io_stop(global_loop, &client->notify_watcher->io);
+		ev_io_stop(EV_A, &client->notify_watcher->io);
 		SFREE(client->notify_watcher);
 	}
 
 	if (client->client_reconnect_timer != NULL) {
-		ev_prepare_stop(global_loop, &client->client_reconnect_timer->prepare);
-		ev_idle_stop(global_loop, &client->client_reconnect_timer->idle);
+		ev_prepare_stop(EV_A, &client->client_reconnect_timer->prepare);
+		ev_idle_stop(EV_A, &client->client_reconnect_timer->idle);
 		SFREE(client->client_reconnect_timer);
 	}
 
 	if (client->client_upload != NULL) {
-		ev_check_stop(global_loop, &client->client_upload->check);
-		ev_idle_stop(global_loop, &client->client_upload->idle);
+		ev_check_stop(EV_A, &client->client_upload->check);
+		ev_idle_stop(EV_A, &client->client_upload->idle);
 		http_upload_free(client->client_upload);
         client->client_upload = NULL;
 	}
@@ -1946,10 +1951,10 @@ bool client_close(struct sock_ev_client *client) {
 			_server.arr_client_last_activity, (size_t)client->int_last_activity_i);
 		if (client_last_activity != NULL) {
 			SDEBUG("client->int_last_activity_i          : %d", client->int_last_activity_i);
-			SDEBUG("ev_now(global_loop)               : %f", ev_now(global_loop));
+			SDEBUG("ev_now(EV_A)               : %f", ev_now(EV_A));
 			SDEBUG("client_last_activity                 : %p", client_last_activity);
 			SDEBUG("client_last_activity->last_activity_time: %f", client_last_activity->last_activity_time);
-			client_last_activity->last_activity_time = ev_now(global_loop);
+			client_last_activity->last_activity_time = ev_now(EV_A);
 		}
 	}
 
@@ -1963,11 +1968,11 @@ bool client_close(struct sock_ev_client *client) {
 				SDEBUG("delay client_close_immediate");
 				SDEBUG("test1: %p", client);
 				SERROR_SALLOC(client->client_timeout_prepare, sizeof(struct sock_ev_client_timeout_prepare));
-				client->client_timeout_prepare->close_time = ev_now(global_loop);
+				client->client_timeout_prepare->close_time = ev_now(EV_A);
 				client->client_timeout_prepare->parent = client;
 
 				ev_prepare_init(&client->client_timeout_prepare->prepare, client_close_timeout_prepare_cb);
-				ev_prepare_start(global_loop, &client->client_timeout_prepare->prepare);
+				ev_prepare_start(EV_A, &client->client_timeout_prepare->prepare);
 			}
 		}
 	}
@@ -2022,7 +2027,7 @@ void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 				ev_io_start(EV_A, &client->io);
 			} else {
 				SFREE(err);
-				SERROR_CHECK_NORESPONSE(DB_exec(global_loop, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
+				SERROR_CHECK_NORESPONSE(DB_exec(EV_A, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
 			}
 		} else {
 			SDEBUG("BEFORE client_close_immediate(%p)", client);
@@ -2031,7 +2036,7 @@ void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 		}
 #else
 		if (client->bol_public == false && bol_global_set_user == true) {
-			SERROR_CHECK_NORESPONSE(DB_exec(global_loop, client->conn, client, "REVERT;", client_close_close_cnxn_cb), "DB_exec failed to revert session authorization");
+			SERROR_CHECK_NORESPONSE(DB_exec(EV_A, client->conn, client, "REVERT;", client_close_close_cnxn_cb), "DB_exec failed to revert session authorization");
 		} else {
 			SDEBUG("BEFORE client_close_immediate(%p)", client);
 			client_close_immediate(client);
@@ -2052,7 +2057,7 @@ void client_close_cancel_query_cb(EV_P, ev_io *w, int revents) {
 	if (int_status != 1) {
 		SERROR_NORESPONSE("PQconsumeInput failed %s", PQerrorMessage(client->cnxn));
 		ev_io_stop(EV_A, w);
-		SERROR_CHECK_NORESPONSE(DB_exec(global_loop, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
+		SERROR_CHECK_NORESPONSE(DB_exec(EV_A, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
 		return;
 	}
 
@@ -2060,17 +2065,17 @@ void client_close_cancel_query_cb(EV_P, ev_io *w, int revents) {
 	if (int_status2 != 1) {
 		ev_io_stop(EV_A, w);
 		PGresult *res = PQgetResult(client->cnxn);
+		char **buffer_ptr_ptr = salloc(sizeof(char *));
 		while (res != NULL) {
 			if (PQresultStatus(res) == PGRES_COPY_OUT) {
-				char **buffer_ptr_ptr = salloc(sizeof(char *));
-				int_status = PQgetCopyData(client->cnxn, buffer_ptr_ptr, 0);
+				PQgetCopyData(client->cnxn, buffer_ptr_ptr, 0);
 				PQfreemem(*buffer_ptr_ptr);
-				SFREE(buffer_ptr_ptr);
 			}
 			PQclear(res);
 			res = PQgetResult(client->cnxn);
 		}
-		SERROR_CHECK_NORESPONSE(DB_exec(global_loop, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
+		SFREE(buffer_ptr_ptr);
+		SERROR_CHECK_NORESPONSE(DB_exec(EV_A, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
 	}
 }
 #endif
@@ -2087,17 +2092,18 @@ bool client_close_close_cnxn_cb(EV_P, void *cb_data, DB_result *res) {
 }
 
 void client_close_immediate(struct sock_ev_client *client) {
+	EV_P = global_loop;
 	SDEBUG("Client %p closing", client);
 	struct WSFrame *frame = NULL;
-	ev_io_stop(global_loop, &client->io);
+	ev_io_stop(EV_A, &client->io);
 
 	if (client->notify_watcher != NULL) {
-		ev_io_stop(global_loop, &client->notify_watcher->io);
+		ev_io_stop(EV_A, &client->notify_watcher->io);
 		SFREE(client->notify_watcher);
 	}
 	if (client->client_copy_check != NULL) {
-		ev_check_stop(global_loop, &client->client_copy_check->check);
-		ev_idle_stop(global_loop, &client->client_copy_check->idle);
+		ev_check_stop(EV_A, &client->client_copy_check->check);
+		ev_idle_stop(EV_A, &client->client_copy_check->idle);
 		DB_free_result(client->client_copy_check->res);
 		SFREE(client->client_copy_check->str_response);
 		SFREE(client->client_copy_check);
@@ -2128,7 +2134,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 		if (client->que_message != NULL) {
 			while (client->que_message->first != NULL) {
 				struct sock_ev_client_message *client_message = client->que_message->first->value;
-				ev_io_stop(global_loop, &client_message->io);
+				ev_io_stop(EV_A, &client_message->io);
 				frame = client_message->frame;
 				// This removes this node from the queue, so that the next element we
 				// want is the first one
@@ -2160,7 +2166,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 			client_request->parent = NULL;
 			client_request_free(client_request);
 		}
-		ev_idle_stop(global_loop, &client->idle_request_queue);
+		ev_idle_stop(EV_A, &client->idle_request_queue);
 		Queue_destroy(client->que_request);
 		client->que_request = NULL;
 	}
@@ -2168,21 +2174,17 @@ void client_close_immediate(struct sock_ev_client *client) {
 	client->client_paused_request = NULL;
 
 	if (client->client_request_watcher != NULL) {
-		ev_check_stop(global_loop, &client->client_request_watcher->check);
-		ev_idle_stop(global_loop, &client->client_request_watcher->idle);
+		ev_check_stop(EV_A, &client->client_request_watcher->check);
+		ev_idle_stop(EV_A, &client->client_request_watcher->idle);
 		SFREE(client->client_request_watcher);
 	}
 	if (client->client_request_watcher_search != NULL) {
-		ev_check_stop(global_loop, &client->client_request_watcher_search->check);
-		ev_idle_stop(global_loop, &client->client_request_watcher_search->idle);
+		ev_check_stop(EV_A, &client->client_request_watcher_search->check);
+		ev_idle_stop(EV_A, &client->client_request_watcher_search->idle);
 		SFREE(client->client_request_watcher_search);
 	}
-	if (client->client_copy_io != NULL) {
-		ev_io_stop(global_loop, &client->client_copy_io->io);
-		SFREE(client->client_copy_io);
-	}
 	if (client->reconnect_watcher != NULL) {
-		ev_io_stop(global_loop, &client->reconnect_watcher->io);
+		ev_io_stop(EV_A, &client->reconnect_watcher->io);
 	}
 	SFREE(client->str_session_id);
 	SFREE(client->reconnect_watcher);
@@ -2213,22 +2215,24 @@ void client_close_immediate(struct sock_ev_client *client) {
 }
 
 void _client_timeout_prepare_free(struct sock_ev_client_timeout_prepare *client_timeout_prepare) {
+	EV_P = global_loop;
 	if (client_timeout_prepare != NULL) {
-		ev_prepare_stop(global_loop, &client_timeout_prepare->prepare);
+		ev_prepare_stop(EV_A, &client_timeout_prepare->prepare);
 		SFREE(client_timeout_prepare);
 	}
 }
 
 void client_paused_request_free(struct sock_ev_client_paused_request *client_paused_request) {
+	EV_P = global_loop;
 	if (client_paused_request != NULL) {
 		if (client_paused_request->watcher != NULL) {
 			SDEBUG("client_paused_request->watcher: %p", client_paused_request->watcher);
 			if (client_paused_request->revents == EV_CHECK) {
-				ev_check_stop(global_loop, (ev_check *)client_paused_request->watcher);
+				ev_check_stop(EV_A, (ev_check *)client_paused_request->watcher);
 			} else {
-				ev_io_stop(global_loop, (ev_io *)client_paused_request->watcher);
+				ev_io_stop(EV_A, (ev_io *)client_paused_request->watcher);
 			}
-			ev_idle_stop(global_loop, &client_paused_request->idle);
+			ev_idle_stop(EV_A, &client_paused_request->idle);
 			SDEBUG("client_paused_request->revents: %x", client_paused_request->revents);
 			SDEBUG("client_paused_request: %p", client_paused_request);
 			SDEBUG("client_paused_request->watcher: %p", client_paused_request->watcher);
