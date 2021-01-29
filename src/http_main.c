@@ -264,7 +264,7 @@ finish:
 		bol_error_state = false;
 
         // set_cnxn does it's own error handling in some cases
-        if (client->str_http_response != NULL) {
+        if (client->str_http_response == NULL) {
             SFINISH_CHECK(build_http_response(
                     "500 Internal Server Error"
                     , str_response, int_response_len
