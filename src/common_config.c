@@ -29,6 +29,8 @@ char *str_global_role_path = NULL;
 
 char *str_global_api_referer_list = NULL;
 char *str_global_public_api_referer_list = NULL;
+char *str_global_2fa_function = NULL;
+size_t int_global_2fa_timeout = 300;
 
 // size_t int_global_cookie_timeout = 86400;
 char cwd[1024];
@@ -67,6 +69,8 @@ char *str_global_nt_domain;
 // str_global_api_referer_list				api_referer_list				f							api-referer-list
 // str_global_public_api_referer_list		public_api_referer_list			j							public-api-referer-list
 // bol_global_allow_public_login			allow_public_login				i							allow-public-login
+// str_global_2fa_function					2fa_function					2							2fa-function
+// int_global_2fa_timeout					2fa_timeout						m							2fa-timeout
 // str_global_nt_domain						nt_domain
 // clang-format on
 
@@ -178,6 +182,14 @@ static int handler(void *str_user, const char *str_section, const char *str_name
 
 	} else if (SMATCH("", "allow_public_login")) {
 		bol_global_allow_public_login = *str_value == 'T' || *str_value == 't';
+
+	} else if (SMATCH("", "2fa_function")) {
+		SFREE(str_global_2fa_function);
+		SERROR_SNCAT(str_global_2fa_function, &int_len,
+			str_value, strlen(str_value));
+
+	} else if (SMATCH("", "2fa_timeout")) {
+		int_global_2fa_timeout = (size_t)strtol(str_value, NULL, 10);
 
 #ifndef ENVELOPE_INTERFACE_LIBPQ
 	} else if (SMATCH("", "nt_domain")) {
@@ -436,7 +448,7 @@ bool parse_options(int argc, char *const *argv) {
 
 	// options descriptor
 	// clang-format off
-	static struct option longopts[27] = {
+	static struct option longopts[29] = {
 		{"help",							no_argument,			NULL,	'h'},
 		{"version",							no_argument,			NULL,	'v'},
 		{"config-file",						required_argument,		NULL,	'c'},
@@ -463,11 +475,13 @@ bool parse_options(int argc, char *const *argv) {
 		{"api-referer-list",				required_argument,		NULL,	'f'},
 		{"public-api-referer-list",			required_argument,		NULL,	'j'},
 		{"allow-public-login",				required_argument,		NULL,	'i'},
+		{"2fa-function",					required_argument,		NULL,	'2'},
+		{"2fa-timeout",						required_argument,		NULL,	'm'},
 		{NULL,								0,						NULL,	0}
 	};
 	// clang-format on
 
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:a:p:j:k:s:e:b:t:l:o:q:a:f:j:i:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:a:p:j:k:s:e:b:t:l:o:q:a:f:j:i:2:m:", longopts, NULL)) != -1) {
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -491,7 +505,7 @@ bool parse_options(int argc, char *const *argv) {
 	char *str_config_empty = "";
 	ini_parse(str_global_config_file, handler, &str_config_empty);
 
-	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:a:p:j:k:s:e:b:t:l:o:q:a:f:j:i:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "hvc:d:g:y:z:u:w:x:r:a:p:j:k:s:e:b:t:l:o:q:a:f:j:i:2:m:", longopts, NULL)) != -1) {
 		if (ch == '?') {
 			// getopt_long prints an error in this case
 			goto error;
@@ -589,6 +603,14 @@ bool parse_options(int argc, char *const *argv) {
 
 		} else if (ch == 'i') {
 			bol_global_allow_public_login = *optarg == 'T' || *optarg == 't';
+
+		} else if (ch == '2') {
+			SFREE(str_global_2fa_function);
+			SERROR_SNCAT(str_global_2fa_function, &int_global_len,
+				optarg, strlen(optarg));
+
+		} else if (ch == 'm') {
+			int_global_2fa_timeout = (size_t)strtol(optarg, NULL, 10);
 
 		} else if (ch == 0) {
 			fprintf(stderr, "no options");

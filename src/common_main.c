@@ -73,6 +73,7 @@ void program_exit() {
 			DArray_destroy(_server.arr_client_last_activity);
 		}
 
+		SFREE(str_global_2fa_function);
 		SFREE(str_global_port);
 		SFREE(str_global_api_referer_list);
 		SFREE(str_global_public_api_referer_list);

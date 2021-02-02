@@ -101,6 +101,7 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 					break;
 				}
 			}
+			SINFO("client->int_last_activity_i: %d", client->int_last_activity_i);
 			// If we don't have it, we don't need it
 		}
 
@@ -130,9 +131,9 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 			client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(
 				client->server->arr_client_last_activity, (size_t)client->int_last_activity_i);
 
-			SDEBUG(" ev_now(EV_A)                                            : %f", ev_now(EV_A));
-			SDEBUG("                       client_last_activity->last_activity_time : %f", client_last_activity->last_activity_time);
-			SDEBUG("(ev_now(EV_A) - client_last_activity->last_activity_time): %f", (ev_now(EV_A) - client_last_activity->last_activity_time));
+			SINFO(" ev_now(EV_A)                                            : %f", ev_now(EV_A));
+			SINFO("                client_last_activity->last_activity_time : %f", client_last_activity->last_activity_time);
+			SINFO("(ev_now(EV_A) - client_last_activity->last_activity_time): %f", (ev_now(EV_A) - client_last_activity->last_activity_time));
 		}
 		// Grab the other client if we have it
 		struct sock_ev_client *other_client = NULL;

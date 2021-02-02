@@ -624,7 +624,7 @@ char *getpar(char *query, char *input_key, size_t int_query_length, size_t *int_
 		"=", (size_t)1);
 
 	do {
-		// SDEBUG("query:%s, key:%s, key_len:%i", query, key, key_len);
+		SDEBUG("query:%s, key:%s, key_len:%i, strncmp:%i", query, key, int_key_len, strncmp(query, key, int_key_len));
 		if (strncmp(query, key, int_key_len) == 0) {
 			answer = query + int_key_len;
 
@@ -633,14 +633,16 @@ char *getpar(char *query, char *input_key, size_t int_query_length, size_t *int_
 			if (end == 0) {
 				end = start + int_query_length;
 				*int_value_length = (size_t)(end - answer);
+				SDEBUG("answer_len: %i", *int_value_length);
 				str_result = uri_to_cstr(answer, int_value_length);
 				SERROR_CHECK(str_result != NULL, "uri_to_cstr failed");
 				SFREE_PWORD_ALL();
+				SDEBUG("str_result: %s", str_result);
 				return str_result;
 			}
 
 			int_answer_len = (size_t)(end - answer);
-			// SDEBUG("answer_len: %i", answer_len);
+			SDEBUG("answer_len: %i", int_answer_len);
 			SERROR_SALLOC(result, int_answer_len + 1);
 			memcpy(result, answer, int_answer_len);
 			result[int_answer_len] = 0;
@@ -652,8 +654,9 @@ char *getpar(char *query, char *input_key, size_t int_query_length, size_t *int_
 		}
 		// SDEBUG("rrsg");
 		query = bstrstr(query, int_query_length - (size_t)(query - start), "&", 1);
-		if (query != 0)
+		if (query != 0) {
 			query += 1;
+		}
 	} while (query != 0);
 
 	// didn't find anything
