@@ -1015,6 +1015,7 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 		SFREE_PWORD(client_auth->str_cookie_encrypted);
 		client_auth->str_cookie_encrypted = str_cookie_encrypted_temp;
 		client_auth->int_cookie_encrypted_len = int_cookie_temp_len;
+		str_cookie_encrypted_temp = NULL;
 		SFREE(str_temp);
 	}
 
