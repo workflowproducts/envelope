@@ -1,6 +1,8 @@
-//global GS, xtag, document, window, ml, evt, doT, Worker
-//global designRegisterElement, addProp, encodeHTML
-//global CryptoJS, registerDesignSnippet
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps, addDataEvents, addDataAttributes
 //jslint browser:true, maxlen:80, white:false, this:true
 
 // # CODE INDEX:
@@ -12,7 +14,9 @@
 //                  on the viewport being rendered OR use render functions)
 //      # TOP  (this just brings you back this index)
 //      # SNIPPET/DESIGN
+//      # FUNCTION SHORTCUTS
 //      # ELEMENT CONFIG
+//      # GLOBAL ID SEQUENCE
 //      # GLOBAL <STYLE></STYLE> ELEMENT SETUP
 //      # SCROLLBAR WIDTH
 //      # CELL DIMENSION DETECTOR
@@ -49,289 +53,11 @@
 //      # ELEMENT LIFECYCLE
 //      # ELEMENT ACCESSORS
 //      # ELEMENT METHODS
+//      # OLD NOTES
 
 // for sections of code that need to be completed:
 //      # NEED CODING
 
-/*
-new datasheet
-    select, insert, update,
-        delete, copy, paste and selection events (prevent default)
-    programatic select, insert, update,
-        delete, copy, paste and selection (events marked as programatic)
-
-    fixed headers/record selectors
-    ace scrolling
-    insert record
-
-    data source is not required (column list is required if no data source)
-
-    header, record, insert record templating (dot.js)
-
-    placeholder for null values
-    value to set value as null
-
-    headers, record selectors, insert record are all optional
-
-    copy settings (
-        headers always|never|whenselected
-        record selectors always|never|whenselected
-        quote char
-        quote when never|strings|always
-        record delim char
-        cell delim char
-        null value string
-    )
-    no more table element
-
-    selection is stored as ranges
-    backwards compatible attributes (transfer to new names and warn)
-
-
-element name:
-    <gs-table></gs-table>
-
-helper elements:
-    <gs-cell></gs-cell>
-
-attributes:
-    pk
-    lock
-    seq
-    cols (required if no src)
-    src
-    where
-    session-filter (where clause that can be overridden by the user)
-    ord
-    limit
-    offset
-    column
-    child-column
-    qs
-    refresh-on-querystring-values
-    refresh-on-querystring-change
-
-    reflow-at (future)
-    scroll-past-bottom
-        (allows you to scroll until only the bottom record is seen)
-    scroll-to-bottom (scrolls all the way down on initial load)
-    no-insert-scroll (disables scrolling all the way down after insert)
-    expand-to-content
-
-    no-hudpaginate
-    no-hudrefresh
-    no-huddelete
-    no-filter
-
-    suspend-created
-    suspend-inserted
-
-    no-header
-    no-record-selector
-    no-selection
-
-    null-string (defaults to "")
-    null-set-string (defaults to null-string attribute)
-
-    no-resize-column
-    no-resize-record
-
-    default-record-height (pixels, defaults if not present)
-    default-column-width (pixels, defaults if not present)
-
-    socket (name of a property stored on the GS object, needs to be a socket)
-
-    copy-header           always|never|selected
-    copy-selectors        always|never|selected
-    copy-quote-char       text
-    copy-escape-char      text
-    copy-quote-when       never|strings|always|delimiter-in-content
-    copy-delimiter-record text
-    copy-delimiter-cell   text
-    copy-null-cell        text
-
-templates: (all are dot.js templated before use)
-    for="hud" (snippet contains default
-                    insert/update/delete/refresh/filter/paginate elements)
-    for="header-record"
-        <gs-cell>HEADERTEXT</gs-cell>
-    for="data-record"
-        <gs-cell header="HEADERTEXT">
-            <gs-text mini column="COLUMNNAME"></gs-text>
-        </gs-cell>
-    for="insert-record"
-        <gs-cell header="HEADERTEXT" target="COLUMNNAME"></gs-cell>
-    for="insert-dialog"
-
-accessors:
-    selection (contains JS array of selection ranges)
-    data (contains TSV of all data)
-    value (value attribute)
-
-events:
-    before_select (contains TSV of selection under "records" key)
-    before_insert (contains TSV of insert under "records" key)
-    before_update (contains TSV of old/new under "records" key ("old", "new"))
-    before_delete (contains TSV of delete under "records" key)
-    before_selection (contains TSV of selection ranges under "selection" key)
-
-    after_select (contains TSV of selection under "records" key)
-    after_insert (contains TSV of insert under "records" key)
-    after_update (contains TSV of old/new under "records" key ("old", "new"))
-    after_delete (contains TSV of delete under "records" key)
-    after_selection (contains TSV of selection ranges under "selection" key)
-
-    insert_dialog_open (event.relatedTarget = insert dialog)
-    before_copy (preventDefault will prevent copy)
-    copy
-    paste
-
-methods:
-    refresh
-    render
-    scrollToIndex(cell_number, record_number)
-    clearSelection()
-    addSelectionRange(
-        fromCell_number,
-        fromRecord_number,
-        toCell_number,
-        toRecord_number,
-        bolNegate (default false)
-    )
-    getCopyString(
-        strMimeType text|html
-    )
-    paste(paste_string)
-    filter(
-        filterColumn,
-        filterType contains|starts|ends|equals|greaterthan|lessthan,
-        showIfMatch true|false,
-        filterValue
-    )
-    selectData
-    insertData
-    updateData
-    deleteData
-
-click behavior:
-    if click results in focused input/textarea
-            and start/end locations are in the same place:
-        select all control contents
-    if not no-filter and click results in focused control: filter popup tooltip
-
-mousedown-drag:
-    if shift:
-        move latest selection range's endpoint
-    if no shift:
-        clear all selections
-        start new selection
-    if command/control:
-        start new selection
-        if selection started on an already selected cell:
-            selection is a negator selection
-
-selection behavior:
-    if selection origin and end is on a record selector:
-        select entire records
-    if selection origin and end is on a header selector:
-        select entire columns
-    if selection origin starts and ends on the top-left selector:
-        select all cells
-    if selection endpoint is off-screen:
-        scroll it to middle
-
-focus behavior:
-    cell/record focus location is saved
-        (if cell is visible after a render, focus into it)
-        (removed on blur)
-    on selection with no focused control: focus hidden control
-    on mousedown inside the element (on unfocusable element):
-        focus hidden control
-    on blur after cell change: cause update
-    on focus of single cell: set selection to focused cell
-
-copy behavior:
-    never copy insert record
-    on copy event and hidden focus control is focused:
-        copy to html mime type (using applicable copy attributes)
-        copy to text mime type (using applicable copy attributes)
-    if a record is not selected: no space is made for it in the copy
-    if a column is not selected: no space is made for it in the copy
-
-key behavior:
-    arrowing around selects the cell, doesn't focus the control
-    return on selection focuses selection origin cell control
-    "delete"/"forward delete" when no control is focused causes record delete
-    on return after cell change: cause update
-
-    if arrow:
-        if shift:
-            "selection" means selection end of latest selection range
-        if no shift:
-            clear all selection ranges
-            "selection" means selection origin/end of new selection range
-
-        if all contents selected because of arrow
-            or
-        if cursor is at boundary in the direction of the arrow:
-            if there is a cell in the direction of the arrow:
-                move selection in direction of arrow
-            else:
-                if right at last cell of record: first cell of next record
-                if right at last cell of table: first cell of table
-                if left at first cell of record: last cell of previous record
-                if left at first cell of table: last cell of table
-                if up at first cell of column: previous column of bottom record
-                if down at last cell of column: next column of first record
-
-scrollbar behavior:
-    whenever the record count is changed: the scrollbar is rerendered
-    the scrollbar has a maximum range, stop growing around this height
-    if scrollbar is past max height, you'll need to translate the top
-        into (1px of scroll height will = >1px of motion)
-    after scroll: rerender location
-    phone scroll: no scrollbar, needs elastic motion
-    scroll render:
-        if scrollTop is >0     header shadow
-        if scrollLeft is >0    record selector shadow
-        if scrollBottom is >0  insert record shadow
-        if scrollRight is >0   right side shadow
-
-loader behavior:
-    when enabled: a small spinner shows at the top-right of the data area
-
-delete behavior:
-    always asks if you're sure
-    after success:
-        remove record from internal data,
-        render current location,
-        clear selection range if it's now out of bounds
-    during delete: enable element loader
-    after delete is initiated: record is no longer clickable
-
-insert behavior:
-    asks if you're sure only when inserting multiple records (using paste)
-    after success:
-        append new data to the end of internal data,
-        scroll to bottom,
-        render current location,
-        clear selection range
-    during insert: enable element loader
-
-update behavior:
-    asks if you're sure only when updating multiple records (using paste)
-    after success:
-        update whole record in internal data,
-        render current location,
-        clear selection range
-    during update: enable element loader
-    if an update is caused while another update is still resolving: add to queue
-
-select behavior:
-    first load: if scroll-to-bottom: scroll to reveal bottom record
-    reload: always returns to previous scroll/focus/textselection situation
-    during load: enable element loader
-*/
 
 // ############################################################################
 // ############################## SNIPPET/DESIGN ##############################
@@ -340,7 +66,7 @@ select behavior:
 window.addEventListener('design-register-element', function () {
     'use strict';
 
-    registerDesignSnippet(
+    addSnippet(
         '<gs-table>',
         '<gs-table>',
         ml(function () {/*gs-table
@@ -355,105 +81,63 @@ window.addEventListener('design-register-element', function () {
     <template for="top-hud">
         <gs-button
             onclick="document.getElementById('${1:tableid}').deleteSelected()"
-            inline
-            no-focus
-            icononly
-            icon="times"
+            inline no-focus icononly icon="times"
         >&nbsp;</gs-button>
         <gs-button
             onclick="document.getElementById('${1:tableid}').openInsertDialog()"
-            inline
-            no-focus
-            icononly
-            icon="plus"
+            inline no-focus icononly icon="plus"
         >&nbsp;</gs-button>
         <gs-button
             onclick="document.getElementById('${1:tableid}').refresh()"
-            inline
-            no-focus
-            icononly
-            icon="refresh"
+            inline no-focus icononly icon="refresh"
         >&nbsp;</gs-button>
         <gs-button
             onclick="document.getElementById('${1:tableid}').openPrefs(this)"
-            inline
-            no-focus
-            icononly
-            icon="sliders"
+            inline no-focus icononly icon="sliders"
         >&nbsp;</gs-button>
         <gs-button
             onclick="document.getElementById('${1:tableid}').toFullscreen(this)"
-            inline
-            no-focus
-            icononly
-            icon="expand"
+            inline no-focus icononly icon="expand"
         >&nbsp;</gs-button>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <gs-button
             onclick="document.getElementById('${1:tableid}').sort('asc')"
-            inline
-            no-focus
-            iconleft
-            icon="sort-alpha-asc"
+            inline no-focus iconleft icon="sort-alpha-asc"
         >Sort A to Z</gs-button>
         <gs-button
             onclick="document.getElementById('${1:tableid}').sort('desc')"
-            inline
-            no-focus
-            iconleft
-            icon="sort-alpha-desc"
+            inline no-focus iconleft icon="sort-alpha-desc"
         >Sort Z to A</gs-button>
         <gs-button
             onclick="document.getElementById('${1:tableid}').sort('clear')"
-            inline
-            no-focus
-            iconleft
-            icon="trash"
+            inline no-focus iconleft icon="trash"
         >Clear Sort</gs-button>
         <gs-button
             onclick="document.getElementById('${1:tableid}').clearFilter()"
-            inline
-            no-focus
-            iconleft
-            icon="trash"
+            inline no-focus iconleft icon="trash"
         >Clear Filter</gs-button>
     </template>
     <template for="bottom-hud">
         <gs-button
             onclick="document.getElementById('${1:tableid}').goToLine('first')"
-            inline
-            no-focus
-            icononly
-            icon="step-backward"
+            inline no-focus icononly icon="step-backward"
         >&nbsp;</gs-button>
         <gs-button
           onclick="document.getElementById('${1:tableid}').goToLine('previous')"
-            inline
-            no-focus
-            icononly
-            icon="caret-left"
+            inline no-focus icononly icon="caret-left"
         >&nbsp;</gs-button>
         <gs-current-record inline for="${1:tableid}"></gs-current-record>
         <gs-button
             onclick="document.getElementById('${1:tableid}').goToLine('next')"
-            inline
-            no-focus
-            icononly
-            icon="caret-right"
+            inline no-focus icononly icon="caret-right"
         >&nbsp;</gs-button>
         <gs-button
             onclick="document.getElementById('${1:tableid}').goToLine('last')"
-            inline
-            no-focus
-            icononly
-            icon="step-forward"
+            inline no-focus icononly icon="step-forward"
         >&nbsp;</gs-button>
         <gs-button
             onclick="document.getElementById('${1:tableid}').goToLine('insert')"
-            inline
-            no-focus
-            icononly
-            icon="plus"
+            inline no-focus icononly icon="plus"
         >&nbsp;</gs-button>
     </template>
     <template for="header-record">
@@ -468,578 +152,62 @@ window.addEventListener('design-register-element', function () {
     <template for="insert-record">
         <gs-cell header="${2}"><input column="${3}" /></gs-cell>
     </template>
-</gs-table>*/})
+</gs-table>*/
+        })
     );
 
-    designRegisterElement('gs-table', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#record_table');
+    addElement('gs-table', '#record_table');
 
-    window.designElementProperty_GSTABLE = function (selectedElement) {
-        addProp(
-            'Socket',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('socket') || '') + '" mini></gs-text>',
-            function () {
-            return setOrRemoveTextAttribute(
-                selectedElement,
-                'socket',
-                encodeURIComponent(this.value)
-            );
-        });
-
-        addProp(
-            'Source',
-            true,
-            '<gs-memo class="target" autoresize rows="1" value="' +
-                encodeHTML(
-                    decodeURIComponent(
-                        selectedElement.getAttribute('src') ||
-                        selectedElement.getAttribute('source') ||
-                        ''
-                    )
-                ) + '" mini></gs-memo>',
-            function () {
-            return setOrRemoveTextAttribute(
-                selectedElement,
-                'src',
-                encodeURIComponent(this.value)
-            );
-        });
-
-        addProp(
-            'Columns',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('columns') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'columns',
-                    this.value
-                );
-            }
-        );
-
-        addProp(
-            'Where',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('where') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'where',
-                    this.value
-                );
-            }
-        );
-
-        addProp(
-            'Session Filter',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('session-filter') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'session-filter',
-                    this.value
-                );
-            }
-        );
-
-        addProp(
-            'Order By',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('ord') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'ord',
-                    this.value
-                );
-            }
-        );
-
-        addProp(
-            'Limit',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('limit') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'limit',
-                    this.value
-                );
-            }
-        );
-
-        addProp(
-            'Offset',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('offset') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'offset',
-                    this.value
-                );
-            }
-        );
-
-        addProp(
-            'Column In Querystring',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'qs', this.valu
-                    , false
-                );
-            }
-        );
-
-        addProp(
-            'Parent&nbsp;Column',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'column',
-                    this.value
-                );
-            }
-        );
-
-        addProp(
-            'Line Column',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('child-column') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'child-column',
-                    this.value
-                );
-            }
-        );
-
-        addProp(
-            'Primary Keys',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('pk') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'pk',
-                    this.value
-                );
-            }
-        );
-
-        addProp(
-            'Lock Columns',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('lock') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'lock',
-                    this.value
-                );
-            }
-        );
-
-        addProp(
-            'Sequences',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('seq') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'seq',
-                    this.value
-                );
-            }
-        );
-
-        addProp('Before Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_select') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_select', this.value);
-        });
-
-        addProp('After Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_select') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_select', this.value);
-        });
-
-        addProp('Before Insert', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_insert') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_insert', this.value);
-        });
-
-        addProp('After Insert', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_insert') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_insert', this.value);
-        });
-
-        addProp('Before Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_update') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_update', this.value);
-        });
-
-        addProp('After Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_update') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_update', this.value);
-        });
-
-        addProp('Before Delete', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_delete') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_delete', this.value);
-        });
-
-        addProp('After Delete', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_delete') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_delete', this.value);
-        });
-
-        addProp(
-            'Null String', true,
-            '<g-text class="target" value="' + encodeHTML(selectedElement.getAttribute('null-string') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'null-string',
-                    this.value
-                );
-            }
-        );
-
-        addProp(
-            'Null Set String',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('null-set-string') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'null-set-string',
-                    this.value
-                );
-            }
-        );
-
-        addProp('No Record Selector', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-record-selector')) + '" mini></gs-checkbox>', function () {
-            this.removeAttribute('no-record-selector');
-            return setOrRemoveBooleanAttribute(
-                selectedElement,
-                'no-record-selector',
-                this.value === 'true',
-                true
-            );
-        });
-
-        addProp(
-            'No Resize Record',
-            true,
-            '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-resize-record')) + '" mini></gs-checkbox>',
-            function () {
-            this.removeAttribute('no-resize-record');
-            return setOrRemoveBooleanAttribute(
-                selectedElement,
-                'no-resize-record',
-                this.value === 'true',
-                true
-            );
-        });
-
-        addProp(
-            'No Resize Column',
-            true,
-            '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-resize-column')) + '" mini></gs-checkbox>',
-            function () {
-            this.removeAttribute('no-resize-column');
-            return setOrRemoveBooleanAttribute(
-                selectedElement,
-                'no-resize-column',
-                this.value === 'true',
-                true
-            );
-        });
-
-        addProp(
-            'No After Insert Scroll',
-            true,
-            '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-insert-scroll')) + '" mini></gs-checkbox>',
-            function () {
-            this.removeAttribute('no-insert-scroll');
-            return setOrRemoveBooleanAttribute(
-                selectedElement,
-                'no-insert-scroll',
-                this.value === 'true',
-                true
-            );
-        });
-
-        addProp(
-            'Default Record Height',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('default-record-height') || '') + '" mini></gs-text>', function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'default-record-height',
-                    this.value
-                );
-            }
-        );
-        addProp(
-            'Default Column Width',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('default-column-width') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'default-column-width',
-                    this.value
-                );
-            }
-        );
-
-        // TITLE attribute
-        addProp('Title',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'title',
-                    this.value
-                );
-            }
-        );
-        
-        addProp('Copy Header',
-            true,
-            '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-header') || '') + '" mini>' +
-                '<option value=""></option>' +
-                '<option value="never">Never</option>' +
-                '<option value="always">Always</option>' +
-                '<option value="selected">If Selected</option>' +
-            '</gs-select>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'copy-header',
-                    this.value
-                );
-            }
-        );
-        addProp('Copy Selectors',
-            true,
-            '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-selectors') || '') + '" mini>' +
-                '<option value=""></option>' +
-                '<option value="never">Never</option>' +
-                '<option value="always">Always</option>' +
-                '<option value="selected">If Selected</option>' +
-            '</gs-select>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'copy-selectors',
-                    this.value
-                );
-            }
-        );
-        addProp('Copy Quote Character',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'copy-',
-                    this.value
-                );
-            }
-        );
-        addProp('Copy Escape Character',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'copy-',
-                    this.value
-                );
-            }
-        );
-        addProp('Copy Quote When',
-            true,
-            '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-quote-when') || '') + '" mini>' +
-                '<option value=""></option>' +
-                '<option value="never">' +
-                    'Never' +
-                '</option>' +
-                '<option value="strings">' +
-                    'Strings' +
-                '</option>' +
-                '<option value="always">' +
-                    'Always' +
-                '</option>' +
-                '<option value="delimiter-in-content">' +
-                    'Delimiter in Content' +
-                '</option>' +
-            '</gs-select>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'copy-quote-when',
-                    this.value
-                );
-            }
-        );
-        addProp('Copy Record Delimiter',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'copy-',
-                    this.value
-                );
-            }
-        );
-        addProp('Copy Cell Delimiter',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'copy-',
-                    this.value
-                );
-            }
-        );
-        addProp('Copy Null Cell',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('copy-') || '') + '" mini></gs-text>',
-            function () {
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'copy-',
-                    this.value
-                );
-            }
-        );
-
-        // visibility attributes
-        var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden')) {
-            strVisibilityAttribute = 'hidden';
-        }
-        if (selectedElement.hasAttribute('hide-on-desktop')) {
-            strVisibilityAttribute = 'hide-on-desktop';
-        }
-        if (selectedElement.hasAttribute('hide-on-tablet')) {
-            strVisibilityAttribute = 'hide-on-tablet';
-        }
-        if (selectedElement.hasAttribute('hide-on-phone')) {
-            strVisibilityAttribute = 'hide-on-phone';
-        }
-        if (selectedElement.hasAttribute('show-on-desktop')) {
-            strVisibilityAttribute = 'show-on-desktop';
-        }
-        if (selectedElement.hasAttribute('show-on-tablet')) {
-            strVisibilityAttribute = 'show-on-tablet';
-        }
-        if (selectedElement.hasAttribute('show-on-phone')) {
-            strVisibilityAttribute = 'show-on-phone';
-        }
-
-        addProp(
-            'Visibility',
-            true,
-            '<gs-select ' +
-                'class="target" ' +
-                'value="' + strVisibilityAttribute + '" ' +
-                'mini' +
-            '>' +
-                '<option value="">' +
-                    'Visible' +
-                '</option>' +
-                '<option value="hidden">' +
-                    'Invisible' +
-                '</option>' +
-                '<option value="hide-on-desktop">' +
-                    'Invisible at desktop size' +
-                '</option>' +
-                '<option value="hide-on-tablet">' +
-                    'Invisible at tablet size' +
-                '</option>' +
-                '<option value="hide-on-phone">' +
-                    'Invisible at phone size' +
-                '</option>' +
-                '<option value="show-on-desktop">' +
-                    'Visible at desktop size' +
-                '</option>' +
-                '<option value="show-on-tablet">' +
-                    'Visible at tablet size' +
-                '</option>' +
-                '<option value="show-on-phone">' +
-                    'Visible at phone size' +
-                '</option>' +
-            '</gs-select>',
-            function () {
-                selectedElement.removeAttribute('hidden');
-                selectedElement.removeAttribute('hide-on-desktop');
-                selectedElement.removeAttribute('hide-on-tablet');
-                selectedElement.removeAttribute('hide-on-phone');
-                selectedElement.removeAttribute('show-on-desktop');
-                selectedElement.removeAttribute('show-on-tablet');
-                selectedElement.removeAttribute('show-on-phone');
-
-                if (this.value) {
-                    selectedElement.setAttribute(this.value, '');
-                }
-
-                return selectedElement;
-            }
-        );
-
-        addProp(
-            'Refresh On Querystring Columns',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('refresh-on-querystring-values') || '') + '" mini></gs-text>',
-            function () {
-                this.removeAttribute('refresh-on-querystring-change');
-                return setOrRemoveTextAttribute(
-                    selectedElement,
-                    'refresh-on-querystring-values',
-                    this.value
-                );
-            }
-        );
-
-        addProp(
-            'Refresh On Querystring Change',
-            true,
-            '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('refresh-on-querystring-change')) + '" mini></gs-checkbox>',
-            function () {
-                this.removeAttribute('refresh-on-querystring-values');
-                return setOrRemoveBooleanAttribute(
-                    selectedElement,
-                    'refresh-on-querystring-change',
-                    this.value === 'true',
-                    true
-                );
-            }
-        );
-
-        // SUSPEND-INSERTED attribute
-        addProp(
-            'suspend-inserted',
-            true,
-            '<gs-checkbox ' +
-                'class="target" ' +
-                'value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" ' +
-                'mini></gs-checkbox>',
-            function () {
-                return setOrRemoveBooleanAttribute(
-                    selectedElement,
-                    'suspend-inserted',
-                    this.value === 'true',
-                    true
-                );
-            }
-        );
+    // DEFINE PROPERTIES
+    window.designElementProperty_GSTABLE = function () {
+        addDataAttributes('select,insert,update,delete,parent-child');
+        addText('D', 'Session Filter', 'session-filter');
+        addDataEvents('select,insert,update,delete');
+        addText('D', 'Null Display', 'null-string');
+        addText('D', 'Null Set', 'null-set-string');
+        addCheck('V', 'No Record Selector', 'no-record-selector');
+        addCheck('V', 'No Resize Record', 'no-resize-record');
+        addCheck('V', 'No Resize Column', 'no-resize-column');
+        addCheck('V', 'No Column Reorder', 'no-column-reorder');
+        addCheck('V', 'No Contextmenu', 'no-context-menu');
+        addCheck('V', 'No Insert Scroll', 'no-insert-scroll');
+        addCheck('V', 'No Column Dropdown', 'no-column-dropdown');
+        addCheck('V', 'No Copy', 'no-copy');
+        addCheck('V', 'Auto Column Widths', 'column-auto-resize');
+        addCheck('V', 'Don\'t Force Selection', 'no-force-select');
+        addText('V', 'Default Cell Height', 'default-cell-height');
+        addText('V', 'Default Cell Width', 'default-cell-width');
+        addSelect('O', 'Selection Mode', 'selection-mode', [
+            {"val": "", "txt": "All (Default)"},
+            {"val": "single-row", "txt": "Single Row"}
+        ]);
+        addSelect('O', 'Copy Header', 'copy-header', [
+            {"val": "", "txt": ""},
+            {"val": "never", "txt": "Never"},
+            {"val": "always", "txt": "Always"},
+            {"val": "selected", "txt": "If Selected"}
+        ]);
+        addSelect('O', 'Copy Selectors', 'copy-selectors', [
+            {"val": "", "txt": ""},
+            {"val": "never", "txt": "Never"},
+            {"val": "always", "txt": "Always"},
+            {"val": "selected", "txt": "If Selected"}
+        ]);
+        addText('O', 'Copy Quote Character', 'copy-quote-char');
+        addText('O', 'Copy Escape Character', 'copy-escape-char');
+        addSelect('O', 'Copy Quote When', 'copy-quote-when', [
+            {"val": "", "txt": ""},
+            {"val": "never", "txt": "Never"},
+            {"val": "strings", "txt": "Strings"},
+            {"val": "always", "txt": "Always"},
+            {"val": "delimiter-in-content", "txt": "Delimiter in Content"}
+        ]);
+        addText('O', 'Copy Row Delimiter', 'copy-delimiter-record');
+        addText('O', 'Copy Column Delimiter', 'copy-delimiter-cell');
+        addText('O', 'Copy Null Cell', 'copy-null-cell');
+        addText('O', 'Column in QS', 'qs');
+        addText('O', 'Refresh On QS Columns', 'refresh-on-querystring-values');
+        addCheck('O', 'Refresh On QS Change', 'refresh-on-querystring-change');
     };
 });
 
@@ -1059,6 +227,15 @@ window.addEventListener('load', function () {
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
+// ############################################################################
+// ############################ FUNCTION SHORTCUTS ############################
+// ############################################################################
+    var tblQryKids = xtag.queryChildren;
+    var tblQry = xtag.query;
+    var tblElemByID = function (strID) {
+        return document.getElementById(strID);
+    };
+
 // ############################################################################
 // ############################## ELEMENT CONFIG ##############################
 // ############################################################################
@@ -1222,7 +399,11 @@ document.addEventListener('DOMContentLoaded', function () {
             10
         );
         element.internalDisplay.defaultRecordHeight = parseInt(
-            (GS.getStyle(testDataCell, 'height') || '0'),
+            (
+                element.getAttribute('default-cell-height') ||
+                GS.getStyle(testDataCell, 'height') ||
+                '0'
+            ),
             10
         );
 
@@ -1617,7 +798,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ////      still a template element) and add a token to the "style" attribute
     ////      that can be easily replaced
     //function templateCellAddStyleToken(templateElement) {
-    //    var arrCell = xtag.query(templateElement.content, 'gs-cell');
+    //    var arrCell = tblQry(templateElement.content, 'gs-cell');
     //    var i = 0;
     //    var len = arrCell.length;
     //    var strStyle;
@@ -1644,7 +825,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //      CSS to identify them differently, so this function takes a template
     //      element and adds a class to the gs-cell elements within it
     function templateCellAddClass(templateElement, strClass) {
-        var arrCell = xtag.query(templateElement.content, 'gs-cell');
+        var arrCell = tblQry(templateElement.content, 'gs-cell');
         var i = 0;
         var len = arrCell.length;
 
@@ -1658,7 +839,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //      function takes a template and adds an attribute to each cell that'll
     //      contain the record number (zero-based) after doT.js
     function templateCellAddRowNumber(templateElement, strOverride) {
-        var arrCell = xtag.query(templateElement.content, 'gs-cell');
+        var arrCell = tblQry(templateElement.content, 'gs-cell');
         var i = 0;
         var len = arrCell.length;
 
@@ -1675,7 +856,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //      function takes a template and adds an attribute to each cell that'll
     //      contain the column number (zero-based)
     function templateCellAddColumnNumber(templateElement) {
-        var arrCell = xtag.query(templateElement.content, 'gs-cell');
+        var arrCell = tblQry(templateElement.content, 'gs-cell');
         var i = 0;
         var len = arrCell.length;
 
@@ -1694,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //    var templateElement = document.createElement('template');
     //    templateElement.innerHTML = strTemplate;
 
-    //    var arrCell = xtag.query(templateElement.content, 'gs-cell');
+    //    var arrCell = tblQry(templateElement.content, 'gs-cell');
     //    var i = fromColumn;
     //    var len = toColumn;
     //    var strCells = '';
@@ -1731,7 +912,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var templateElement = document.createElement('template');
         templateElement.innerHTML = strTemplate;
 
-        var arrCell = xtag.query(templateElement.content, 'gs-cell');
+        var arrCell = tblQry(templateElement.content, 'gs-cell');
         var i = fromColumn;
         var len = toColumn;
         var strCells = '';
@@ -1772,7 +953,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //      every cell and save it for that purpose
     function templateDetermineCopyHeaderList(element, templateElement) {
         var arrHeading = [];
-        var arrCell = xtag.query(templateElement.content, 'gs-cell');
+        var arrCell = tblQry(templateElement.content, 'gs-cell');
         var i = 0;
         var len = arrCell.length;
         var bolHeaderFound = false;
@@ -1792,9 +973,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             i += 1;
         }
-
-        //console.log('bolHeaderFound: ', bolHeaderFound);
-        //console.log('copy-header:    ', element.getAttribute('copy-header'));
 
         // if no "header" attributes were found (and the "copy-header"
         //      attribute doesn't equal "never"), we want to warn the developer
@@ -1821,7 +999,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //      with what column
     function templateDetermineCopyColumnList(element, templateElement) {
         var arrColumn = [];
-        var arrCell = xtag.query(templateElement.content, 'gs-cell');
+        var arrCell = tblQry(templateElement.content, 'gs-cell');
         var i = 0;
         var len = arrCell.length;
 
@@ -1850,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', function () {
             ////      "['columnname']" or ".columnname"
             ////      if we've found an element with the "column" attribute,
             ////      we'll use it straight as-is
-            //columnElement = xtag.query(cell, '[column]')[0];
+            //columnElement = tblQry(cell, '[column]')[0];
 
             //if (cell.hasAttribute('copy-column')) {
             //    strColumn = cell.getAttribute('copy-column') || '';
@@ -1885,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //      template
     function templateGetColumnList(templateElement) {
         var arrColumn = [];
-        var arrElement = xtag.query(templateElement.content, '[column]');
+        var arrElement = tblQry(templateElement.content, '[column]');
         var i = 0;
         var len = arrElement.length;
         var strColumn;
@@ -2028,7 +1206,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 intTemp += columnBorderWidth;
             }
 
-            if (fromColumn === undefined && intTemp > scrollLeft) {
+            if (fromColumn === undefined && intTemp >= scrollLeft) {
                 fromColumn = i;
                 if (bolRenderAllColumns) {
                     intCellOriginLeft = -intPrev;
@@ -2080,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', function () {
             intTemp += arrRecordHeights[i];
             intTemp += recordBorderHeight;
 
-            if (fromRecord === undefined && intTemp > scrollTop) {
+            if (fromRecord === undefined && intTemp >= scrollTop) {
                 fromRecord = i;
                 intRecordOriginTop = (intRecordOriginTop - scrollTop);
             }
@@ -2710,7 +1888,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var hudElement;
 
         // first, we'll try to find it in the bottom HUD
-        hudElement = xtag.query(
+        hudElement = tblQry(
             element.elems.bottomHudContainer,
             '.' + strClass
         )[0];
@@ -2718,7 +1896,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // if we couldn't find the element in the bottom HUD,
         //      we'll try the top HUD
         if (!hudElement) {
-            hudElement = xtag.query(
+            hudElement = tblQry(
                 element.elems.topHudContainer,
                 '.' + strClass
             )[0];
@@ -2946,6 +2124,138 @@ document.addEventListener('DOMContentLoaded', function () {
         return intDivisor;
     }
 
+    // we have some tables that have automatic column widths, here we run
+    //      the calculations
+    function calculateAutoColumns(element) {
+        var i;
+        var len;
+        var intWidthPool;
+        var intTotalWidth;
+
+        // the way the auto resizing works is that header cells with a
+        //      "width" style set get a static width, the items with a
+        //      min-width get a ratio. The static items get their
+        //      amount of the width "pool". After the static items get
+        //      their fill, the ratioed items get the rest of the width
+        //      in their proportion.
+
+        // for automatic column widths, we need to know the ratios of the column
+        //      widths. These ratios are in relation to each other. This way,
+        //      when we resize all of the columns to fit the width of the
+        //      viewport, we'll be able to keep them the same relative width.
+        //      So, we need to calculate the total width of all the columns.
+        intTotalWidth = 0;
+        i = 0;
+        len = element.internalDisplay.columnWidths.length;
+        while (i < len) {
+            if (
+                element.internalDisplay.setMinColumnWidths[i] ||
+                (
+                    !element.internalDisplay.setMinColumnWidths[i] &&
+                    !element.internalDisplay.setColumnWidths[i]
+                )
+            ) {
+                intTotalWidth += (
+                    element.internalDisplay.setMinColumnWidths[i] ||
+                    element.internalDisplay.columnWidths[i] ||
+                    0
+                );
+            } else {
+                intTotalWidth += 0;
+            }
+
+            i += 1;
+        }
+
+        // calculate column ratios. These can only changed by manually re-sizing
+        //      the columns.
+        i = 0;
+        len = element.internalDisplay.columnWidths.length;
+        while (i < len) {
+            // only columns with ratios get automatically resized. Only
+            //      columns with min-width set get a ratio. Unless,
+            //      nothing set at all. In which case, we use our detected
+            //      width.
+            if (
+                element.internalDisplay.setMinColumnWidths[i] ||
+                (
+                    !element.internalDisplay.setMinColumnWidths[i] &&
+                    !element.internalDisplay.setColumnWidths[i]
+                )
+            ) {
+                element.internalDisplay.columnRatios[i] = (
+                    (
+                        (
+                            element.internalDisplay.setMinColumnWidths[i] ||
+                            element.internalDisplay.columnWidths[i]
+                        ) /
+                        intTotalWidth
+                    ) * 100
+                );
+            }
+
+            i += 1;
+        }
+
+        // ultimately, we're going to try to fit the columns into
+        //      the viewport
+        intWidthPool = (
+            element.elems.dataViewport.clientWidth
+        );
+
+        // remove some width and height from the viewport because
+        //      some of it will be covered by the header, insert
+        //      and selector cells
+        intWidthPool -= (
+            element.internalScrollOffsets.left +
+            element.internalScrollOffsets.right
+        );
+
+        // get static widths, subtract them from width pool
+        i = 0;
+        len = element.internalDisplay.setColumnWidths.length;
+        while (i < len) {
+            // if this column has a set column, remove it's width from the
+            //      available pool
+            if (element.internalDisplay.setColumnWidths[i]) {
+                intWidthPool -= (
+                    // using columnWidths here because the width
+                    //      may have been adjusted
+                    element.internalDisplay.columnWidths[i]
+                );
+            }
+            i += 1;
+        }
+
+        // every column adds a little bit of extra width for the border,
+        //      take that from the pool (except for the last border, the
+        //      table knows to ignore that last border)
+        intWidthPool -= (element.internalDisplay.columnWidths.length - 1);
+
+        // calculate stretchy columns
+        i = 0;
+        len = element.internalDisplay.columnRatios.length;
+        while (i < len) {
+            if (element.internalDisplay.columnRatios[i]) {
+                element.internalDisplay.columnWidths[i] = (
+                    // don't get smaller than min column width
+                    Math.max(
+                        intWidthPool / (
+                            100 / element.internalDisplay.columnRatios[i]
+                        ),
+                        (
+                            element.internalDisplay.setMinColumnWidths[i] ||
+                            // if nothing is set on a column, use the
+                            //      calculated min
+                            element.internalDisplay.minColumnWidths[i]
+                        )
+                    )
+                );
+            }
+            i += 1;
+        }
+    }
+
 
 // #############################################################################
 // ############################# ELEMENT FUNCTIONS #############################
@@ -3025,7 +2335,7 @@ document.addEventListener('DOMContentLoaded', function () {
             i = 0;
             while (
                 i < 500 &&
-                document.getElementById('table-dynamic-id-' + globalIDSeq)
+                tblElemByID('table-dynamic-id-' + globalIDSeq)
             ) {
                 globalIDSeq += 1;
                 i += 1;
@@ -3264,6 +2574,11 @@ document.addEventListener('DOMContentLoaded', function () {
             "dataColumnName": [],
 
             "columnWidths": [],
+            "columnRatios": [],
+
+            "setColumnWidths": [],
+            "setMinColumnWidths": [],
+            "setMaxColumnWidths": [],
             "minColumnWidths": [],
             "maxColumnWidth": 999,
 
@@ -3416,12 +2731,13 @@ document.addEventListener('DOMContentLoaded', function () {
     function siphonElement(element) {
         var topHudTemplate;
         var bottomHudTemplate;
-        var headerRecordTemplate;
-        var dataRecordTemplate;
+        var headerTemplate;
+        var dataTemplate;
         var copyTemplate;
-        var insertRecordTemplate;
+        var insertRWTemplate;
         var insertDialogTemplate;
         var updateDialogTemplate;
+        var arrColumnCounts;
 
         var strHTML;
         var arrColumnPlainTextNames;
@@ -3429,71 +2745,40 @@ document.addEventListener('DOMContentLoaded', function () {
         var arrColumnElements;
         var columnElement;
         var intColumnWidth;
+        var intColumnMinWidth;
         var buttonElement;
         var i;
         var len;
 
         // get each template element and save them to each their own variable,
         //      for easy access
-        topHudTemplate = xtag.queryChildren(
-            element,
-            '[for="top-hud"]'
-        )[0];
-
-        bottomHudTemplate = xtag.queryChildren(
-            element,
-            '[for="bottom-hud"]'
-        )[0];
-
-        headerRecordTemplate = xtag.queryChildren(
-            element,
-            '[for="header-record"]'
-        )[0];
-
-        dataRecordTemplate = xtag.queryChildren(
-            element,
-            '[for="data-record"]'
-        )[0];
-
-        copyTemplate = xtag.queryChildren(
-            element,
-            '[for="copy"]'
-        )[0];
-
-        insertRecordTemplate = xtag.queryChildren(
-            element,
-            '[for="insert-record"]'
-        )[0];
-
-        insertDialogTemplate = xtag.queryChildren(
-            element,
-            '[for="insert-dialog"]'
-        )[0];
-
-        updateDialogTemplate = xtag.queryChildren(
-            element,
-            '[for="update-dialog"]'
-        )[0];
+        topHudTemplate = tblQryKids(element, '[for="top-hud"]')[0];
+        bottomHudTemplate = tblQryKids(element, '[for="bottom-hud"]')[0];
+        headerTemplate = tblQryKids(element, '[for="header-record"]')[0];
+        dataTemplate = tblQryKids(element, '[for="data-record"]')[0];
+        copyTemplate = tblQryKids(element, '[for="copy"]')[0];
+        insertRWTemplate = tblQryKids(element, '[for="insert-record"]')[0];
+        insertDialogTemplate = tblQryKids(element, '[for="insert-dialog"]')[0];
+        updateDialogTemplate = tblQryKids(element, '[for="update-dialog"]')[0];
 
         // remove all templates from the dom to prevent reflows
         if (topHudTemplate) {
-            //console.log(element, topHudTemplate);
             element.removeChild(topHudTemplate);
         }
         if (bottomHudTemplate) {
             element.removeChild(bottomHudTemplate);
         }
-        if (headerRecordTemplate) {
-            element.removeChild(headerRecordTemplate);
+        if (headerTemplate) {
+            element.removeChild(headerTemplate);
         }
-        if (dataRecordTemplate) {
-            element.removeChild(dataRecordTemplate);
+        if (dataTemplate) {
+            element.removeChild(dataTemplate);
         }
         if (copyTemplate) {
             element.removeChild(copyTemplate);
         }
-        if (insertRecordTemplate) {
-            element.removeChild(insertRecordTemplate);
+        if (insertRWTemplate) {
+            element.removeChild(insertRWTemplate);
         }
         if (insertDialogTemplate) {
             element.removeChild(insertDialogTemplate);
@@ -3509,10 +2794,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 topHudTemplate.innerHTML.indexOf('&lt;') > -1
             )
         ) {
-            console.warn('GS-TABLE WARNING: &gt; or &lt; detected in ' +
-                        'top HUD template, this can have undesired ' +
-                        'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
-                        'lt(x,y), or lte(x,y) to silence this warning.');
+            console.warn(
+                'GS-TABLE WARNING: &gt; or &lt; detected in ' +
+                'top HUD template, this can have undesired ' +
+                'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
+                'lt(x,y), or lte(x,y) to silence this warning.'
+            );
         }
         if (
             bottomHudTemplate &&
@@ -3521,34 +2808,40 @@ document.addEventListener('DOMContentLoaded', function () {
                 bottomHudTemplate.innerHTML.indexOf('&lt;') > -1
             )
         ) {
-            console.warn('GS-TABLE WARNING: &gt; or &lt; detected in ' +
-                        'bottom HUD template, this can have undesired ' +
-                        'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
-                        'lt(x,y), or lte(x,y) to silence this warning.');
+            console.warn(
+                'GS-TABLE WARNING: &gt; or &lt; detected in ' +
+                'bottom HUD template, this can have undesired ' +
+                'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
+                'lt(x,y), or lte(x,y) to silence this warning.'
+            );
         }
         if (
-            headerRecordTemplate &&
+            headerTemplate &&
             (
-                headerRecordTemplate.innerHTML.indexOf('&gt;') > -1 ||
-                headerRecordTemplate.innerHTML.indexOf('&lt;') > -1
+                headerTemplate.innerHTML.indexOf('&gt;') > -1 ||
+                headerTemplate.innerHTML.indexOf('&lt;') > -1
             )
         ) {
-            console.warn('GS-TABLE WARNING: &gt; or &lt; detected in ' +
-                        'header record template, this can have undesired ' +
-                        'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
-                        'lt(x,y), or lte(x,y) to silence this warning.');
+            console.warn(
+                'GS-TABLE WARNING: &gt; or &lt; detected in ' +
+                'header record template, this can have undesired ' +
+                'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
+                'lt(x,y), or lte(x,y) to silence this warning.'
+            );
         }
         if (
-            dataRecordTemplate &&
+            dataTemplate &&
             (
-                dataRecordTemplate.innerHTML.indexOf('&gt;') > -1 ||
-                dataRecordTemplate.innerHTML.indexOf('&lt;') > -1
+                dataTemplate.innerHTML.indexOf('&gt;') > -1 ||
+                dataTemplate.innerHTML.indexOf('&lt;') > -1
             )
         ) {
-            console.warn('GS-TABLE WARNING: &gt; or &lt; detected in ' +
-                        'data record template, this can have undesired ' +
-                        'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
-                        'lt(x,y), or lte(x,y) to silence this warning.');
+            console.warn(
+                'GS-TABLE WARNING: &gt; or &lt; detected in ' +
+                'data record template, this can have undesired ' +
+                'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
+                'lt(x,y), or lte(x,y) to silence this warning.'
+            );
         }
         if (
             copyTemplate &&
@@ -3557,22 +2850,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 copyTemplate.innerHTML.indexOf('&lt;') > -1
             )
         ) {
-            console.warn('GS-TABLE WARNING: &gt; or &lt; detected in ' +
-                        'copy template, this can have undesired ' +
-                        'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
-                        'lt(x,y), or lte(x,y) to silence this warning.');
+            console.warn(
+                'GS-TABLE WARNING: &gt; or &lt; detected in ' +
+                'copy template, this can have undesired ' +
+                'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
+                'lt(x,y), or lte(x,y) to silence this warning.'
+            );
         }
         if (
-            insertRecordTemplate &&
+            insertRWTemplate &&
             (
-                insertRecordTemplate.innerHTML.indexOf('&gt;') > -1 ||
-                insertRecordTemplate.innerHTML.indexOf('&lt;') > -1
+                insertRWTemplate.innerHTML.indexOf('&gt;') > -1 ||
+                insertRWTemplate.innerHTML.indexOf('&lt;') > -1
             )
         ) {
-            console.warn('GS-TABLE WARNING: &gt; or &lt; detected in ' +
-                        'insert record template, this can have undesired ' +
-                        'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
-                        'lt(x,y), or lte(x,y) to silence this warning.');
+            console.warn(
+                'GS-TABLE WARNING: &gt; or &lt; detected in ' +
+                'insert record template, this can have undesired ' +
+                'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
+                'lt(x,y), or lte(x,y) to silence this warning.'
+            );
         }
         if (
             insertDialogTemplate &&
@@ -3581,10 +2878,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 insertDialogTemplate.innerHTML.indexOf('&lt;') > -1
             )
         ) {
-            console.warn('GS-TABLE WARNING: &gt; or &lt; detected in ' +
-                        'insert dialog template, this can have undesired ' +
-                        'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
-                        'lt(x,y), or lte(x,y) to silence this warning.');
+            console.warn(
+                'GS-TABLE WARNING: &gt; or &lt; detected in ' +
+                'insert dialog template, this can have undesired ' +
+                'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
+                'lt(x,y), or lte(x,y) to silence this warning.'
+            );
         }
         if (
             updateDialogTemplate &&
@@ -3593,61 +2892,107 @@ document.addEventListener('DOMContentLoaded', function () {
                 updateDialogTemplate.innerHTML.indexOf('&lt;') > -1
             )
         ) {
-            console.warn('GS-TABLE WARNING: &gt; or &lt; detected in ' +
-                        'update dialog template, this can have undesired ' +
-                        'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
-                        'lt(x,y), or lte(x,y) to silence this warning.');
+            console.warn(
+                'GS-TABLE WARNING: &gt; or &lt; detected in ' +
+                'update dialog template, this can have undesired ' +
+                'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
+                'lt(x,y), or lte(x,y) to silence this warning.'
+            );
         }
 
         // if there's no "data-record" template: error
-        if (!dataRecordTemplate) {
+        if (!dataTemplate) {
             throw 'GS-TABLE Error: no "data-record" template found. ' +
                     'The "data-record" must be a immediate child in ' +
                     'order to be found.';
         }
 
-        // if there's no "data-record" template: error
-        if (!copyTemplate) {
+        // if there's no "data-record" template: warn
+        if (!copyTemplate && !element.hasAttribute('no-copy')) {
             console.warn('GS-TABLE Warning: no "copy" template found. ' +
                     'The "copy" template enables copying a selection ' +
                     'from the gs-table. The "copy" template must be a ' +
                     'immediate child in order to be found.');
         }
 
-        // get column widths
-        if (
-            headerRecordTemplate ||
-            dataRecordTemplate ||
-            insertRecordTemplate
-        ) {
-            if (headerRecordTemplate) {
-                arrColumnElements = xtag.query(
-                    headerRecordTemplate.content,
+        // check for column number differences. All record templates should
+        //      have the same number of columns. Error intelligently.
+        arrColumnCounts = [];
+
+        if (headerTemplate && headerTemplate.innerHTML.trim()) {
+            arrColumnCounts.push({
+                "template": "header-record",
+                "count": tblQry(headerTemplate.content, 'gs-cell').length
+            });
+        }
+        if (insertRWTemplate && insertRWTemplate.innerHTML.trim()) {
+            arrColumnCounts.push({
+                "template": "insert-record",
+                "count": tblQry(
+                    insertRWTemplate.content,
                     'gs-cell'
-                );
-            } else if (dataRecordTemplate) {
-                arrColumnElements = xtag.query(
-                    dataRecordTemplate.content,
-                    'gs-cell'
-                );
-            } else if (insertRecordTemplate) {
-                arrColumnElements = xtag.query(
-                    insertRecordTemplate.content,
-                    'gs-cell'
-                );
+                ).length
+            });
+        }
+        if (copyTemplate && copyTemplate.innerHTML.trim()) {
+            arrColumnCounts.push({
+                "template": "copy",
+                "count": tblQry(copyTemplate.content, 'gs-cell').length
+            });
+        }
+        if (dataTemplate && dataTemplate.innerHTML.trim()) {
+            arrColumnCounts.push({
+                "template": "data-record",
+                "count": tblQry(dataTemplate.content, 'gs-cell').length
+            });
+        }
+
+        i = 0;
+        len = arrColumnCounts.length;
+        while (i < len) {
+            if (i > 0) {
+                if (arrColumnCounts[i].count !== arrColumnCounts[i - 1].count) {
+                    throw (
+                        'GS-TABLE Error: ' +
+                        'Template "' + arrColumnCounts[i].template + '" ' +
+                        'has ' + arrColumnCounts[i].count + ' cells, while "' +
+                        arrColumnCounts[i - 1].template + '" template has ' +
+                        arrColumnCounts[i - 1].count + ' cells. Templates ' +
+                        'need to have the same number of cells.'
+                    );
+                }
             }
 
-            i = 0;
-            len = arrColumnElements.length;
+            i += 1;
+        }
+
+        // get column widths. We build all array width arrays here, because this
+        //      code will reach into the first available template for the data.
+        //      Other loops look at a particular template that may or may not be
+        //      available. So, this will set the defaults and whatever it can
+        //      get it's hands on, while later loops will get more accurate
+        //      information if it's available.
+        if (headerTemplate || dataTemplate || insertRWTemplate) {
+            if (headerTemplate) {
+                arrColumnElements = tblQry(headerTemplate.content, 'gs-cell');
+            } else if (dataTemplate) {
+                arrColumnElements = tblQry(dataTemplate.content, 'gs-cell');
+            } else if (insertRWTemplate) {
+                arrColumnElements = tblQry(insertRWTemplate.content, 'gs-cell');
+            }
+
             intColumnWidth = (
-                parseInt(element.getAttribute('default-column-width'), 10) ||
+                parseInt(element.getAttribute('default-cell-width'), 10) ||
                 intDefaultColumnWidth
             );
+            i = 0;
+            len = arrColumnElements.length;
             while (i < len) {
                 element.internalDisplay.columnWidths.push(
                     parseInt(arrColumnElements[i].style.width, 10) ||
                     intColumnWidth
                 );
+
                 // we need to be able to restore the column widths after the
                 //      user resizes them, so this array contains the column
                 //      widths and cannot be updated by column resizing
@@ -3656,25 +3001,45 @@ document.addEventListener('DOMContentLoaded', function () {
                     intColumnWidth
                 );
 
+                // we need spaces available for column width ratios
+                element.internalDisplay.columnRatios.push(null);
+
+                // we want to retain the developer's declared width settings
+                element.internalDisplay.setColumnWidths.push(
+                    parseInt(arrColumnElements[i].style.width, 10)
+                );
+                element.internalDisplay.setMinColumnWidths.push(
+                    parseInt(arrColumnElements[i].style.minWidth, 10)
+                );
+                element.internalDisplay.setMaxColumnWidths.push(
+                    parseInt(arrColumnElements[i].style.maxWidth, 10)
+                );
+
+                // fill the minimum column widths with the default. If there's a
+                //      header template we'll reset any items based on content,
+                //      later.
+                element.internalDisplay.minColumnWidths.push(
+                    element.internalDisplay.setMinColumnWidths[i] ||
+                    intColumnWidth ||
+                    0
+                );
+
                 // if there is a width, remove it. we do this because the width
                 //      is added dynamically when the header is rendered. if
                 //      someone resizes a cell, we need to set the width with
                 //      the new value
-                if (arrColumnElements[i].style.width) {
-                    arrColumnElements[i].style.width = '';
-                }
+                // we don't need width styles anymore
+                arrColumnElements[i].style.minWidth = '';
+                arrColumnElements[i].style.maxWidth = '';
+                arrColumnElements[i].style.width = '';
 
                 i += 1;
             }
         }
 
         // get header height
-        if (headerRecordTemplate) {
-            arrColumnElements = xtag.query(
-                headerRecordTemplate.content,
-                'gs-cell'
-            );
-
+        if (headerTemplate) {
+            arrColumnElements = tblQry(headerTemplate.content, 'gs-cell');
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
@@ -3697,12 +3062,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // get insert record height
-        if (insertRecordTemplate) {
-            arrColumnElements = xtag.query(
-                insertRecordTemplate.content,
-                'gs-cell'
-            );
-
+        if (insertRWTemplate) {
+            arrColumnElements = tblQry(insertRWTemplate.content, 'gs-cell');
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
@@ -3735,11 +3096,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 arrColumnPlainTextNames.indexOf(null) !== -1
             )
         ) {
-            arrColumnElements = xtag.query(
-                copyTemplate.content,
-                'gs-cell'
-            );
-
+            arrColumnElements = tblQry(copyTemplate.content, 'gs-cell');
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
@@ -3757,16 +3114,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // if there is a record template and we still haven't found
         //      plain text column names
         if (
-            dataRecordTemplate && (
+            dataTemplate && (
                 arrColumnPlainTextNames.length === 0 ||
                 arrColumnPlainTextNames.indexOf(null) !== -1
             )
         ) {
-            arrColumnElements = xtag.query(
-                dataRecordTemplate.content,
-                'gs-cell'
-            );
-
+            arrColumnElements = tblQry(dataTemplate.content, 'gs-cell');
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
@@ -3784,16 +3137,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // if there is an insert record template and we still haven't
         //      found plain text column names
         if (
-            insertRecordTemplate && (
+            insertRWTemplate && (
                 arrColumnPlainTextNames.length === 0 ||
                 arrColumnPlainTextNames.indexOf(null) !== -1
             )
         ) {
-            arrColumnElements = xtag.query(
-                insertRecordTemplate.content,
-                'gs-cell'
-            );
-
+            arrColumnElements = tblQry(insertRWTemplate.content, 'gs-cell');
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
@@ -3811,15 +3160,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // if there is a header template and we still haven't found
         //      plain text column names
         if (
-            headerRecordTemplate && (
+            headerTemplate && (
                 arrColumnPlainTextNames.length === 0 ||
                 arrColumnPlainTextNames.indexOf(null) !== -1
             )
         ) {
-            arrColumnElements = xtag.query(
-                headerRecordTemplate.content,
-                'gs-cell'
-            );
+            arrColumnElements = tblQry(headerTemplate.content, 'gs-cell');
 
             i = 0;
             len = arrColumnElements.length;
@@ -3847,21 +3193,17 @@ document.addEventListener('DOMContentLoaded', function () {
         // if there is an insert record template and we still haven't
         //      all of the found data column associations
         if (
-            insertRecordTemplate && (
+            insertRWTemplate && (
                 arrColumnDataNames.length === 0 ||
                 arrColumnDataNames.indexOf(null) !== -1
             )
         ) {
-            arrColumnElements = xtag.query(
-                insertRecordTemplate.content,
-                'gs-cell'
-            );
-
+            arrColumnElements = tblQry(insertRWTemplate.content, 'gs-cell');
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
                 if (!arrColumnDataNames[i]) {
-                    columnElement = xtag.query(
+                    columnElement = tblQry(
                         arrColumnElements[i],
                         '[column]'
                     )[0];
@@ -3883,21 +3225,17 @@ document.addEventListener('DOMContentLoaded', function () {
         // if there is an insert record template and we still haven't
         //      all of the found data column associations
         if (
-            dataRecordTemplate && (
+            dataTemplate && (
                 arrColumnDataNames.length === 0 ||
                 arrColumnDataNames.indexOf(null) !== -1
             )
         ) {
-            arrColumnElements = xtag.query(
-                dataRecordTemplate.content,
-                'gs-cell'
-            );
-
+            arrColumnElements = tblQry(dataTemplate.content, 'gs-cell');
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
                 if (!arrColumnDataNames[i]) {
-                    columnElement = xtag.query(
+                    columnElement = tblQry(
                         arrColumnElements[i],
                         '[column]'
                     )[0];
@@ -3931,15 +3269,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // the header template (if there is one) needs dropdown buttons for
         //      the column dropdown
-        if (headerRecordTemplate) {
+        if (
+            headerTemplate &&
+            !element.hasAttribute('no-column-dropdown') &&
+            !evt.touchDevice
+        ) {
             // create the button element so we can clone it
             buttonElement = document.createElement('div');
 
             // loop through cells and append buttons
-            arrColumnElements = xtag.query(
-                headerRecordTemplate.content,
-                'gs-cell'
-            );
+            arrColumnElements = tblQry(headerTemplate.content, 'gs-cell');
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
@@ -3965,13 +3304,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // if a display column is associated with a data column, we want
         //      to have sort and filter related info in the tooltip
-        if (headerRecordTemplate) {
+        if (headerTemplate) {
             // loop through header cells and add tokens to the title
             //      attributes
-            arrColumnElements = xtag.query(
-                headerRecordTemplate.content,
-                'gs-cell'
-            );
+            arrColumnElements = tblQry(headerTemplate.content, 'gs-cell');
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
@@ -3988,11 +3324,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // if there is a header template, get column min widths
-        if (headerRecordTemplate) {
-            arrColumnElements = xtag.query(
-                headerRecordTemplate.content,
-                'gs-cell'
-            );
+        if (headerTemplate) {
+            arrColumnElements = tblQry(headerTemplate.content, 'gs-cell');
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
@@ -4006,6 +3339,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 // get text width using test header element
                 element.elems.testHeader.innerHTML = (
                     arrColumnElements[i].innerHTML
+                );
+
+                // if there's a min-width set on the gs-cell, we'll use it
+                //      for the column resize min width
+                intColumnMinWidth = (
+                    element.internalDisplay.setMinColumnWidths[i]
                 );
 
                 intColumnWidth = (
@@ -4036,20 +3375,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 element.elems.testHeader.innerHTML = '';
 
-                // if there is a data column associated, we need to
-                //      add the width of the header button
-                if (arrColumnDataNames[i]) {
+                // if there is a data column associated and we don't have column
+                //      filter/sort dropdowns turned off, we need to add the
+                //      width of the header button
+                if (
+                    arrColumnDataNames[i] &&
+                    !element.hasAttribute('no-column-dropdown')
+                ) {
                     intColumnWidth += (
                         // em value is hard coded for now
                         GS.emToPx(element.elems.testHeader, 1.25)
                     );
                 }
 
-                element.internalDisplay.minColumnWidths.push(
+                element.internalDisplay.minColumnWidths[i] = (
+                    intColumnMinWidth ||
                     intColumnWidth
                 );
 
                 if (
+                    intColumnWidth &&
                     intColumnWidth >
                         element.internalDisplay.columnWidths[i]
                 ) {
@@ -4062,52 +3407,68 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // remove any styling css that might affect cell sizing
+        if (dataTemplate) {
+            arrColumnElements = tblQry(dataTemplate.content, 'gs-cell');
+            i = 0;
+            len = arrColumnElements.length;
+            while (i < len) {
+                // if there is a width, remove it. we do this because the width
+                //      is added dynamically when the header is rendered. if
+                //      someone resizes a cell, we need to set the width with
+                //      the new value
+                arrColumnElements[i].style.minWidth = '';
+                arrColumnElements[i].style.maxWidth = '';
+                arrColumnElements[i].style.width = '';
+                i += 1;
+            }
+        }
 
         // if present, siphon "header-record" template
-        if (headerRecordTemplate) {
+        if (headerTemplate) {
             // commented out because we no longer put the styling on the cell
             //// append a token to the end of the style attribute of each
             ////      gs-cell (so that we can dynamically add CSS definitions)
-            //templateCellAddStyleToken(headerRecordTemplate);
+            //templateCellAddStyleToken(headerTemplate);
 
             // add a class of "table-header" to each gs-cell for styling
-            templateCellAddClass(headerRecordTemplate, 'table-header');
+            templateCellAddClass(headerTemplate, 'table-header');
 
             // add column numbers to the header cells so that we can target
             //      these cells using column precision
-            templateCellAddColumnNumber(headerRecordTemplate);
+            templateCellAddColumnNumber(headerTemplate);
 
             // save the template
             element.internalTemplates.header = (
-                headerRecordTemplate.innerHTML.trim()
+                headerTemplate.innerHTML.trim()
             );
 
             //// remove the template element now that it's been siphoned
-            //element.removeChild(headerRecordTemplate);
+            //element.removeChild(headerTemplate);
         }
 
         // if present, siphon "data-record" template
-        if (dataRecordTemplate) {
+        if (dataTemplate) {
             // commented out because we no longer put the styling on the cell
             //// append a token to the end of the style attribute of each
             ////      gs-cell (so that we can dynamically add CSS definitions)
-            //templateCellAddStyleToken(dataRecordTemplate);
+            //templateCellAddStyleToken(dataTemplate);
 
             // add a class of "table-cell" to each gs-cell for styling
-            templateCellAddClass(dataRecordTemplate, 'table-cell');
+            templateCellAddClass(dataTemplate, 'table-cell');
 
             // add column numbers to the record cells so that we can target
             //      these cells using column precision
-            templateCellAddColumnNumber(dataRecordTemplate);
+            templateCellAddColumnNumber(dataTemplate);
 
             // add a record number attribute on each of the cells so that we can
             //      target specific records for deletion, rerender, movement
             //      etc...
-            templateCellAddRowNumber(dataRecordTemplate);
+            templateCellAddRowNumber(dataTemplate);
 
             // save the template
             strHTML = GS.templateColumnToValue(
-                dataRecordTemplate.innerHTML.trim()
+                dataTemplate.innerHTML.trim()
             );
 
             // let's save the original record template text so that we can
@@ -4122,7 +3483,7 @@ document.addEventListener('DOMContentLoaded', function () {
             );
 
             //// remove the template element now that it's been siphoned
-            //element.removeChild(dataRecordTemplate);
+            //element.removeChild(dataTemplate);
         }
 
         // if present, siphon "copy" template
@@ -4148,30 +3509,30 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // if present, siphon "insert-record" template
-        if (insertRecordTemplate) {
+        if (insertRWTemplate) {
             // commented out because we no longer put the styling on the cell
             //// append a token to the end of the style attribute of each
             ////      gs-cell (so that we can dynamically add CSS definitions)
-            //templateCellAddStyleToken(insertRecordTemplate);
+            //templateCellAddStyleToken(insertRWTemplate);
 
             // add a class of "table-insert" to each gs-cell for styling
-            templateCellAddClass(insertRecordTemplate, 'table-insert');
+            templateCellAddClass(insertRWTemplate, 'table-insert');
 
             // add column numbers to the insert cells so that we can target
             //      these cells using column precision
-            templateCellAddColumnNumber(insertRecordTemplate);
+            templateCellAddColumnNumber(insertRWTemplate);
 
             // add row attributes so that the javascript can look at the cell
             //      and determine that it's an "insert" type cell
-            templateCellAddRowNumber(insertRecordTemplate, 'insert');
+            templateCellAddRowNumber(insertRWTemplate, 'insert');
 
             // save the template
             element.internalTemplates.insertRecord = (
-                insertRecordTemplate.innerHTML.trim()
+                insertRWTemplate.innerHTML.trim()
             );
 
             //// remove the template element now that it's been siphoned
-            //element.removeChild(insertRecordTemplate);
+            //element.removeChild(insertRWTemplate);
         }
 
         // if present, siphon "insert-dialog" template
@@ -4464,9 +3825,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var col_len;
         var cell;
         var row;
-        var char;
-        var record_i;
-        var record_len;
         var cell_i;
 
         var jsnCopyParameters;
@@ -5118,8 +4476,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var sortASCButton;
         var sortDESCButton;
         var sortClearButton;
-        var statusElement;
-        var intOriginRecord;
 
         // disable/enable hud sorting buttons
         sortASCButton = findHudElement(element, 'button-sort-asc');
@@ -5468,7 +4824,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // if the row is in range or all rows are in the range:
                     //      iterate through cells in the row
-                    //console.log(intRecord, rangeStartRow, rangeEndRow);
                     if (
                         (
                             intRecord >= rangeStartRow &&
@@ -5488,19 +4843,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (bolSelectors) {
                                 intColumn = (col_i - 1);
                             }
-
-                            //if (rec_i === 0) {
-                            //    //console.log(
-                            //        'intChar:',
-                            //        intChar,
-                            //        'intColumn:',
-                            //        intColumn,
-                            //        'rangeStartColumn:',
-                            //        rangeStartColumn,
-                            //        'rangeEndColumn:',
-                            //        rangeEndColumn
-                            //    );
-                            //}
 
                             // testing to see if th cell is in the current
                             //      selection range or that the whole record is
@@ -5533,13 +4875,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             }
                             col_i += 1;
                         }
-
                         arrSelection[rec_i] = strRecord;
                     }
-
                     rec_i += 1;
                 }
-
                 range_i += 1;
             }
 
@@ -5598,14 +4937,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         arrColumns.push(pushValue);
                         arrSelectionCols.push(col_i);
                     }
-
                     col_i += 1;
                 }
 
                 if (arrColumns.length >= intMaxColumns) {
                     break;
                 }
-
                 rec_i += 1;
             }
         }
@@ -5618,7 +4955,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //console.time('selection render');
 
         // grab all visible cells
-        arrElements = xtag.query(element.elems.dataViewport, 'gs-cell');
+        arrElements = tblQry(element.elems.dataViewport, 'gs-cell');
 
         // deselect all visible cells
         i = 0;
@@ -5685,18 +5022,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             strRecord = arrSelection[intRow];
-            //console.log(intRow, intCol, strRecord);
             if (strRecord) {
                 if (arrSelectedStates.indexOf(strRecord[intCol]) > -1) {
                     cell.setAttribute('selected', '');
-                    //console.log(
-                    //    strRecord,
-                    //    bolHeaders,
-                    //    bolSelectors,
-                    //    intCol,
-                    //    intRow,
-                    //    cell
-                    //);
 
                 // sometimes, the user selects some cells without selecting the
                 //      record selectors and/or headers. in this case, we want
@@ -5708,32 +5036,16 @@ document.addEventListener('DOMContentLoaded', function () {
                             cell.classList.contains('table-insert-selector') ||
                             cell.classList.contains('table-record-selector')
                         ) &&
-                        (
-                            arrSelectionRows.indexOf(intRow) > -1
-                        )
+                        (arrSelectionRows.indexOf(intRow) > -1)
                     ) ||
                     (
                         (
                             cell.classList.contains('table-all-selector') ||
                             cell.classList.contains('table-header')
                         ) &&
-                        (
-                            arrSelectionCols.indexOf(intCol) > -1
-                        )
+                        (arrSelectionCols.indexOf(intCol) > -1)
                     )
                 ) {
-                    //console.log(strRow, intRow);
-                    //console.log(
-                    //    arrSelectionRows,
-                    //    arrSelectionCols,
-                    //    arrRows,
-                    //    arrColumns,
-                    //    intCol,
-                    //    intRow,
-                    //    cell.getAttribute('data-col-number'),
-                    //    cell.getAttribute('data-row-number'),
-                    //    cell
-                    //);
                     cell.setAttribute('auto-selected', '');
                 }
             }
@@ -5757,6 +5069,7 @@ document.addEventListener('DOMContentLoaded', function () {
             jsnRange = element.internalSelection.ranges[0];
 
             if (
+                !element.hasAttribute('no-force-select') &&
                 element.internalData.records.length > 0 && (
                     element.internalSelection.ranges &&
                     (
@@ -5769,19 +5082,26 @@ document.addEventListener('DOMContentLoaded', function () {
                     )
                 )
             ) {
-                element.internalSelection.ranges = [
-                    {
-                        "start": {
-                            "row": 0,
-                            "column": 0
-                        },
-                        "end": {
-                            "row": 0,
-                            "column": 0
-                        },
-                        "negator": false
-                    }
-                ];
+                // if single row, we want to select the whole record at first
+                if (element.getAttribute('selection-mode') === 'single-row') {
+                    element.internalSelection.ranges = [
+                        {
+                            "start": {"row": 0, "column": "selector"},
+                            "end": {"row": 0, "column": "selector"},
+                            "negator": false
+                        }
+                    ];
+
+                // if normal selection, select first cell
+                } else {
+                    element.internalSelection.ranges = [
+                        {
+                            "start": {"row": 0, "column": 0},
+                            "end": {"row": 0, "column": 0},
+                            "negator": false
+                        }
+                    ];
+                }
 
                 // if we are currently selecting with the mouse, stop the
                 //      selection
@@ -5886,7 +5206,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //      destroys all cells so the text selection of any of those
         //      cells will be lost.
         if (bolOneCellSelected) {
-            selectedCellControl = xtag.query(
+            selectedCellControl = tblQry(
                 element,
                 (
                     'gs-cell' +
@@ -6417,7 +5737,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //element.elems.dataViewport = newViewport;
 
         // fill insert columns with retained values
-        arrElements = xtag.query(
+        arrElements = tblQry(
             element.elems.dataViewport,
             '.table-insert [column]'
         );
@@ -6451,7 +5771,7 @@ document.addEventListener('DOMContentLoaded', function () {
             jsnRange = element.internalSelection.ranges[0];
 
             if (jsnRange) {
-                selectedCellControl = xtag.query(
+                selectedCellControl = tblQry(
                     element,
                     (
                         'gs-cell' +
@@ -6786,7 +6106,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // loop through the cells, if the current cell is not in the current
         //      viewport range, delete it
         var arrDoomed = [];
-        arrCell = xtag.queryChildren(
+        arrCell = tblQryKids(
             element.elems.dataViewport,
             '[data-row-number], [data-col-number]'
         );
@@ -7279,7 +6599,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //}
 
         //// reposition all the cells to their correct locations
-        //arrCell = xtag.queryChildren(
+        //arrCell = tblQryKids(
         //    element.elems.dataViewport,
         //    'gs-cell'
         //    //'[data-row-number], [data-col-number]'
@@ -7426,7 +6746,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //}
 
         // fill insert columns with retained values
-        arrElements = xtag.query(
+        arrElements = tblQry(
             element.elems.dataViewport,
             '.table-insert [column]'
         );
@@ -7551,7 +6871,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var intCellLeft = 0;
         var intCellTop = 0;
         var intColumnWidth;
-        //var arrMinColumnWidths = element.internalDisplay.minColumnWidths;
 
         var strNodeName;
         var arrColumnWidths = element.internalDisplay.columnWidths;
@@ -7568,18 +6887,6 @@ document.addEventListener('DOMContentLoaded', function () {
         i = jsnRange.fromColumn;
         len = jsnRange.toColumn;
         while (i < len) {
-            //if (arrColumnWidths[i] < 3) {
-            //    //console.log(
-            //        element.internalDisplay.defaultColumnWidths[i],
-            //        element.internalDisplay.minColumnWidths[i],
-            //        arrColumnWidths[i]
-            //    );
-            //    arrColumnWidths[i] = arrMinColumnWidths[i];
-            //    element.internalDisplay.columnWidths[i] = (
-            //        arrMinColumnWidths[i]
-            //    );
-            //}
-            //console.log('col: ', arrColumnWidths[i]);
             intColumnWidth = arrColumnWidths[i];
 
             // only add to CSS and increment left variable if column is not
@@ -7593,7 +6900,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     ) + 'px;' +
                     '}'
                 );
-                ////console.log(strCSS);
 
                 // we don't want the border width of 0 width columns to affect
                 //      positioning
@@ -7606,15 +6912,6 @@ document.addEventListener('DOMContentLoaded', function () {
         i = jsnRange.fromRecord;
         len = jsnRange.toRecord;
         while (i < len) {
-            //if (arrRecordHeights[i] < 3) {
-            //    arrRecordHeights[i] = (
-            //        element.internalDisplay.defaultRecordHeight
-            //    );
-            //    element.internalDisplay.recordHeights[i] = (
-            //        element.internalDisplay.defaultRecordHeight
-            //    );
-            //}
-            //console.log('row: ', arrRecordHeights[i]);
             strCSS += (
                 strCell + '[data-row-number="' + i + '"] {' +
                 'top:' + intCellTop + 'px;' +
@@ -7662,8 +6959,6 @@ document.addEventListener('DOMContentLoaded', function () {
             ) + 'px;' +
             '}'
         );
-
-        //console.log('strCSS:', strCSS);
 
         element.elems.cellPositionStyle.innerHTML = strCSS;
 
@@ -7824,34 +7119,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // we maintain the last focused control, if the last focused control
         //      is in the DOM, we want to focus it
-        //console.log(
-        //    '1',
-        //    element.internalDisplay.focus.latest
-        //);
-        //console.log(
-        //    '2',
-        //    !isNaN(element.internalDisplay.focus.row)
-        //);
-        //console.log(
-        //    '3',
-        //    !isNaN(element.internalDisplay.focus.column)
-        //);
-        //console.log(
-        //    '4',
-        //    element.internalDisplay.focus.row >= jsnRange.fromRecord
-        //);
-        //console.log(
-        //    '5',
-        //    element.internalDisplay.focus.row <= jsnRange.toRecord
-        //);
-        //console.log(
-        //    '6',
-        //    element.internalDisplay.focus.column >= jsnRange.fromColumn
-        //);
-        //console.log(
-        //    '7',
-        //    element.internalDisplay.focus.column <= jsnRange.toColumn
-        //);
 
         if (
             // this does two things for us:
@@ -7861,6 +7128,11 @@ document.addEventListener('DOMContentLoaded', function () {
             //              so this prevents wasting effort on trying to
             //              focus if the control is already focused
             element.internalDisplay.focus.latest === false &&
+
+            // touch devices are jarring if you're not expecting focus,
+            //      because they pop up the keyboard. So, don't
+            //      automatically refocus if touch.
+            !evt.touchDevice &&
 
             // we only want to try to re-focus if the cell is in the current
             //      range. in the future, we may end up adding the cell if
@@ -7876,7 +7148,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.internalDisplay.focus.nodeName ||
                 ''
             );
-            focusElement = xtag.query(
+            focusElement = tblQry(
                 element.elems.dataViewport,
                 (
                     'gs-cell' +
@@ -8030,6 +7302,13 @@ document.addEventListener('DOMContentLoaded', function () {
         var intNoOverscrollHeight;
         var intNoOverscrollWidth;
 
+        // if the columns are automatically resized, calculate the widths here,
+        //      so that we don't have to see a jarring unresized moment at the
+        //      beginning of the table
+        if (element.hasAttribute('column-auto-resize')) {
+            calculateAutoColumns(element);
+        }
+
         // we need to update the cell dimension numbers just in case some CSS
         //      has altered any of the dimensions
         cellDimensionDetector(element);
@@ -8058,19 +7337,31 @@ document.addEventListener('DOMContentLoaded', function () {
         intMaxColumnWidth = (
             intViewportWidth - (
                 element.internalScrollOffsets.left +
-                element.internalScrollOffsets.right +
-                columnBorderWidth +
-                5 // <-- added for extra room
+                element.internalScrollOffsets.right
             )
         );
+
+        // if we allow column resize, we need to make sure there's room for
+        //      the mouse to get to the handle of the column. If there's no
+        //      resize, maximum is basically the full viewport
+        if (!element.hasAttribute('no-resize-column')) {
+            intMaxColumnWidth -= (columnBorderWidth + 5);
+        }
+
         intMaxRecordHeight = (
             intViewportHeight - (
                 element.internalScrollOffsets.top +
                 element.internalScrollOffsets.bottom +
-                recordBorderHeight +
-                5 // <-- added for extra room
+                recordBorderHeight
             )
         );
+
+        // if we allow record resize, we need to make sure there's room for
+        //      the mouse to get to the handle of the record. If there's no
+        //      resize, maximum is basically the full viewport
+        if (!element.hasAttribute('no-resize-record')) {
+            intMaxRecordHeight -= 5;
+        }
 
         // store the max cell dimensions internally
         element.internalDisplay.maxColumnWidth = intMaxColumnWidth;
@@ -8101,6 +7392,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
             i += 1;
         }
+
+        // Automatic column resizing introduces sub pixels, which messes with JS
+        //      math, resulting in a number like this: 978.000000001. In order
+        //      to make the math work out properly, we remove that extra decimal
+        //      here. Rounding at the source didn't work.
+        intTotalDataWidth = Math.round(intTotalDataWidth);
+        intOverscrollWidth = Math.round(intOverscrollWidth);
+
+        // need one pixel to account for border pixel (no need to scroll if we'd
+        //      just hide a border)
+        intTotalDataWidth -= 1;
+        intOverscrollWidth -= 1;
 
         // we need to add up record heights (including custom ones)
         intTotalDataHeight = 0;
@@ -8141,7 +7444,6 @@ document.addEventListener('DOMContentLoaded', function () {
             i += 1;
         }
 
-
         //if (
         //    element.internalDisplay.insertRecordVisible &&
         //    element.internalDisplay.insertRecordStick === null
@@ -8163,12 +7465,16 @@ document.addEventListener('DOMContentLoaded', function () {
         //console.log('offsetLeft:     ', element.internalScrollOffsets.left);
         //console.log('offsetRight:    ', element.internalScrollOffsets.right);
 
-        //// add scroll offsets
-        //intHeight += (
-        //    element.internalScrollOffsets.top +
-        //    element.internalScrollOffsets.bottom
-        //);
-        //intWidth += (
+        // add scroll offsets
+        intTotalDataHeight += (
+            element.internalScrollOffsets.top +
+            element.internalScrollOffsets.bottom
+        );
+        // this makes extra scroll room when we don't need it for some reason.
+        //      To get an example, make a gs-table with autoresize and make the
+        //      columns take up the full width. A horizontal scrollbar will
+        //      appear.
+        //intTotalDataWidth += (
         //    element.internalScrollOffsets.left +
         //    element.internalScrollOffsets.right
         //);
@@ -8192,7 +7498,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     (
                         intNoOverscrollHeight +
                         intViewportHeight
-                    ) > (
+                    ) >= (
                         intTotalDataHeight +
                         element.internalScrollOffsets.top +
                         element.internalScrollOffsets.bottom
@@ -8223,7 +7529,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 intNoOverscrollHeight
             );
 
-            //console.log('1***');
             //console.log('   intTotalDataHeight: ', intTotalDataHeight);
             //console.log('  intOverscrollHeight: ', intOverscrollHeight);
             //console.log('intNoOverscrollHeight: ', intNoOverscrollHeight);
@@ -8250,7 +7555,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     (
                         intNoOverscrollWidth +
                         intViewportWidth
-                    ) > (
+                    ) >= (
                         intTotalDataWidth +
                         element.internalScrollOffsets.left +
                         element.internalScrollOffsets.right
@@ -8271,12 +7576,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 intNoOverscrollWidth
             );
 
-            //console.log('2***');
             //console.log('   intTotalDataWidth: ', intTotalDataWidth);
             //console.log('  intOverscrollWidth: ', intOverscrollWidth);
             //console.log('intNoOverscrollWidth: ', intNoOverscrollWidth);
             //console.log('    intViewportWidth: ', intViewportWidth);
-
+            //console.log('left:  ', element.internalScrollOffsets.left);
+            //console.log('right: ', element.internalScrollOffsets.right);
+            //console.log('widths:', element.internalDisplay.columnWidths);
+            //console.log('border:', element.internalDisplay.columnBorderWidth);
         } else {
             element.internalScroll.maxLeft = Math.max(0, intOverscrollWidth);
         }
@@ -8459,8 +7766,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 intIndex >= jsnRange.fromColumn &&
                 intIndex <= jsnRange.toColumn
             ) {
-                ////console.log(intIndex);
-
                 // start with the min width, any future width settings must be
                 //      larger than this
                 intWidth = element.internalDisplay.minColumnWidths[intIndex];
@@ -8469,7 +7774,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 intColumnWidth = element.internalDisplay.columnWidths[intIndex];
 
                 // get the rendered cell elements for this column
-                arrElements = xtag.query(
+                arrElements = tblQry(
                     element.elems.dataViewport,
                     'gs-cell.table-cell[data-col-number="' + intIndex + '"]'
                 );
@@ -8492,7 +7797,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     //          option the 3rd: select text and it's parent
                     //          option the 4th: textContent and the cell
 
-                    controlElement = xtag.query(
+                    controlElement = tblQry(
                         arrElements[elem_i],
                         'input, textarea, select'
                     )[0];
@@ -8524,8 +7829,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         controlText,
                         true // preserve whitespace
                     );
-                    //console.log(controlText);
-                    //console.log(intTextWidth);
 
                     // there may be some padding between the scope element
                     //      and the cell element. so, we want to account for
@@ -8540,26 +7843,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             )
                         )
                     );
-
-                    //console.log('test0:', controlElement);
-                    //console.log('test1:', scopeElement);
-                    //console.log('test2:', controlText);
-                    //console.log('test3:', intWidth);
-                    //console.log('test4:', intTextWidth);
-                    //console.log('test5:', intColumnWidth);
-                    //console.log('test6:', intScopeElementWidth);
-                    //console.log(
-                    //    'test7:',
-                    //    (intColumnWidth - intScopeElementWidth)
-                    //);
-                    //console.log(
-                    //    'test8:',
-                    //    GS.getStyle(scopeElement, 'padding-left')
-                    //);
-                    //console.log(
-                    //    'test9:',
-                    //    GS.getStyle(scopeElement, 'padding-right')
-                    //);
 
                     // add padding to text width
                     intTextWidth += (intColumnWidth - intScopeElementWidth);
@@ -8595,13 +7878,13 @@ document.addEventListener('DOMContentLoaded', function () {
     //      they belong. so, this function takes a loader element (which has
     //      already been appended) and moves it to the top of the loader
     //      container element
-    function moveLoaderToTop(element, loaderElement) {
+    function moveLoaderToTop(/*element, loaderElement*/) {
         // ### NEED CODING ###
     }
 
     // because of the way the loader container works, we need to set a margin
     //      so that the loader becomes visible
-    function adjustLoaderWidth(element, loaderElement) {
+    function adjustLoaderWidth(ignore, loaderElement) {//element
         var loaderContent;
 
         // get the wrapped content
@@ -8787,14 +8070,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (element.internalData.records.length > 0) {
                 element.internalSelection.ranges = [
                     {
-                        "start": {
-                            "row": 0,
-                            "column": 0
-                        },
-                        "end": {
-                            "row": 0,
-                            "column": 0
-                        },
+                        "start": {"row": 0, "column": "selector"},
+                        "end": {"row": 0, "column": "selector"},
                         "negator": false
                     }
                 ];
@@ -9167,12 +8444,10 @@ document.addEventListener('DOMContentLoaded', function () {
         var strLimit;
         var strOffset;
         var strReturn;
-        var strWhereColumn;
         var bolLoadNewRecordHeights;
         var intRecordHeight;
 
         var arrOldColumnNames;
-        var arrOldColumnTypes;
         var arrOldColumnFilterStatuses;
         var arrOldColumnFilters;
         var arrOldColumnListFilters;
@@ -9181,17 +8456,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var i;
         var len;
-        var strFilter;
         var strSort;
         var strColumn;
         var strUserOrd;
-        var strUserWhere;
-        var strListWhere;
-        var filter_i;
-        var filter_len;
-        var arrFilter;
-        var jsnFilter;
         var index;
+        var arrCols;
         var arrRecords;
         var arrRecordHeights;
 
@@ -9214,6 +8483,17 @@ document.addEventListener('DOMContentLoaded', function () {
         );
         strReturn = '*';
 
+        // limit column list
+        if (element.getAttribute('cols')) {
+            arrCols = GS.templateWithQuerystring(
+                element.getAttribute('cols') || ''
+            ).trim();
+            arrCols = arrCols.split(/[\s]*,[\s]*/);
+            strReturn = arrCols.join('\t');
+        } else {
+            strReturn = '*';
+        }
+
         //// disabled, hide or not the pageinate buttons
         //if (strLimit === '') {
         //    element.pageLeftButton.setAttribute('hidden', '');
@@ -9227,9 +8507,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 (element.internalDisplay.recordHeights.length === 0);
 
         // we need to create records with the default record height attached to
-        //      them, so we'll use the "default-record-height" attribute
+        //      them, so we'll use the "default-cell-height" attribute
         intRecordHeight = (
-            parseInt(element.getAttribute('default-record-height'), 10) ||
+            parseInt(element.getAttribute('default-cell-height'), 10) ||
             intDefaultRecordHeight
         );
 
@@ -9240,7 +8520,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // we need to re-link the new column list with the old column sorts,
         //      filters and filter statuses
         arrOldColumnNames = element.internalData.columnNames;
-        arrOldColumnTypes = element.internalData.columnTypes;
         arrOldColumnFilterStatuses = element.internalData.columnFilterStatuses;
         arrOldColumnFilters = element.internalData.columnFilters;
         arrOldColumnListFilters = element.internalData.columnListFilters;
@@ -9283,35 +8562,6 @@ document.addEventListener('DOMContentLoaded', function () {
             i += 1;
         }
 
-        //  ,---- commented out because it did not take column order into
-        //  V           account
-        //strUserOrd = '';
-        //i = 0;
-        //len = arrOldColumnOrders.length;
-        //while (i < len) {
-        //    strSort = arrOldColumnOrders[i];
-        //    strColumn = arrOldColumnNames[i];
-
-        //    if (strSort === 'asc') {
-        //        strUserOrd += (
-        //            strUserOrd
-        //                ? ', '
-        //                : ''
-        //        );
-        //        strUserOrd += strColumn + ' ASC';
-
-        //    } else if (strSort === 'desc') {
-        //        strUserOrd += (
-        //            strUserOrd
-        //                ? ', '
-        //                : ''
-        //        );
-        //        strUserOrd += strColumn + ' DESC';
-        //    }
-
-        //    i += 1;
-        //}
-
         // if an order by is defined by the dev, put it after our new order by
         if (strUserOrd && strOrd) {
             strOrd = strUserOrd + ', ' + strOrd;
@@ -9322,7 +8572,7 @@ document.addEventListener('DOMContentLoaded', function () {
             strOrd = strUserOrd;
         }
 
-        console.time('data load');
+        //console.time('data load');
 
         // storing references to the arrays for faster access
         arrRecords = element.internalData.records;
@@ -9332,7 +8582,8 @@ document.addEventListener('DOMContentLoaded', function () {
         GS.triggerEvent(element, 'before_select');
         GS.triggerEvent(element, 'onbefore_select');
         if (element.hasAttribute('onbefore_select')) {
-            new Function(element.getAttribute('onbefore_select')).apply(element);
+            new Function(element.getAttribute('onbefore_select'))
+                .apply(element);
         }
 
         // we need the user to know that the envelope is re-fetching data,
@@ -9447,7 +8698,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         //);
 
                         // back to non-test code
-                        console.timeEnd('data load');
+                        //console.timeEnd('data load');
                         //console.log(
                         //    'record count:',
                         //    element.internalData.records.length
@@ -9645,9 +8896,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // we need to create records with the default record height attached to
-        //      them, so we'll use the "default-record-height" attribute
+        //      them, so we'll use the "default-cell-height" attribute
         intRecordHeight = (
-            parseInt(element.getAttribute('default-record-height'), 10) ||
+            parseInt(element.getAttribute('default-cell-height'), 10) ||
             intDefaultRecordHeight
         );
 
@@ -9839,7 +9090,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         GS.triggerEvent(element, 'onbefore_insert');
         if (element.hasAttribute('onbefore_insert')) {
-            new Function(element.getAttribute('onbefore_insert')).apply(element);
+            new Function(element.getAttribute('onbefore_insert'))
+                .apply(element);
         }
 
         // if the user prevents the default on the "before_update"
@@ -10570,7 +9822,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // we need to know if we've already opened a warning like
                     //      this. So, we'll select for warnings that already
                     //      exist.
-                    arrParentElement = xtag.query(
+                    arrParentElement = tblQry(
                         element,
                         '.saving-warning-parent'
                     );
@@ -10616,7 +9868,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var arrErrorElement;
 
                 // gather warning elements
-                arrErrorElement = xtag.query(
+                arrErrorElement = tblQry(
                     element,
                     '.saving-warning-parent'
                 );
@@ -10920,8 +10172,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // create variables for websocket delete call
 
         // we need to know the primary key columns and the lock columns
-        strPK = (element.getAttribute("pk") || "");
-        strLock = (element.getAttribute("lock") || "");
+        strPK = (element.getAttribute('pk') || '');
+        strLock = (element.getAttribute('lock') || '');
         arrPK = strPK.split(/[\s]*,[\s]*/);
         arrLock = strLock.split(/[\s]*,[\s]*/);
 
@@ -11050,11 +10302,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
                 //strTemp = arrDeleteRecord[intIndex];
                 strTemp = getCell(
-                                element,
-                                arrLock[col_i],
-                                jsnDelete.recordIndexes[i],
-                                false
-                            );
+                    element,
+                    arrLock[col_i],
+                    jsnDelete.recordIndexes[i],
+                    false
+                );
 
                 // I saw this in the code I copied while making this:
                 //      "I believe that this needs to
@@ -11064,7 +10316,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         ? ""
                         : strTemp
                 );
-                //console.log(strTemp, strRecordToHash);
 
                 col_i += 1;
             }
@@ -11376,9 +10627,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // we need to create records with the default record height attached to
-        //      them, so we'll use the "default-record-height" attribute
+        //      them, so we'll use the "default-cell-height" attribute
         intRecordHeight = (
-            parseInt(element.getAttribute('default-record-height'), 10) ||
+            parseInt(element.getAttribute('default-cell-height'), 10) ||
             intDefaultRecordHeight
         );
 
@@ -12505,7 +11756,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     function dataSELECT(element) {
-        if (element.hasAttribute("src")) {
+        if (element.hasAttribute('src')) {
             databaseWSSELECT(element);
         } else {
             internalSELECT(element);
@@ -12513,7 +11764,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function dataINSERT(element, strMode, jsnInsert) {
         element.internalData.bolInserting = true;
-        if (element.hasAttribute("src")) {
+        if (element.hasAttribute('src')) {
             databaseWSINSERT(element, strMode, jsnInsert);
         } else {
             internalINSERT(element, strMode, jsnInsert);
@@ -12658,14 +11909,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // we need to be able to do an element query inside the target cell, so
         //      here we get the cell element
         if (record === 'insert' && jsnViewportRange.insertRecord) {
-            cellElement = xtag.query(
+            cellElement = tblQry(
                 element.elems.dataViewport,
                 'gs-cell' +
                         '.table-insert' +
                         '[data-col-number="' + column + '"]'
             )[0];
         } else {
-            cellElement = xtag.query(
+            cellElement = tblQry(
                 element.elems.dataViewport,
                 'gs-cell' +
                         '.table-cell' +
@@ -12718,7 +11969,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // traverse into the cell and find first focusable element
-        focusElement = xtag.query(
+        focusElement = tblQry(
             cellElement,
             'input, textarea, select, [tabindex]'
         )[0];
@@ -12852,7 +12103,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } else {
             i = 0;
-            len = cellRecord;
+            len = cellRecord + 1;
             while (i < len) {
                 intCellTop += arrRecordHeights[i];
                 intCellTop += recordBorderHeight;
@@ -13498,8 +12749,8 @@ document.addEventListener('DOMContentLoaded', function () {
             //      expects 0/1 to get the first column, not 0/0
         );
         if (search_div.innerHTML.indexOf('encrypted=') !== -1) {
-            if (xtag.query(search_div, 'gs-cell[encrypted]')) {
-                enc_elems = xtag.query(search_div, 'gs-cell[encrypted]');
+            if (tblQry(search_div, 'gs-cell[encrypted]')) {
+                enc_elems = tblQry(search_div, 'gs-cell[encrypted]');
                 enc_i = 0;
                 enc_len = enc_elems.length;
                 arr_encrypted_columns = [];
@@ -13570,8 +12821,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                     ) !== -1
                                 ) {
                                     strNewRecord += CryptoJS.AES.encrypt(
-                                        strCell
-                                        , window[
+                                        strCell,
+                                        window[
                                             encrypted_vars[
                                                 arr_encrypted_columns.indexOf(
                                                     intOffsetColumn.toString()
@@ -13585,8 +12836,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             } else {
                                 strNewRecord += strCell;
                             }
-                            //console.log(strCell);
-                            //console.log(intPastedColumn + intStart);
 
                         // else, replace the current cell with NULL
                         } else {
@@ -13638,7 +12887,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // the plus one is because the template extract function
             //      expects 0/1 to get the first column, not 0/0
         );
-        arrColumnElements = xtag.query(
+        arrColumnElements = tblQry(
             templateElement.content,
             'gs-cell [column]'
         );
@@ -13780,7 +13029,7 @@ document.addEventListener('DOMContentLoaded', function () {
         templateElement.innerHTML = (
             element.internalTemplates.insertRecord
         );
-        arrInsertCellElements = xtag.query(
+        arrInsertCellElements = tblQry(
             templateElement.content,
             'gs-cell'
         );
@@ -13788,7 +13037,7 @@ document.addEventListener('DOMContentLoaded', function () {
         templateElement.innerHTML = (
             element.internalTemplates.record.templateHTML
         );
-        arrUpdateCellElements = xtag.query(
+        arrUpdateCellElements = tblQry(
             templateElement.content,
             'gs-cell'
         );
@@ -13807,7 +13056,7 @@ document.addEventListener('DOMContentLoaded', function () {
             //console.log('test 1 1', arrColumns[i]);
             //console.log('test 1 2', arrCellElements[arrColumns[i]]);
 
-            arrColumnElements = xtag.query(
+            arrColumnElements = tblQry(
                 arrCellElements[arrColumns[i]],
                 '[column]'
             );
@@ -14000,7 +13249,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var extractorDiv = document.createElement('div');
             extractorDiv.innerHTML = strUnnormalizedPasteString;
             strUnnormalizedPasteString = (
-                xtag.query(extractorDiv, 'table')[0].outerHTML
+                tblQry(extractorDiv, 'table')[0].outerHTML
             );
         }
 
@@ -14023,8 +13272,8 @@ document.addEventListener('DOMContentLoaded', function () {
         elementMaker.innerHTML = strUnnormalizedPasteString;
 
         // we don't want any header or footer records to be pasted
-        tableElement = xtag.query(elementMaker.content, 'table')[0];
-        tbodyElement = xtag.queryChildren(tableElement, 'tbody')[0];
+        tableElement = tblQry(elementMaker.content, 'table')[0];
+        tbodyElement = tblQryKids(tableElement, 'tbody')[0];
 
         // In MS Excel, if a cell bleeds over into another cell and the next
         //      cell is empty, Excel will ignore the empty column and put a
@@ -14068,7 +13317,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //        </table>
         //
         // To solve this, we insert one cell for every cell that it covers
-        arrColSpanCells = xtag.query(tbodyElement, 'td[colspan]');
+        arrColSpanCells = tblQry(tbodyElement, 'td[colspan]');
 
         if (arrColSpanCells.length > 0) {
             // loop through all cells that have a colspan
@@ -14097,11 +13346,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // if there's a TBODY, get records from within there
         if (tbodyElement) {
-            arrRecord = xtag.queryChildren(tbodyElement, 'tr');
+            arrRecord = tblQryKids(tbodyElement, 'tr');
 
         // else (no TBODY), get immediate children of table
         } else {
-            arrRecord = xtag.queryChildren(tableElement, 'tr');
+            arrRecord = tblQryKids(tableElement, 'tr');
         }
 
         // third, create an array of text records from the HTML, make
@@ -14324,7 +13573,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // if the user has started typing into the insert record and
                 //      then clicked the insert button, show the values from
                 //      the insert record
-                arrElements = xtag.query(dialog, '[column]');
+                arrElements = tblQry(dialog, '[column]');
                 element_i = 0;
                 element_len = arrElements.length;
                 while (element_i < element_len) {
@@ -14358,7 +13607,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // we want the data that the user has put into the insert
                 //      dialog to be put into internal storage, gather the
                 //      values
-                arrElements = xtag.query(dialog, '[column]');
+                arrElements = tblQry(dialog, '[column]');
                 element_i = 0;
                 element_len = arrElements.length;
                 while (element_i < element_len) {
@@ -14498,7 +13747,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // we want to fill the gs-body with the column list so that the
             //      user can check and uncheck columns
-            containerElement = xtag.query(
+            containerElement = tblQry(
                 dialog,
                 '.gs-table-column-checklist-container'
             )[0];
@@ -14548,7 +13797,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // loop through each checkbox and show or hide the columns
                 //      depending on the checkbox value
-                arrCheckbox = xtag.query(dialog, 'gs-checkbox');
+                arrCheckbox = tblQry(dialog, 'gs-checkbox');
                 i = 0;
                 len = arrCheckbox.length;
                 while (i < len) {
@@ -14673,11 +13922,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 dialog.classList.add('gs-table-contextmenu');
 
                 // find all of the control elements
-                limitFromControl = xtag.query(
+                limitFromControl = tblQry(
                     dialog,
                     '.pref-limit-from'
                 )[0];
-                limitToControl = xtag.query(
+                limitToControl = tblQry(
                     dialog,
                     '.pref-limit-to'
                 )[0];
@@ -14913,39 +14162,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 jsnCopy = getCopyParameters(element);
 
                 // find all of the control elements
-                copyHeadersControl = xtag.query(
+                copyHeadersControl = tblQry(
                     dialog,
                     '.pref-copy-headers'
                 )[0];
-                copySelectorsControl = xtag.query(
+                copySelectorsControl = tblQry(
                     dialog,
                     '.pref-copy-selectors'
                 )[0];
-                copyQuoteCharControl = xtag.query(
+                copyQuoteCharControl = tblQry(
                     dialog,
                     '.pref-quote-char'
                 )[0];
-                copyEscapeCharControl = xtag.query(
+                copyEscapeCharControl = tblQry(
                     dialog,
                     '.pref-escape-char'
                 )[0];
-                copyQuoteWhenControl = xtag.query(
+                copyQuoteWhenControl = tblQry(
                     dialog,
                     '.pref-copy-quote'
                 )[0];
-                copyCellDelimiterControl = xtag.query(
+                copyCellDelimiterControl = tblQry(
                     dialog,
                     '.pref-delimiter-cell'
                 )[0];
-                copyRecordDelimiterControl = xtag.query(
+                copyRecordDelimiterControl = tblQry(
                     dialog,
                     '.pref-delimiter-record'
                 )[0];
-                copyNullControl = xtag.query(
+                copyNullControl = tblQry(
                     dialog,
                     '.pref-null-value'
                 )[0];
-                copyTypesControl = xtag.query(
+                copyTypesControl = tblQry(
                     dialog,
                     '.pref-copy-types'
                 )[0];
@@ -14960,7 +14209,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 copyNullControl.value = jsnCopy.nullString;
                 copyTypesControl.value = jsnCopy.copyTypes;
 
-                xtag.query(
+                tblQry(
                     dialog,
                     '.recopy-button'
                 )[0].addEventListener('click', function () {
@@ -15102,7 +14351,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function saveDefaultAttributes(element) {
         var i;
         var len;
-        var arrAttr;
         var jsnAttr;
 
         // we need a place to store the attributes
@@ -15112,7 +14360,6 @@ document.addEventListener('DOMContentLoaded', function () {
         //      defaultAttributes object
         i = 0;
         len = element.attributes.length;
-        arrAttr = element.attributes;
         while (i < len) {
             jsnAttr = element.attributes[i];
 
@@ -15240,8 +14487,8 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (bolRefresh && !element.hasAttribute('src')) {
                 console.warn(
                     'gs-table Warning: ' +
-                        'element has "refresh-on-querystring-values" or ' +
-                        '"refresh-on-querystring-change", but no "src".',
+                            'element has "refresh-on-querystring-values" or ' +
+                            '"refresh-on-querystring-change", but no "src".',
                     element
                 );
             }
@@ -15355,11 +14602,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      we don't want the page to get stuck refocusing the
                 //      hidden focus control)
                 blurEventFunction = function () {
-                    focusHiddenControl(element);
-                    element.elems.hiddenFocusControl.removeEventListener(
-                        'blur',
-                        blurEventFunction
-                    );
+                    // this function isn't reachable by the top level unbind,
+                    //      so we need to make sure that it's cabable of
+                    //      knowing not to do anything with the element has
+                    //      been destroyed.
+                    if (element.elems.root) {
+                        focusHiddenControl(element);
+                        element.elems.hiddenFocusControl.removeEventListener(
+                            'blur',
+                            blurEventFunction
+                        );
+                    }
                 };
                 element.elems.hiddenFocusControl.addEventListener(
                     'blur',
@@ -15418,7 +14671,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         parentTable.internalSelection.ranges = [jsnRange];
                         renderSelection(parentTable);
                         active = document.activeElement;
-                        active.focus; // what is this?
+                        //active.focus; // what is this?
                     }
                 }
             }
@@ -15490,14 +14743,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.internalDisplay.focus.nodeName = (
                         controlElement.nodeName
                     );
-                    element.internalDisplay.focus.selectionRange = (
-                        GS.getInputSelection(active)
-                    );
+                    if (
+                        active.nodeName === 'INPUT' ||
+                        active.nodeName === 'TEXTAREA'
+                    ) {
+                        element.internalDisplay.focus.selectionRange = (
+                            GS.getInputSelection(active)
+                        );
+                    }
                     element.internalDisplay.focus.latest = true;
                 }
             } else {
                 element.classList.add('focus-out');
                 element.classList.remove('focus-in');
+                element.internalDisplay.focus.latest = false;
             }
         };
 
@@ -15575,8 +14834,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 intStartScrollLeft = element.internalScroll.left;
                 intStartScrollTop = element.internalScroll.top;
 
-                // event.preventDefault();
-                // event.stopPropagation();
+                // this prevents the scroll from leaving the gs-table and
+                //      attempting to scroll the body, it was originally
+                //      commentted out with no note. Added the if statement
+                //      because it was preventing focus.
+                if (
+                    event.target.nodeName !== 'INPUT' &&
+                    event.target.nodeName !== 'textarea'
+                ) {
+                    event.preventDefault();
+                    //event.stopPropagation();
+                }
 
                 document.body.addEventListener(
                     evt.mousemove,
@@ -15855,7 +15123,6 @@ document.addEventListener('DOMContentLoaded', function () {
             var trueScrollHeight;
             var trueScrollTop;
 
-            var oldVirtualScrollTop;
             var newVirtualScrollTop;
 
             // sometimes, the gs-table triggeres a scrollbar event, so here we
@@ -15865,7 +15132,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 // we need the viewport dimensions because true scroll
                 //      dimensions include the viewport height, which
                 //      messes with the caluculations
-                intViewportHeight = element.elems.dataViewport.clientHeight;
+                intViewportHeight = (
+                    element.elems.dataViewport.clientHeight
+                );
 
                 // we are saving the max scroll dimensions for ease of access
                 virtualScrollHeight = element.internalScroll.maxTop;
@@ -15880,36 +15149,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      of access
                 trueScrollTop = element.elems.yScrollBar.scrollTop;
 
-                // we want to know what direction we scrolled so that we can
-                //      round to the next record in that direction. to do that,
-                //      we're going to hold on to the old virtual scrollTop so
-                //      that we can compare it to the new one.
-                oldVirtualScrollTop = element.internalScroll.top;
+                // get new rounded scroll
                 newVirtualScrollTop = (
                     trueScrollTop * (
                         virtualScrollHeight / trueScrollHeight
                     )
                 );
 
-                //// if we scrolled down, round to the next record down
-                //if (newVirtualScrollTop > oldVirtualScrollTop) {
-
-                //// else, we scrolled up, round to the next record up
-                //} else {
-                //}
-
                 // we need to translate the true top into virtual top for the
                 //      virtual scroll and save to internal location
-                element.internalScroll.top = newVirtualScrollTop;
-
                 // if this event gets triggered while the scrollbar doesn't have
                 //      any room, trueScrollHeight will be 0 which means that
                 //      (virtualScrollHeight / trueScrollHeight)
                 //      would result in NaN (because of the division by 0),
                 //      so, coalesce top to 0
-                element.internalScroll.top = (
-                    element.internalScroll.top || 0
-                );
+                element.internalScroll.top = (newVirtualScrollTop || 0);
 
                 // we need to round the scroll so that we don't run into
                 //      any type issues
@@ -16030,10 +15284,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 evt.mousedown,
                 element.internalEvents.selectDragStart
             );
+            document.body.removeEventListener(
+                evt.mousemove,
+                element.internalEvents.selectDragMove
+            );
+            document.body.removeEventListener(
+                evt.mouseup,
+                element.internalEvents.selectDragEnd
+            );
         }
     }
     function bindSelection(element) {
-
         // #####################################################################
         // ############### SELECTION MODIFICATIONS of 2017-04-13 ###############
         // ##################### THIS HAST BEEN COMPLETED! #####################
@@ -16184,15 +15445,124 @@ document.addEventListener('DOMContentLoaded', function () {
         // ############### SELECTION MODIFICATIONS of 2017-04-13 ###############
         // ##################### THIS HAST BEEN COMPLETED! #####################
         // #####################################################################
+        var strSelectionMode = element.getAttribute('selection-mode');
+        var jsnStartCell;
+        var jsnCurrentCell;
+        var intStartScrollTop;
+        var intStartScrollLeft;
 
+        // touch devices default to single row. in the future, when we add more
+        //      modes, we'll need to make sure that we only allow touch devices
+        //      to use a selection mode that is compatible with touch. For the
+        //      time being, we only have single-row for touch.
+        if (evt.touchDevice) {
+            strSelectionMode = 'single-row';
+        }
 
         // touch devices have a different way to select, so here we bind the
-        //      touch-friendly version of cell selection
-        if (evt.touchDevice) {
-            // ### NEED CODING ###
+        //      touch-friendly version of cell selection. The way this selection
+        //      mode will work is the mouse/touch start and end on the same
+        //      record, we'll select the whole record. Additionally, this mode
+        //      can be turned on with an attribute. Sometimes, we want record
+        //      only selection. This will make the gs-table upwind of being used
+        //      as a listbox, combobox, or any other record selection element.
+        if (strSelectionMode === 'single-row') {
+            element.internalEvents.selectRowStart = function (event) {
+                // find out the cell location based on the mouse event
+                jsnStartCell = getCellFromMouseEvent(element, event);
+                jsnCurrentCell = jsnStartCell;
+                intStartScrollTop = element.internalScroll.displayTop;
+                intStartScrollLeft = element.internalScroll.displayLeft;
 
-        // on a desktop, we bind this code for cell selection:
-        } else {
+                // we add the mouseup event to the body because
+                //      if you're dragging and you mousemove off
+                //      of the element: we wan't to continue the selection,
+                //      and if you mouseup off of the element, we still want
+                //      to register that as a mouseup/end of selection
+                if (event.which === 1 || evt.touchDevice) {
+                    document.body.addEventListener(
+                        evt.mousemove,
+                        element.internalEvents.selectDragMove
+                    );
+
+                    // TODO: firefox doesn't work with this and overflow
+                    //      (event.target remains the origin cell)
+                    document.body.addEventListener(
+                        evt.mouseup,
+                        element.internalEvents.selectDragEnd
+                    );
+
+                // if the cell was right-clicked, we don't want to listen
+                //      to mouse drag. in fact, in order to have the
+                //      selection recalculate the selection cache in time
+                //      for the context menu we need to end the selection
+                //      now.
+                } else {
+                    element.internalEvents.selectDragEnd();
+                }
+            };
+
+            element.internalEvents.selectDragMove = function (event) {
+                // find out the cell location based on the mouse event
+                jsnCurrentCell = getCellFromMouseEvent(element, event);
+            };
+
+            element.internalEvents.selectDragEnd = function () {
+                var newRange;
+
+                // selecting the header automatically selects everything below
+                //      it, so we're not going to allow header selection.
+                if (jsnCurrentCell.row !== 'header') {
+                    // create new range object
+                    newRange = {
+                        "start": {"row": 0, "column": "selector"},
+                        "end": {"row": 0, "column": "selector"},
+                        "negator": false
+                    };
+
+                    // replace the range start with the discovered location, and
+                    //      make the end the same as the start, because we only
+                    //      allow one row in this mode
+                    newRange.start.row = jsnCurrentCell.row;
+                    newRange.end.row = newRange.start.row;
+                }
+
+                if (
+                    jsnStartCell.row === jsnCurrentCell.row &&
+                    jsnStartCell.column === jsnCurrentCell.column &&
+                    intStartScrollTop === element.internalScroll.displayTop &&
+                    intStartScrollLeft === element.internalScroll.displayLeft &&
+                    newRange
+                ) {
+                    // row selection only allows one row at a time, so we
+                    //      override all ranges every time.
+                    element.internalSelection.ranges = [newRange];
+
+                    // update the DOM, we're ready to see the new selection
+                    renderSelection(element);
+                    GS.triggerEvent(element, 'selection_change');
+                }
+
+                // unbind mousemove and mouseup
+                document.body.removeEventListener(
+                    evt.mousemove,
+                    element.internalEvents.selectDragMove
+                );
+                document.body.removeEventListener(
+                    evt.mouseup,
+                    element.internalEvents.selectDragEnd
+                );
+            };
+
+            element.elems.dataContainer.addEventListener(
+                evt.mousedown,
+                element.internalEvents.selectRowStart
+            );
+
+        // on a desktop, the default selection mode is cell-by-cell. We create a
+        //      selection range that treats the start and end cells as the two
+        //      opposing corners of the range.
+        } else {// alias for this mode is "all"
             // we save a copy of the current ranges so that if the
             //      before_selection event gets prevented, we can revert the
             //      selection
@@ -16209,17 +15579,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 var newRange;
                 var jsnLocation;
 
-                //var classList;
-                //var intRow;
-                //var intColumn;
-
-                //var bolIsDataCell;
-                //var bolIsAllSelector;
-                //var bolIsHeaderCell;
-                //var bolIsRecordSelector;
-                //var bolIsInsertCell;
-                //var bolIsInsertSelector;
-
                 element.bolFocusHiddenTextarea = false;
 
                 // we need the cell that received the mousedown so that we
@@ -16227,12 +15586,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      adding a selection, wheather of not it's already
                 //      selected)
                 cell = GS.findParentElement(event.target, 'gs-cell');
-
-                //console.log(cell, (element, event));
-                //console.log(cell);
-                //console.log(element.internalResize.currentlyResizing);
-                //console.log(event.which);
-                //console.log(!cell.hasAttribute('selected'));
 
                 if (
                     cell &&
@@ -16256,14 +15609,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     // we define newRange here so that we can see the structure
                     //      and so that we can modify/use it
                     newRange = {
-                        "start": {
-                            "row": 0,
-                            "column": 0
-                        },
-                        "end": {
-                            "row": 0,
-                            "column": 0
-                        },
+                        "start": {"row": 0, "column": 0},
+                        "end": {"row": 0, "column": 0},
                         "negator": false
                     };
 
@@ -16274,81 +15621,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             element.internalSelection.ranges
                         )
                     );
-
-                    //// header is attached to first row
-                    //// record selector is attached to the first column
-                    //// insert record is attached to last row or the header if
-                    ////      there is no data
-
-                    //// if the selected cell is a header
-                    ////      row: 'header'
-                    ////      column: cell column
-                    //// if the selected cell is a data cell
-                    ////      row: cell row
-                    ////      column: cell column
-                    //// if the selected cell is a record selector
-                    ////      row: cell row
-                    ////      column: 'selector'
-                    //// if the selected cell is the all selector
-                    ////      row: 'header'
-                    ////      column: 'selector'
-                    //// if the selected cell is a insert cell
-                    ////      row: 'insert'
-                    ////      column: cell column
-                    //// if the selected cell is the insert selector
-                    ////      row: 'insert'
-                    ////      column: 'selector'
-                    //intRow = parseInt(
-                    //    cell.getAttribute('data-row-number'),
-                    //    10
-                    //);
-                    //intColumn = parseInt(
-                    //    cell.getAttribute('data-col-number'),
-                    //    10
-                    //);
-
-                    //// we don't want to recalculate what type of a cell the
-                    ////      target cell is, and we want shorter code. so,
-                    ////      we'll create shortcut variables
-                    //classList = cell.classList;
-                    //bolIsDataCell = (
-                    //    classList.contains('table-cell')
-                    //);
-                    //bolIsAllSelector = (
-                    //    classList.contains('table-all-selector')
-                    //);
-                    //bolIsHeaderCell = (
-                    //    classList.contains('table-header')
-                    //);
-                    //bolIsRecordSelector = (
-                    //    classList.contains('table-record-selector')
-                    //);
-                    //bolIsInsertCell = (
-                    //    classList.contains('table-insert')
-                    //);
-                    //bolIsInsertSelector = (
-                    //    classList.contains('table-insert-selector')
-                    //);
-
-                    //if (bolIsDataCell) {
-                    //    newRange.start.row = intRow;
-                    //    newRange.start.column = intColumn;
-                    //} else if (bolIsAllSelector) {
-                    //    newRange.start.row = 'header';
-                    //    newRange.start.column = 'selector';
-                    //} else if (bolIsHeaderCell) {
-                    //    newRange.start.row = 'header';
-                    //    newRange.start.column = intColumn;
-                    //} else if (bolIsRecordSelector) {
-                    //    newRange.start.row = intRow;
-                    //    newRange.start.column = 'selector';
-                    //} else if (bolIsInsertCell) {
-                    //    newRange.start.row = 'insert';
-                    //    newRange.start.column = intColumn;
-                    //} else if (bolIsInsertSelector) {
-                    //    newRange.start.row = 'insert';
-                    //    newRange.start.column = 'selector';
-                    //}
 
                     // find out the cell location based on the mouse event
                     jsnLocation = getCellFromMouseEvent(element, event);
@@ -16377,7 +15649,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         //      the current selection index is 0
                         intCurrentSelectionIndex = 0;
                     } else {
-                        //console.log('OVER HERE');
                         // if the shift key is down (and the previous selection
                         //      was not negator selection), we need override the
                         //      previous selection's endpoint, so we'll just set
@@ -16461,9 +15732,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     //      changed
                     renderSelection(element);
                     GS.triggerEvent(element, 'selection_change');
-                    //console.log('changed');
-
-                    //console.log(element.internalSelection.ranges);
 
                     // we add mousemove and mouseup events to the body because
                     //      if you're dragging to select and you mousemove off
@@ -16494,17 +15762,13 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             element.internalEvents.selectDragMove = function (event) {
-                //var cell;
-                //var classList;
-                //var intRow;
-                //var intColumn;
                 var intOldEndRow;
                 var intOldEndColumn;
                 var currentRange;
                 var jsnCurrentSelection;
 
                 jsnCurrentSelection =
-                    GS.getInputSelection(document.activeElement);
+                        GS.getInputSelection(document.activeElement);
 
                 getCellFromMouseEvent(element, event);
 
@@ -16521,28 +15785,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.internalEvents.selectDragEnd();
 
                 } else {
-                    // save the cell to a variable so that we can get it's
-                    //      row/column
-                    //console.log('event.target:', event.target);
-                    // cell = GS.findParentElement(event.target, 'gs-cell');
-                    // //console.log('cell:', cell);
-                    // classList = cell.classList;
-
-                    // // extract row/column from cell (if the cell has them)
-                    // intRow = parseInt(
-                    //     cell.getAttribute('data-row-number'),
-                    //     10
-                    // );
-                    // intColumn = parseInt(
-                    //     cell.getAttribute('data-col-number'),
-                    //     10
-                    // );
-
-
                     // find out the cell location based on the mouse event
                     var jsnLocation = getCellFromMouseEvent(element, event);
 
-                    //console.log(cell, intRow, intColumn);
                     // get current selection range for easy access
                     currentRange = (
                         element.internalSelection
@@ -16559,41 +15804,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     intOldEndRow = currentRange.end.row;
                     intOldEndColumn = currentRange.end.column;
 
-
-
                     currentRange.end.row = jsnLocation.row;
                     currentRange.end.column = jsnLocation.column;
-                    // // update the endpoint row and column
-                    // // these if statments maintain the seperation of
-                    // //      insert and non-insert selections and the
-                    // //      inclusion of headers/record selectors in
-                    // //      the selection
-                    // if (classList.contains('table-cell')) {
-                    //     currentRange.end.row = intRow;
-                    //     currentRange.end.column = intColumn;
-
-                    // } else if (classList.contains('table-all-selector')) {
-                    //     currentRange.end.row = 'header';
-                    //     currentRange.end.column = 'selector';
-
-                    // } else if (classList.contains('table-header')) {
-                    //     currentRange.end.row = 'header';
-                    //     currentRange.end.column = intColumn;
-
-                    // } else if (classList.contains('table-record-selector')) {
-                    //     currentRange.end.row = intRow;
-                    //     currentRange.end.column = 'selector';
-
-                    // } else if (classList.contains('table-insert')) {
-                    //     currentRange.end.row = 'insert';
-                    //     currentRange.end.column = intColumn;
-
-                    // } else if (classList.contains('table-insert-selector')) {
-                    //     currentRange.end.row = 'insert';
-                    //     currentRange.end.column = 'selector';
-                    // }
-
-                    //console.log(element.internalSelection.insertRecord);
 
                     // prevent text selection if selection is more than one cell
                     if (
@@ -16603,8 +15815,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         event.preventDefault();
                         event.stopPropagation();
                     }
-
-                    //console.log(document.activeElement);
 
                     // focus hidden focus control is not focused
                     //      and
@@ -16648,11 +15858,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     }
 
-                    //console.log(currentRange.end.row,
-                    //              intOldEndRow,
-                    //              currentRange.end.column,
-                    //              intOldEndColumn);
-
                     // re-render selection if selection ranges have been changed
                     if (
                         currentRange.end.row !== intOldEndRow ||
@@ -16660,7 +15865,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     ) {
                         renderSelection(element);
                         GS.triggerEvent(element, 'selection_change');
-                        //console.log('changed');
                     }
                 }
             };
@@ -16706,7 +15910,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (element.bolFocusHiddenTextarea) {
                     focusHiddenControl(element);
-                    //console.log(document.activeElement);
                 }
             };
 
@@ -16742,6 +15945,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 'dblclick',
                 element.internalEvents.cellResizeToDefault
             );
+
+            window.removeEventListener(
+                'resize',
+                element.internalEvents.columnAutoResize
+            );
         }
     }
     function bindCellResize(element) {
@@ -16771,9 +15979,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         var jsnMousePos;
                         var intMouseX;
                         var intMouseY;
-
                         var intPoint;
-
                         var i;
                         var len;
 
@@ -16789,31 +15995,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         // we need the mouse Y to be relative to the
                         //      dataViewport
                         intMouseY = (jsnMousePos.top - jsnElementPos.top);
-
-                        //console.log(
-                        //    '      intMouseX: ',
-                        //    intMouseX
-                        //);
-                        //console.log(
-                        //    '      intMouseY: ',
-                        //    intMouseY
-                        //);
-                        //console.log(
-                        //    'selectorVisible: ',
-                        //    element.internalDisplay.recordSelectorVisible
-                        //);
-                        //console.log(
-                        //    '  selectorWidth: ',
-                        //    element.internalDisplay.recordSelectorWidth
-                        //);
-                        //console.log(
-                        //    '  headerVisible: ',
-                        //    element.internalDisplay.headerVisible
-                        //);
-                        //console.log(
-                        //    '   headerHeight: ',
-                        //    element.internalDisplay.headerHeight
-                        //);
 
                         // see if the mouse collides with a column drag handle
                         //      point
@@ -16968,7 +16149,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (
                             element.internalResize.resizeColumn &&
                             element.elems.handleColumn.parentNode !==
-                                element.elems.dataViewport
+                                element.elems.dataViewport &&
+                            !element.hasAttribute('no-resize-column')
                         ) {
                             // append handle element to the viewport
                             element.elems.dataViewport
@@ -16980,7 +16162,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (
                             element.internalResize.resizeRecord &&
                             element.elems.handleRecord.parentNode !==
-                                element.elems.dataViewport
+                                element.elems.dataViewport &&
+                            !element.hasAttribute('no-resize-record')
                         ) {
                             // append handle element to the viewport
                             element.elems.dataViewport
@@ -17011,23 +16194,33 @@ document.addEventListener('DOMContentLoaded', function () {
                             ) + 'px';
                         }
 
+
+
                         // if the mouse is over a column and record handle point
                         if (
                             element.internalResize.resizeColumn &&
-                            element.internalResize.resizeRecord
+                            element.internalResize.resizeRecord &&
+                            !element.hasAttribute('no-resize-column') &&
+                            !element.hasAttribute('no-resize-record')
                         ) {
                             // add a four-way arrow cursor
                             element.elems.dataViewport
                                 .classList.add('table-cursor-all-resize');
 
                         // else if the mouse is over a column handle point
-                        } else if (element.internalResize.resizeColumn) {
+                        } else if (
+                            element.internalResize.resizeColumn &&
+                            !element.hasAttribute('no-resize-column')
+                        ) {
                             // add a two-way horizontal arrow cursor
                             element.elems.dataViewport
                                 .classList.add('table-cursor-col-resize');
 
                         // else if the mouse is over a record handle point
-                        } else if (element.internalResize.resizeRecord) {
+                        } else if (
+                            element.internalResize.resizeRecord &&
+                            !element.hasAttribute('no-resize-record')
+                        ) {
                             // add a two-way vertical arrow cursor
                             element.elems.dataViewport
                                 .classList.add('table-cursor-row-resize');
@@ -17062,12 +16255,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      resizing cells already
                 // we also don't want to run this code if we are currently
                 //      reordering columns
-                //console.log(
-                //    'test',
-                //    event.which,
-                //    window.navigator.userAgent.indexOf("Edge"),
-                //    event
-                //);
                 if (
                     (
                         (
@@ -17088,7 +16275,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.internalResize.currentlyResizing !== true &&
                     element.internalResize.currentlyReordering !== true
                 ) {
-                    //console.log('lets do it');
                     // remove the column handle
                     if (
                         element.elems.handleColumn.parentNode ===
@@ -17119,7 +16305,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     // show any handles we're over (THROTTLED FUNCTION)
                     showHandles(event);
                 } else {
-                    //console.log('lets NOT do it');
                     // cancel throttled execution of showHandles
                     if (element.internalResize.showThrottleID !== null) {
                         clearTimeout(element.internalResize.showThrottleID);
@@ -17269,14 +16454,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.internalScroll.displayLeft
                 );
 
-                //console.log(
-                //    element.internalResize.resizeColumnIndex,
-                //    element.internalResize.resizeRecordIndex,
-                //    element.internalResize.resizingRecordSelectors,
-                //    element.internalResize.resizingHeader,
-                //    element.internalResize.resizingInsert
-                //);
-
                 // we need to bind the mousemove and mouseup functionality to
                 //      the body so that we can still use the mouse events even
                 //      if the mouse is no longer over the gs-table
@@ -17301,7 +16478,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var viewportHeight;
                 var cellOriginX;
                 var cellOriginY;
-                var intMaxColWidth;
+                var intMaxAllColWidth;
                 var intMaxRowHeight;
                 var intMinColWidth;
 
@@ -17319,18 +16496,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // we need to know the origin and current scroll location in
                 //      order to accurately place the resize handle
-                intOriginScrollTop = (
-                    element.internalResize.scrollOriginTop
-                );
-                intOriginScrollLeft = (
-                    element.internalResize.scrollOriginLeft
-                );
-                intCurrentScrollTop = (
-                    element.internalScroll.displayTop
-                );
-                intCurrentScrollLeft = (
-                    element.internalScroll.displayLeft
-                );
+                intOriginScrollTop = (element.internalResize.scrollOriginTop);
+                intOriginScrollLeft = (element.internalResize.scrollOriginLeft);
+                intCurrentScrollTop = (element.internalScroll.displayTop);
+                intCurrentScrollLeft = (element.internalScroll.displayLeft);
 
                 // we need the mouse position and the element position
                 jsnMousePos = GS.mousePosition(event);
@@ -17351,7 +16520,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     intMouseX = (jsnMousePos.left - jsnElementPos.left);
 
                     // we need to know the maximum column width
-                    intMaxColWidth = (
+                    intMaxAllColWidth = (
                         element.internalDisplay.maxColumnWidth
                     );
 
@@ -17378,24 +16547,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     //      prevent width issues
                     intNewWidth = (
                         // the new true X
-                        (
-                            intMouseX +
-                            intCurrentScrollLeft
-                        ) -
+                        (intMouseX + intCurrentScrollLeft) -
                         // subtracted by the old true X
-                        (
-                            cellOriginX +
-                            intOriginScrollLeft
-                        )
+                        (cellOriginX + intOriginScrollLeft)
                     );
-
-                    //console.log(
-                    //    cellOriginX, // relative to viewport and old scroll
-                    //    intMouseX, // relative to viewport
-                    //    intOriginScrollLeft, // old scroll
-                    //    intCurrentScrollLeft, // current scroll
-                    //    intNewWidth
-                    //);
 
                     // prevent width from going negative the user can't see
                     //      it and shouldn't be able to resize to it
@@ -17413,8 +16568,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     // prevent column from going wider than max column width
-                    if (intNewWidth > intMaxColWidth) {
-                        intNewWidth = intMaxColWidth;
+                    if (intNewWidth > intMaxAllColWidth) {
+                        intNewWidth = intMaxAllColWidth;
                     }
 
                     // prevent column from being thinner than 10px
@@ -17493,25 +16648,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     } else {
                         intNewHeight = (
                             // the new true Y
-                            (
-                                intMouseY +
-                                intCurrentScrollTop
-                            ) -
+                            (intMouseY + intCurrentScrollTop) -
                             // subtracted by the old true Y
-                            (
-                                cellOriginY +
-                                intOriginScrollTop
-                            )
+                            (cellOriginY + intOriginScrollTop)
                         );
                     }
-
-                    //console.log(
-                    //    cellOriginY, // relative to viewport and old scroll
-                    //    intMouseY, // relative to viewport
-                    //    intOriginScrollTop, // old scroll
-                    //    intCurrentScrollTop, // current scroll
-                    //    intNewHeight
-                    //);
 
                     // prevent Y from going past 0,0 on the viewport
                     // the user can't see it and shouldn't be resize to it
@@ -17547,11 +16688,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // determine new handle Y from new height
                     if (element.internalResize.resizingInsert) {
-                        //console.log(
-                        //    intNewHeight,
-                        //    viewportHeight,
-                        //    intMaxRowHeight
-                        //);
                         intNewY = (
                             viewportHeight -
                             intNewHeight
@@ -18070,8 +17206,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     // we need the user to see where the column or row will be
                     //      resized to
                     setLineToMouse(event);
-
-                    //console.log('X:' + intMouseX, 'Y:' + intMouseY);
                 }
             };
 
@@ -18081,28 +17215,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 var i;
                 var len;
                 var arrRecordHeights;
-                var arrSelectedColumns;
-                var arrColumnWidths;
-                var arrColumns;
-
-
-                var colsToResize = [];
+                var jsnDis;
+                var resizeCols = [];
                 var selectedBroken = false;
-                //console.log(arrSelectedColumns);
-                //console.log(
-                //    element.internalSelection.rows[0]
-                //    , ', header'
-                //);
-                if (element.internalSelection.rows[0] ===
-                    'header'
-                ) {
-                    //console.log(
-                    //    element.internalSelection.ranges.length
-                    //    , ', > 0'
-                   // );
-                    if (element.internalSelection.ranges.length
-                        > 0
-                    ) {
+
+                if (element.internalSelection.rows[0] === 'header') {
+                    if (element.internalSelection.ranges.length > 0) {
                         var jsnFirstRange = (
                             element.internalSelection.ranges[0]
                         );
@@ -18152,28 +17270,22 @@ document.addEventListener('DOMContentLoaded', function () {
                             i = 0;
                             while (i < intSelectionLength) {
                                 if (selectedBroken) {
-                                    colsToResize.push(
-                                        i + intEndColumn
-                                    );
+                                    resizeCols.push(i + intEndColumn);
                                 } else {
-                                    colsToResize.push(
-                                        i + intStartColumn
-                                    );
+                                    resizeCols.push(i + intStartColumn);
                                 }
 
                                 i += 1;
                             }
                         }
                     }
-
                 }
                 // nunzio commented this out on 2017-08-21
                 //      because it was causing the datasheet
                 //      to resize the selected columns even
                 //      though the resized column was not selected
-                // colsToResize.push(element.internalResize.resizeColumnIndex);
-
-                //console.log(colsToResize);
+                //resizeCols.push(element.internalResize.resizeColumnIndex);
+                //console.log(resizeCols);
 
                 // if scrolling is running, stop it because we are done with
                 //      the mouse part of the resize action
@@ -18214,39 +17326,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         // we need to know the selected columns so that we can
                         //      check to see if the resized column was selected
-                        // convenience variable
-                // // arrSelectedColumns = element.internalSelection.columns;
-                        // // arrSelectedColumns = (
-                        // //     arrSelectedColumns.slice(
-                        // //         arrSelectedColumns[0] === 'selector'
-                        // //             ? 1
-                        // //             : 0
-                        // //     )
-                        // // );
+                    //// arrSelectedColumns = element.internalSelection.columns;
+                        //// arrSelectedColumns = (
+                        ////     arrSelectedColumns.slice(
+                        ////         arrSelectedColumns[0] === 'selector'
+                        ////             ? 1
+                        ////             : 0
+                        ////     )
+                        //// );
 
                         // convenience variable
-                        arrColumnWidths = (
-                            element.internalDisplay.columnWidths
-                        );
-                        //console.log(colsToResize);
-                        // if the column we resized was seleced, resize any
+                        jsnDis = (element.internalDisplay);
+
+                        // if the column we resized was selected, resize any
                         //      columns that are selected and connected to it
-                        if (colsToResize.indexOf(intIndex) > -1) {
-                            arrColumns = (
-                                getConnectedSelectedColumns(element, intIndex)
-                            );
-
+                        if (resizeCols.indexOf(intIndex) > -1) {
                             i = 0;
-                            len = colsToResize.length;
+                            len = resizeCols.length;
                             while (i < len) {
-                                arrColumnWidths[colsToResize[i]] = intNew;
-                                //[arrColumns[i]] = intNew;
+                                jsnDis.columnWidths[resizeCols[i]] = intNew;
+
+                                // if the table has automatic column widths, we
+                                //      need to set these so that the calculator
+                                //      will know to treat this column as a
+                                //      statically set column now.
+                                jsnDis.setColumnWidths[resizeCols[i]] = intNew;
+                                jsnDis.setMinColumnWidths[resizeCols[i]] = null;
+                                jsnDis.columnRatios[resizeCols[i]] = null;
 
                                 i += 1;
                             }
                         } else {
                             // set new width
-                            arrColumnWidths[intIndex] = intNew;
+                            jsnDis.columnWidths[intIndex] = intNew;
+
+                            // if the table has automatic column widths, we need
+                            //      to set these so that the calculator will
+                            //      know to treat this column as a statically
+                            //      set column now.
+                            jsnDis.setColumnWidths[intIndex] = intNew;
+                            jsnDis.setMinColumnWidths[intIndex] = null;
+                            jsnDis.columnRatios[intIndex] = null;
                         }
                     }
                 }
@@ -18315,14 +17435,18 @@ document.addEventListener('DOMContentLoaded', function () {
             // bind the same drag start to the record and column elements so
             //      that if either one is mousedown'ed on, the cell resize
             //      starts
-            element.elems.handleColumn.addEventListener(
-                evt.mousedown,
-                element.internalEvents.cellResizeDragStart
-            );
-            element.elems.handleRecord.addEventListener(
-                evt.mousedown,
-                element.internalEvents.cellResizeDragStart
-            );
+            if (!element.hasAttribute('no-resize-column')) {
+                element.elems.handleColumn.addEventListener(
+                    evt.mousedown,
+                    element.internalEvents.cellResizeDragStart
+                );
+            }
+            if (!element.hasAttribute('no-resize-record')) {
+                element.elems.handleRecord.addEventListener(
+                    evt.mousedown,
+                    element.internalEvents.cellResizeDragStart
+                );
+            }
 
             // we want to resize the selected records/columns back to their
             //      default sizes if the handle is double-clicked
@@ -18379,9 +17503,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         var intEndColumn;
                         var intSelectionLength;
 
-                        if (element.internalSelection.rows[0] ===
-                            'header'
-                        ) {
+                        if (element.internalSelection.rows[0] === 'header') {
                             if (
                                 element.internalSelection.ranges.length > 0
                             ) {
@@ -18469,8 +17591,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 element.internalResize.resizeColumnIndex
                             ]);
                         }
-
-
 
                         //// convenience variable
                         //arrColumnWidths = (
@@ -18564,13 +17684,30 @@ document.addEventListener('DOMContentLoaded', function () {
             // bind the same resize to default to the record and column handles
             //      so that if either one is double-clicked on, the cell resize
             //      is triggered
-            element.elems.handleColumn.addEventListener(
-                'dblclick',
-                element.internalEvents.cellResizeToDefault
-            );
-            element.elems.handleRecord.addEventListener(
-                'dblclick',
-                element.internalEvents.cellResizeToDefault
+            if (!element.hasAttribute('no-resize-column')) {
+                element.elems.handleColumn.addEventListener(
+                    'dblclick',
+                    element.internalEvents.cellResizeToDefault
+                );
+            }
+            if (!element.hasAttribute('no-resize-record')) {
+                element.elems.handleRecord.addEventListener(
+                    'dblclick',
+                    element.internalEvents.cellResizeToDefault
+                );
+            }
+        }
+
+        element.internalEvents.columnAutoResize = function () {
+            renderScrollDimensions(element);
+        };
+
+        // If we're doing automatic column resize, we're going to want to
+        //      recalculate the column widths on every gs-table resize.
+        if (element.hasAttribute('column-auto-resize')) {
+            window.addEventListener(
+                'resize',
+                element.internalEvents.columnAutoResize
             );
         }
     }
@@ -18716,15 +17853,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         i += 1;
                     }
                 }
-                //console.log(
-                //    intMouse,
-                //    intPrevHandle,
-                //    intPrevIndex,
-                //    intCurrentHandle,
-                //    intCurrentIndex,
-                //    intHandleIndex,
-                //    element.internalDisplay.currentRange.fromColumn
-                //);
 
                 // the handle list only contains the visible column
                 //      list so, we have to add the first visible
@@ -18733,14 +17861,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     intHandleIndex +
                     element.internalDisplay.currentRange.fromColumn
                 );
-
-                //console.log(
-                //    intScroll,
-                //    intMouse,
-                //    intViewportWidth,
-                //    intHandleIndex,
-                //    intInsertionIndex
-                //);
 
                 // sometimes, this function will be called while the reorder
                 //      indicator is not in the DOM, if it isn't, append it to
@@ -19129,7 +18249,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             element.internalTemplates.header
                         );
                         arrOldHeaderTemplate = (
-                            xtag.query(headerTemplate.content, 'gs-cell')
+                            tblQry(headerTemplate.content, 'gs-cell')
                         );
                     }
 
@@ -19139,7 +18259,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             element.internalTemplates.originalRecord
                         );
                         arrOldRecordTemplate = (
-                            xtag.query(recordTemplate.content, 'gs-cell')
+                            tblQry(recordTemplate.content, 'gs-cell')
                         );
                     }
 
@@ -19149,7 +18269,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             element.internalTemplates.insertRecord
                         );
                         arrOldInsertTemplate = (
-                            xtag.query(insertTemplate.content, 'gs-cell')
+                            tblQry(insertTemplate.content, 'gs-cell')
                         );
                     }
 
@@ -19528,10 +18648,12 @@ document.addEventListener('DOMContentLoaded', function () {
             // bind the same drag start to the record and column elements so
             //      that if either one is mousedown'ed on, the cell resize
             //      starts
-            element.elems.dataViewport.addEventListener(
-                'mousedown',
-                element.internalEvents.columnReorderDragStart
-            );
+            if (!element.hasAttribute('no-column-reorder')) {
+                element.elems.dataViewport.addEventListener(
+                    'mousedown',
+                    element.internalEvents.columnReorderDragStart
+                );
+            }
         }
     }
 
@@ -19629,7 +18751,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         cellElement.getAttribute('data-row-number'),
                         10
                     );
-
 
                     //console.log('column value:', columnElement.value);
                     //console.log('target value:', target.value);
@@ -19780,8 +18901,8 @@ document.addEventListener('DOMContentLoaded', function () {
             </gs-block>
         </gs-grid>
     </gs-footer>
-</gs-page>
-                */}).replace(/\{\{HTML\}\}/gi, strHTML);
+</gs-page>*/
+                }).replace(/\{\{HTML\}\}/gi, strHTML);
 
                 // open the dialog
                 GS.openDialog(templateElement, function () {
@@ -19803,7 +18924,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         // when the save button is clicked, we need to check
                         //      every field to find out what changes have been
                         //      made
-                        arrElement = xtag.query(dialog, '[column]');
+                        arrElement = tblQry(dialog, '[column]');
                         arrColumns = [];
                         arrValues = [];
                         elem_i = 0;
@@ -19867,8 +18988,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     };
 
-                    document.getElementById('gs-table-update-record')
-                            .addEventListener('click', saveButtonClick);
+                    tblElemByID('gs-table-update-record')
+                        .addEventListener('click', saveButtonClick);
                 });
             }
         };
@@ -19916,7 +19037,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
         element.internalEvents.insertRecordBlur = function (event) {
             setTimeout(
-                function() {
+                function () {
                     var parentCell = GS.findParentTag(event.target, 'gs-cell');
                     var newParentCell = GS.findParentTag(
                         document.activeElement,
@@ -19946,7 +19067,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         )
                     ) {
                         totalValues = false;
-                        insertElements = xtag.query(
+                        insertElements = tblQry(
                             element,
                             '.table-insert input'
                         );
@@ -19959,7 +19080,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
 
                         if (totalValues && totalValues !== 'false') {
-                            element.internalEvents.insertRecordValueRetain(event);
+                            element.internalEvents
+                                .insertRecordValueRetain(event);
                             triggerRecordInsert(element);
                         }
                     }
@@ -19985,20 +19107,13 @@ document.addEventListener('DOMContentLoaded', function () {
         //      when we re-template the insert record on scroll, we can get
         //      the values back
         element.internalEvents.insertRecordValueRetain = function (event) {
-            if (event.type === 'keyup' && event.keyCode == 13) {
-                //console.log('exit');
+            if (event.type === 'keyup' && event.keyCode === 13) {
                 return;
-                //console.log(event.type);
             }
             var target = event.target;
             var parentCell = GS.findParentTag(target, 'gs-cell');
+            var parentColumn = GS.findParentElement(target, '[column]');
 
-            // if (target.hasAttribute('column')) {
-            //     var parentColumn = event.target;
-            //     //console.log(parentColumn, parentColumn.value);
-            // } else {
-                var parentColumn = GS.findParentElement(target, '[column]');
-            // }
             if (!parentColumn) {
                 return;
             }
@@ -20073,19 +19188,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ############# HUD EVENTS #############
-    function unbindHUD(element) {
+    function unbindHUD() { //element
 
     }
-    function bindHUD(element) {
+    function bindHUD() { //element
 
     }
 
     // ############# KEY EVENTS #############
     function unbindKey(element) {
-        element.removeEventListener(
-            'keydown',
-            element.internalEvents.keyDown
-        );
+        if (!evt.touchDevice) {
+            element.removeEventListener(
+                'keydown',
+                element.internalEvents.keyDown
+            );
+        }
     }
     function bindKey(element) {
         element.internalEvents.keyDown = function (event) {
@@ -20421,14 +19538,21 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (bolCMDorCTRL) {
                             intNewRecord = intMaxRecord;
                             intNewColumn = intOldColumn;
-                        
+
                         // else if, is at the end move to next immediate cell
-                        } else if (intOldRecord < intMaxRecord && bolCursorAtLast) {
+                        } else if (
+                            intOldRecord < intMaxRecord &&
+                            bolCursorAtLast
+                        ) {
                             intNewRecord = (intOldRecord + 1);
                             intNewColumn = intOldColumn;
                         // else, move to extreme of cell
                         } else {
-                            GS.setInputSelection(active, jsnCursorPos.start, activeValue.length);
+                            GS.setInputSelection(
+                                active,
+                                jsnCursorPos.start,
+                                activeValue.length
+                            );
                         }
                     }
 
@@ -20828,10 +19952,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-        element.addEventListener(
-            'keydown',
-            element.internalEvents.keyDown
-        );
+        if (!evt.touchDevice) {
+            element.addEventListener(
+                'keydown',
+                element.internalEvents.keyDown
+            );
+        }
     }
 
     // ############# COPY EVENTS #############
@@ -20885,8 +20011,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (
                         focusedElement.classList
                             .contains('hidden-focus-control') ||
-                        focusedElement.selectionStart ===
-                        focusedElement.selectionEnd
+                            (
+                                focusedElement.selectionStart ===
+                                focusedElement.selectionEnd
+                            )
                     ) {
                         console.time('copy');
 
@@ -20947,18 +20075,22 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-        element.addEventListener(
-            'copy',
-            element.internalEvents.copySelection
-        );
+        if (!evt.touchDevice && !element.hasAttribute('no-copy')) {
+            element.addEventListener(
+                'copy',
+                element.internalEvents.copySelection
+            );
+        }
     }
 
     // ############# PASTE EVENTS #############
     function unbindPaste(element) {
-        element.removeEventListener(
-            'paste',
-            element.internalEvents.pasteSelection
-        );
+        if (!evt.touchDevice) {
+            element.removeEventListener(
+                'paste',
+                element.internalEvents.pasteSelection
+            );
+        }
     }
     function bindPaste(element) {
         element.internalEvents.pasteSelection = function (event) {
@@ -20973,18 +20105,22 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-        element.addEventListener(
-            'paste',
-            element.internalEvents.pasteSelection
-        );
+        if (!evt.touchDevice) {
+            element.addEventListener(
+                'paste',
+                element.internalEvents.pasteSelection
+            );
+        }
     }
 
     // ############# CUT EVENTS #############
     function unbindCut(element) {
-        element.removeEventListener(
-            'cut',
-            element.internalEvents.cutSelection
-        );
+        if (!evt.touchDevice) {
+            element.removeEventListener(
+                'cut',
+                element.internalEvents.cutSelection
+            );
+        }
     }
     function bindCut(element) {
         element.internalEvents.cutSelection = function () {
@@ -21002,10 +20138,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-        element.addEventListener(
-            'cut',
-            element.internalEvents.cutSelection
-        );
+        if (!evt.touchDevice) {
+            element.addEventListener(
+                'cut',
+                element.internalEvents.cutSelection
+            );
+        }
     }
 
     // ############# CONTEXTMENU EVENTS #############
@@ -21163,7 +20301,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // we wan't to get the text selection of current cell,
                     //      so we need the column element
-                    columnElement = xtag.query(parentCell, '[column]')[0];
+                    columnElement = tblQry(parentCell, '[column]')[0];
 
                     // we can't get the text selection if there's no column
                     //      element or there's no value
@@ -21191,7 +20329,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         // else, we need to search inside the column element
                         //      for the focus element
                         } else {
-                            focusElement = xtag.query(
+                            focusElement = tblQry(
                                 columnElement,
                                 'input[type="text"], textarea'
                             )[0];
@@ -21471,7 +20609,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         //      the current status of the column filter
                         //      on/off
                         if (bolFilterSelection) {
-                            filterToggleButton = xtag.query(
+                            filterToggleButton = tblQry(
                                 dialog,
                                 '.button-filter-toggle'
                             )[0];
@@ -21570,8 +20708,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         } else if (strAnswer === 'Fit To Content') {
                             var colsToResize = [];
-                            if (element.internalSelection.rows[0] ===
-                                'header'
+                            if (
+                                element.internalSelection.rows[0] === 'header'
                             ) {
                                 var jsnFirstRange = (
                                     element.internalSelection.ranges[0]
@@ -21878,7 +21016,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // we want save the user a little time, so we'll pre-fill
                     //      the filter value text control
-                    arrElements = xtag.query(dialog, '.fltr-row gs-text');
+                    arrElements = tblQry(dialog, '.fltr-row gs-text');
                     i = 0;
                     len = arrElements.length;
                     while (i < len) {
@@ -21911,7 +21049,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     strAnswer = strAnswer.trim();
 
                     if (strAnswer === 'Apply') {
-                        arrRows = xtag.query(dialog, '.fltr-row');
+                        arrRows = tblQry(dialog, '.fltr-row');
                         i = 0;
                         len = arrRows.length;
                         while (i < len) {
@@ -22020,10 +21158,12 @@ document.addEventListener('DOMContentLoaded', function () {
             // ### NEED CODING ### (VERSION 2)
         };
 
-        element.elems.dataViewport.addEventListener(
-            'contextmenu',
-            element.internalEvents.columnContextMenu
-        );
+        if (!element.hasAttribute('no-context-menu')) {
+            element.elems.dataViewport.addEventListener(
+                'contextmenu',
+                element.internalEvents.columnContextMenu
+            );
+        }
     }
 
     // ############# COLUMN DROPDOWN EVENTS #############
@@ -22166,11 +21306,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     function () {
                         var dialog = this;
 
-                        var uniqueFilterElement = xtag.query(
+                        var uniqueFilterElement = tblQry(
                             dialog,
                             '.gs-table-unique-filter-container'
                         )[0];
-                        var valueListElement = xtag.query(
+                        var valueListElement = tblQry(
                             dialog,
                             '.gs-table-unique-value-list'
                         )[0];
@@ -22194,7 +21334,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     function (ignore, strAnswer) {
                         var dialog = this;
                         var tableElement;
-                        var valueListElement = xtag.query(
+                        var valueListElement = tblQry(
                             dialog,
                             '.gs-table-unique-value-list'
                         )[0];
@@ -22442,7 +21582,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     jsnCache.fontSize !== intFontSize
                 ) {
                     renderScrollDimensions(element);
-                    GS.triggerEvent(window, 'resize');
+                    GS.triggerEvent(
+                        window,
+                        'resize',
+                        {"gs": {"source": "gs-table"}}
+                    );
                 }
 
                 jsnCache.elementWidth = intWidth;
@@ -22497,6 +21641,8 @@ document.addEventListener('DOMContentLoaded', function () {
 // #############################################################################
 
     function elementInserted(element) {
+        var arrRetainedColumns;
+
         // if "created"/"inserted" are not suspended: run inserted code
         if (
             !element.hasAttribute('suspend-created') &&
@@ -22514,15 +21660,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderHUD(element);
                 bindElement(element);
 
+                arrRetainedColumns = (
+                    element
+                        .internalData
+                        .insertRecordRetainedColumns
+                );
+
                 GS.addBeforeUnloadEvent(function () {
                     if (
-                        element
-                            .internalData
-                            .insertRecordRetainedColumns &&
-                        element
-                            .internalData
-                            .insertRecordRetainedColumns
-                            .length > 0
+                        arrRetainedColumns &&
+                        arrRetainedColumns.length > 0
                     ) {
                         return 'There is data in the insert record.';
                     }
@@ -22685,7 +21832,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var element = this;
                 var containerElement;
 
-                containerElement = document.getElementById(container);
+                containerElement = tblElemByID(container);
 
                 if (element.classList.contains('absolute')) {
                     GS.triggerEvent(element, 'closeFullContainer');
@@ -22705,7 +21852,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var element = this;
                 var containerElement;
 
-                containerElement = document.getElementById(container);
+                containerElement = tblElemByID(container);
 
                 if (!element.classList.contains('absolute')) {
                     GS.triggerEvent(element, 'openFullContainer');
@@ -22720,7 +21867,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var element = this;
                 var containerElement;
 
-                containerElement = document.getElementById(container);
+                containerElement = tblElemByID(container);
 
                 if (element.classList.contains('absolute')) {
                     GS.triggerEvent(element, 'closeFullContainer');
@@ -22850,9 +21997,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 var intMaxRecord = (
                     this.internalData.records.length - 1
                 );
-                var intMinColumn = (
+                var minColumn = (
                     this.internalDisplay.recordSelectorVisible
-                        ? -1
+                        ? "selector"
                         : 0
                 );
 
@@ -22894,17 +22041,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (intMaxRecord === -1) {
                         intCurrentRecord = undefined;
                     }
+
                     // override all current ranges to select the new record
                     if (intCurrentRecord !== undefined) {
                         this.internalSelection.ranges = [
                             {
                                 "start": {
                                     "row": intCurrentRecord,
-                                    "column": intMinColumn
+                                    "column": minColumn
                                 },
                                 "end": {
                                     "row": intCurrentRecord,
-                                    "column": intMinColumn
+                                    "column": minColumn
                                 },
                                 "negator": false
                             }
@@ -23184,3 +22332,288 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+
+// #############################################################################
+// ################################# OLD NOTES #################################
+// #############################################################################
+
+/*
+new datasheet
+    select, insert, update,
+        delete, copy, paste and selection events (prevent default)
+    programatic select, insert, update,
+        delete, copy, paste and selection (events marked as programatic)
+
+    fixed headers/record selectors
+    ace scrolling
+    insert record
+
+    data source is not required (column list is required if no data source)
+
+    header, record, insert record templating (dot.js)
+
+    placeholder for null values
+    value to set value as null
+
+    headers, record selectors, insert record are all optional
+
+    copy settings (
+        headers always|never|whenselected
+        record selectors always|never|whenselected
+        quote char
+        quote when never|strings|always
+        record delim char
+        cell delim char
+        null value string
+    )
+    no more table element
+
+    selection is stored as ranges
+    backwards compatible attributes (transfer to new names and warn)
+
+
+element name:
+    <gs-table></gs-table>
+
+helper elements:
+    <gs-cell></gs-cell>
+
+attributes:
+    pk
+    lock
+    seq
+    cols (required if no src)
+    src
+    where
+    session-filter (where clause that can be overridden by the user)
+    ord
+    limit
+    offset
+    column
+    child-column
+    qs
+    refresh-on-querystring-values
+    refresh-on-querystring-change
+
+    reflow-at (future)
+    scroll-past-bottom
+        (allows you to scroll until only the bottom record is seen)
+    scroll-to-bottom (scrolls all the way down on initial load)
+    no-insert-scroll (disables scrolling all the way down after insert)
+    expand-to-content
+
+    no-hudpaginate
+    no-hudrefresh
+    no-huddelete
+    no-filter
+
+    suspend-created
+    suspend-inserted
+
+    no-header
+    no-record-selector
+    no-selection
+
+    null-string (defaults to "")
+    null-set-string (defaults to null-string attribute)
+
+    no-resize-column
+    no-resize-record
+
+    default-cell-height (pixels, defaults if not present)
+    default-cell-width (pixels, defaults if not present)
+
+    socket (name of a property stored on the GS object, needs to be a socket)
+
+    copy-header           always|never|selected
+    copy-selectors        always|never|selected
+    copy-quote-char       text
+    copy-escape-char      text
+    copy-quote-when       never|strings|always|delimiter-in-content
+    copy-delimiter-record text
+    copy-delimiter-cell   text
+    copy-null-cell        text
+
+templates: (all are dot.js templated before use)
+    for="hud" (snippet contains default
+                    insert/update/delete/refresh/filter/paginate elements)
+    for="header-record"
+        <gs-cell>HEADERTEXT</gs-cell>
+    for="data-record"
+        <gs-cell header="HEADERTEXT">
+            <gs-text mini column="COLUMNNAME"></gs-text>
+        </gs-cell>
+    for="insert-record"
+        <gs-cell header="HEADERTEXT" target="COLUMNNAME"></gs-cell>
+    for="insert-dialog"
+
+accessors:
+    selection (contains JS array of selection ranges)
+    data (contains TSV of all data)
+    value (value attribute)
+
+events:
+    before_select (contains TSV of selection under "records" key)
+    before_insert (contains TSV of insert under "records" key)
+    before_update (contains TSV of old/new under "records" key ("old", "new"))
+    before_delete (contains TSV of delete under "records" key)
+    before_selection (contains TSV of selection ranges under "selection" key)
+
+    after_select (contains TSV of selection under "records" key)
+    after_insert (contains TSV of insert under "records" key)
+    after_update (contains TSV of old/new under "records" key ("old", "new"))
+    after_delete (contains TSV of delete under "records" key)
+    after_selection (contains TSV of selection ranges under "selection" key)
+
+    insert_dialog_open (event.relatedTarget = insert dialog)
+    before_copy (preventDefault will prevent copy)
+    copy
+    paste
+
+methods:
+    refresh
+    render
+    scrollToIndex(cell_number, record_number)
+    clearSelection()
+    addSelectionRange(
+        fromCell_number,
+        fromRecord_number,
+        toCell_number,
+        toRecord_number,
+        bolNegate (default false)
+    )
+    getCopyString(
+        strMimeType text|html
+    )
+    paste(paste_string)
+    filter(
+        filterColumn,
+        filterType contains|starts|ends|equals|greaterthan|lessthan,
+        showIfMatch true|false,
+        filterValue
+    )
+    selectData
+    insertData
+    updateData
+    deleteData
+
+click behavior:
+    if click results in focused input/textarea
+            and start/end locations are in the same place:
+        select all control contents
+    if not no-filter and click results in focused control: filter popup tooltip
+
+mousedown-drag:
+    if shift:
+        move latest selection range's endpoint
+    if no shift:
+        clear all selections
+        start new selection
+    if command/control:
+        start new selection
+        if selection started on an already selected cell:
+            selection is a negator selection
+
+selection behavior:
+    if selection origin and end is on a record selector:
+        select entire records
+    if selection origin and end is on a header selector:
+        select entire columns
+    if selection origin starts and ends on the top-left selector:
+        select all cells
+    if selection endpoint is off-screen:
+        scroll it to middle
+
+focus behavior:
+    cell/record focus location is saved
+        (if cell is visible after a render, focus into it)
+        (removed on blur)
+    on selection with no focused control: focus hidden control
+    on mousedown inside the element (on unfocusable element):
+        focus hidden control
+    on blur after cell change: cause update
+    on focus of single cell: set selection to focused cell
+
+copy behavior:
+    never copy insert record
+    on copy event and hidden focus control is focused:
+        copy to html mime type (using applicable copy attributes)
+        copy to text mime type (using applicable copy attributes)
+    if a record is not selected: no space is made for it in the copy
+    if a column is not selected: no space is made for it in the copy
+
+key behavior:
+    arrowing around selects the cell, doesn't focus the control
+    return on selection focuses selection origin cell control
+    "delete"/"forward delete" when no control is focused causes record delete
+    on return after cell change: cause update
+
+    if arrow:
+        if shift:
+            "selection" means selection end of latest selection range
+        if no shift:
+            clear all selection ranges
+            "selection" means selection origin/end of new selection range
+
+        if all contents selected because of arrow
+            or
+        if cursor is at boundary in the direction of the arrow:
+            if there is a cell in the direction of the arrow:
+                move selection in direction of arrow
+            else:
+                if right at last cell of record: first cell of next record
+                if right at last cell of table: first cell of table
+                if left at first cell of record: last cell of previous record
+                if left at first cell of table: last cell of table
+                if up at first cell of column: previous column of bottom record
+                if down at last cell of column: next column of first record
+
+scrollbar behavior:
+    whenever the record count is changed: the scrollbar is rerendered
+    the scrollbar has a maximum range, stop growing around this height
+    if scrollbar is past max height, you'll need to translate the top
+        into (1px of scroll height will = >1px of motion)
+    after scroll: rerender location
+    phone scroll: no scrollbar, needs elastic motion
+    scroll render:
+        if scrollTop is >0     header shadow
+        if scrollLeft is >0    record selector shadow
+        if scrollBottom is >0  insert record shadow
+        if scrollRight is >0   right side shadow
+
+loader behavior:
+    when enabled: a small spinner shows at the top-right of the data area
+
+delete behavior:
+    always asks if you're sure
+    after success:
+        remove record from internal data,
+        render current location,
+        clear selection range if it's now out of bounds
+    during delete: enable element loader
+    after delete is initiated: record is no longer clickable
+
+insert behavior:
+    asks if you're sure only when inserting multiple records (using paste)
+    after success:
+        append new data to the end of internal data,
+        scroll to bottom,
+        render current location,
+        clear selection range
+    during insert: enable element loader
+
+update behavior:
+    asks if you're sure only when updating multiple records (using paste)
+    after success:
+        update whole record in internal data,
+        render current location,
+        clear selection range
+    during update: enable element loader
+    if an update is caused while another update is still resolving: add to queue
+
+select behavior:
+    first load: if scroll-to-bottom: scroll to reveal bottom record
+    reload: always returns to previous scroll/focus/textselection situation
+    during load: enable element loader
+*/

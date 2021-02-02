@@ -1,158 +1,46 @@
-window.addEventListener('design-register-element', function () {
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps, shimmed
+//jslint browser:true, white:false, this:true
+//, maxlen:80
 
-    registerDesignSnippet('<gs-time>', '<gs-time>', 'gs-time column="${1:name}"></gs-time>');
-    registerDesignSnippet('<gs-time> With Label', '<gs-time>', 'label for="${1:time-insert-start_time}">${2:Start Time}:</label>\n' +
-                                                               '<gs-time id="${1:time-insert-start_time}" column="${3:start_time}"></gs-time>');
+window.addEventListener('design-register-element', function () {
+    "use strict";
+    addSnippet('<gs-time>', '<gs-time>', 'gs-time column="${1:name}"></gs-time>');
+    addSnippet(
+        '<gs-time> With Label',
+        '<gs-time>',
+        (
+            'label for="${1:time-insert-start_time}">${2:Start Time}:</label>\n' +
+            '<gs-time id="${1:time-insert-start_time}" column="${3:start_time}"></gs-time>'
+        )
+    );
 
     /*
     TODO: there is no documentation
-    designRegisterElement('gs-time', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-time.html');
+    addElement('gs-time', '');
     */
-    
+
     window.designElementProperty_GSTIME = function(selectedElement) {
-        addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'column', this.value);
-        });
-
-        addProp('Value', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('value') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'value', this.value);
-        });
-
-        addProp('Column In Querystring', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'qs', this.value, false);
-        });
-
-        addProp('Placeholder', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('placeholder') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'placeholder', this.value);
-        });
-
-        addProp('Mini', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('mini')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'mini', (this.value === 'true'), true);
-        });
-
-        addProp('Time Picker', true, '<gs-checkbox class="target" value="' + (!selectedElement.hasAttribute('no-picker')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-picker', (this.value === 'true'), false);
-        });
-
-        addProp('Non-Empty', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('non-empty')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'non-empty', (this.value === 'true'), true);
-        });
-
-        addProp('Now Button', true, '<gs-checkbox class="target" value="' + (!selectedElement.hasAttribute('no-now-button')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-now-button', (this.value === 'true'), false);
-        });
-
-        addProp('Display Format', true, '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('format') || '') + '" mini>' +
-                                    '<option value="">Regular (1:30 PM)</option>' +
-                                    '<option value="military">Military (13:30)</option>' +
-                                '</gs-select>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'format', this.value);
-        });
-
-        addProp('Output Format', true, '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('output-format') || '') + '" mini>' +
-                                    '<option value="">Regular (1:30 PM)</option>' +
-                                    '<option value="military">Military (13:30)</option>' +
-                                '</gs-select>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'output-format', this.value);
-        });
-
-        // TITLE attribute
-        addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
-        });
-
-        // TABINDEX attribute
-        addProp('Tabindex', true, '<gs-number class="target" value="' + encodeHTML(selectedElement.getAttribute('tabindex') || '') + '" mini></gs-number>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'tabindex', this.value);
-        });
-
-        addProp('Autocorrect', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocorrect') !== 'off') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'autocorrect', (this.value === 'false' ? 'off' : ''));
-        });
-
-        addProp('Autocapitalize', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocapitalize') !== 'off') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'autocapitalize', (this.value === 'false' ? 'off' : ''));
-        });
-
-        addProp('Autocomplete', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocomplete') !== 'off') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'autocomplete', (this.value === 'false' ? 'off' : ''));
-        });
-
-        addProp('Spellcheck', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('spellcheck') !== 'false') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'spellcheck', (this.value === 'false' ? 'false' : ''));
-        });
-
-        // visibility attributes
-        var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden')) {
-            strVisibilityAttribute = 'hidden';
-        }
-        if (selectedElement.hasAttribute('hide-on-desktop')) {
-            strVisibilityAttribute = 'hide-on-desktop';
-        }
-        if (selectedElement.hasAttribute('hide-on-tablet')) {
-            strVisibilityAttribute = 'hide-on-tablet';
-        }
-        if (selectedElement.hasAttribute('hide-on-phone')) {
-            strVisibilityAttribute = 'hide-on-phone';
-        }
-        if (selectedElement.hasAttribute('show-on-desktop')) {
-            strVisibilityAttribute = 'show-on-desktop';
-        }
-        if (selectedElement.hasAttribute('show-on-tablet')) {
-            strVisibilityAttribute = 'show-on-tablet';
-        }
-        if (selectedElement.hasAttribute('show-on-phone')) {
-            strVisibilityAttribute = 'show-on-phone';
-        }
-
-        addProp('Visibility', true, '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                                        '<option value="">Visible</option>' +
-                                        '<option value="hidden">Invisible</option>' +
-                                        '<option value="hide-on-desktop">Invisible at desktop size</option>' +
-                                        '<option value="hide-on-tablet">Invisible at tablet size</option>' +
-                                        '<option value="hide-on-phone">Invisible at phone size</option>' +
-                                        '<option value="show-on-desktop">Visible at desktop size</option>' +
-                                        '<option value="show-on-tablet">Visible at tablet size</option>' +
-                                        '<option value="show-on-phone">Visible at phone size</option>' +
-                                    '</gs-select>', function () {
-            selectedElement.removeAttribute('hidden');
-            selectedElement.removeAttribute('hide-on-desktop');
-            selectedElement.removeAttribute('hide-on-tablet');
-            selectedElement.removeAttribute('hide-on-phone');
-            selectedElement.removeAttribute('show-on-desktop');
-            selectedElement.removeAttribute('show-on-tablet');
-            selectedElement.removeAttribute('show-on-phone');
-
-            if (this.value) {
-                selectedElement.setAttribute(this.value, '');
-            }
-
-            return selectedElement;
-        });
-
-        // DISABLED attribute
-        addProp('Disabled', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('disabled') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'disabled', this.value === 'true', true);
-        });
-
-        // READONLY attribute
-        addProp('Readonly', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('readonly') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'readonly', this.value === 'true', true);
-        });
-
-        //addFlexContainerProps(selectedElement);
-        addFlexProps(selectedElement);
-
-        // SUSPEND-CREATED attribute
-        addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
-        });
-
-        // SUSPEND-INSERTED attribute
-        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
-        });
+        addGSControlProps();
+        addText('V', 'Placeholder', 'placeholder');
+        addCheck('V', 'Time Picker', 'no-picker');
+        addCheck('D', 'Non-Empty', 'non-empty');
+        addCheck('V', 'Now Button', 'no-now-button');
+        addSelect('V', 'Display Format', 'format', [
+            {"val": "", "txt": "Regular (1:30 PM)"},
+            {"val": "military", "txt": "Military (13:30)"}
+        ]);
+        addSelect('D', 'Output Format', 'output-format', [
+            {"val": "", "txt": "Regular (1:30 PM)"},
+            {"val": "military", "txt": "Military (13:30)"}
+        ]);
+        addAutocompleteProps();
+        addFocusEvents();
+        addFlexProps();
+        addText('O', 'Column In QS', 'qs');
     };
 });
 

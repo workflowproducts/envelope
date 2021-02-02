@@ -1,122 +1,45 @@
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps
+//jslint browser:true, white:false, this:true
+//, maxlen:80
 
 window.addEventListener('design-register-element', function () {
     'use strict';
-    
-    registerDesignSnippet('<gs-img>', '<gs-img>', 'gs-img src="${1}"></gs-img>');
-    
-    designRegisterElement('gs-img', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_image');
-    
+
+    addSnippet('<gs-img>', '<gs-img>', 'gs-img src="${1}"></gs-img>');
+    addElement('gs-img', '#layout_image');
+
     window.designElementProperty_GSIMG = function(selectedElement) {
-        addProp('Min-Width Media', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('min-width') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'min-width', this.value);
-        });
-        
-        addProp('Media', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('media') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'media', this.value);
-        });
-        
-        addProp('Source', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('src') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'src', this.value);
-        });
-        
-        addProp('Alignment', true, '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('align') || '') + '" mini>' +
-                                   '    <option value="left">Left</option>' +
-                                   '    <option value="">Center</option>' +
-                                   '    <option value="right">Right</option>' +
-                                   '</gs-select>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'align', this.value);
-        });
-        
-        addProp('Image Cover', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('image-cover') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'image-cover', this.value === 'true', true);
-        });
-        
-        // TITLE attribute
-        addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
-        });
-        
-        // SUSPEND-INSERTED attribute
-        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
-        });
-
-        // visibility attributes
-        var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden')) {
-            strVisibilityAttribute = 'hidden';
-        }
-        if (selectedElement.hasAttribute('hide-on-desktop')) {
-            strVisibilityAttribute = 'hide-on-desktop';
-        }
-        if (selectedElement.hasAttribute('hide-on-tablet')) {
-            strVisibilityAttribute = 'hide-on-tablet';
-        }
-        if (selectedElement.hasAttribute('hide-on-phone')) {
-            strVisibilityAttribute = 'hide-on-phone';
-        }
-        if (selectedElement.hasAttribute('show-on-desktop')) {
-            strVisibilityAttribute = 'show-on-desktop';
-        }
-        if (selectedElement.hasAttribute('show-on-tablet')) {
-            strVisibilityAttribute = 'show-on-tablet';
-        }
-        if (selectedElement.hasAttribute('show-on-phone')) {
-            strVisibilityAttribute = 'show-on-phone';
-        }
-
-        addProp('Visibility', true, '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                                        '<option value="">Visible</option>' +
-                                        '<option value="hidden">Invisible</option>' +
-                                        '<option value="hide-on-desktop">Invisible at desktop size</option>' +
-                                        '<option value="hide-on-tablet">Invisible at tablet size</option>' +
-                                        '<option value="hide-on-phone">Invisible at phone size</option>' +
-                                        '<option value="show-on-desktop">Visible at desktop size</option>' +
-                                        '<option value="show-on-tablet">Visible at tablet size</option>' +
-                                        '<option value="show-on-phone">Visible at phone size</option>' +
-                                    '</gs-select>', function () {
-            selectedElement.removeAttribute('hidden');
-            selectedElement.removeAttribute('hide-on-desktop');
-            selectedElement.removeAttribute('hide-on-tablet');
-            selectedElement.removeAttribute('hide-on-phone');
-            selectedElement.removeAttribute('show-on-desktop');
-            selectedElement.removeAttribute('show-on-tablet');
-            selectedElement.removeAttribute('show-on-phone');
-            
-            if (this.value) {
-                selectedElement.setAttribute(this.value, '');
-            }
-            
-            return selectedElement;
-        });
-        
-        //addFlexContainerProps(selectedElement);
-        addFlexProps(selectedElement);
+        addText('D', 'Source', 'src');
+        addText('V', 'Min-Width Media', 'min-width');
+        addText('V', 'Media', 'media');
+        addSelect('V', 'Alignment', 'align', [
+            {"val": "", "txt": "Center (Default)"},
+            {"val": "left", "txt": "Left"},
+            {"val": "right", "txt": "Right"}
+        ]);
+        addCheck('V', 'Image Cover', 'image-cover');
+        addFlexProps();
     };
 });
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
     var arrTakenlayouts = [];
-    
-    // dont do anything that modifies the element here
-    function elementCreated(element) {
-        // if "created" hasn't been suspended: run created code
-        if (!element.hasAttribute('suspend-created')) {
-            
-        }
-    }
-    
+
     //
     function elementInserted(element) {
         var styleElement;
-        
+
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
             // if this is the first time inserted has been run: continue
             if (!element.inserted) {
                 element.inserted = true;
-                
+
                 // if the style element for the grid column CSS doesn't exist: create it
                 if (!document.getElementById('gs-dynamic-css')) {
                     styleElement = document.createElement('style');
@@ -124,15 +47,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     styleElement.setAttribute('gs-dynamic', '');
                     document.head.appendChild(styleElement);
                 }
-                
+
                 element.handleSrc();
-                
+
                 if (element.getAttribute('min-width')) {
                     element.handleMinWidthCSS();
                 } else if (element.getAttribute('media')) {
                     element.handleMediaCSS();
                 }
-                
+
                 if (element.hasAttribute('alt')) {
                     element.setAttribute('aria-label', element.getAttribute('alt'));
                     element.removeAttribute('alt');
@@ -140,36 +63,32 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
-    
+
     xtag.register('gs-img', {
         lifecycle: {
-            created: function () {
-                elementCreated(this);
-            },
-            
             inserted: function () {
                 elementInserted(this);
             },
-            
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
-                if (strAttrName === 'suspend-created' && newValue === null) {
-                    elementCreated(this);
+                if (
+                    (
+                        strAttrName === 'suspend-created' ||
+                        strAttrName === 'suspend-inserted'
+                    ) &&
+                    newValue === null
+                ) {
                     elementInserted(this);
-                    
-                // if "suspend-inserted" has been removed: run inserted code
-                } else if (strAttrName === 'suspend-inserted' && newValue === null) {
-                    elementInserted(this);
-                    
+
                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
                     // if the "min-width" attribute changed
                     if (strAttrName === 'min-width') {
                         this.handleMinWidthCSS();
-                        
+
                     // if the "media" attribute changed
                     } else if (strAttrName === 'media') {
                         this.handleMediaCSS();
-                        
+
                     // if the "src" attribute changed
                     } else if (strAttrName === 'src') {
                         this.handleSrc();

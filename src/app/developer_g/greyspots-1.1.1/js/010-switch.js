@@ -1,46 +1,33 @@
-//global window, document, GS, ml, encodeHTML, addFlexContainerProps, addFlexProps, addProp, registerDesignSnippet, designRegisterElement, setOrRemoveTextAttribute, setOrRemoveBooleanAttribute, xtag, doT
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps, shimmed
+//jslint browser:true, white:false, this:true
+//, maxlen:80
 
 window.addEventListener('design-register-element', function () {
     'use strict';
-    registerDesignSnippet('<gs-switch>', '<gs-switch>', 'gs-switch>\n' +
-                                                        '    <template for="${1:none}"></template>\n' +
-                                                        '    <template for="${2:detail}"></template>\n' +
-                                                        '</gs-switch>');
+    addSnippet(
+        '<gs-switch>',
+        '<gs-switch>',
+        (
+            'gs-switch>\n' +
+            '    <template for="${1:none}"></template>\n' +
+            '    <template for="${2:detail}"></template>\n' +
+            '</gs-switch>'
+        )
+    );
 
-    designRegisterElement('gs-switch', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_switch');
+    addElement('gs-switch', '#layout_switch');
 
-    window.designElementProperty_GSSWITCH = function (selectedElement) {
-
-        addProp('Template', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('template') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'template', this.value);
-        });
-
-        addProp('Refresh On Querystring Columns', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('refresh-on-querystring-values') || '') + '" mini></gs-text>', function () {
-            this.removeAttribute('refresh-on-querystring-change');
-            return setOrRemoveTextAttribute(selectedElement, 'refresh-on-querystring-values', this.value);
-        });
-
-        addProp('Refresh On Querystring Change', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('refresh-on-querystring-change')) + '" mini></gs-checkbox>', function () {
-            this.removeAttribute('refresh-on-querystring-values');
-            return setOrRemoveBooleanAttribute(selectedElement, 'refresh-on-querystring-change', this.value === 'true', true);
-        });
-        
-        addProp('Column In Querystring', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'qs', this.value, false);
-        });
-
-        addFlexContainerProps(selectedElement);
-        addFlexProps(selectedElement);
-
-        // SUSPEND-CREATED attribute
-        addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
-        });
-
-        // SUSPEND-INSERTED attribute
-        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
-        });
+    window.designElementProperty_GSSWITCH = function () {
+        addText('V', 'Template', 'template');
+        addFlexContainerProps();
+        addFlexProps();
+        addText('O', 'Refresh On QS Columns', 'refresh-on-querystring-values');
+        addCheck('O', 'Refresh On QS Change', 'refresh-on-querystring-change');
+        addText('O', 'Column In QS', 'qs');
     };
 });
 

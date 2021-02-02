@@ -1,7 +1,27 @@
-//element.clientHeight < element.scrollHeight
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps
+//jslint browser:true, white:false, this:true
+//, maxlen:80
 
 window.addEventListener('design-register-element', function () {
-    designRegisterElement('gs-memo', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_memo');
+    "use strict";
+    designRegisterElement('gs-memo', '#controls_memo');
+
+    window.designElementProperty_GSMEMO = function (selectedElement) {
+        addGSControlProps();
+        addText('O', 'Column In QS', 'qs');
+        addText('V', 'Placeholder', 'placeholder');
+        addText('V', 'Rows', 'rows');
+        addText('D', 'Encrypted', 'encrypted');
+        addText('D', 'Max-length', 'max-length');
+        addAutocompleteProps();
+        addCheck('D', 'Show Caps Lock', 'show-caps', 'false');
+        addFocusEvents();
+        addFlexProps();
+    };
 });
 
 // trigger resize to text on window resize
@@ -533,7 +553,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
-                if (strAttrName === 'value' && this.initalized) {
+                if (strAttrName === 'value' && this.initalized && oldValue !== newValue) {
                     var currentValue = this.control.value;
                     var newCryptedValue = newValue;
                     // if there is a difference between the new value in the
@@ -598,8 +618,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         return this.getAttribute('value');
                     }
                 },
-                
-                
+
                 set: function (strNewValue) {
                     if (this.hasAttribute('defer-insert')) {
                         if (this.hasAttribute('encrypted')) {
@@ -616,56 +635,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         this.setAttribute('value', strNewValue);
                     }
                 }
-                // // set the value of the input and set the value attribute
-                // set: function (strNewValue) {
-                //     if (this.hasAttribute('defer-insert')) {
-                //         if (this.getAttribute('value') !== strNewValue) {
-                //             if (this.hasAttribute('encrypted')) {
-                //                 this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
-                //             } else {
-                //                 this.setAttribute('value', strNewValue);
-                //             }
-                //         }
-                //         if (this.control.tagName === 'SPAN') {
-                //             if (this.hasAttribute('encrypted')) {
-                //                 this.control.textContent = CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
-                //             } else {
-                //                 this.control.textContent = strNewValue;
-                //             }
-                //             this.control.value = strNewValue;
-                //             this.syncGetters();
-                //         } else {
-                //             if (this.hasAttribute('encrypted')) {
-                //                 this.control.value = CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
-                //             } else {
-                //                 this.control.value = strNewValue;
-                //             }
-                //         }
-                //     } else {
-                //         if (this.getAttribute('value') !== strNewValue) {
-                //             if (this.hasAttribute('encrypted')) {
-                //                 this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
-                //             } else {
-                //                 this.setAttribute('value', strNewValue);
-                //             }
-                //         }
-                //         if (this.control) {
-                //             if (this.hasAttribute('encrypted')) {
-                //                 this.control.value = CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
-                //             } else {
-                //                 this.control.value = strNewValue;
-                //             }
-                //         } else {
-                //             if (this.hasAttribute('encrypted')) {
-                //                 this.innerHTML = CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
-                //             } else {
-                //                 this.innerHTML = strNewValue;
-                //             }
-                //         }
-                //         this.syncView();
-                //     }
-                    
-                // }
             },
             textValue: {
                 // get value straight from the input

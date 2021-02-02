@@ -1,151 +1,26 @@
-//jslint this
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps, addFocusEvents
+//jslint browser:true, white:false, this:true
+//, maxlen:80
 
 window.addEventListener('design-register-element', function () {
     'use strict';
 
-    registerDesignSnippet('<gs-datetime>', '<gs-datetime>', 'gs-datetime></gs-datetime>');
+    addSnippet('<gs-datetime>', '<gs-datetime>', 'gs-datetime></gs-datetime>');
 
-    /*
-    TODO: there is no documentation
-    designRegisterElement('gs-datetime', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-datetime.html');
-    */
+    // TODO: there is no documentation
+    // designRegisterElement('gs-datetime', '#');
 
-    window.designElementProperty_GSDATETIME = function(selectedElement) {
-        addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'column', this.value);
-        });
-
-        addProp('Value', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('value') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'value', this.value);
-        });
-
-        addProp('Column In Querystring', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'qs', this.value, false);
-        });
-
-        addProp('Calendar on desktop', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('desktop-calendar')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'desktop-calendar', (this.value === 'true'), true);
-        });
-
-        addProp('Placeholder', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('placeholder') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'placeholder', this.value);
-        });
-
-        //console.log(selectedElement.hasAttribute('mini'));
-
-        addProp('Mini', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('mini')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'mini', (this.value === 'true'), true);
-        });
-
-        // TITLE attribute
-        addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
-        });
-
-        // TABINDEX attribute
-        addProp('Tabindex', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('tabindex') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'tabindex', this.value);
-        });
-
-        // SUSPEND-CREATED attribute
-        addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
-        });
-
-        // SUSPEND-INSERTED attribute
-        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
-        });
-
-        addProp('Focus', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onfocus') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onfocus', this.value);
-        });
-        addProp('Blur', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onblur') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onblur', this.value);
-        });
-        addProp('Change', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onchange') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onchange', this.value);
-        });
-        addProp('Mousedown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousedown') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onmousedown', this.value);
-        });
-        addProp('Mouseup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmouseup') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onmouseup', this.value);
-        });
-        addProp('Mousemove', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousemove') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onmousemove', this.value);
-        });
-        addProp('Keydown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeydown') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onkeydown', this.value);
-        });
-        addProp('Keyup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeyup') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onkeyup', this.value);
-        });
-        addProp('Keypress', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeypress') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onkeypress', this.value);
-        });
-
-        // visibility attributes
-        var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden')) {
-            strVisibilityAttribute = 'hidden';
-        }
-        if (selectedElement.hasAttribute('hide-on-desktop')) {
-            strVisibilityAttribute = 'hide-on-desktop';
-        }
-        if (selectedElement.hasAttribute('hide-on-tablet')) {
-            strVisibilityAttribute = 'hide-on-tablet';
-        }
-        if (selectedElement.hasAttribute('hide-on-phone')) {
-            strVisibilityAttribute = 'hide-on-phone';
-        }
-        if (selectedElement.hasAttribute('show-on-desktop')) {
-            strVisibilityAttribute = 'show-on-desktop';
-        }
-        if (selectedElement.hasAttribute('show-on-tablet')) {
-            strVisibilityAttribute = 'show-on-tablet';
-        }
-        if (selectedElement.hasAttribute('show-on-phone')) {
-            strVisibilityAttribute = 'show-on-phone';
-        }
-
-        addProp('Visibility', true,
-                '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                '    <option value="">Visible</option>' +
-                '    <option value="hidden">Invisible</option>' +
-                '    <option value="hide-on-desktop">Invisible at desktop size</option>' +
-                '    <option value="hide-on-tablet">Invisible at tablet size</option>' +
-                '    <option value="hide-on-phone">Invisible at phone size</option>' +
-                '    <option value="show-on-desktop">Visible at desktop size</option>' +
-                '    <option value="show-on-tablet">Visible at tablet size</option>' +
-                '    <option value="show-on-phone">Visible at phone size</option>' +
-                '</gs-select>', function () {
-            selectedElement.removeAttribute('hidden');
-            selectedElement.removeAttribute('hide-on-desktop');
-            selectedElement.removeAttribute('hide-on-tablet');
-            selectedElement.removeAttribute('hide-on-phone');
-            selectedElement.removeAttribute('show-on-desktop');
-            selectedElement.removeAttribute('show-on-tablet');
-            selectedElement.removeAttribute('show-on-phone');
-
-            if (this.value) {
-                selectedElement.setAttribute(this.value, '');
-            }
-
-            return selectedElement;
-        });
-
-        // DISABLED attribute
-        addProp('Disabled', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('disabled') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'disabled', this.value === 'true', true);
-        });
-        
-        addProp('Readonly', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('readonly') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'readonly', this.value === 'true', true);
-        });
-
-        //addFlexContainerProps(selectedElement);
-        addFlexProps(selectedElement);
+    window.designElementProperty_GSDATETIME = function() {
+        addGSControlProps();
+        addText('O', 'Column In QS', 'qs');
+        addCheck('V', 'Calendar on desktop', 'desktop-calendar');
+        addText('V', 'Placeholder', 'placeholder');
+        addFocusEvents();
+        addFlexProps();
     };
 });
 

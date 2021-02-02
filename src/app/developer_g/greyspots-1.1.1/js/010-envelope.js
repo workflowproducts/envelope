@@ -1,224 +1,60 @@
-//global registerDesignSnippet, designRegisterElement, addProp, encodeHTML, setOrRemoveTextAttribute, setOrRemoveBooleanAttribute
-//jslint this
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps, addDataEvents, addAutocompleteProps
+//jslint browser:true, white:false, this:true
+//, maxlen:80
 
 window.addEventListener('design-register-element', function (event) {
     'use strict';
 
-    registerDesignSnippet('<gs-envelope>', '<gs-envelope>', 'gs-envelope src="${1:test.tpeople}">\n' +
-                                                            '    <template for="hud"></template>\n' +
-                                                            '    <template for="table">\n' +
-                                                            '        <table>\n' +
-                                                            '            <tbody>\n' +
-                                                            '                <tr>\n' +
-                                                            '                    <th heading="#"><gs-static column="row_number"></gs-static></th>\n' +
-                                                            '                    <td heading="">$0</td>\n' +
-                                                            '                </tr>\n' +
-                                                            '            </tbody>\n' +
-                                                            '        </table>\n' +
-                                                            '    </template>\n' +
-                                                            '    <template for="insert"></template>\n' +
-                                                            '</gs-envelope>');
+    addSnippet(
+        '<gs-envelope>',
+        '<gs-envelope>',
+        'gs-envelope src="${1:test.tpeople}">\n' +
+        '    <template for="hud"></template>\n' +
+        '    <template for="table">\n' +
+        '        <table>\n' +
+        '            <tbody>\n' +
+        '                <tr>\n' +
+        '                    <th heading="#">' +
+        '<gs-static column="row_number"></gs-static>' +
+        '</th>\n' +
+        '                    <td heading="">$0</td>\n' +
+        '                </tr>\n' +
+        '            </tbody>\n' +
+        '        </table>\n' +
+        '    </template>\n' +
+        '    <template for="insert"></template>\n' +
+        '</gs-envelope>'
+    );
 
     /*
     TODO: there is no documentation
-    designRegisterElement('gs-envelope', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-envelope.html');
+    addElement('gs-envelope', '');
     */
 
-    window.designElementProperty_GSENVELOPE = function (selectedElement) {
-        var intIdNumber = (Math.floor(Math.random() * 1000)) + (Math.floor(new Date().getTime() / (Math.random() * 100000)));
-
-        addProp('Source', true, '<gs-memo class="target" autoresize rows="1" value="' + encodeHTML(selectedElement.getAttribute('src') || selectedElement.getAttribute('source') || '') + '" mini></gs-memo>',
-                function () {
-            return setOrRemoveTextAttribute(selectedElement, 'src', (this.value));
-        });
-
-        addProp('Columns', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('cols') || '') + '" mini></gs-text>',
-                function () {
-            return setOrRemoveTextAttribute(selectedElement, 'cols', this.value);
-        });
-
-        addProp('Where', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('where') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'where', this.value);
-        });
-
-        addProp('Order By', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('ord') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'ord', this.value);
-        });
-
-        addProp('Limit', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('limit') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'limit', this.value);
-        });
-
-        addProp('Offset', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('offset') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'offset', this.value);
-        });
-
-        addProp('Column In Querystring', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'qs', this.value, false);
-        });
-
-        addProp('Parent&nbsp;Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'column', this.value);
-        });
-
-        addProp('Line Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('child-column') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'child-column', this.value);
-        });
-
-        addProp('Reflow At', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('reflow-at') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'reflow-at', this.value);
-        });
-
-        addProp('Scroll To Bottom', true, '<gs-checkbox class="target" value="' + encodeHTML(selectedElement.hasAttribute('scroll-to-bottom') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'scroll-to-bottom', (this.value === 'true'), true);
-        });
-
-        addProp('HUD Orderby', true, '<gs-checkbox class="target" value="' + (!selectedElement.hasAttribute('no-hudorderby')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-hudorderby', (this.value === 'true'), false);
-        });
-
-        addProp('HUD Limit', true, '<gs-checkbox class="target" value="' + (!selectedElement.hasAttribute('no-hudlimit')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-hudlimit', (this.value === 'true'), false);
-        });
-
-        addProp('HUD Refresh', true, '<gs-checkbox class="target" value="' + (!selectedElement.hasAttribute('no-hudrefresh')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-hudrefresh', (this.value === 'true'), false);
-        });
-
-        addProp('HUD Delete', true, '<gs-checkbox class="target" value="' + (!selectedElement.hasAttribute('no-huddelete')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-huddelete', (this.value === 'true'), false);
-        });
-
-        addProp('Expand&nbsp;To&nbsp;Content', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('expand-to-content')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'expand-to-content', (this.value === 'true'), true);
-        });
-
-        addProp('Primary Keys', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('primary-keys') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'primary-keys', this.value);
-        });
-
-        addProp('Select Action', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('action-select') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'action-select', this.value);
-        });
-
-        addProp('Insert Action', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('action-insert') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'action-insert', this.value);
-        });
-
-        addProp('Update Action', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('action-update') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'action-update', this.value);
-        });
-
-        addProp('Delete Action', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('action-delete') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'action-delete', this.value);
-        });
-        
-        // events
-        addProp('Before Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_select') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_select', this.value);
-        });
-
-        addProp('After Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_select') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_select', this.value);
-        });
-
-        addProp('Before Insert', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_insert') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_insert', this.value);
-        });
-
-        addProp('After Insert', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_insert') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_insert', this.value);
-        });
-
-        addProp('Before Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_update') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_update', this.value);
-        });
-
-        addProp('After Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_update') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_update', this.value);
-        });
-
-        addProp('Before Delete', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_delete') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_delete', this.value);
-        });
-
-        addProp('After Delete', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_delete') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_delete', this.value);
-        });
-
-        // Disable insert/update
-        addProp('Disable Insert', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-insert') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-insert', this.value === 'true', true);
-        });
-
-        addProp('Disable Update', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-update') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-update', this.value === 'true', true);
-        });
-
-        // TEMPLATE attribute
-        addProp('Record Template', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('template') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'template', this.value);
-        });
-
-        // TITLE attribute
-        addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
-        });
-
-        // visibility attributes
-        var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden'))                   { strVisibilityAttribute = 'hidden'; }
-        if (selectedElement.hasAttribute('hide-on-desktop'))  { strVisibilityAttribute = 'hide-on-desktop'; }
-        if (selectedElement.hasAttribute('hide-on-tablet'))   { strVisibilityAttribute = 'hide-on-tablet'; }
-        if (selectedElement.hasAttribute('hide-on-phone'))    { strVisibilityAttribute = 'hide-on-phone'; }
-        if (selectedElement.hasAttribute('show-on-desktop'))   { strVisibilityAttribute = 'show-on-desktop'; }
-        if (selectedElement.hasAttribute('show-on-tablet'))    { strVisibilityAttribute = 'show-on-tablet'; }
-        if (selectedElement.hasAttribute('show-on-phone'))     { strVisibilityAttribute = 'show-on-phone'; }
-
-        addProp('Visibility', true, '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                                        '<option value="">Visible</option>' +
-                                        '<option value="hidden">Invisible</option>' +
-                                        '<option value="hide-on-desktop">Invisible at desktop size</option>' +
-                                        '<option value="hide-on-tablet">Invisible at tablet size</option>' +
-                                        '<option value="hide-on-phone">Invisible at phone size</option>' +
-                                        '<option value="show-on-desktop">Visible at desktop size</option>' +
-                                        '<option value="show-on-tablet">Visible at tablet size</option>' +
-                                        '<option value="show-on-phone">Visible at phone size</option>' +
-                                    '</gs-select>', function () {
-            selectedElement.removeAttribute('hidden');
-            selectedElement.removeAttribute('hide-on-desktop');
-            selectedElement.removeAttribute('hide-on-tablet');
-            selectedElement.removeAttribute('hide-on-phone');
-            selectedElement.removeAttribute('show-on-desktop');
-            selectedElement.removeAttribute('show-on-tablet');
-            selectedElement.removeAttribute('show-on-phone');
-
-            if (this.value) {
-                selectedElement.setAttribute(this.value, '');
-            }
-
-            return selectedElement;
-        });
-
-        addProp('Refresh On Querystring Columns', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('refresh-on-querystring-values') || '') + '" mini></gs-text>', function () {
-            this.removeAttribute('refresh-on-querystring-change');
-            return setOrRemoveTextAttribute(selectedElement, 'refresh-on-querystring-values', this.value);
-        });
-
-        addProp('Refresh On Querystring Change', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('refresh-on-querystring-change')) + '" mini></gs-checkbox>', function () {
-            this.removeAttribute('refresh-on-querystring-values');
-            return setOrRemoveBooleanAttribute(selectedElement, 'refresh-on-querystring-change', this.value === 'true', true);
-        });
-
-        //// SUSPEND-CREATED attribute
-        //addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
-        //    return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
-        //});
-
-        // SUSPEND-INSERTED attribute
-        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
-        });
+    window.designElementProperty_GSENVELOPE = function () {
+        addDataAttributes('select,insert,update,delete,parent-child');
+        addText('V', 'Reflow At', 'reflow-at');
+        addCheck('V', 'Scroll To Bottom', 'scroll-to-bottom');
+        addCheck('V', 'HUD Orderby', 'no-hudorderby');
+        addCheck('V', 'HUD Limit', 'no-hudlimit');
+        addCheck('V', 'HUD Refresh', 'no-hudrefresh');
+        addCheck('V', 'HUD Delete', 'no-huddelete');
+        addText('V', 'Expand&nbsp;To&nbsp;Content', 'expand-to-content');
+        addText('D', 'Select Action', 'action-select');
+        addText('D', 'Insert Action', 'action-insert');
+        addText('D', 'Update Action', 'action-update');
+        addText('D', 'Delete Action', 'action-delete');
+        addDataEvents('select,insert,update,delete');
+        addCheck('D', 'Disable Insert', 'no-insert');
+        addCheck('D', 'Disable Update', 'no-update');
+        addText('D', 'Record Template', 'template');
+        addText('O', 'Column In QS', 'qs');
+        addText('O', 'Refresh On QS Columns', 'refresh-on-querystring-values');
+        addText('O', 'Refresh On QS Change', 'refresh-on-querystring-change');
     };
 });
 
@@ -398,6 +234,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // #######################################################################
     // ############################ DATA HANDLING ############################
     // #######################################################################
+    // the user needs to be able to set a custom websocket for this element,
+    //      so this function will use an attribute to find out what socket to
+    //      use (and it'll default to "GS.envSocket")
+    function getSocket(element) {
+        if (element.getAttribute('socket')) {
+            return GS[element.getAttribute('socket')];
+        }
+        return GS.envSocket;
+    }
 
 
     // get data and send it off to be templated
@@ -457,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         addLoader(element, 'Loading...');
 
-        GS.requestCachingSelect(GS.envSocket, strSchema, strObject, '*'
+        GS.requestCachingSelect(getSocket(element), strSchema, strObject, '*'
                                  , strWhere, strOrd, strLimit, strOffset
                                  , function (data, error) {
             element.refreshing = false;
@@ -649,10 +494,16 @@ document.addEventListener('DOMContentLoaded', function () {
         var strObject = srcParts[1];
         var strHashCols = '';
         var strHashData = '';
+        var strPk = element.getAttribute('pk') || 'id';
+        var strPKValue = GS.envGetCell(
+            element.lastSuccessData,
+            parseInt(record.getAttribute('data-rownum'), 10),
+            strPk
+        );
         var strUpdateData = (
             'pk\tset\thash\n' +
-            'id\t' + GS.encodeForTabDelimited(strColumn) + '\thash\n' +
-            GS.encodeForTabDelimited(record.getAttribute('data-id')) + '\t' + GS.encodeForTabDelimited(newValue) + '\t'
+            strPk + '\t' + GS.encodeForTabDelimited(strColumn) + '\thash\n' +
+            GS.encodeForTabDelimited(strPKValue) + '\t' + GS.encodeForTabDelimited(newValue) + '\t'
         );
         var i;
         var len;
@@ -714,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }, /*30*/ 5 * 1000);
         
         addLoader(element, 'Updating Record...');
-        GS.requestUpdateFromSocket(GS.envSocket, strSchema, strObject, '*', strHashCols, strUpdateData, function (data, error, transactionID) {
+        GS.requestUpdateFromSocket(getSocket(element), strSchema, strObject, '*', strHashCols, strUpdateData, function (data, error, transactionID) {
             if (error) {
                 if (element.saveTimeout) {
                     clearTimeout(element.saveTimeout);
@@ -793,7 +644,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (xtag.query(element, '.saving-warning-parent').length > 0) {
                         element.removeChild(xtag.query(element, '.saving-warning-parent')[0]);
                     }
-                    
+                    // console.log(arrTotalRecords);
                     callbackFunction({
                         detail: {
                             response: arrTotalRecords[0],
@@ -857,8 +708,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     i = 0;
                     len = element.lastSuccessData.dat.length;
+                    // console.log(element.lastSuccessData.dat, idIndex, newRecordData);
                     while (i < len) {
-                        if (String(element.lastSuccessData.dat[i][idIndex]) === String(record.getAttribute('data-id'))) {
+                        // console.log(i, element.lastSuccessData.dat[i][idIndex], record.getAttribute('data-id'));
+                        // if (String(element.lastSuccessData.dat[i][idIndex]) === String(record.getAttribute('data-id'))) {
+                        if (String(element.lastSuccessData.dat[i][idIndex]) === String(newRecordData[idIndex])) {
                             recordIndex = i;
                             element.lastSuccessData.dat[i] = JSON.parse(JSON.stringify(event.detail.response));
 
@@ -986,9 +840,10 @@ document.addEventListener('DOMContentLoaded', function () {
         var strObject = srcParts[1];
         var strHashCols = '';
         var strHashData = '';
+        var strPk = element.getAttribute('pk') || 'id';
         var strDeleteData = (
             'pk\thash\n' +
-            'id\thash\n'
+            strPk + '\thash\n'
         );
         var i;
         var len;
@@ -1021,20 +876,27 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     strHashData += GS.encodeForTabDelimited(arrRecord[i].getAttribute('data-' + element.arrWhereColumns[j]));
-                } else {
-                    strDeleteData += GS.encodeForTabDelimited(arrRecord[i].getAttribute('data-id'));
-                }
+                }// else {
+                //    strDeleteData += GS.encodeForTabDelimited(arrRecord[i].getAttribute('data-id'));
+                //}
                 j += 1;
             }
             //console.log(strHashData);
-            strDeleteData += '\t' + CryptoJS.MD5(strHashData) + '\n';
+            strDeleteData += (
+                GS.envGetCell(
+                    element.lastSuccessData,
+                    parseInt(arrRecord[i].getAttribute('data-rownum'), 10),
+                    strPk
+                ) +
+                '\t' + CryptoJS.MD5(strHashData) + '\n'
+            );
             strHashData = '';
             i += 1;
         }
 
         addLoader(element, 'Creating Delete Transaction...');
         GS.requestDeleteFromSocket(
-            GS.envSocket,
+            getSocket(element),
             strSchema,
             strObject,
             strHashCols,
@@ -1132,6 +994,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var strWSInsertData;
         var i;
         var len;
+        var strPk = element.getAttribute('pk') || 'id';
+        var strSeq = element.getAttribute('seq') || '';
 
         // if there is a column attribute on this element: append child column (or column) and the value to the insert string
         if (element.getAttribute('column') || element.getAttribute('qs')) {
@@ -1161,12 +1025,12 @@ document.addEventListener('DOMContentLoaded', function () {
         addLoader(element, 'Inserting Record...');
 
         GS.requestInsertFromSocket(
-            GS.envSocket,
+            getSocket(element),
             strSchema,
             strObject,
             strWSInsertColumns,
-            'id',
-            '',
+            strPk,
+            strSeq,
             strWSInsertColumns + strWSInsertData,
             function (data, error, transactionID) {
                 if (error) {
@@ -2181,13 +2045,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 // primary keys attribute and defaulting
-                if (element.getAttribute('primary-keys')) {
-                    arrWhereColumns = element.getAttribute('primary-keys').split(/\s*,\s*/gim);
+                if (element.getAttribute('lock')) {
+                    arrWhereColumns = element.getAttribute('lock').split(/\s*,\s*/gim);
                     if (arrWhereColumns.length === 0) {
-                        arrWhereColumns = ['id', 'change_stamp'];
+                        arrWhereColumns = ['change_stamp'];
                     }
                 } else {
-                    arrWhereColumns = ['id', 'change_stamp'];
+                    arrWhereColumns = ['change_stamp'];
                 }
                 element.arrWhereColumns = arrWhereColumns;
 
@@ -2268,6 +2132,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     recordElement = xtag.query(xtag.query(tableTemplateElementCopy.content, 'tbody')[0], 'tr')[0];
 
                     if (recordElement) {
+                        recordElement.setAttribute('data-rownum', '{{! i }}');
                         // add a data- attribute for all where columns (most of the time: id and change_stamp)
                         i = 0;
                         len = element.arrWhereColumns.length;

@@ -1,60 +1,25 @@
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps
+//jslint browser:true, white:false, this:true
+//, maxlen:80
 
 window.addEventListener('design-register-element', function () {
     'use strict';
-    
-    registerDesignSnippet('<gs-scroller>', '<gs-scroller>', 'gs-scroller>\n' +
-                                                        '    <gs-scroller-inner style="width: ${1:1000px}; height: ${2:1000px};">\n' +
-                                                        '        ${0}\n' +
-                                                        '    </gs-scroller-inner>\n' +
-                                                        '</gs-scroller>');
-    
-    designRegisterElement('gs-scroller', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_scroller');
-    
-    window.designElementProperty_GSSCROLLER = function (selectedElement) {
-        // TITLE attribute
-        addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
-        });
-        
-        // SUSPEND-INSERTED attribute
-        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
-        });
-        
-        // visibility attributes
-        var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden'))                   { strVisibilityAttribute = 'hidden'; }
-        if (selectedElement.hasAttribute('hide-on-desktop'))  { strVisibilityAttribute = 'hide-on-desktop'; }
-        if (selectedElement.hasAttribute('hide-on-tablet'))   { strVisibilityAttribute = 'hide-on-tablet'; }
-        if (selectedElement.hasAttribute('hide-on-phone'))    { strVisibilityAttribute = 'hide-on-phone'; }
-        if (selectedElement.hasAttribute('show-on-desktop'))   { strVisibilityAttribute = 'show-on-desktop'; }
-        if (selectedElement.hasAttribute('show-on-tablet'))    { strVisibilityAttribute = 'show-on-tablet'; }
-        if (selectedElement.hasAttribute('show-on-phone'))     { strVisibilityAttribute = 'show-on-phone'; }
-        
-        addProp('Visibility', true, '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                                        '<option value="">Visible</option>' +
-                                        '<option value="hidden">Invisible</option>' +
-                                        '<option value="hide-on-desktop">Invisible at desktop size</option>' +
-                                        '<option value="hide-on-tablet">Invisible at tablet size</option>' +
-                                        '<option value="hide-on-phone">Invisible at phone size</option>' +
-                                        '<option value="show-on-desktop">Visible at desktop size</option>' +
-                                        '<option value="show-on-tablet">Visible at tablet size</option>' +
-                                        '<option value="show-on-phone">Visible at phone size</option>' +
-                                    '</gs-select>', function () {
-            selectedElement.removeAttribute('hidden');
-            selectedElement.removeAttribute('hide-on-desktop');
-            selectedElement.removeAttribute('hide-on-tablet');
-            selectedElement.removeAttribute('hide-on-phone');
-            selectedElement.removeAttribute('show-on-desktop');
-            selectedElement.removeAttribute('show-on-tablet');
-            selectedElement.removeAttribute('show-on-phone');
-            
-            if (this.value) {
-                selectedElement.setAttribute(this.value, '');
-            }
-            
-            return selectedElement;
-        });
+    registerDesignSnippet(
+        '<gs-scroller>',
+        '<gs-scroller>',
+        'gs-scroller>\n' +
+        '    <gs-scroller-inner style="width: ${1:1000px}; height: ${2:1000px};">\n' +
+        '        ${0}\n' +
+        '    </gs-scroller-inner>\n' +
+        '</gs-scroller>'
+    );
+    designRegisterElement('gs-scroller', '#layout_scroller');
+
+    window.designElementProperty_GSSCROLLER = function () {
     };
 });
 
@@ -68,14 +33,14 @@ Math.easeOutQuad = function (current_time, start_value, end_change, end_time) {
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
-    
+
     // using element, direction and X delta: move element using quadratic equation
     function easeOutX(dragElement, target, bolRight, intXDelta, intervalEaseXID) {
         var intFrames = Math.ceil(intXDelta / 0.25), intFrame = 0, intInterval = 20
           , intTotalTime = (intFrames * intInterval);
-        
+
         //console.log(bolRight, intXDelta);
-        
+
         if (intXDelta > 5) {
             intervalEaseXID = setInterval(function () {
                 var intLeft;

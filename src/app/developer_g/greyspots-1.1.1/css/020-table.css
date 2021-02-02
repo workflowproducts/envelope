@@ -5,12 +5,23 @@ gs-table {
     z-index: 4; /* this prevents internally z-indexed items from going
                     over elements that the parent itself can't go over. */
 
+    overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     -ms-box-sizing: border-box;
     -o-box-sizing: border-box;
     box-sizing: border-box;
 }
+
+gs-table,
+gs-table * {
+    overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
+    touch-action: none; /* prevent scrolling */
+}
+
+
 /*gs-cell {
     white-space: pre;
     display: inline-block;
@@ -330,19 +341,19 @@ gs-table:not([theme]) >
     box-shadow: 0 0 0.5em 0.001em #636363;
 }
 
-gs-table:not([theme]) > 
+gs-table:not([theme]) >
         .table-root >
         .table-table-container >
         .table-data-container >
         .table-data-viewport >
         .resize-column-handle.active,
-gs-table:not([theme]) > 
+gs-table:not([theme]) >
         .table-root >
         .table-table-container >
         .table-data-container >
         .table-data-viewport >
         .resize-record-handle.active,
-gs-table:not([theme]) > 
+gs-table:not([theme]) >
         .table-root >
         .table-table-container >
         .table-data-container >

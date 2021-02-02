@@ -1,22 +1,28 @@
-window.addEventListener('design-register-element', function () {
-    registerDesignSnippet('<gs-current-record>', '<gs-current-record>', 'gs-current-record for="${1:for}"></gs-current-record>');
-    window.designElementProperty_GSCURRENT_RECORD = function (selectedElement) {
-        addProp('For', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('for') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'for', this.value);
-        });
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps
+//jslint browser:true, white:false, this:true
+//, maxlen:80
 
-        addProp('Inline', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('inline') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'inline', this.value === 'true', true);
-        });
+window.addEventListener('design-register-element', function () {
+    "use strict";
+    addSnippet(
+        '<gs-current-record>',
+        '<gs-current-record>',
+        'gs-current-record for="${1:for}"></gs-current-record>'
+    );
+
+    window.designElementProperty_GSCURRENT_RECORD = function () {
+        addText('O', 'GS-Table ID', 'for');
+        addCheck('V', 'Inline', 'inline');
     };
 });
 
-//global xtag
-//jslint browser:true
 document.addEventListener("DOMContentLoaded", function () {
     "use strict";
     function buildElement(element) {
-        
         element.forTable = document.getElementById(element.getAttribute('for'));
 
         element.forTable.addEventListener('selection_change', function () {
@@ -32,49 +38,45 @@ document.addEventListener("DOMContentLoaded", function () {
         element.firstChild.addEventListener('change', function (event) {
             var tableElem = element.forTable;
             var strValue = event.target.value;
-            var intValue = parseInt(strValue.substring(0, strValue.indexOf(' ')), 10);
+            var intValue = parseInt(
+                strValue.substring(0, strValue.indexOf(' ')),
+                10
+            );
             var intMaxRecord = tableElem.internalData.records.length;
-    
             var intMinColumn = (
                 tableElem.internalDisplay.recordSelectorVisible
                     ? -1
                     : 0
             );
-    
+
             // if we couldn't extract a record number from the
             //      user's value, go to the first record
             if (isNaN(intValue)) {
                 intValue = 1;
             }
-    
+
             if (intMaxRecord === 0) {
                 intValue = undefined;
             }
-    
+
             // prevent intValue from being greater than the number
             //      of records
             if (intValue > intMaxRecord) {
                 intValue = intMaxRecord;
             }
-    
+
             // intValue is from a user and therefore one-based
             if (!isNaN(intValue)) {
                 // correct one-based by subtracting one
                 intValue -= 1;
             }
-            
+
             // override all current ranges to select the new record
             if (intValue !== undefined) {
                 tableElem.internalSelection.ranges = [
                     {
-                        "start": {
-                            "row": intValue,
-                            "column": intMinColumn
-                        },
-                        "end": {
-                            "row": intValue,
-                            "column": intMinColumn
-                        },
+                        "start": {"row": intValue, "column": intMinColumn},
+                        "end": {"row": intValue, "column": intMinColumn},
                         "negator": false
                     }
                 ];
@@ -94,8 +96,13 @@ document.addEventListener("DOMContentLoaded", function () {
             var gsText = document.createElement("gs-text");
             element.appendChild(gsText);
         }
-        // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
-        if (!element.hasAttribute("suspend-created") && !element.hasAttribute("suspend-inserted")) {
+
+        // if "created" hasn't been suspended and "inserted" hasn't been
+        //      suspended: run inserted code
+        if (
+            !element.hasAttribute("suspend-created") &&
+            !element.hasAttribute("suspend-inserted")
+        ) {
             // if this is the first time inserted has been run: continue
             if (!element.inserted) {
                 element.inserted = true;
@@ -112,16 +119,18 @@ document.addEventListener("DOMContentLoaded", function () {
             inserted: function () {
                 elementInserted(this);
             },
-            attributeChanged: function (strAttrName, oldValue, newValue) {
-                var element = this;
-
-                // if "suspend-created" has been removed: run created and inserted code
+            attributeChanged: function (strAttrName, ignore, newValue) {
+                // if "suspend-created" has been removed: run created and
+                //      inserted code
                 if (strAttrName === "suspend-created" && newValue === null) {
-                    elementInserted(element);
+                    elementInserted(this);
 
                 // if "suspend-inserted" has been removed: run inserted code
-                } else if (strAttrName === "suspend-inserted" && newValue === null) {
-                    elementInserted(element);
+                } else if (
+                    strAttrName === "suspend-inserted" &&
+                    newValue === null
+                ) {
+                    elementInserted(this);
                 }
             }
         },
@@ -136,6 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
                 // we need the element that contains the selection status
                 var statusElement = element.firstChild;
+
                 // if the element that is supposed to contain the status is
                 //      in the DOM
                 if (statusElement) {
@@ -149,9 +159,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         );
                     // else, we don't know the origin record
                     } else {
-                        statusElement.value = (
-                            'nothing selected'
-                        );
+                        statusElement.value = ('nothing selected');
                     }
                 }
                 element.bolRefreshing = false;

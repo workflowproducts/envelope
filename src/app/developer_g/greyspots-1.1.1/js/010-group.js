@@ -1,14 +1,18 @@
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps
+//jslint browser:true, white:false, this:true
+//, maxlen:80
+
 window.addEventListener('design-register-element', function () {
-    window.designElementProperty_GSGROUP = function (selectedElement) {
-        // DISABLED attribute
-        addProp('Padded', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('padded') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'padded', this.value === 'true', true);
-        });
+    "use strict";
+    window.designElementProperty_GSGROUP = function () {
+        addCheck('V', 'Padded', 'padded');
     };
 });
 
-//global xtag
-//jslint browser:true
 document.addEventListener("DOMContentLoaded", function () {
     "use strict";
     // fill gs-group based on current content
@@ -75,7 +79,7 @@ document.addEventListener("DOMContentLoaded", function () {
             inserted: function () {
                 elementInserted(this);
             },
-            attributeChanged: function (strAttrName, oldValue, newValue) {
+            attributeChanged: function (strAttrName, ignore, newValue) {
                 var element = this;
 
                 // if "suspend-created" has been removed: run created and inserted code

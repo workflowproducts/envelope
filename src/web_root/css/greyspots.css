@@ -12413,7 +12413,10 @@ gs-page {
 }
 
 gs-ace {
+    position: relative;
     display: block;
+    width: 100%;
+    height: 100%;
     
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -12422,6 +12425,49 @@ gs-ace {
     box-sizing: border-box;
 }
 
+gs-ace > .root {
+    width: 100%;
+    /*height: 100%; handled by JS */
+}
+
+/*to make it respond to theme differences*/
+.gs-ace-marker {
+    position: absolute;
+    z-index: 4;
+    background-color: #FBFFBE;
+}
+
+gs-ace[disabled]:after,
+gs-ace[readonly]:after {
+    display: block;
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0.4;
+}
+gs-ace[disabled]:after {
+    background-color: #000;
+}
+gs-ace[readonly]:after {
+    background-color: #AAA;
+}
+
+
+/*
+.ace-selected-element {
+    background-color: #FBFFBE;
+}
+.ace-selected-element-close {
+    background-color: #FBFFBE;
+    opacity: 0.5;
+}
+*/
 /* ################################################################# */
 /* ############################# BODY ############################## */
 /* ################################################################# */
@@ -12547,6 +12593,7 @@ gs-combo[mini] {
     border: 0;
     box-shadow: 0 0 0 0 #FFFFFF;
     border-radius: 0;
+    margin: 0;
 }
 
 gs-combo[mini] > .root {
@@ -12577,10 +12624,12 @@ gs-combo[readonly] {
     cursor: default;
 }
 
+gs-combo[disabled] > .root,
 gs-combo[readonly] > .root {
     padding-right: 0;
 }
 
+gs-combo[disabled] .drop_down_button,
 gs-combo[readonly] .drop_down_button {
     display: none;
     cursor: default;
@@ -12649,6 +12698,11 @@ gs-combo.open .drop_down_button {
 
 .gs-combo-dropdown-container.below .gs-combo-positioning-container {
     box-shadow: 0 3px 0.2em 0.1em #C5C5C5;
+}
+
+#combo-dropdown-table {
+    width: 100%;
+    height: 100%;
 }
 
 
@@ -16212,16 +16266,33 @@ gs-optionbox:not([no-target]) gs-option[selected]:after {
     content: '\f05d';
 }
 
-
+gs-optionbox[disabled] gs-option {
+    background-color: #D8D8D8;
+}
+gs-optionbox[disabled] {
+    box-shadow: 0 0 0 0 #000 inset;
+    opacity: 0.9;
+    border-color: #E6E6E6;
+    cursor: default;
+    pointer-events: none;
+}
 
 gs-optionbox[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
-    padding: 0.2em;
     pointer-events: none;
 }
+
+
+
+
+
+
+
+
+
 
 /*
 gs-optionbox:focus {
@@ -16538,6 +16609,7 @@ gs-select[mini] {
     border: 0;
     border-radius: 0;
     box-shadow: 0 0 0 0;
+    margin: 0;
 }
 
 gs-select[mini] select {
@@ -16627,12 +16699,23 @@ gs-sticky[stuck][direction="down"] > gs-sticky-inner {
     z-index: 4; /* this prevents internally z-indexed items from going
                     over elements that the parent itself can't go over. */
 
+    overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     -ms-box-sizing: border-box;
     -o-box-sizing: border-box;
     box-sizing: border-box;
 }
+
+gs-table,
+gs-table * {
+    overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
+    touch-action: none; /* prevent scrolling */
+}
+
+
 /*gs-cell {
     white-space: pre;
     display: inline-block;
@@ -16952,19 +17035,19 @@ gs-table:not([theme]) >
     box-shadow: 0 0 0.5em 0.001em #636363;
 }
 
-gs-table:not([theme]) > 
+gs-table:not([theme]) >
         .table-root >
         .table-table-container >
         .table-data-container >
         .table-data-viewport >
         .resize-column-handle.active,
-gs-table:not([theme]) > 
+gs-table:not([theme]) >
         .table-root >
         .table-table-container >
         .table-data-container >
         .table-data-viewport >
         .resize-record-handle.active,
-gs-table:not([theme]) > 
+gs-table:not([theme]) >
         .table-root >
         .table-table-container >
         .table-data-container >
@@ -17952,6 +18035,7 @@ gs-text[mini] {
     border: 0;
     box-shadow: 0 0 0 0 #FFFFFF;
     border-radius: 0;
+    margin: 0;
 }
 
 gs-text[mini] input {
@@ -18291,6 +18375,10 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f3f3f3', end
     -ms-flex-direction: row;
     -webkit-flex-direction: row;
 }/*begintooltipcss*/
+gs-tooltip {
+    display: block;
+}
+
 gs-tooltip, gs-tooltip > div.tooltipcont {
     height: 0;
     width: auto;
@@ -18366,81 +18454,53 @@ gs-tooltip > :not(span) {
     visibility: visible;
     display: inline-block !important;
 }
-/*endtooltipcss*/@media (prefers-color-scheme: dark) {
-    gs-header, gs-footer, gs-body, body, gs-dialog {
-        background-color: #222222;
-        color: #ff9900;
-    }
-    label, p {
-        color: #ff9900;
-    }
-    gs-button
-    , gs-text, gs-text .control
-    , gs-combo, gs-combo .control
-    , gs-date, gs-date .control
-    , gs-datetime, gs-datetime .control
-    , gs-select, gs-select .control
-    , gs-dt, gs-dt .control
-    , gs-checkbox, gs-checkbox .control
-    , gs-table:not([theme]) > .table-root > .table-table-container > .table-data-container > .table-data-viewport > gs-cell.table-cell
-    , input {
-        background-color: #555555;
-        color: #ff9900;
-    }
-    gs-table:not([theme]) > .table-root > .table-table-container > .table-data-container > .table-data-viewport {
-        background-color: #333333;
-    }
-    
-    tr {
-      background-color: #555555;
-    }
-    
-    tr > th {
-      background-color: #111111;
-    }
-    
-    tr:nth-of-type(odd) {
-      background-color: #666666;
-    }
+/*endtooltipcss*/gs-window {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 
-    gs-listbox table tbody tr.hover {
-        background-color: #333333;
-    }
-    
-    gs-listbox table tbody tr.down {
-        background-color: #FF9900;
-        color: #000000;
-    }
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
 
-    gs-envelope table > tbody > tr:hover {
-        background-color: #333333;
-    }
+gs-window.horizontal-resize-cursor {
+    cursor: ew-resize;
+}
+
+gs-pane {
+    position: absolute;
+    display: block;
+    height: 100%;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    border-right: 1px solid #006E00;
     
-    gs-envelope .fixed-header-cell {
-        background-color: #111111;
-    }
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+gs-pane.last {
+    border-right: 0 none;
+}
+
+gs-window > .pane-resize-helper {
+    position: absolute;
+    display: block;
+    height: 100%;
+    border-right: 1px solid #006E00;
+    width: 1px;
     
-    *[selected] {
-        background-color: #FF9900 !important;
-        color: #000000 !important;
-    }
-    *[selected-secondary] {
-        background-color: #333333 !important;
-    }
-    *[selected] gs-button
-    , *[selected] gs-text, *[selected] gs-text .control
-    , *[selected] gs-combo, *[selected] gs-combo .control
-    , *[selected] gs-date, *[selected] gs-date .control
-    , *[selected] gs-dt, *[selected] gs-dt .control
-    , *[selected] gs-checkbox, *[selected] gs-checkbox .control
-    , *[selected] input {
-        background-color: #FF9900 !important;
-        color: #000000 !important;
-    }
-    
-    gs-envelope .scroll-container
-    , gs-envelope .hud-container-top
-    , gs-envelope .hud-container-bottom {
-        background-color: #333333;
-    }
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
 }

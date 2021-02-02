@@ -45,6 +45,7 @@ gs-combo[mini] {
     border: 0;
     box-shadow: 0 0 0 0 #FFFFFF;
     border-radius: 0;
+    margin: 0;
 }
 
 gs-combo[mini] > .root {
@@ -75,10 +76,12 @@ gs-combo[readonly] {
     cursor: default;
 }
 
+gs-combo[disabled] > .root,
 gs-combo[readonly] > .root {
     padding-right: 0;
 }
 
+gs-combo[disabled] .drop_down_button,
 gs-combo[readonly] .drop_down_button {
     display: none;
     cursor: default;
@@ -147,6 +150,11 @@ gs-combo.open .drop_down_button {
 
 .gs-combo-dropdown-container.below .gs-combo-positioning-container {
     box-shadow: 0 3px 0.2em 0.1em #C5C5C5;
+}
+
+#combo-dropdown-table {
+    width: 100%;
+    height: 100%;
 }
 
 

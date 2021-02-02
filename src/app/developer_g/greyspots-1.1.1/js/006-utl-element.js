@@ -389,7 +389,7 @@ GS.getInputSelection = function (input) {
     } else {
         range = (document.createRange() || document.selection.createRange());
         
-        if (range && range.parentElement() == input) {
+        if (range && range.parentElement && range.parentElement() == input) {
             len = input.value.length;
             normalizedValue = input.value.replace(/\r\n/g, "\n");
             

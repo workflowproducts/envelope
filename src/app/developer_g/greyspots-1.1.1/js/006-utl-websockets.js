@@ -319,6 +319,7 @@
         }
 
         var socket = new WebSocket(strURL);
+        socket.isGSSocket = true;
         socket.stayClosed = false;
         if (socketname) {
             GS.websockets[socketname] = socket;
@@ -350,7 +351,7 @@
             // if sessionid
             if (message.indexOf('sessionid = ') === 0) {
                 socket.GSSessionID = message.substring('sessionid = '.length, message.indexOf('\n'));
-                GS.triggerEvent(window, 'socket-connect');
+                GS.triggerEvent(window, 'socket-connect', {"socket": socket});
 
                 for (key in jsnMessages) {
                     jsnMessage = jsnMessages[key];
@@ -509,7 +510,7 @@
             if (!socket.stayClosed) {
                 setTimeout(function() {
                     console.warn('ATTEMPTING SOCKET RE-OPEN', socket);
-                    var event = GS.triggerEvent(window, 'socket-reconnect');
+                    var event = GS.triggerEvent(window, 'socket-reconnect', {"socket": socket});
                     if (! event.defaultPrevented) {
                         if (socketname) {
                             GS.closeSocket(GS.websockets[socketname]);
@@ -1344,25 +1345,31 @@ var reconnectNumber = 0;
 var reconnectCheckTimer;
 window.addEventListener('socket-connect', function (event) {
     "use strict";
-    var intCurrConnectNumber = reconnectNumber;
+    var intCurrConnectNumber;
 
-    if (reconnectCheckTimer) {
-        clearTimeout(reconnectCheckTimer);
-        reconnectCheckTimer = null;
-    }
-
-    // if we can remain connected for 5 seconds: reset countdown
-    reconnectCheckTimer = setTimeout(function () {
-        if (intCurrConnectNumber === reconnectNumber) {
-            reconnectNumber = 0;
+    if (event.socket && event.socket.isGSSocket) {
+        intCurrConnectNumber = reconnectNumber;
+    
+        if (reconnectCheckTimer) {
+            clearTimeout(reconnectCheckTimer);
+            reconnectCheckTimer = null;
         }
-    }, 5000);
+    
+        // if we can remain connected for 5 seconds: reset countdown
+        reconnectCheckTimer = setTimeout(function () {
+            if (intCurrConnectNumber === reconnectNumber) {
+                reconnectNumber = 0;
+            }
+        }, 5000);
+    }
 });
 window.addEventListener('socket-reconnect', function (event) {
     "use strict";
-    reconnectNumber -= 1;
+    if (event.socket && event.socket.isGSSocket) {
+        reconnectNumber -= 1;
 
-    if (reconnectNumber <= -6) {
-        window.location = '/' + (window.location.toString().match(/postage|env/g)[0]) + '/auth?action=logout&error=Connection%20timed%20out';
+        if (reconnectNumber <= -6) {
+            window.location = '/' + (window.location.toString().match(/postage|env/g)[0]) + '/auth?action=logout&error=Connection%20timed%20out';
+        }
     }
 });

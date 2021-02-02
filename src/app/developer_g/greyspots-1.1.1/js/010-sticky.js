@@ -1,93 +1,36 @@
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps, shimmed
+//jslint browser:true, white:false, this:true
+//, maxlen:80
 
 window.addEventListener('design-register-element', function () {
     'use strict';
 
-    registerDesignSnippet('<gs-sticky>', '<gs-sticky>', 'gs-sticky>\n' +
-                                                        '    <gs-sticky-inner>\n' +
-                                                        '        ${0}\n' +
-                                                        '    </gs-sticky-inner>\n' +
-                                                        '</gs-sticky>');
-    
-    designRegisterElement('gs-sticky', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_sticky_header_footer');
+    addSnippet(
+        '<gs-sticky>',
+        '<gs-sticky>',
+        (
+            'gs-sticky>\n' +
+            '    <gs-sticky-inner>\n' +
+            '        ${0}\n' +
+            '    </gs-sticky-inner>\n' +
+            '</gs-sticky>'
+        )
+    );
 
-    window.designElementProperty_GSSTICKY = function (selectedElement) {
-        addProp('Direction', true,  '<gs-select class="target" value="' + encodeHTML(selectedElement.getAttribute('direction') || '') + '" mini>' +
-                                        '<option value="">Up</option>' +
-                                        '<option value="down">Down</option>' +
-                                    '</gs-select>',
-                                    function () {
-            return setOrRemoveTextAttribute(selectedElement, 'direction', this.value);
-        });
+    addElement('gs-sticky', '#layout_sticky_header_footer');
 
-        addProp('Always Stuck', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('stuck') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'stuck', this.value === 'true', true);
-        });
-
-        addProp('Touch Devices Allowed', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('touch-device-allowed') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'touch-device-allowed', this.value === 'true', true);
-        });
-
-        // TITLE attribute
-        addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
-        });
-
-        // SUSPEND-INSERTED attribute
-        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
-        });
-
-        // visibility attributes
-        var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden')) {
-            strVisibilityAttribute = 'hidden';
-        }
-        if (selectedElement.hasAttribute('hide-on-desktop')) {
-            strVisibilityAttribute = 'hide-on-desktop';
-        }
-        if (selectedElement.hasAttribute('hide-on-tablet')) {
-            strVisibilityAttribute = 'hide-on-tablet';
-        }
-        if (selectedElement.hasAttribute('hide-on-phone')) {
-            strVisibilityAttribute = 'hide-on-phone';
-        }
-        if (selectedElement.hasAttribute('show-on-desktop')) {
-            strVisibilityAttribute = 'show-on-desktop';
-        }
-        if (selectedElement.hasAttribute('show-on-tablet')) {
-            strVisibilityAttribute = 'show-on-tablet';
-        }
-        if (selectedElement.hasAttribute('show-on-phone')) {
-            strVisibilityAttribute = 'show-on-phone';
-        }
-
-        addProp('Visibility', true, '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                                        '<option value="">Visible</option>' +
-                                        '<option value="hidden">Invisible</option>' +
-                                        '<option value="hide-on-desktop">Invisible at desktop size</option>' +
-                                        '<option value="hide-on-tablet">Invisible at tablet size</option>' +
-                                        '<option value="hide-on-phone">Invisible at phone size</option>' +
-                                        '<option value="show-on-desktop">Visible at desktop size</option>' +
-                                        '<option value="show-on-tablet">Visible at tablet size</option>' +
-                                        '<option value="show-on-phone">Visible at phone size</option>' +
-                                    '</gs-select>', function () {
-            selectedElement.removeAttribute('hidden');
-            selectedElement.removeAttribute('hide-on-desktop');
-            selectedElement.removeAttribute('hide-on-tablet');
-            selectedElement.removeAttribute('hide-on-phone');
-            selectedElement.removeAttribute('show-on-desktop');
-            selectedElement.removeAttribute('show-on-tablet');
-            selectedElement.removeAttribute('show-on-phone');
-            
-            if (this.value) {
-                selectedElement.setAttribute(this.value, '');
-            }
-            
-            return selectedElement;
-        });
-        
-        //addFlexContainerProps(selectedElement);
-        addFlexProps(selectedElement);
+    window.designElementProperty_GSSTICKY = function () {
+        addSelect('V', 'Direction', 'direction', [
+            {"val": "", "txt": "Up"},
+            {"val": "down", "txt": "Down"}
+        ]);
+        addCheck('O', 'Always Stuck', 'stuck');
+        addCheck('O', 'Touch Devices Allowed', 'touch-device-allowed');
+        addFlexContainerProps();
     };
 });
 

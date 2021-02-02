@@ -1,39 +1,33 @@
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps, shimmed
+//jslint browser:true, maxlen:80, white:false, this:true
 
 window.addEventListener('design-register-element', function () {
-    window.designElementProperty_GSBODY = function(selectedElement) {
-        addFlexContainerProps(selectedElement);
-        //addFlexProps(selectedElement);
-        
-        addProp('Padded', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('padded')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'padded', (this.value === 'true'), true);
-        });
+    "use strict";
+    addSnippet('<gs-body>', '<gs-body>', 'gs-body padded>\n    $0\n</gs-body>');
+    addElement('gs-body', '#layout_page');
+
+    window.designElementProperty_GSBODY = function () {
+        addCheck('V', 'Padded', 'padded');
+        addFlexContainerProps();
     };
-    
-    registerDesignSnippet('<gs-body>', '<gs-body>', 'gs-body>\n' +
-                                                    '    $0\n' +
-                                                    '</gs-body>');
-    
-    designRegisterElement('gs-body', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_page');
 });
 
-// document.addEventListener('DOMContentLoaded', function () {
-//     xtag.register('gs-body', {
-//         lifecycle: {},
-//         events: {},
-//         accessors: {},
-//         methods: {}
-//     });
-// });
-// JOSEPH want's this to revert back to default if you remove the role attribute
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
     xtag.register('gs-body', {
         lifecycle: {
             created: function () {
-                if (!this.hasAttribute('role') && !GS.findParentTag(this, 'gs-dialog')) {
+                if (
+                    !this.hasAttribute('role') &&
+                    !GS.findParentTag(this, 'gs-dialog')
+                ) {
                     this.setAttribute('role', 'main');
                 }
-            },
+            }
         },
         events: {},
         accessors: {},

@@ -1,193 +1,51 @@
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps, addFocusEvents, addAutocompleteProps
+//jslint browser:true, white:false, this:true
+//, maxlen:80
+
 window.addEventListener('design-register-element', function () {
     'use strict';
 
-    registerDesignSnippet('<gs-date>', '<gs-date>', 'gs-date column="${1:name}"></gs-date>');
-    registerDesignSnippet('<gs-date> With Label', '<gs-date>', 'label for="${1:date-insert-start_date}">${2:Start Date}:</label>\n' +
-                                                               '<gs-date id="${1:date-insert-start_date}" column="${3:start_date}"></gs-date>');
+    addSnippet(
+        '<gs-date>',
+        '<gs-date>',
+        'gs-date column="${1:name}"></gs-date>'
+    );
+    addSnippet(
+        '<gs-date> With Label',
+        '<gs-date>',
+        (
+            'label for="${1:date-insert-start_date}">' +
+                '${2:Start Date}:' +
+            '</label>\n' +
+            '<gs-date id="${1:date-insert-start_date}" ' +
+            'column="${3:start_date}"></gs-date>'
+        )
+    );
 
-    /*
-    TODO: there is no documentation
-    designRegisterElement('gs-date', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/doc-elem-date.html');
-    */
+    // TODO: there is no documentation
+    //addElement('gs-date', '');
 
     window.designElementProperty_GSDATE = function(selectedElement) {
-        addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'column', this.value);
-        });
-
-        addProp('Value', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('value') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'value', this.value);
-        });
-
-        addProp('Column In Querystring', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'qs', this.value, false);
-        });
-
-        addProp('Placeholder', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('placeholder') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'placeholder', this.value);
-        });
-
-        //console.log(selectedElement.hasAttribute('mini'));
-
-        addProp('Mini', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('mini')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'mini', (this.value === 'true'), true);
-        });
-
-        addProp('Date Picker', true, '<gs-checkbox class="target" value="' + (!selectedElement.hasAttribute('no-picker')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-picker', (this.value === 'true'), false);
-        });
-
-        addProp('Format', true, '<gs-combo class="target" value="' + encodeHTML(selectedElement.getAttribute('format') || '') + '" mini>' +
-                        ml(function () {/*<template>
-                                            <table>
-                                                <tbody>
-                                                    <tr value="">
-                                                        <td hidden>Default</td>
-                                                        <td><center>Default<br /> (01/01/2015)</center></td>
-                                                    </tr>
-                                                    <tr value="shortdate">
-                                                        <td hidden>shortdate</td>
-                                                        <td><center>shortdate<br /> (1/1/15)</center></td>
-                                                    </tr>
-                                                    <tr value="mediumdate">
-                                                        <td hidden>mediumdate</td>
-                                                        <td><center>mediumdate<br /> (Jan 1, 2015)</center></td>
-                                                    </tr>
-                                                    <tr value="longdate">
-                                                        <td hidden>longdate</td>
-                                                        <td><center>longdate<br /> (January 1, 2015)</center></td>
-                                                    </tr>
-                                                    <tr value="fulldate">
-                                                        <td hidden>fulldate</td>
-                                                        <td><center>fulldate<br /> (Thursday, January 1, 2015)</center></td>
-                                                    </tr>
-                                                    <tr value="isodate">
-                                                        <td hidden>isodate</td>
-                                                        <td><center>isodate<br /> (2015-01-01)</center></td>
-                                                    </tr>
-                                                    <tr value="isodatetime">
-                                                        <td hidden>isodatetime</td>
-                                                        <td><center>isodatetime<br /> (2015-01-01T00:00:00)</center></td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </template>
-                                    </gs-combo>
-                                */}), function () {
-            return setOrRemoveTextAttribute(selectedElement, 'format', this.value);
-        });
-
-        // TITLE attribute
-        addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
-        });
-
-        // TABINDEX attribute
-        addProp('Tabindex', true, '<gs-number class="target" value="' + encodeHTML(selectedElement.getAttribute('tabindex') || '') + '" mini></gs-number>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'tabindex', this.value);
-        });
-
-        addProp('Autocorrect', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocorrect') !== 'off') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'autocorrect', (this.value === 'false' ? 'off' : ''));
-        });
-
-        addProp('Autocapitalize', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocapitalize') !== 'off') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'autocapitalize', (this.value === 'false' ? 'off' : ''));
-        });
-
-        addProp('Autocomplete', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocomplete') !== 'off') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'autocomplete', (this.value === 'false' ? 'off' : ''));
-        });
-
-        addProp('Spellcheck', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('spellcheck') !== 'false') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'spellcheck', (this.value === 'false' ? 'false' : ''));
-        });
-
-        addProp('Focus', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onfocus') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onfocus', this.value);
-        });
-        addProp('Blur', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onblur') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onblur', this.value);
-        });
-        addProp('Change', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onchange') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onchange', this.value);
-        });
-        addProp('Mousedown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousedown') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onmousedown', this.value);
-        });
-        addProp('Mouseup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmouseup') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onmouseup', this.value);
-        });
-        addProp('Mousemove', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onmousemove') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onmousemove', this.value);
-        });
-        addProp('Keydown', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeydown') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onkeydown', this.value);
-        });
-        addProp('Keyup', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeyup') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onkeyup', this.value);
-        });
-        addProp('Keypress', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onkeypress') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onkeypress', this.value);
-        });
-
-        // visibility attributes
-        var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden'))                   { strVisibilityAttribute = 'hidden'; }
-        if (selectedElement.hasAttribute('hide-on-desktop'))  { strVisibilityAttribute = 'hide-on-desktop'; }
-        if (selectedElement.hasAttribute('hide-on-tablet'))   { strVisibilityAttribute = 'hide-on-tablet'; }
-        if (selectedElement.hasAttribute('hide-on-phone'))    { strVisibilityAttribute = 'hide-on-phone'; }
-        if (selectedElement.hasAttribute('show-on-desktop'))   { strVisibilityAttribute = 'show-on-desktop'; }
-        if (selectedElement.hasAttribute('show-on-tablet'))    { strVisibilityAttribute = 'show-on-tablet'; }
-        if (selectedElement.hasAttribute('show-on-phone'))     { strVisibilityAttribute = 'show-on-phone'; }
-        
-        addProp('Visibility', true, '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                                        '<option value="">Visible</option>' +
-                                        '<option value="hidden">Invisible</option>' +
-                                        '<option value="hide-on-desktop">Invisible at desktop size</option>' +
-                                        '<option value="hide-on-tablet">Invisible at tablet size</option>' +
-                                        '<option value="hide-on-phone">Invisible at phone size</option>' +
-                                        '<option value="show-on-desktop">Visible at desktop size</option>' +
-                                        '<option value="show-on-tablet">Visible at tablet size</option>' +
-                                        '<option value="show-on-phone">Visible at phone size</option>' +
-                                    '</gs-select>', function () {
-            selectedElement.removeAttribute('hidden');
-            selectedElement.removeAttribute('hide-on-desktop');
-            selectedElement.removeAttribute('hide-on-tablet');
-            selectedElement.removeAttribute('hide-on-phone');
-            selectedElement.removeAttribute('show-on-desktop');
-            selectedElement.removeAttribute('show-on-tablet');
-            selectedElement.removeAttribute('show-on-phone');
-            
-            if (this.value) {
-                selectedElement.setAttribute(this.value, '');
-            }
-            
-            return selectedElement;
-        });
-        
-        // DISABLED attribute
-        addProp('Disabled', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('disabled') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'disabled', this.value === 'true', true);
-        });
-        
-        // READONLY attribute
-        addProp('Readonly', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('readonly') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'readonly', this.value === 'true', true);
-        });
-        
-        //addFlexContainerProps(selectedElement);
+        addGSControlProps();
+        addText('O', 'Column In QS', 'qs');
+        addText('V', 'Placeholder', 'placeholder');
+        addText('V', 'Date Picker', 'no-picker');
+        addCombo('D', 'Format', 'format', [
+            {"val": "", "txt": "Default (01/01/2015)"},
+            {"val": "shortdate", "txt": "Shortdate (1/1/15)"},
+            {"val": "mediumdate", "txt": "Mediumdate (Jan 1, 2015)"},
+            {"val": "longdate", "txt": "Longdate (January 1, 2015)"},
+            {"val": "fulldate", "txt": "Fulldate (Thursday, January 1, 2015)"},
+            {"val": "isodate", "txt": "Isodate (2015-01-01)"},
+            {"val": "isodatetime", "txt": "Isodatetime (2015-01-01T00:00:00)"}
+        ]);
+        addAutocompleteProps();
+        addFocusEvents();
         addFlexProps(selectedElement);
-        
-        //// SUSPEND-CREATED attribute
-        //addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
-        //    return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
-        //});
-        
-        // SUSPEND-INSERTED attribute
-        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
-        });
     };
 });
 

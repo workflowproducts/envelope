@@ -1,149 +1,35 @@
-//global GS, ml, addProp, document, window, registerDesignSnippet, designRegisterElement, encodeHTML, setOrRemoveTextAttribute, setOrRemoveBooleanAttribute, addFlexContainerProps, addFlexProps, CryptoJS, xtag, shimmed, evt, HTMLTemplateElement
-//jslint this
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps, shimmed, HTMLTemplateElement
+//jslint browser:true, white:false, this:true
+//, maxlen:80
+
 window.addEventListener('design-register-element', function () {
     'use strict';
-    
-    registerDesignSnippet('<gs-form>', '<gs-form>', 'gs-form src="${1:test.tpeople}">\n' +
-                                                    '    <template>\n' +
-                                                    '        ${2}\n' +
-                                                    '    </template>\n' +
-                                                    '</gs-form>');
-    
-    designRegisterElement('gs-form', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#record_form');
-    
+    addSnippet(
+        '<gs-form>',
+        '<gs-form>',
+        'gs-form src="${1:test.tpeople}">\n' +
+        '    <template>\n' +
+        '        ${2}\n' +
+        '    </template>\n' +
+        '</gs-form>'
+    );
+
+    addElement('gs-form', '#record_form');
+
     window.designElementProperty_GSFORM = function (selectedElement) {
-        addProp(
-            'Socket',
-            true,
-            '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('socket') || '') + '" mini></gs-text>',
-            function () {
-            return setOrRemoveTextAttribute(
-                selectedElement,
-                'socket',
-                encodeURIComponent(this.value)
-            );
-        });
-
-        addProp('Source', true, '<gs-memo class="target" value="' + encodeHTML(decodeURIComponent(selectedElement.getAttribute('src') ||
-                                                                                        selectedElement.getAttribute('source') || '')) + '" mini></gs-memo>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'src', encodeURIComponent(this.value));
-        });
-        
-        addProp('Columns', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('cols') || '') + '" mini></gs-text>',
-                function () {
-            return setOrRemoveTextAttribute(selectedElement, 'cols', this.value);
-        });
-        
-        addProp('Where', true, '<gs-text class="target" value="' + encodeHTML(decodeURIComponent(selectedElement.getAttribute('where') || '')) + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'where', encodeURIComponent(this.value));
-        });
-        
-        addProp('Column In Querystring', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'qs', this.value, false);
-        });
-        
-        addProp('Lock', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('lock') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'lock', this.value);
-        });
-        
-        addProp('Order By', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('ord') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'ord', this.value);
-        });
-        
-        addProp('Limit', true, '<gs-number class="target" value="' + encodeHTML(selectedElement.getAttribute('limit') || '') + '" mini></gs-number>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'limit', this.value);
-        });
-        
-        addProp('Offset', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('offset') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'offset', this.value);
-        });
-        
-        addProp('Save&nbsp;While&nbsp;Typing', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('save-while-typing')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'save-while-typing', (this.value === 'true'), true);
-        });
-        
-        addProp('Suppress<br />"No&nbsp;Record&nbsp;Found"<br />Error', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suppress-no-record-found')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suppress-no-record-found', (this.value === 'true'), true);
-        });
-        
-        // TITLE attribute
-        addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
-        });
-
-        addProp('Before Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_select') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_select', this.value);
-        });
-
-        addProp('After Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_select') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_select', this.value);
-        });
-
-        addProp('Before Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_update') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_update', this.value);
-        });
-
-        addProp('After Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_update') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_update', this.value);
-        });
-
-        // SUSPEND-CREATED attribute
-        addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
-        });
-        
-        // SUSPEND-INSERTED attribute
-        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
-        });
-        
-        // visibility attributes
-        var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden'))                   { strVisibilityAttribute = 'hidden'; }
-        if (selectedElement.hasAttribute('hide-on-desktop'))  { strVisibilityAttribute = 'hide-on-desktop'; }
-        if (selectedElement.hasAttribute('hide-on-tablet'))   { strVisibilityAttribute = 'hide-on-tablet'; }
-        if (selectedElement.hasAttribute('hide-on-phone'))    { strVisibilityAttribute = 'hide-on-phone'; }
-        if (selectedElement.hasAttribute('show-on-desktop'))   { strVisibilityAttribute = 'show-on-desktop'; }
-        if (selectedElement.hasAttribute('show-on-tablet'))    { strVisibilityAttribute = 'show-on-tablet'; }
-        if (selectedElement.hasAttribute('show-on-phone'))     { strVisibilityAttribute = 'show-on-phone'; }
-        
-        addProp('Visibility', true, '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                                        '<option value="">Visible</option>' +
-                                        '<option value="hidden">Invisible</option>' +
-                                        '<option value="hide-on-desktop">Invisible at desktop size</option>' +
-                                        '<option value="hide-on-tablet">Invisible at tablet size</option>' +
-                                        '<option value="hide-on-phone">Invisible at phone size</option>' +
-                                        '<option value="show-on-desktop">Visible at desktop size</option>' +
-                                        '<option value="show-on-tablet">Visible at tablet size</option>' +
-                                        '<option value="show-on-phone">Visible at phone size</option>' +
-                                    '</gs-select>', function () {
-            selectedElement.removeAttribute('hidden');
-            selectedElement.removeAttribute('hide-on-desktop');
-            selectedElement.removeAttribute('hide-on-tablet');
-            selectedElement.removeAttribute('hide-on-phone');
-            selectedElement.removeAttribute('show-on-desktop');
-            selectedElement.removeAttribute('show-on-tablet');
-            selectedElement.removeAttribute('show-on-phone');
-            
-            if (this.value) {
-                selectedElement.setAttribute(this.value, '');
-            }
-            
-            return selectedElement;
-        });
-        
-        addProp('Refresh On Querystring Columns', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('refresh-on-querystring-values') || '') + '" mini></gs-text>', function () {
-            this.removeAttribute('refresh-on-querystring-change');
-            return setOrRemoveTextAttribute(selectedElement, 'refresh-on-querystring-values', this.value);
-        });
-        
-        addProp('Refresh On Querystring Change', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('refresh-on-querystring-change')) + '" mini></gs-checkbox>', function () {
-            this.removeAttribute('refresh-on-querystring-values');
-            return setOrRemoveBooleanAttribute(selectedElement, 'refresh-on-querystring-change', this.value === 'true', true);
-        });
-        
-        addFlexContainerProps(selectedElement);
-        addFlexProps(selectedElement);
+        addDataAttributes('select,update');
+        addCheck('D', 'Save&nbsp;While&nbsp;Typing', 'save-while-typing');
+        addCheck('D', 'Suppress<br />"No&nbsp;Record&nbsp;Found"<br />Error', 'suppress-no-record-found');
+        addDataEvents('select,update');
+        addText('O', 'Column In QS', 'qs');
+        addText('O', 'Refresh On QS Columns', 'refresh-on-querystring-values');
+        addText('O', 'Refresh On QS Change', 'refresh-on-querystring-change');
+        addFlexContainerProps();
+        addFlexProps();
     };
 });
 
@@ -413,18 +299,20 @@ document.addEventListener('DOMContentLoaded', function () {
         var strObject = srcParts[1];
         var strReturnCols = element.arrColumns.join('\t');
         var strHashCols = element.lockColumn;
+        var strPk;
         var updateFrameData;
         var strRoles;
         var strColumns;
         var arrTotalRecords = [];
-        
+
         parentRecord = GS.findParentElement(updateElement, '.form-record');
-        
+
+        strPk = element.getAttribute('pk') || 'id';
         strID = parentRecord.getAttribute('data-id');
         strHash = CryptoJS.MD5(parentRecord.getAttribute('data-' + element.lockColumn)).toString();
-        
+
         strRoles   = 'pk\thash\tset';
-        strColumns = 'id\thash\t' + GS.encodeForTabDelimited(strColumn);
+        strColumns = strPk + '\thash\t' + GS.encodeForTabDelimited(strColumn);
         updateFrameData = strID + '\t' + strHash + '\t' + GS.encodeForTabDelimited(newValue);
         
         updateFrameData = (strRoles + '\n' + strColumns + '\n' + updateFrameData);
@@ -597,6 +485,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var strWhere;
                 var strChangeStamp;
                 var strValue;
+                var strPk;
                 
                 element.bolCurrentlySaving = true;
                 element.jsnUpdate[strID][strColumn] = undefined;
@@ -636,9 +525,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 strID           = GS.qryGetVal(strWhere,      'id');
                 strChangeStamp  = GS.qryGetVal(strWhere,      element.lockColumn);
                 strHash = CryptoJS.MD5(strChangeStamp).toString();
+                strPk = element.getAttribute('pk') || 'id';
 
                 strRoles   = 'pk\thash\tset';
-                strColumns = 'id\thash\t' + GS.encodeForTabDelimited(strColumn);
+                strColumns = strPk + '\thash\t' + GS.encodeForTabDelimited(strColumn);
                 updateFrameData = strID + '\t' + strHash + '\t' + GS.encodeForTabDelimited(strValue);
                 updateFrameData = (strRoles + '\n' + strColumns + '\n' + updateFrameData);
                 

@@ -1,638 +1,879 @@
-//jslint white:true multivar:true
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps, addFocusEvents, addDataEvents, addDataAttributes
+//global addAutocompleteProps
+//jslint browser:true, maxlen:80, white:false, this:true
+
+// # CODE INDEX:          <- (use "find" (CTRL-f or CMD-f) to skip to a section)
+//      # TOP             <- (this just brings you back this index)
+//      # ELEMENT DOCUMENTATION
+//      # NOTES/IDEAS
+//      # SNIPPET/DESIGN
+//      # FUNCTION SHORTCUTS
+//      # UTILITY FUNCTIONS
+//      # ELEMENT FUNCTIONS
+//      # RENDER FUNCTIONS
+//      # DATA FUNCTIONS
+//      # EVENT FUNCTIONS
+//          # QS EVENTS
+//          # FOCUS EVENTS
+//          # BLUR EVENTS
+//          # CHANGE EVENTS
+//          # KEY EVENTS
+//          # DROPDOWN EVENTS
+//          # DEVELOPER EVENTS
+//          # HIGH LEVEL BINDING
+//      # XTAG DEFINITION
+//      # ELEMENT LIFECYCLE
+//      # ELEMENT ACCESSORS
+//      # ELEMENT METHODS
+//
+// For code that needs to be completed:
+//      # NEED CODING
+
+
+// ############################################################################
+// ########################## ELEMENT DOCUMENTATION ###########################
+// ############################################################################
+
+
+
+
+// ############################################################################
+// ############################### NOTES/IDEAS ################################
+// ############################################################################
+/*
+
+FOCUS/BLUR/CHANGE stablize:
+Detecting when focus enters/leaves a combo is tricky for a couple reasons.
+        First, there's multiple elements capable of recieving the focus (the
+        combo itself, the control, and the button. Second, the blur and focus
+        events are timed such that document.activeElement isn't reliable. So,
+        perhaps we should have a global event listener that handles keeping
+        track of that and notifies the combobox elements when they've lost or
+        gained the focus. After that, we intercept and stop propagation of all
+        focus events unless it's triggered by the combo because of our global
+        code (which we can do by putting a modifier on the event to mark it as
+        free to pass). Stabilizing this will help stablize the change event.
+        At the moment, it seems fine, but we can simplify the code if this
+        works.
+
+CODE ORGANIZATION ADJUSTMENT:
+The dropdown code is under the "UTILITY FUNCTIONS" section at the moment, it
+        would be better to move it to it's own section.
+
+*/
+
+
+// ############################################################################
+// ############################## SNIPPET/DESIGN ##############################
+// ############################################################################
 
 window.addEventListener('design-register-element', function () {
     'use strict';
-    
-    registerDesignSnippet('<gs-combo>', '<gs-combo>', 'gs-combo src="${1:test.tpeople}" column="${2}"></gs-combo>');
-    
-    designRegisterElement('gs-combo', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_combo');
-    
-    window.designElementProperty_GSCOMBO = function (selectedElement) {
-        addProp('Source', true,
-                '<gs-memo class="target" value="' + encodeHTML(decodeURIComponent(selectedElement.getAttribute('src') ||
-                                                                        selectedElement.getAttribute('source') || '')) + '" mini></gs-memo>',
-                function () {
-            return setOrRemoveTextAttribute(selectedElement, 'src', encodeURIComponent(this.value));
-        });
-        
-        addProp('Columns', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('cols') || '') + '" mini></gs-text>',
-                function () {
-            return setOrRemoveTextAttribute(selectedElement, 'cols', this.value);
-        });
-        
-        addProp('Initialize Source', true,
-                '<gs-memo class="target" value="' + encodeHTML(decodeURIComponent(selectedElement.getAttribute('initialize') || '')) + '" mini></gs-memo>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'initialize', encodeURIComponent(this.value));
-        });
-        
-        addProp('Hide Columns', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('hide') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'hide', this.value);
-        });
-        
-        addProp('Where', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('where') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'where', this.value);
-        });
-        
-        addProp('Order By', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('ord') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'ord', this.value);
-        });
-        
-        addProp('Limit', true, '<gs-number class="target" value="' + encodeHTML(selectedElement.getAttribute('limit') || '') + '" mini></gs-number>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'limit', this.value);
-        });
-        
-        addProp('Offset', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('offset') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'offset', this.value);
-        });
-        addProp('Column', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('column') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'column', this.value);
-        });
-        
-        addProp('Value', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('value') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'value', this.value);
-        });
-        
-        addProp('Column In Querystring', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'qs', this.value, false);
-        });
-        
-        addProp('Allow Empty', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('allow-empty')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'allow-empty', (this.value === 'true'), true);
-        });
-        
-        addProp('Limit&nbsp;To&nbsp;List', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('limit-to-list')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'limit-to-list', (this.value === 'true'), true);
-        });
-        
-        addProp('Mini', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('mini')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'mini', (this.value === 'true'), true);
-        });
-        
-        // TITLE attribute
-        addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
-        });
-        
-        // TABINDEX attribute
-        addProp('Tabindex', true, '<gs-number class="target" value="' + encodeHTML(selectedElement.getAttribute('tabindex') || '') + '" mini></gs-number>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'tabindex', this.value);
-        });
-        
-        addProp('Autocorrect', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocorrect') !== 'off') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'autocorrect', (this.value === 'false' ? 'off' : ''));
-        });
-        
-        addProp('Autocapitalize', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocapitalize') !== 'off') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'autocapitalize', (this.value === 'false' ? 'off' : ''));
-        });
-        
-        addProp('Autocomplete', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('autocomplete') !== 'off') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'autocomplete', (this.value === 'false' ? 'off' : ''));
-        });
-        
-        addProp('Spellcheck', true, '<gs-checkbox class="target" value="' + (selectedElement.getAttribute('spellcheck') !== 'false') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'spellcheck', (this.value === 'false' ? 'false' : ''));
-        });
-        
-        // visibility attributes
-        var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden'))          { strVisibilityAttribute = 'hidden'; }
-        if (selectedElement.hasAttribute('hide-on-desktop')) { strVisibilityAttribute = 'hide-on-desktop'; }
-        if (selectedElement.hasAttribute('hide-on-tablet'))  { strVisibilityAttribute = 'hide-on-tablet'; }
-        if (selectedElement.hasAttribute('hide-on-phone'))   { strVisibilityAttribute = 'hide-on-phone'; }
-        if (selectedElement.hasAttribute('show-on-desktop')) { strVisibilityAttribute = 'show-on-desktop'; }
-        if (selectedElement.hasAttribute('show-on-tablet'))  { strVisibilityAttribute = 'show-on-tablet'; }
-        if (selectedElement.hasAttribute('show-on-phone'))   { strVisibilityAttribute = 'show-on-phone'; }
-        
-        addProp('Visibility', true, '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                                        '<option value="">Visible</option>' +
-                                        '<option value="hidden">Invisible</option>' +
-                                        '<option value="hide-on-desktop">Invisible at desktop size</option>' +
-                                        '<option value="hide-on-tablet">Invisible at tablet size</option>' +
-                                        '<option value="hide-on-phone">Invisible at phone size</option>' +
-                                        '<option value="show-on-desktop">Visible at desktop size</option>' +
-                                        '<option value="show-on-tablet">Visible at tablet size</option>' +
-                                        '<option value="show-on-phone">Visible at phone size</option>' +
-                                    '</gs-select>', function () {
-            selectedElement.removeAttribute('hidden');
-            selectedElement.removeAttribute('hide-on-desktop');
-            selectedElement.removeAttribute('hide-on-tablet');
-            selectedElement.removeAttribute('hide-on-phone');
-            selectedElement.removeAttribute('show-on-desktop');
-            selectedElement.removeAttribute('show-on-tablet');
-            selectedElement.removeAttribute('show-on-phone');
-            
-            if (this.value) {
-                selectedElement.setAttribute(this.value, '');
-            }
-            
-            return selectedElement;
-        });
-        
-        // DISABLED attribute
-        addProp('Disabled', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('disabled') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'disabled', this.value === 'true', true);
-        });
-        
-        // READONLY attribute
-        addProp('Readonly', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('readonly') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'readonly', this.value === 'true', true);
-        });
-        
-        addProp('Refresh On Querystring Columns', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('refresh-on-querystring-values') || '') + '" mini></gs-text>', function () {
-            this.removeAttribute('refresh-on-querystring-change');
-            return setOrRemoveTextAttribute(selectedElement, 'refresh-on-querystring-values', this.value);
-        });
-        
-        addProp('Refresh On Querystring Change', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('refresh-on-querystring-change')) + '" mini></gs-checkbox>', function () {
-            this.removeAttribute('refresh-on-querystring-values');
-            return setOrRemoveBooleanAttribute(selectedElement, 'refresh-on-querystring-change', this.value === 'true', true);
-        });
-        
-        //addFlexContainerProps(selectedElement);
-        addFlexProps(selectedElement);
-        
-        //// SUSPEND-CREATED attribute
-        //addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
-        //    return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
-        //});
-        
-        // SUSPEND-INSERTED attribute
-        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
-        });
+
+    addSnippet(
+        '<gs-combo>',
+        '<gs-combo>',
+        ml(function () {/*gs-combo src="test.rtime_copy_datasheet">
+    <template for="header">
+        <gs-cell>${1}</gs-cell>
+    </template>
+    <template for="row">
+        <gs-cell>${2}</gs-cell>
+    </template>
+</gs-combo>*/
+        })
+    );
+
+    addElement('gs-combo', '#controls_combo');
+
+    // DEFINE PROPERTIES
+    window.designElementProperty_GSCOMBO = function (selected) {
+        addGSControlProps();
+        addDataAttributes('select');
+        addText('V', 'Hide Columns', 'hide');
+        addText('D', 'Null String', 'null-string');
+        addFocusEvents();
+        addDataEvents('select');
+        addCheck('D', 'Allow Empty', 'allow-empty');
+        addCheck('D', 'Limit&nbsp;To&nbsp;List', 'limit-to-list');
+        addAutocompleteProps();
+        addText('O', 'Column In QS', 'qs');
+        addText('O', 'Refresh On QS Columns', 'refresh-on-querystring-values');
+        addCheck('O', 'Refresh On QS Change', 'refresh-on-querystring-change');
+        addFlexProps(selected);
     };
 });
 
+//var renderSeq = 0;
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
-    // scroll the dropdown to the selected record
-    function scrollToSelectedRecord(element) {
-        var positioningContainer, scrollingContainer, arrTrs, i, len, intScrollTop, bolFoundSelected = false;
+// ############################################################################
+// ############################ FUNCTION SHORTCUTS ############################
+// ############################################################################
 
-        if (element.currentDropDownContainer) {
-            positioningContainer = xtag.queryChildren(element.currentDropDownContainer, '.gs-combo-positioning-container')[0];
-            scrollingContainer = xtag.queryChildren(positioningContainer, '.gs-combo-scroll-container')[0];
-            arrTrs = xtag.query(element.dropDownTable, 'tr');
+    var cmbQryKids = xtag.queryChildren;
 
-            for (i = 0, intScrollTop = 0, len = arrTrs.length; i < len; i += 1) {
-                if (arrTrs[i].hasAttribute('selected')) {
-                    intScrollTop += arrTrs[i].offsetHeight / 2;
 
-                    bolFoundSelected = true;
+// ############################################################################
+// ############################ UTILITY FUNCTIONS #############################
+// ############################################################################
 
-                    break;
-                } else {
-                    intScrollTop += arrTrs[i].offsetHeight;
+    function extractAndConvertTableTemplate(element, templateElement) {
+        // some genericly profound comment explaining the virtue of
+        //      keeping the variable declarations at the top of the
+        //      function while simultaniously being captivating and
+        //      barely entertaining in a long run-on sentence.
+        // That's it, that's the tweet.
+        // Few will get this.
+        // Tell your sons this.
+        // Will not explain.
+        var tableElement;
+        var strHeaders;
+        var strCells;
+        var strData;
+        var arrRows;
+        var arrCells;
+
+        var arrHeaders;
+        var arrTypes;
+        var arrRecords;
+
+        var firstCell;
+        var firstCellNumber;
+        var i;
+        var len;
+        var cell_i;
+        var cell_len;
+        var cell;
+        var strNullString;
+
+        // we need to have the table element handy, because we'll be doing our
+        //      selections to get the cells from there.
+        tableElement = templateElement.content.children[0];
+
+        // we need to know how we differentiate null strings for tab encoding
+        strNullString = element.getAttribute('null-string');
+
+        // some people, use th in the first field for a row number or other
+        //      non-display information. We want to skip the first field if
+        //      the first data field is a TH.
+        firstCell = cmbQryKids(tableElement, 'tbody th, tbody td')[0];
+        firstCellNumber = 0;
+        if (firstCell.nodeName === 'TH') {
+            firstCellNumber = 1;
+        }
+
+        // gather headers
+        strHeaders = '';
+        arrCells = cmbQryKids(tableElement, 'thead th, thead td');
+        i = firstCellNumber;
+        len = arrCells.length;
+        while (i < len) {
+            strHeaders += '<gs-cell>' + arrCells[i].innerHTML + '</gs-cell>';
+            i += 1;
+        }
+
+        // if we didn't find any headers, create blank ones
+        if (!strHeaders) {
+            arrCells = cmbQryKids(
+                tableElement,
+                'tbody tr:first-child th, tbody tr:first-child td'
+            );
+            i = firstCellNumber;
+            len = arrCells.length;
+            while (i < len) {
+                strHeaders += (
+                    '<gs-cell>' +
+                        (arrCells[i].getAttribute('heading') || '') +
+                    '</gs-cell>'
+                );
+                i += 1;
+            }
+        }
+
+        // gather rows
+        arrHeaders = [];
+        arrTypes = [];
+        arrRecords = [];
+
+        strData = '';
+        strCells = '';
+
+        arrRows = cmbQryKids(tableElement, 'tbody tr');
+        i = 0;
+        len = arrRows.length;
+        while (i < len) {
+            arrCells = cmbQryKids(arrRows[i], 'td, th');
+            cell_i = firstCellNumber;
+            cell_len = arrCells.length;
+            while (cell_i < cell_len) {
+                cell = arrCells[cell_i];
+
+                // if there's only one record, just use it as the template.
+                if (i === 0 && len === 1) {
+                    strCells += (
+                        '<gs-cell ' + (
+                            arrRows[i].getAttribute('value')
+                                ? 'value="' + encodeHTML(
+                                    arrRows[i].getAttribute('value')
+                                ) + '"'
+                                : ''
+                        ) + '>' +
+                            arrCells[cell_i].innerHTML +
+                        '</gs-cell>'
+                    );
+
+                // else, we have more than one record and we're making up a
+                //      template for the developer. We use {{= because the data
+                //      is going to contain the cell html in it. So, we don't
+                //      want to html encode the developer's html with {{!
+                } else if (i === 0 && len > 1) {
+                    if (
+                        cell_i === firstCellNumber &&
+                        arrRows[i].hasAttribute('value')
+                    ) {
+                        arrHeaders.push('column_id');
+                        arrTypes.push('text');
+                        strCells += (
+                            '<gs-cell value="{{= row.column_id }}">' +
+                                '<label>' +
+                                    '{{= row.column_' + cell_i + ' }}' +
+                                '</label>' +
+                            '</gs-cell>'
+                        );
+                    } else {
+                        strCells += (
+                            '<gs-cell>' +
+                                '<label>' +
+                                    '{{= row.column_' + cell_i + ' }}' +
+                                '</label>' +
+                            '</gs-cell>'
+                        );
+                    }
+
+                    arrHeaders.push('column_' + cell_i);
+                    arrTypes.push('text');
                 }
-            }
 
-            if (bolFoundSelected) {
-                intScrollTop = intScrollTop - scrollingContainer.offsetHeight / 2;
-            } else {
-                intScrollTop = 0;
-            }
-
-            scrollingContainer.scrollTop = intScrollTop;
-        }
-    }
-
-    // removes selected class from old selected records
-    function clearSelection(element) {
-        var i, len, arrSelectedTrs;
-
-        // clear previous selection
-        arrSelectedTrs = xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr[selected]');
-
-        for (i = 0, len = arrSelectedTrs.length; i < len; i += 1) {
-            arrSelectedTrs[i].removeAttribute('selected');
-        }
-
-        // web-aria
-        if (element.control && element.control.hasAttribute('aria-owns')) {
-            element.control.removeAttribute('aria-activedescendant');
-        }
-    }
-
-    // clears old selection and adds selected class to record
-    function highlightRecord(element, record) {
-        // clear previous selection
-        clearSelection(element);
-
-        // select/highlight the record that was provided
-        record.setAttribute('selected', '');
-
-        // web-aria
-        if (element.control && element.control.hasAttribute('aria-owns')) {
-            element.control.setAttribute('aria-activedescendant', record.getAttribute('id'));
-        }
-    }
-
-    // loops through the records and finds a record using the parameter (if bolPartialMatchAllowed === true then only search the first td text)
-    function findRecordFromString(element, strSearchString, bolPartialMatchAllowed) {
-        var i, len, matchedRecord, arrTrs = xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr');
-        //console.log(arrTrs[0]);
-        //console.log(arrTrs[0].children[0].nodeName.toUpperCase());
-        if (arrTrs && arrTrs[0] && arrTrs[0].children[0].nodeName.toUpperCase() === 'TH' && ((arrTrs[0].children[1]) ? arrTrs[0].children[1].nodeName.toUpperCase() === 'TH' : true)) {
-            arrTrs.splice(0,1);
-        }
-        //console.log(arrTrs);
-        // if bolPartialMatchAllowed is true: only search the first td text (case insensitive)
-        if (bolPartialMatchAllowed === true) {
-            strSearchString = strSearchString.toLowerCase();
-
-            for (i = 0, len = arrTrs.length; i < len; i += 1) {
-                if (xtag.queryChildren(arrTrs[i], 'td')[0].textContent.toLowerCase().indexOf(strSearchString) === 0) {
-                    matchedRecord = arrTrs[i];
-
-                    break;
+                // if there's more than one record, we need to start storing
+                //      data, because the developer has opted for a local
+                //      combobox, not one that loads from the database
+                if (len > 1) {
+                    if (
+                        cell_i === firstCellNumber &&
+                        arrRows[i].hasAttribute('value')
+                    ) {
+                        strData += GS.encodeForTabDelimited(
+                            arrRows[i].getAttribute('value'),
+                            strNullString
+                        ) + '\t';
+                    } else if (cell_i > firstCellNumber) {
+                        strData += '\t';
+                    }
+                    strData += GS.encodeForTabDelimited(
+                        arrCells[cell_i].innerHTML,
+                        strNullString
+                    );
                 }
+
+                cell_i += 1;
+            }
+            if (strData) {
+                arrRecords.push(strData);
+                strData = '';
             }
 
-        // else: search exact text and search both the value attribute (if present) and the first td text
-        } else {
-            for (i = 0, len = arrTrs.length; i < len; i += 1) {
-                if (arrTrs[i].getAttribute('value') === strSearchString ||
-                    xtag.queryChildren(arrTrs[i], 'td')[0].textContent === strSearchString
-                ) {
-                    matchedRecord = arrTrs[i];
-
-                    break;
-                }
-            }
+            i += 1;
         }
 
-        return matchedRecord;
-    }
-
-    // highlights record, sets value of the combobox using record
-    function selectRecord(element, record, bolChange) {
-        // add the yellow selection to the record
-        highlightRecord(element, record);
-        
-        element.selectedRecord = record;
-
-        handleChange(element, bolChange);
-    }
-
-    // highlights record, sets value of the combobox using value attribute
-    //      if bolChange === true then:
-    //          change event and check for limit to list
-    function selectRecordFromValue(element, strValue, bolChange) {
-        var record = findRecordFromString(element, strValue, false);
-
-        //console.log(element.lastValue, strValue);
-        //console.log('bolChange', bolChange, '"' + element.lastValue + '"', '"' + strValue + '"');
-        if (bolChange === true) {
-            bolChange = (String(element.lastValue) !== String(strValue));
+        if (strHeaders) {
+            element.internalTemplates.header = strHeaders;
         }
-        //console.log('bolChange', bolChange);
+        if (strCells) {
+            element.internalTemplates.row = strCells;
+        }
+        if (arrRecords.length > 0) {
+            element.internalData.staticHeaders = arrHeaders;
+            element.internalData.staticTypes = arrTypes;
+            element.internalData.staticRecords = arrRecords;
+        }
+    }
 
-        // if a record was found: select it
-        if (record) {
-            selectRecord(element, record, bolChange);
+    // there are multiple places where we check if we need to trigger a change
+    //      event.
+    function triggerChangeIfNeeded(element) {
+        var jsnDisp;
+        var control;
 
-        // else if limit to list (and no record was found):
-        } else if (element.hasAttribute('limit-to-list') && bolChange) {
-            if (strValue === '' && element.hasAttribute('allow-empty')) {
-              //console.log('before value: "' + element.control.value + '"', element.changeOccured);
-                clearSelection(element);
-                handleChange(element, bolChange);
-              //console.log('after value: "' + element.control.value + '"', element.changeOccured);
+        // change events should not be triggered if the combo is not editable
+        // if this combo aint gonna break, yeet outta this funky town
+        if (
+            element.hasAttribute('disabled') ||
+            element.hasAttribute('readonly')
+        ) {
+            return false;
+        }
 
-            } else {
+        // shorcut variables
+        jsnDisp = element.internalDisplay;
+        control = element.elems.control;
+
+        // the published value is always filled with the last verified value on
+        //      entering the field, if the verified value is different from the
+        //      published value, trigger the change
+        if (
+            jsnDisp.lastPublishedIndex !== jsnDisp.lastVerifiedIndex ||
+            jsnDisp.lastPublishedValue !== jsnDisp.lastVerifiedValue ||
+            jsnDisp.lastPublishedDisplay !== jsnDisp.lastVerifiedDisplay
+        ) {
+            // update the last published value
+            jsnDisp.lastPublishedIndex = jsnDisp.lastVerifiedIndex;
+            jsnDisp.lastPublishedValue = jsnDisp.lastVerifiedValue;
+            jsnDisp.lastPublishedDisplay = jsnDisp.lastVerifiedDisplay;
+
+            // update control value and attribute value
+            control.value = jsnDisp.lastVerifiedDisplay;
+            element.setAttribute('value', jsnDisp.lastVerifiedValue);
+
+            //console.log('4:', control.value);
+            //console.log('5:', element.value);
+            //console.log('6:', element.getAttribute('value'));
+
+            if (
+                element.hasAttribute('limit-to-list') &&
+                jsnDisp.lastVerifiedIndex === null
+            ) {
                 alert('The text you entered is not in the list');
                 openDropDown(element);
-                GS.setInputSelection(element.control, 0, strValue.length);
+                GS.setInputSelection(control, 0, control.value.length);
             }
 
-        // else (not limit to list and no record found):
-        } else {
-            clearSelection(element);
-            element.selectedRecord = record;
-
-            if (!element.hasAttribute('limit-to-list')) {
-                element.control.value = strValue;
-                element.innerValue = strValue;
-            }
-
-            handleChange(element, bolChange);
+            // trigger event
+            GS.triggerEvent(element, 'change');
         }
     }
 
-    function handleChange(element, bolChange) {
-        var arrSelectedTrs;
-        var strHiddenValue = '';
-        var strTextValue = '';
-        var beforechangeevent;
-        var oldRecord;
-        var oldInnerValue = element.innerValue;
-        var oldControlValue = element.control.value;
+    // we need to be able to execute event attributes (like onafter_select)
+    //      while being able to reference the combobox as "this" in the code.
+    function evalInContext(element, strJS) {
+        var execFunc = function () {
+            return eval(strJS);
+        };
 
-        if (element.dropDownTable) {
-            arrSelectedTrs = xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr[selected]');
+        execFunc.call(element);
+    }
 
-            // if there is a selected record
-            if (arrSelectedTrs.length > 0) {
-                // gather values from the selected record
-                strHiddenValue = arrSelectedTrs[0].getAttribute('value');
-                var firstTd = xtag.queryChildren(arrSelectedTrs[0], 'td')[0],
-                    lastChild = firstTd.lastElementChild;
-                if (lastChild && lastChild.tagName.substring(0, 3) === 'GS-') {
-                    strTextValue = lastChild.textValue || lastChild.value || lastChild.textContent;
-                } else {
-                    strTextValue = firstTd.textContent;
-                }
-
-            } else {
-                strTextValue = element.control.value;
-            }
-
-        } else {
-            strTextValue = element.control.value;
-        }
-
-        if (bolChange) {
-            // console.trace('test');
-          //console.log('### arrSelectedTrs:', arrSelectedTrs);
-          //console.log('### strHiddenValue:', strHiddenValue);
-          //console.log('### strTextValue:  ', strTextValue);
-          //console.log('### bolChange:     ', bolChange);
-        }
-
-        // set innervalue and control value using the values we gather from the record
-        element.innerValue = strHiddenValue || strTextValue;
-        if (element.control.tagName.toUpperCase() === 'SPAN') {
-            element.control.value = strTextValue || strHiddenValue;
-            element.control.innerHTML = strTextValue || strHiddenValue;
-        } else {
-            element.control.value = strTextValue || strHiddenValue;
-        }
-
-        if (bolChange) {
-            if (document.createEvent) {
-                beforechangeevent = document.createEvent('HTMLEvents');
-                beforechangeevent.initEvent('beforechange', true, true);
-            } else {
-                beforechangeevent = document.createEventObject();
-                beforechangeevent.eventType = 'beforechange';
-            }
-
-            beforechangeevent.eventName = 'beforechange';
-
-            if (document.createEvent) {
-                element.dispatchEvent(beforechangeevent);
-            } else {
-                element.fireEvent("on" + beforechangeevent.eventType, beforechangeevent);
-            }
-
-            // xtag.fireEvent(element, 'beforechange', { bubbles: true, cancelable: true });
-
-            //console.log(beforechangeevent.defaultPrevented);
-            if (beforechangeevent.defaultPrevented !== true) {
-                xtag.fireEvent(element, 'change', { bubbles: true, cancelable: true });
-
-            } else {
-                element.innerValue = oldInnerValue;
-                element.control.value = oldControlValue;
-
-                oldRecord = findRecordFromString(element, oldInnerValue, false);
-
-                if (oldRecord) {
-                    highlightRecord(element, oldRecord);
-                } else {
-                    clearSelection(element);
-                }
-            }
-
-            element.ignoreChange = false;
+    // we want to standardize event triggering in this element.
+    function triggerEvent(element, strEvent) {
+        GS.triggerEvent(element, strEvent);
+        GS.triggerEvent(element, 'on' + strEvent);
+        if (
+            element.hasAttribute('on' + strEvent) &&
+            // onfocus and onblur attributes are handled automatically by the
+            //      browser
+            strEvent !== 'focus' &&
+            strEvent !== 'blur'
+        ) {
+            evalInContext(element, element.getAttribute('on' + strEvent));
         }
     }
 
-    function blurFunction(event) {
-        //console.log(event.target.parentNode.parentNode);
-        if (event.target.parentNode.parentNode.changeOccured === true) {
-            event.target.parentNode.parentNode.changeOccured = false;
-        } else if (event.target.parentNode.parentNode.control.value !== event.target.parentNode.parentNode.lastValue) {
-            //console.log(event.target.outerHTML);
-            GS.triggerEvent(event.target, 'change');
-            if (!event.target.hasRun) {
-                event.target.hasRun = true;
-            }
+    // the user needs to be able to set a custom websocket for this element,
+    //      so this function will use an attribute to find out what socket to
+    //      use (and it'll default to "GS.envSocket")
+    function getSocket(element) {
+        if (element.getAttribute('socket')) {
+            return GS[element.getAttribute('socket')];
         }
-        //console.log('\'' + event.target.parentNode.parentNode.control.value + '\'', ':', '\'' + event.target.parentNode.parentNode.lastValue + '\'');
-        event.target.parentNode.parentNode.classList.remove('focus');
-        event.target.parentNode.parentNode.toSpan();
-    }
-    
-    function focusFunction(event) {
-        //console.log('focus', event.target);
-        var element = event.target, element2 = GS.findParentTag(element, 'gs-combo');
-        if (element2 && element2.tagName == 'GS-COMBO') {
-            element = element2;
-        }
-        if (!element.control.classList.contains('placeholder')) {
-            element.lastValue = element.control.innerHTML;
-        } else {
-            element.lastValue = '';
-        }
-        element.classList.add('focus');
-        element.bolSelect = true;
-        element.toInput();
-        element.control.focus();
-        if (element.bolSelect) {
-            element.control.setSelectionRange(0, element.control.value.length);
-        } else {
-            element.control.setSelectionRange(element.control.value.length, element.control.value.length);
-        }
+        return GS.envSocket;
     }
 
-    // open dropdown
-    function openDropDown(element) {
-        // if we are not already dropping down
-        if (!element.droppingDown) {
-            // if there is a source attribute on the combobox: refresh data
-            if (element.getAttribute('src') || element.getAttribute('source')) {
-                getData(element, false, true, function () {
-                    dropDown(element);
-                });
-            } else {
-                dropDown(element);
+    function recordToJSON(element, strRecord) {
+        var col_i;
+        var col_len;
+        var decodeTab = GS.decodeFromTabDelimited;
+        var arrRecord;
+        var jsnRecord;
+        var strCell;
+        var delim;
+        var strNull;
+        var arrColNames;
+
+        // we need the null-string in order to properly decode WS data
+        strNull = element.getAttribute('null-string');
+
+        // save the column name array for quick and easy access
+        arrColNames = element.internalData.columnNames;
+
+        // create cell array for this record
+        strRecord = strRecord + '\t';
+        arrRecord = [];
+        col_i = 0;
+        col_len = element.internalData.columnNames.length;//9999;
+        while (col_i < col_len) {
+            delim = strRecord.indexOf('\t');
+            strCell = strRecord.substring(0, delim);
+            strRecord = strRecord.substring(delim + 1);
+            arrRecord.push(decodeTab(strCell, strNull));
+            col_i += 1;
+        }
+
+        // create record JSON from the cell array
+        col_i = 0;
+        col_len = arrRecord.length;
+        jsnRecord = {};
+        while (col_i < col_len) {
+            jsnRecord[arrColNames[col_i]] = arrRecord[col_i];
+            col_i += 1;
+        }
+
+        return jsnRecord;
+    }
+
+    // There are various times that we need to find a record with a string
+    function findRecord(element, strValue, strDisplay, bolPartial) {
+        var i;
+        var len;
+
+        var bolFound;
+        var jsnRecord;
+        var currValue;
+        var currDisplay;
+
+        var valueTemplate;
+        var displayTemplate;
+        var valueFunc;
+        var displayFunc;
+        var valueRendered;
+        var displayRendered;
+
+        // we need the current hidden and display values. The attribute is the
+        //      only way of setting the value of the combobox internally and
+        //      externally. useing the .value accessor on the combo is just a
+        //      window to setting the attribute. We'll also grab the current
+        //      display value. If the hidden and display values are the same as
+        //      the last verified value, we don't need to continue.
+        currValue = strValue || '';
+        currDisplay = strDisplay || '';
+
+        // if partial search, lowercase
+        if (bolPartial) {
+            currValue = currValue.toLowerCase();
+            currDisplay = currDisplay.toLowerCase();
+        }
+
+        // we need to template the hidden and display values. so, let's
+        //      create the template function.
+        valueTemplate = element.internalTemplates.valueText;
+        displayTemplate = element.internalTemplates.valueDisplay;
+        valueFunc = doT.template(
+            '{{var row = jo; ' +
+            'var i = jo.internal_you_cant_guess_i; ' +
+            'var len = jo.internal_you_cant_guess_len; ' +
+            'var row_number = jo.internal_you_cant_guess_row_number;}}' +
+            valueTemplate
+        );
+        displayFunc = doT.template(
+            '{{var row = jo; ' +
+            'var i = jo.internal_you_cant_guess_i; ' +
+            'var len = jo.internal_you_cant_guess_len; ' +
+            'var row_number = jo.internal_you_cant_guess_row_number;}}' +
+            displayTemplate
+        );
+
+        //// for now, we want to keep an eye on the render timer. We don't
+        ////      want this getting slow.
+        //renderSeq += 1;
+        //console.time('Render (' + renderSeq + ')');
+
+        // we're going to do a record by record search
+        valueRendered = '';
+        displayRendered = '';
+        i = 0;
+        len = element.internalData.records.length;
+        while (i < len) {
+            jsnRecord = recordToJSON(element, element.internalData.records[i]);
+            jsnRecord.internal_you_cant_guess_row_number = (i + 1);
+            jsnRecord.internal_you_cant_guess_i = i;
+            jsnRecord.internal_you_cant_guess_len = len;
+
+            // if the value or display matches (if we have a hidden value,
+            //      that must match, else, we can match on display)
+            if (valueTemplate) {
+                valueRendered = valueFunc(jsnRecord);
             }
-            element.droppingDown = true;
+            displayRendered = displayFunc(jsnRecord);
+
+            // if not partial, perform exact match
+            if (
+                !bolPartial &&
+                (
+                    (valueTemplate && valueRendered === currValue) ||
+                    (displayRendered === currDisplay) ||
+                    (displayRendered === currValue)
+                )
+            ) {
+                bolFound = true;
+            }
+
+            // if partial, perform startswith match
+            if (
+                bolPartial &&
+                (
+                    (
+                        valueTemplate &&
+                        valueRendered.toLowerCase().indexOf(currValue) === 0
+                    ) ||
+                    (displayRendered.toLowerCase().indexOf(currDisplay) === 0)
+                )
+            ) {
+                bolFound = true;
+            }
+
+            // we don't want to keep searching if we've found our value.
+            if (bolFound) {
+                break;
+            }
+
+            i += 1;
+        }
+
+        // if nothing is found, we don't want to send a row number
+        if (!bolFound) {
+            bolFound = false;
+            i = null;
+            valueRendered = null;
+            displayRendered = null;
+        }
+
+        //// report the search time
+        //console.timeEnd('Render (' + renderSeq + ')');
+
+        return {
+            "found": bolFound,
+            "index": i,
+            "value": valueRendered,
+            "display": displayRendered
+        };
+    }
+
+    // to get the selected row number from the dropdown GS-TABLE, there's a lot
+    //      of things that need to be in place. To prevent repeated code, we
+    //      handle all those checks here.
+    function getSelectedRowFromDropdown(element) {
+        var gsTable;
+        var arrRanges;
+        var jsnRange;
+        var jsnStart;
+        var intRow;
+
+        gsTable = element.elems.gsTable;
+        if (!gsTable) {
+            return null;
+        }
+
+        arrRanges = gsTable.internalSelection.ranges;
+        if (!arrRanges) {
+            return null;
+        }
+
+        jsnRange = arrRanges[0];
+        if (!jsnRange) {
+            return null;
+        }
+
+        jsnStart = jsnRange.start;
+        if (!jsnStart) {
+            return null;
+        }
+
+        intRow = jsnStart.row;
+        if (typeof intRow !== 'number') {
+            return null;
+        }
+
+        return intRow;
+    }
+
+    // in multiple places, we want to set the value based on the current
+    //      selection of the GS-TABLE in the dropdown. Here, we try to set the
+    //      control, "value" attribute and record as verified. We return true
+    //      if we were able to find a value, false if weren't able to find a
+    //      value.
+    function setValueFromDropdown(element) {
+        var intRow;
+        var valueTemplate;
+        var displayTemplate;
+        var valueFunc;
+        var displayFunc;
+        var valueRendered;
+        var displayRendered;
+        var finalValue;
+        var finalDisplay;
+        var jsnRecord;
+
+        // get selected row number from table
+        intRow = getSelectedRowFromDropdown(element);
+
+        // we don't want to do anything if there's no selection we can use
+        if (intRow === null) {
+            // report failure
+            return false;
+        }
+
+        // we need to template the hidden and display values. so, let's
+        //      create the template function.
+        valueTemplate = element.internalTemplates.valueText;
+        displayTemplate = element.internalTemplates.valueDisplay;
+        valueFunc = doT.template(
+            '{{var row = jo; ' +
+            'var i = jo.internal_you_cant_guess_i; ' +
+            'var len = jo.internal_you_cant_guess_len; ' +
+            'var row_number = jo.internal_you_cant_guess_row_number;}}' +
+            valueTemplate
+        );
+        displayFunc = doT.template(
+            '{{var row = jo; ' +
+            'var i = jo.internal_you_cant_guess_i; ' +
+            'var len = jo.internal_you_cant_guess_len; ' +
+            'var row_number = jo.internal_you_cant_guess_row_number;}}' +
+            displayTemplate
+        );
+
+        jsnRecord = recordToJSON(
+            element,
+            element.internalData.records[intRow]
+        );
+
+        jsnRecord.internal_you_cant_guess_i = intRow;
+        jsnRecord.internal_you_cant_guess_len = (
+            element.internalData.records.length
+        );
+        jsnRecord.internal_you_cant_guess_row_number = (intRow + 1);
+
+        // if the value or display matches (if we have a hidden value,
+        //      that must match, else, we can match on display)
+        if (valueTemplate) {
+            valueRendered = valueFunc(jsnRecord);
+        }
+        displayRendered = displayFunc(jsnRecord);
+
+        finalValue = (valueRendered || displayRendered);
+        finalDisplay = (displayRendered);
+
+        element.internalDisplay.lastVerifiedIndex = intRow;
+        element.internalDisplay.lastVerifiedValue = finalValue;
+        element.internalDisplay.lastVerifiedDisplay = finalDisplay;
+        element.elems.control.value = finalDisplay;
+        element.setAttribute('value', finalValue);
+
+        // report success
+        return true;
+    }
+
+    // when we close the dropdown, we need to unbind it so that we don't
+    //      start stacking events because we never unbind anything.
+    function unbindDropDown(element) {
+        window.removeEventListener(
+            'resize',
+            element.internalEvents.closeHandler
+        );
+        window.removeEventListener(
+            'orientationchange',
+            element.internalEvents.closeHandler
+        );
+        window.removeEventListener(
+            'mousewheel',
+            element.internalEvents.closeHandler
+        );
+        window.removeEventListener(
+            'comboclose',
+            element.internalEvents.closeHandler
+        );
+        document.body.removeEventListener(
+            'click',
+            element.internalEvents.closeHandler
+        );
+
+        element.elems.gsTable.removeEventListener(
+            'selection_change',
+            element.internalEvents.selectionHandler
+        );
+    }
+
+    // close combobox dropdown
+    function closeDropDown(element) {
+        // no sense in closing what's already closed
+        if (element.internalDisplay.open) {
+            // unbind dropdown events
+            unbindDropDown(element);
+
+            // destroy GS-TABLE, if it's there
+            if (element.elems.gsTable) {
+                element.elems.gsTable.destroy();
+                element.elems.scrollContainer.removeChild(
+                    element.elems.gsTable
+                );
+            }
+
+            // remove dropdown from DOM
+            document.body.removeChild(element.elems.dropDownContainer);
+
+            // remove "open" combo status
+            element.classList.remove('open');
+            element.internalDisplay.open = false;
         }
     }
 
-    function dropDown(element) {
-        var dropDownContainer = document.createElement('div')
-          , overlay
-          , positioningContainer
-          , scrollContainer
-          , observer;
+    // when the dropdown is open, we bind a bunch of stuff to the window to
+    //      detect when it's time to automatically close the dropdown. It's
+    //      self contained, so it's not in the event functions, with are
+    //      targeted to the combo itself.
+    function bindDropDown(element) {
+        // handle dropdown close
+        element.internalEvents.closeHandler = function (event) {
+            var target = event.target;
+            var dropDownContainer = element.elems.dropDownContainer;
+            var container = GS.findParentElement(target, dropDownContainer);
+            var body = GS.findParentElement(target, 'body');
 
-        // focus control
-        if (!evt.touchDevice) {
-            element.control.focus();
-        }
-        element.control.setAttribute('aria-owns', 'combo-list-' + element.internal.id);
-
-        // create the dropdown element (and its children)
-        dropDownContainer.classList.add('gs-combo-dropdown-container');
-        dropDownContainer.setAttribute('gs-dynamic', '');
-        dropDownContainer.innerHTML =   '<div class="gs-combo-positioning-container" gs-dynamic>' +
-                                        '    <div id="combo-list-' + element.internal.id + '" class="gs-combo-scroll-container" gs-dynamic></div>' +
-                                        '</div>';
-
-        // append dropdown to the body
-        document.body.appendChild(dropDownContainer);
-
-        // set variables for the various elements that we will need for calculation
-        positioningContainer = xtag.queryChildren(dropDownContainer, '.gs-combo-positioning-container')[0];
-        scrollContainer =      xtag.queryChildren(positioningContainer, '.gs-combo-scroll-container')[0];
-
-        element.currentDropDownContainer = dropDownContainer;
-
-        //console.log(element.currentDropDownContainer);
-        //console.log(element.dropDownTable);
-
-        // fill dropdown with content
-        if (element.dropDownTable) {
-            //element.dropDownTable = GS.cloneElement(element.staticDropDownTable);
-            scrollContainer.appendChild(element.dropDownTable);
-
-        //} else if (element.tableTemplate) {
-        //    scrollContainer.innerHTML = element.tableTemplate;
-        //
-        } else {
-            scrollContainer.innerHTML = element.initalHTML;
-        }
-
-        // create an observer instance
-        observer = new MutationObserver(function(mutations) {
-            dropDownSize(element);
-        });
-
-        // pass in the element node, as well as the observer options
-        observer.observe(scrollContainer, {childList: true, subtree: true});
-
-        //console.log(scrollContainer);
-        dropDownSize(element);
-
-
-        if (!element.theadElement && !element.tbodyElement) {
-            element.theadElement = xtag.queryChildren(element.dropDownTable, 'thead')[0];
-            element.tbodyElement = xtag.queryChildren(element.dropDownTable, 'tbody')[0];
-        }
-        if (element.theadElement && element.tbodyElement && element.theadElement.children[0]) {
-            element.tbodyElement.innerHTML = (
-                element.theadElement.innerHTML + '' + element.tbodyElement.innerHTML
-            );
-
-            var cols_i = 0,
-                cols_len = element.theadElement.children[0].children.length;
-
-            element.tbodyheader = xtag.query(element.tbodyElement, 'tr:not([data-record_no])')[0];
-            while (cols_i < cols_len) {
-                element
-                    .theadElement
-                    .children[0]
-                    .children[cols_i]
-                    .setAttribute(
-                        'style',
-                        'width: ' + element.tbodyheader.children[cols_i].clientWidth + 'px !important; ' +
-                        'padding-right: 0; ' +
-                        'padding-left: 0;'
-                    );
-                cols_i++;
+            // we've had issues where a gs-cell from the gs-table is taken
+            //      out of the dom before we get to this mouse event, because
+            //      we were scrolling too fast. So, if the element that
+            //      triggered the mousewheel is still in the dom, and it's not
+            //      in the dropdown, that's when we trigger the close.
+            if (body && container !== dropDownContainer && !event.gs) {
+                closeDropDown(element);
             }
-        }
+        };
+
+        window.addEventListener(
+            'resize',
+            element.internalEvents.closeHandler
+        );
+        window.addEventListener(
+            'orientationchange',
+            element.internalEvents.closeHandler
+        );
+        window.addEventListener(
+            'mousewheel',
+            element.internalEvents.closeHandler
+        );
+        window.addEventListener(
+            'comboclose',
+            element.internalEvents.closeHandler
+        );
+        document.body.addEventListener(
+            'click',
+            element.internalEvents.closeHandler
+        );
+
+        // handle dropdown selection
+        element.internalEvents.selectionHandler = function () {
+            // set control, value attribute, and record as verified
+            if (setValueFromDropdown(element)) {
+                // we want the dropdown to close when we've successfully
+                //      selected a record
+                closeDropDown(element);
+
+                // if we chose a record, trigger a change
+                triggerChangeIfNeeded(element);
+            }
+        };
+
+        element.elems.gsTable.addEventListener(
+            'selection_change',
+            element.internalEvents.selectionHandler
+        );
     }
 
-    function dropDownSize(element) {
-        var dropDownContainer    = element.currentDropDownContainer,
-            positioningContainer = xtag.queryChildren(dropDownContainer, '.gs-combo-positioning-container')[0],
-            scrollContainer      = xtag.queryChildren(positioningContainer, '.gs-combo-scroll-container')[0],
-            overlay, jsnComboOffset, intComboHeight, intComboWidth, intViewportWidth, intViewportHeight,
-            intFromControlToBottomHeight, intFromControlToTopHeight, intContentHeight, intNewWidth,
-            strWidth = '', strHeight = '', strLeft = '', strTop = '', strBottom = '';
+    // the position of the dropdown is dynamic, so we need to separate out
+    //      opening and positioning the dropdown box.
+    function positionDropdown(element) {
+        var dropDownContainer;
+        var positionContainer;
 
-        // set variables needed for position calculation
-        intComboHeight               = element.offsetHeight;
-        intComboWidth                = element.offsetWidth;
-        intViewportHeight            = window.innerHeight;
-        intViewportWidth             = window.innerWidth;
-        jsnComboOffset               = GS.getElementOffset(element);
-        intContentHeight             = (scrollContainer.scrollHeight + 2);
-        intFromControlToBottomHeight = intViewportHeight - (jsnComboOffset.top + intComboHeight);
-        intFromControlToTopHeight    = jsnComboOffset.top;
+        var jsnComboPos;
+        var intComboHeight;
+        var intComboWidth;
+        var intComboTop;
+        var intComboLeft;
+        var intWindowHeight;
+        var intWindowWidth;
+        var intComboToBottom;
+        var intComboToTop;
 
-        // set position, height and (top or bottom) variables
-        // if desktop:
-        if (!evt.touchDevice) {
-            // if viewport is too small go full page
-            if (window.innerHeight < 500 &&
-                intContentHeight > intFromControlToTopHeight &&
-                intContentHeight > intFromControlToBottomHeight) {
-                strHeight = window.innerHeight + 'px';
-                strTop =  '0px';
+        var strWidth = '';
+        var strHeight = '';
+        var strLeft = '';
+        var strTop = '';
+        var strBottom = '';
 
-            // try 200px
-            } else if (intContentHeight < 500) {
-                strHeight = '200px';
+        // element shortcuts, we want to keep the code readable
+        dropDownContainer = element.elems.dropDownContainer;
+        positionContainer = element.elems.positionContainer;
 
-                if (intFromControlToBottomHeight > intFromControlToTopHeight || intFromControlToBottomHeight > 200) {
-                    strTop = (intFromControlToTopHeight + intComboHeight) + 'px';
-                } else {
-                    strBottom = (intFromControlToBottomHeight + intComboHeight) + 'px';
-                }
+        // gather position variables. These are all the factors we pay
+        //      attention to when deciding what the best display would be
+        //      for the dropdown box.
+        jsnComboPos = GS.getElementOffset(element);
+        intComboHeight = element.offsetHeight;
+        intComboWidth = element.offsetWidth;
+        intComboTop = jsnComboPos.top;
+        intComboLeft = jsnComboPos.left;
+        intWindowHeight = window.innerHeight;
+        intWindowWidth = window.innerWidth;
+        intComboToBottom = (intWindowHeight - (intComboTop + intComboHeight));
+        intComboToTop = intComboTop;
 
-            // try height from control to bottom of viewport
-            } else if (intFromControlToBottomHeight >= intFromControlToTopHeight) {
-                strHeight = intFromControlToBottomHeight + 'px';
-                strTop = (intFromControlToTopHeight + intComboHeight) + 'px';
+        // time to calculate the optimum styles for the dropdown container
 
-            // else height from control to top of viewport
-            } else {// if (intFromControlToTopHeight >= intFromControlToBottomHeight) {
-                strHeight = intFromControlToTopHeight + 'px';
-                strBottom = (intFromControlToBottomHeight + intComboHeight) + 'px';
-            }
+        // let's calculate height and vertical position
 
-        // else mobile:
+        // if window is smol af, go full height
+        if (intWindowHeight < 500) {
+            strHeight = intWindowHeight + 'px';
+            strTop = '0px';
+
+        // open below combo, with constrained height
+        } else if (intComboToBottom > 300) {
+            strHeight = '200px';
+            strTop = (intComboToTop + intComboHeight) + 'px';
+
+        // open above combo, with constrained height
+        } else if (intComboToTop > 300) {
+            strHeight = '200px';
+            strBottom = (intComboToBottom + intComboHeight) + 'px';
+
+        // go from combo to bottom of screen
+        } else if (intComboToBottom > 200) {
+            strHeight = intComboToBottom + 'px';
+            strTop = (intComboToTop + intComboHeight) + 'px';
+
+        // go from combo to top of screen
+        } else if (intComboToTop > 200) {
+            strHeight = intComboToTop + 'px';
+            strBottom = (intComboToBottom + intComboHeight) + 'px';
+
+        // if nothing works, default to full height
         } else {
-            // try 200px bottom
-            if (intFromControlToBottomHeight > 200 && intContentHeight < 500) {
-                strHeight = intFromControlToBottomHeight + 'px';
-                strTop = (intFromControlToTopHeight + intComboHeight) + 'px';
-
-            // try 200px top
-            } else if (intFromControlToTopHeight > 200 && intContentHeight < 500) {
-                strHeight = intFromControlToTopHeight + 'px';
-                strBottom = (intFromControlToBottomHeight + intComboHeight) + 'px';
-
-            // else full page
-            } else {
-                strHeight = window.innerHeight + 'px';
-                strTop =  '0px';
-            }
+            strHeight = intWindowHeight + 'px';
+            strTop = '0px';
         }
 
+        // let's calculate width and horizontal position
 
-        // set width and left variables
-        // try regular
-        if (scrollContainer.scrollWidth <= scrollContainer.offsetWidth) {
-            if (intComboWidth < 150) {
-                intNewWidth = (window.innerWidth - jsnComboOffset.left) - 20;
-            
-                if (intNewWidth < 300) {
-                    strWidth = intNewWidth + 'px';
-                } else {
-                    strWidth = '300px';
-                }
-            
-            } else {
-                strWidth = intComboWidth + 'px';
-            }
-            strLeft = jsnComboOffset.left + 'px';
+        // If we got lots of room, cap the width
+        if (intWindowWidth > 400) {
+            strWidth = '300px';
+            strLeft = Math.max(
+                ((intComboLeft + intComboWidth) - 300),
+                0
+            ) + 'px';
 
         // else full width
         } else {
@@ -640,1456 +881,1770 @@ document.addEventListener('DOMContentLoaded', function () {
             strLeft = '0px';
         }
 
+        // set position and size to what we determined, anything not set will
+        //      be set to '' because that's the initial value in the variable.
+        positionContainer.style.top = strTop;
+        positionContainer.style.bottom = strBottom;
+        positionContainer.style.left = strLeft;
+        positionContainer.style.width = strWidth;
+        positionContainer.style.height = strHeight;
 
-        // set position and size using variables
-        positioningContainer.style.left   = strLeft;
-        positioningContainer.style.top    = strTop;
-        positioningContainer.style.bottom = strBottom;
-        // minWidth allows the dropdown to resize to the content
-        positioningContainer.style.minWidth  = strWidth;
-        positioningContainer.style.height = strHeight;
-
+        // we display differently if the dropdown opens below or above
+        //      the combo
         if (strTop) {
             dropDownContainer.classList.add('below');
+            dropDownContainer.classList.remove('above');
         } else {
             dropDownContainer.classList.add('above');
-        }
-
-
-        // if the table is wider than the drop down: reflow
-        if (scrollContainer.clientWidth < scrollContainer.scrollWidth &&
-            xtag.query(scrollContainer, 'tbody tr:first-child td, tbody tr:first-child th').length > 1) {
-            scrollContainer.classList.add('reflow');
-        }
-
-
-        // if the table is shorter than the drop down: resize the dropdown to be as short as the table
-        if (intContentHeight < scrollContainer.clientHeight) {
-            positioningContainer.style.height = intContentHeight + 'px';
-        }
-
-
-        // make combobox float over overlay so that you can focus into the input box
-        element.classList.add('open');
-
-        //// if there is already a placeholder: delete the old one
-        //if (element.placeholderElement) {
-        //    element.parentNode.removeChild(element.placeholderElement);
-        //    element.placeholderElement = undefined;
-        //
-        //    element.style.left   = element.oldLeft;
-        //    element.style.right  = element.oldRight;
-        //    element.style.top    = element.oldTop;
-        //    element.style.bottom = element.oldBottom;
-        //    element.style.width  = element.oldWidth;
-        //    element.style.height = element.oldHeight;
-        //}
-        //
-        //// save old styles
-        //element.oldLeft   = element.style.left;
-        //element.oldRight  = element.style.right;
-        //element.oldTop    = element.style.top;
-        //element.oldBottom = element.style.bottom;
-        //element.oldWidth  = element.style.width;
-        //element.oldHeight = element.style.height;
-        //
-        //element.style.left = '';
-        //element.style.right = '';
-        //element.style.top = '';
-        //element.style.bottom = '';
-        //element.style.width = '';
-        //element.style.height = '';
-        //
-        //element.style.left   = jsnComboOffset.left + 'px';
-        //element.style.top    = jsnComboOffset.top + 'px';
-        //element.style.width  = intComboWidth + 'px';
-        //element.style.height = intComboHeight + 'px';
-        //
-        //// put a placeholder element so that elements dont jump under where the combobox was
-        //element.placeholderElement = document.createElement('div');
-        //
-        //element.placeholderElement.setAttribute('gs-dynamic', '');
-        //element.placeholderElement.style.left   = element.oldLeft;
-        //element.placeholderElement.style.right  = element.oldRight;
-        //element.placeholderElement.style.top    = element.oldTop;
-        //element.placeholderElement.style.bottom = element.oldBottom;
-        //element.placeholderElement.style.width  = element.oldWidth;      // this will set the width of the placholder if
-        //                                                                 //     the combobox had a set width
-        //element.placeholderElement.style.height = intComboHeight + 'px'; // set the height of the placeholder to the
-        //                                                                 //     actual height of the combobox
-        //
-        //element.parentNode.insertBefore(element.placeholderElement, element);
-
-        // change element open state variable
-        element.dropdownOpen = true;
-
-
-        // bind drop down
-        bindDropDown(element);
-
-
-        // scroll to the selected record (if any)
-        scrollToSelectedRecord(element);
-    }
-
-    // bind dropdown events
-    function bindDropDown(element) {
-        var selectableTrs, closeDropDownHandler, selectRecordHandler, i, len,
-            unbindSelectRecordHandler, unbindDropDownEvents, wheelHandler;
-
-        wheelHandler = function (event) {
-            var tableElement = GS.findParentElement(event.target, '.gs-combo-dropdown-container');
-
-            if (tableElement !== element.currentDropDownContainer) {
-                closeDropDownHandler();
-            }
-        };
-
-        // unbind function
-        unbindDropDownEvents = function () {
-            var i, len;
-
-            for (i = 0, len = selectableTrs.length; i < len; i += 1) {
-                selectableTrs[i].removeEventListener('click', selectRecordHandler);
-            }
-
-            window.removeEventListener('resize', closeDropDownHandler);
-            window.removeEventListener('orientationchange', closeDropDownHandler);
-            window.removeEventListener('mousewheel', wheelHandler);
-            document.body.removeEventListener('click', closeDropDownHandler);
-        };
-
-        // handle record click
-        selectableTrs = xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr');
-
-        selectRecordHandler = function (event) {
-            selectRecord(element, GS.findParentTag(event.target, 'tr'), true);
-            closeDropDownHandler();
-        };
-
-        for (i = 0, len = selectableTrs.length; i < len; i += 1) {
-            selectableTrs[i].addEventListener('click', selectRecordHandler);
-        }
-
-        // handle dropdown close
-        closeDropDownHandler = function (event) {
-            if (!element.ignoreClick) {
-                closeDropDown(element);
-                unbindDropDownEvents();
-            }
-            element.ignoreClick = false;
-        };
-
-        window.addEventListener('resize', closeDropDownHandler);
-        window.addEventListener('orientationchange', closeDropDownHandler);
-        window.addEventListener('mousewheel', wheelHandler);
-        document.body.addEventListener('click', closeDropDownHandler);
-    }
-
-    // remove dropdown from screen
-    function closeDropDown(element) {
-        // if there is a dropdown to remove: remove the dropdown
-        if (element.currentDropDownContainer) {
-            document.body.removeChild(element.currentDropDownContainer);
-            element.currentDropDownContainer = undefined;
-
-            element.classList.remove('open');
-            element.dropdownOpen = false;
-            element.droppingDown = false;
-            element.control.removeAttribute('aria-owns');
-
-            //element.parentNode.removeChild(element.placeholderElement);
-            //element.placeholderElement = undefined;
-            //
-            //element.style.left   = element.oldLeft;
-            //element.style.right  = element.oldRight;
-            //element.style.top    = element.oldTop;
-            //element.style.bottom = element.oldBottom;
-            //element.style.width  = element.oldWidth;
-            //element.style.height = element.oldHeight;
+            dropDownContainer.classList.remove('below');
         }
     }
 
-    // handle behaviours on keydown
-    function handleKeyDown(element, event) {
-        var intKeyCode = (event.keyCode || event.which), selectedTr, trs, i, len, selectedRecordIndex, firstTd, lastChild, strTextValue;
-
-        if (!element.hasAttribute('disabled') && !element.hasAttribute('readonly')) {
-            if ((intKeyCode === 40 || intKeyCode === 38) && !event.shiftKey && !event.metaKey && !event.ctrlKey && !element.error) {
-                if (!element.dropdownOpen) {
-                    openDropDown(element);
-
-                } else {
-                    trs = xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr');
-
-                    for (i = 0, len = trs.length; i < len; i += 1) {
-                        if (trs[i].hasAttribute('selected')) {
-                            selectedRecordIndex = i;
-                            selectedTr = trs[i];
-                            trs[i].removeAttribute('selected');
-
-                            break;
-                        }
-                    }
-
-                    if (intKeyCode === 40) {// next record or circle to first record or start selection at the first
-                        if (!selectedTr || selectedRecordIndex === trs.length - 1) {
-                            highlightRecord(element, trs[0]);
-                            selectedTr = trs[0];
-
-                        } else {
-                            highlightRecord(element, trs[selectedRecordIndex + 1]);
-                            selectedTr = trs[selectedRecordIndex + 1];
-                        }
-
-                    } else if (intKeyCode === 38) {// prev record or circle to last record or start selection at the last
-                        if (!selectedTr || selectedRecordIndex === 0) {
-                            highlightRecord(element, trs[trs.length - 1]);
-                            selectedTr = trs[trs.length - 1];
-
-                        } else {
-                            highlightRecord(element, trs[selectedRecordIndex - 1]);
-                            selectedTr = trs[selectedRecordIndex - 1];
-                        }
-                    }
-                    scrollToSelectedRecord(element);
-                }
-                if (selectedTr) {
-                    element.control.value = xtag.queryChildren(selectedTr, 'td')[0].textContent;
-                }
-
-                GS.setInputSelection(element.control, 0, element.control.value.length);
-
-                event.preventDefault();
-                event.stopPropagation();
-
-            } else if ((intKeyCode === 39) && !event.shiftKey && !event.metaKey && !event.ctrlKey && !element.error) {
-                selectedTr = xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr[selected]')[0];
-
-                if (selectedTr) {
-                    firstTd = xtag.queryChildren(selectedTr, 'td')[0];
-                    lastChild = firstTd.lastElementChild;
-
-                    if (lastChild && lastChild.tagName.substring(0, 3) === 'GS-') {
-                        strTextValue = lastChild.textValue || lastChild.value || lastChild.textContent;
-                    } else {
-                        strTextValue = firstTd.textContent;
-                    }
-
-                    //console.log(element.innerValue, element.control.value, selectedTr.getAttribute('value'), strTextValue);
-
-                    selectRecord(element, selectedTr,
-                                element.innerValue !== (selectedTr.getAttribute('value') || strTextValue));
-                }
-
-                event.stopPropagation();
-
-            } else if (event.keyCode === 13 || event.keyCode === 9) {
-                if (
-                    element.dropDownTable &&
-                    xtag.queryChildren(
-                        xtag.queryChildren(
-                            element.dropDownTable,
-                            'tbody'
-                        )[0],
-                        'tr[selected]'
-                    ).length > 0
-                ) {
-                    selectRecordFromValue(element, element.control.value, true);
-                    element.ignoreChange = true;
-                }
-
-                closeDropDown(element);
-
-            // if the esc key is pressed, restore the previous value and close the dropdown
-            } else if (event.keyCode === 27) {
-                if (element.dropdownOpen) {
-                    element.value = element.value;
-                    closeDropDown(element);
-                }
-
-            } else if (!event.metaKey &&       // not command key
-                       !event.ctrlKey &&       // not control key
-                       event.keyCode !== 37 && // not arrow keys
-                       event.keyCode !== 38 &&
-                       event.keyCode !== 39 &&
-                       event.keyCode !== 40 &&
-                       event.keyCode !== 46 && // not forward delete key
-                       event.keyCode !== 8) {  // not delete key
-                element.attemptSearchOnNextKeyup = true;
-            }
-        } else {
-            if (event.keyCode !== 9) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-        }
-    }
-
-    // search on keyup
-    //      the reason we are using keyup for search is because on keydown the letter has not been typed in yet and
-    //      it would be harder if we tried to use the keycode to get the letter that was typed. so on keydown
-    //      (which is where we can tell if CMD or CTRL and other keys that we dont want to search on and pressed)
-    //      if we didn't type something that we dont want to search on but we typed somthing else: set this.attemptSearchOnNextKeyup
-    //      to true and on keyup we read that and if it is set to true then we do a search and set it back to false
-    function handleKeyUp(element, event) {
-        var intKeyCode = event.keyCode || event.which, strSearch = element.control.value, matchRecord;
-
-        // if element.attemptSearchOnNextKeyup is true and
-        //      there is a search string and
-        //      the user has their text selection at the end of the of the input
-        if (element.attemptSearchOnNextKeyup === true &&
-            strSearch &&
-            GS.getInputSelection(element.control).start === strSearch.length) {
-
-            // ######### FOR CROSS
-            // you need to comment the code inside this block.
-            // you need an if statment for >2000 records.
-            // you need to use the currently commented code for <=2000 records.
-            // you need new code for >2000.
-            // you need to get the template and put it inside a virtual template element.
-            // a virtual template element is just a template element inside a javascript variable.
-            //      var templateElement = document.createElement('template');
-            // you need to fill templateElement with the record template string, don't use the thead. (you'll find most everything in element.tableTemplate)
-            // you need to extract the contents of the first td and put that into a variable.
-            // you need to extract the contents of the "value" attribute on the tr (if present).
-            // because you extracted the contents before templating, the variables are untemplated.
-            // you need to get the column name from the first td template.
-            //      there are three things you need to try:
-            //          do a regex for "row.something", cut off the row
-            //              OR
-            //          do a regex for "row['something']", cut off the row[' and ']
-            //              OR
-            //          do a regex for "row["something"]", cut off the row[" and "]
-            //
-            //      that should be good enough. if you can't get the column: stop and
-            //          console.warn to tell the developer to stick <!-- row.column -->
-            //          at the top of the first td
-            // you need to run an AJAX call on the postgres object in "src" with a where clause.
-            // the where clause will be something like this:
-            //          (OLDWHERE) AND COLUMN ILIKE $UnCOPYQTE$ strSearch%$UnCOPYQTE$
-            // the ajax call should only get one record.
-            // use the two templates to set the value (copy the original code).
-            //
-            // after you're done, leave these comments for future developers
-
-
-
-            //<gs-combo src="test.tpeople" column="">
-            //    <template>
-            //        <table>
-            //            <thead>
-            //                <tr>
-            //                    <th>asdf</th>
-            //                    <th>fdsa</th>
-            //                </tr>
-            //            </thead>
-            //            <tbody>
-            //                <tr value="{{! row.id }}"> <--- hidden value, if present
-            //                    <td>{{! row.asdf }}</td> <--- visible value
-            //                    <td>{{! row.fdsa }}</td>
-            //                </tr>
-            //            </tbody>
-            //        </table>
-            //    </template>
-            //</gs-combo>
-
-            if (xtag.queryChildren(xtag.queryChildren(element.dropDownTable, 'tbody')[0], 'tr').length > 2000) {
-                var strSearchCol = '', templateElement = element.tableTemplate;
-
-                templateElement = templateElement.substring(templateElement.indexOf('td'), templateElement.indexOf('/td') - 1);
-                templateElement = templateElement.substring(templateElement.indexOf('{'), templateElement.length);
-                if (templateElement.indexOf('row.') === -1) {
-                    if (templateElement.indexOf('row[') === -1) {
-                        console.warn('There is no doT.js in the first "<td>" in your template please fill your first "<td>" with templating code.');
-                    } else {
-                        templateElement = templateElement.substring(parseInt(templateElement.indexOf('row['), 10) + 5, templateElement.length - 2 - 3).trim();
-                    }
-                } else {
-                    templateElement = templateElement.substring(parseInt(templateElement.indexOf('row.'), 10) + 4, templateElement.length - 3).trim();
-                }
-
-
-                strSearchCol = templateElement;
-
-                var strSrc     = GS.templateWithQuerystring(element.getAttribute('src'))
-                  , srcParts   = strSrc[0] === '(' ? [strSrc, ''] : strSrc.split('.')
-                  , strSchema  = srcParts[0]
-                  , strObject  = srcParts[1]
-                  , strColumns = GS.templateWithQuerystring(element.getAttribute('cols') || '*').split(/[\s]*,[\s]*/).join('\t')
-                  , strWhere   = (
-                      element.hasAttribute('where')
-                        ? GS.templateWithQuerystring(element.getAttribute('where') || '') + ' AND ' + strSearchCol + '::text ILIKE $UnCOPYQTE$' + strSearch + '%$UnCOPYQTE$'
-                        : strSearchCol + '::text ILIKE $UnCOPYQTE$' + strSearch + '%$UnCOPYQTE$'
-                      )
-                  , strOrd     = GS.templateWithQuerystring(element.getAttribute('ord') || '')
-                  , strLimit   = '1'
-                  , strOffset  = GS.templateWithQuerystring(element.getAttribute('offset') || '')
-                  , response_i = 0, response_len = 0, arrTotalRecords = [];
-
-                //console.log(strLink);
-                //console.log(strSearchCol);
-
-
-                if (strSearchCol) {
-                    GS.requestSelectFromSocket(GS.envSocket, strSchema, strObject, strColumns
-                                             , strWhere, strOrd, strLimit, strOffset
-                                             , function (data, error) {
-                        var arrCells, cell_i, cell_len;
-
-                        if (!error) {
-                            if (data.strMessage !== 'TRANSACTION COMPLETED') {
-                                arrCells = arrRecords[i].split('\t');
-
-                                element.control.value = arrCells[0] = arrCells[0] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[0]);
-                                GS.setInputSelection(element.control, strSearch.length, element.control.value.length);
-                                if (element.open) {
-                                    matchRecord = findRecordFromString(element, strSearch, true);
-                                    if (matchRecord) {
-                                        highlightRecord(element, matchRecord);
-                                        scrollToSelectedRecord(element);
-                                    }
-                                }
-                            }
-                        } else {
-                            handleData(element, bolInitalLoad, data, error);
-                            //GS.removeLoader(element);
-                        }
-                    });
-                }
-
-
-
-            } else {
-                matchRecord = findRecordFromString(element, strSearch, true);
-
-                // if we found a record and its was already selected: selected the matched record and dont
-                if (matchRecord) {
-                    highlightRecord(element, matchRecord);
-                    element.control.value = xtag.queryChildren(matchRecord, 'td')[0].textContent;
-                    GS.setInputSelection(element.control, strSearch.length, element.control.value.length);
-
-                    scrollToSelectedRecord(element);
-
-                } else {
-                    clearSelection(element);
-                    //selectRecordFromValue(element, strSearch, false);
-                    //GS.setInputSelection(element.control, strSearch.length, element.control.value.length);
-                }
-            }
-
-
-        }
-
-        if (element.attemptSearchOnNextKeyup === true) {
-            element.attemptSearchOnNextKeyup = false;
-        }
-    }
-
-    // handles fetching the data
-    //      if bolInitalLoad === true then
-    //          use: initialize query COALESCE TO source query
-    //      else
-    //          use: source query
-    function getData(element, bolInitalLoad, bolClearPrevious, callback) {
-        var strSrc     = GS.templateWithQuerystring(
-                            (bolInitalLoad && element.getAttribute('initialize')
-                                ? element.getAttribute('initialize')
-                                : element.getAttribute('src')
-                            )
-                        )
-          , srcParts   = strSrc[0] === '(' ? [strSrc, ''] : strSrc.split('.')
-          , strSchema  = srcParts[0]
-          , strObject  = srcParts[1]
-          , strColumns = GS.templateWithQuerystring(element.getAttribute('cols') || '*').split(/[\s]*,[\s]*/).join('\t')
-          , strWhere   = GS.templateWithQuerystring(element.getAttribute('where') || '')
-          , strOrd     = GS.templateWithQuerystring(element.getAttribute('ord') || '')
-          , strLimit   = GS.templateWithQuerystring(element.getAttribute('limit') || '')
-          , strOffset  = GS.templateWithQuerystring(element.getAttribute('offset') || '')
-          , response_i = 0, response_len = 0, arrTotalRecords = [];
-
-
-        //GS.addLoader(element, 'Loading...');
-        GS.requestCachingSelect(GS.envSocket, strSchema, strObject, strColumns
-                                 , strWhere, strOrd, strLimit, strOffset
-                                 , function (data, error) {
-            var arrRecords, arrCells, envData
-              , i, len, cell_i, cell_len;
-
-            if (!error) {
-                if (data.strMessage !== 'TRANSACTION COMPLETED') {
-                    arrRecords = GS.trim(data.strMessage, '\n').split('\n');
-
-                    for (i = 0, len = arrRecords.length; i < len; i += 1) {
-                        arrCells = arrRecords[i].split('\t');
-
-                        for (cell_i = 0, cell_len = arrCells.length; cell_i < cell_len; cell_i += 1) {
-                            arrCells[cell_i] = arrCells[cell_i] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[cell_i]);
-                        }
-
-                        arrTotalRecords.push(arrCells);
-                    }
-                } else {
-                    //GS.removeLoader(element);
-                    element.arrColumnNames = data.arrColumnNames;
-
-                    envData = {'arr_column': element.arrColumnNames, 'dat': arrTotalRecords};
-
-                    element.internalData.records = envData;
-
-                    handleData(element, bolInitalLoad, envData);
-                    if (typeof callback === 'function') {
-                        callback();
-                    }
-                }
-            } else {
-                handleData(element, bolInitalLoad, data, error);
-                //GS.removeLoader(element);
-            }
-        }, bolClearPrevious);
-    }
-
-// handles data result from method function: getData 
-    //      success:  template
-    //      error:    add error classes
-    function handleData(element, bolInitalLoad, data, error) {
-        var divElement, tableElement, theadElement, theadCellElements, tbodyElement, tbodyCellElements, lastRecordElement,
-            currentCellLabelElement, template, i, len, arrHeaders = [], strTemplate, arrHide, strHeaderCells, strRecordCells,
-            tableTemplateElement, recordElements, recordElement, jsnTemplate, strHTML;
-
-        element.data = data;
-
-        GS.triggerEvent(element, 'content_loaded');
-        //GS.triggerEvent(this, 'after_select'); <== caused a MAJOR issue where code that was supposed to
-        //                                              run after an envelope after_select caught all of
-        //                                              the after selects of the comboboxes in the envelope
-
-        // clear any old error status
-        element.classList.remove('error');
-        element.dropDownButton.setAttribute('title', '');
-        element.dropDownButton.setAttribute('icon', 'angle-down');
-
-        // if there was no error
-        if (!error) {
-            element.error = false;
-
-            //console.log(this, this.tableTemplate);
-
-            if (element.tableTemplate) {
-                //tableTemplateElement = document.createElement('template');
-                //tableTemplateElement.innerHTML = this.tableTemplate;
-                //
-                //theadElement = xtag.query(tableTemplateElement.content, 'thead')[0];
-                //tbodyElement = xtag.query(tableTemplateElement.content, 'tbody')[0];
-                //
-                //console.log(theadElement, tbodyElement);
-
-                strTemplate = element.tableTemplate; //this.initalHTML;
-            } else { // if (data.arr_column)
-                // create an array of hidden column numbers
-                arrHide = (element.getAttribute('hide') || '').split(/[\s]*,[\s]*/);
-
-                // build up the header cells variable and the record cells variable
-                for (i = 0, len = data.arr_column.length, strHeaderCells = '', strRecordCells = ''; i < len; i += 1) {
-                    // if this column is not hidden
-                    if (arrHide.indexOf((i + 1) + '') === -1 && arrHide.indexOf(data.arr_column[i]) === -1) {
-                        // append a new cell to each of the header cells and record cells variables
-                        strHeaderCells += '<th gs-dynamic>' + encodeHTML(data.arr_column[i]) + '</th> ';
-                        strRecordCells += '<td gs-dynamic>{{! row[\'' + data.arr_column[i] + '\'] }}</td> ';
-                    }
-                }
-
-                // put everything together
-                strTemplate =   '<table gs-dynamic>' +
-                                    '<thead gs-dynamic>' +
-                                        '<tr gs-dynamic>' +
-                                            strHeaderCells +
-                                        '</tr>' +
-                                    '</thead>' +
-                                    '<tbody gs-dynamic>' +
-                                        '<tr value="{{! row[\'' + data.arr_column[0] + '\'] }}" gs-dynamic>' +
-                                            strRecordCells +
-                                        '</tr>' +
-                                    '</tbody>' +
-                                '<table>';
-            }
-
-            divElement = document.createElement('div');
-
-            divElement.innerHTML = strTemplate;
-
-            tableElement = xtag.queryChildren(divElement, 'table')[0];
-            theadElement = xtag.queryChildren(tableElement, 'thead')[0];
-            tbodyElement = xtag.queryChildren(tableElement, 'tbody')[0];
-            element.theadElement = theadElement;
-            element.tbodyElement = tbodyElement;
-
-            // if there is a tbody
-            if (tbodyElement) {
-                recordElement = xtag.queryChildren(tbodyElement, 'tr')[0];
-
-                // if there is a record: template
-                if (recordElement) {
-                    recordElement.setAttribute('id', 'combo-list-' + element.internal.id + '-item-{{! row_number - 1 }}');
-
-                    // if there is a thead element: add reflow cell headers to the tds
-                    if (theadElement) {
-                        theadCellElements = xtag.query(theadElement, 'td, th');
-                        tbodyCellElements = xtag.query(tbodyElement, 'td, th');
-
-                        if (tbodyCellElements[0].nodeName === 'TH') {
-                            recordElement.setAttribute('aria-label', tbodyCellElements[1].textContent);
-                        } else {
-                            recordElement.setAttribute('aria-label', tbodyCellElements[0].textContent);
-                        }
-
-                        for (i = 0, len = theadCellElements.length; i < len; i += 1) {
-                            currentCellLabelElement = document.createElement('b');
-                            currentCellLabelElement.classList.add('cell-label');
-                            currentCellLabelElement.setAttribute('data-text', (theadCellElements[i].textContent || '') + ':');
-                            currentCellLabelElement.setAttribute('gs-dynamic', '');
-
-                            if (tbodyCellElements[i].childNodes) {
-                                tbodyCellElements[i].insertBefore(currentCellLabelElement, tbodyCellElements[i].childNodes[0]);
-                            } else {
-                                tbodyCellElements[i].insertChild(currentCellLabelElement);
-                            }
-                        }
-                    }
-
-                    // template
-                    jsnTemplate = GS.templateHideSubTemplates(tbodyElement.innerHTML, true);
-                    strHTML = GS.templateWithEnvelopeData(tbodyElement.innerHTML, data);
-                    tbodyElement.innerHTML = GS.templateShowSubTemplates(strHTML, jsnTemplate);
-
-                    element.dropDownTable = tableElement;
-                    element.ready = true;
-                }
-            }
-            
-            
-
-            //if (data.arr_column) {
-            if (bolInitalLoad && element.getAttribute('value')) {
-                selectRecordFromValue(element, element.getAttribute('value'), false);
-
-            } else if (element.value) {
-                selectRecordFromValue(element, element.value, false);
-            }
-            //}
-
-        // else there was an error: add error class, title attribute
-        } else {
-            console.error(data);
-            element.error = true;
-            element.ready = false;
-            element.classList.add('error');
-            element.dropDownButton.setAttribute('title', 'This combobox has failed to load.');
-            element.dropDownButton.setAttribute('icon', 'exclamation-circle');
-
-            if (element.hasAttribute('limit-to-list')) {
-                element.setAttribute('disabled', '');
-            }
-        }
-        if (element.hasAttribute('value') && element.hasAttribute('limit-to-list')) {
-            if (findRecordFromString(element, element.getAttribute('value'), false) && findRecordFromString(element, element.getAttribute('value'), false).hasAttribute('value')) {
-                element.value = findRecordFromString(element, element.getAttribute('value'), false).getAttribute('value');
-                //console.log('run', findRecordFromString(element, element.getAttribute('value'), false), element, element.getAttribute('value'), false);
-            }
-        }
-    }
-
-    function refreshControl(element, bolspan) {
-        var i, len, divElement, arrPassThroughAttributes = [
-                'placeholder',
-                'name',
-                'maxlength',
-                'autocorrect',
-                'autocapitalize',
-                'autocomplete',
-                'autofocus',
-                'spellcheck',
-                'readonly'
-            ], ctrlValue;
-        
-        if (element.hasAttribute('defer-insert')) {
-            if (element.hasAttribute('value')) {
-                element.ignoreChange = true;
-                ctrlValue = element.getAttribute('value');
-                //console.log(element.outerHTML, ctrlValue);
-            } else {
-                ctrlValue = element.value;
-            }
-            ctrlValue = (ctrlValue || '');
-        } else {
-            // if the gs-text element has a tabindex: save the tabindex and remov the attribute
-            if (element.hasAttribute('tabindex')) {
-                element.savedTabIndex = element.getAttribute('tabindex');
-                element.removeAttribute('tabindex');
-            }
-        }
-        
-        // clear out the combobox HTML
-        element.innerHTML = '';
-
-        // creating/setting root
-        divElement = document.createElement('div');
-        divElement.setAttribute('gs-dynamic', '');
-        divElement.classList.add('root');
-
-        element.appendChild(divElement);
-        element.root = divElement;
-        if (!bolspan) {
-            element.root.innerHTML = (
-                '<input role="textbox" aria-autocomplete="none" gs-dynamic class="control" type="text" />' +
-                '<gs-button gs-dynamic aria-label="Open the Combo box" alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down"></gs-button>'
-            );
-        } else {
-            element.root.innerHTML = (
-                '<span gs-dynamic class="control" type="text" style="width: 100%;">' + ctrlValue + '</span>' +
-                '<gs-button gs-dynamic aria-label="Open the Combo box" alt="Open the Combo box" class="drop_down_button" icononly icon="angle-down"></gs-button>'
-            );
-        }
-
-        element.control = xtag.query(element, '.control')[0];
-        if (element.hasAttribute('id')) {
-            element.control.setAttribute('id', element.getAttribute('id') + '_control');
-        }
-        if (element.hasAttribute('aria-labelledby')) {
-            element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
-        }
-        if (element.hasAttribute('title')) {
-            element.control.setAttribute('title', element.getAttribute('title'));
-        }
-        element.dropDownButton = xtag.query(element, '.drop_down_button')[0];
-        element.dropDownButton.removeAttribute('tabindex');
-        element.dropDownButton.savedTabIndex = false;
-        
-        if (element.hasAttribute('defer-insert')) {
-            element.control.value = ctrlValue;
-        }
-        
-        // copy passthrough attrbutes to control
-        for (i = 0, len = arrPassThroughAttributes.length; i < len; i += 1) {
-            if (element.hasAttribute(arrPassThroughAttributes[i])) {
-                element.control.setAttribute(arrPassThroughAttributes[i], element.getAttribute(arrPassThroughAttributes[i]) || '');
-            }
-        }
-
-        // if we saved a tabindex: apply the tabindex to the control
-        if (element.savedTabIndex !== undefined && element.savedTabIndex !== null) {
-            element.control.setAttribute('tabindex', element.savedTabIndex);
-        }
-
-        // bind change event to control
-        //console.log('change bound');
-        element.control.addEventListener('change', function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-
-            //console.log('change detected');
-            if (!element.ignoreChange) {
-                selectRecordFromValue(element, this.value, true);
-            }
-            element.ignoreChange = false;
-            element.lastValue = element.control.value;
-        });
-
-        //  on safari the change event doesn't occur if you click out while the autocomplete has
-        //      completed the value (because the user technically didn't change after the javascript changed the value)
-        //  to solve this the code below will mimic a change event if one does not occur at the right time
-
-        // there are two ways that user's cause change events:
-        //      1) after making a change to the value: taking the focus out of the field
-        //      2) after making a change to the value: hitting return
-
-        // this code counts on the fact that a browser will always emit a change event before a 'blur' or 'keyup'
-        // the execution is as follows
-
-        // this is the basic plan:
-        //  change:
-        //          // changeOccured tells the event code to not do anything because a change event did fire
-        //          element.changeOccured to true
-        //  focus:
-        //          // element.lastValue allows us to compare the value to the old value, and if there's a difference: we need a change event
-        //          set element.lastValue to current value of the control
-        //  blur:
-        //          if element.changeOccured === true:
-        //              set element.changeOccured = false
-        //          else:
-        //              if control.value !== lastValue: // if the value has been changed
-        //                  trigger artificial change event on control
-        //  keyup (on return key):
-        //          if element.changeOccured === true:
-        //              set element.changeOccured = false
-        //          else:
-        //              if control.value !== lastValue: // if the value has been changed
-        //                  trigger artificial change event on control
-
-
-        element.control.addEventListener('change', function (event) {
-            element.changeOccured = true;
-        });
-        
-        if (element.hasAttribute('defer-insert')) {
-            if (element.hasRun) {
-                element.control.focus();
-            }
-            element.addEventListener('focus', focusFunction);
-
-            element.control.addEventListener('blur', blurFunction);
-        } else {
-            element.control.addEventListener('focus', function (event) {
-                element.lastValue = element.control.value;
-                element.control.focus();
-                event.target.parentNode.parentNode.classList.add('focus');
-            });
-
-            element.control.addEventListener('blur', function (event) {
-                if (element.changeOccured === true) {
-                    element.changeOccured = false;
-                } else if (element.control.value !== element.lastValue) {
-                    GS.triggerEvent(element.control, 'change');
-                }
-
-                event.target.parentNode.parentNode.classList.remove('focus');
-            });
-        }
-
-        element.control.addEventListener(evt.mouseout, function (event) {
-            event.target.parentNode.parentNode.classList.remove('hover');
-        });
-
-        element.control.addEventListener(evt.mouseover, function (event) {
-            event.target.parentNode.parentNode.classList.add('hover');
-        });
-
-        element.control.addEventListener('keyup', function (event) {
-            // if the key was return
-            if ((event.keyCode || event.which) === 13 && !element.hasAttribute('readonly')) {
-                //console.log('test', element.changeOccured);
-                if (element.changeOccured === true) {
-                    element.changeOccured = false;
-                } else if (element.control.value !== element.lastValue) {
-                    GS.triggerEvent(element.control, 'change');
-                }
-            }
-        });
-    }
-
-    //function pushReplacePopHandler(element) {
-    //    var i, len, arrPopKeys, currentValue, bolRefresh = false, strQueryString = GS.getQueryString(), strQSCol = element.getAttribute('qs');
-    //
-    //    if (strQSCol && GS.qryGetKeys(strQueryString).indexOf(strQSCol) > -1) {
-    //        element.value = GS.qryGetVal(strQueryString, strQSCol);
-    //    }
-    //
-    //    if (element.hasAttribute('refresh-on-querystring-values')) {
-    //        arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
-    //
-    //        for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
-    //            currentValue = GS.qryGetVal(strQueryString, arrPopKeys[i]);
-    //
-    //            if (element.popValues[arrPopKeys[i]] !== currentValue) {
-    //                bolRefresh = true;
-    //            }
-    //
-    //            element.popValues[arrPopKeys[i]] = currentValue;
-    //        }
-    //
-    //    } else if (element.hasAttribute('refresh-on-querystring-change')) {
-    //        bolRefresh = true;
-    //    }
-    //
-    //    if (bolRefresh) {
-    //        getData(element);
-    //    }
-    //}
-    function saveDefaultAttributes(element) {
+    // open combobox dropdown, this function will handle the position and
+    //      filling of the dropped down portion.
+    function openDropDown(element) {
+        var strHeader;
+        var strRow;
+        var gsTable;
+        var arrHeights;
         var i;
         var len;
-        var arrAttr;
+        var intMaxTop;
+        var control;
+        var recordHeight;
+
+        // no sense opening the dropdown twice, also no sense opening the
+        //      dropdown to a disabled/readonly combobox
+        if (
+            element.internalDisplay.open === false &&
+            !element.hasAttribute('disabled') &&
+            !element.hasAttribute('readonly') &&
+            element.internalDisplay.opening === false
+        ) {
+            // takes a moment to open the dropdown, don't want to open twice.
+            element.internalDisplay.opening = true;
+
+            // we cache selects that have the same parameters. This is because
+            //      we might have a thousand combos in the same list. So,
+            //      running a refresh is basically free unless the select
+            //      parameters have changed. In which case, you'd want to
+            //      refresh anyway.
+            element.refresh(function () {
+                // we want to focus the control, so that we can immediately
+                //      start typing or so we can close the dropdown when they
+                //      leave the field
+                if (!evt.touchDevice) {
+                    control = element.elems.control;
+                    control.focus();
+
+                    // select all text for easy override
+                    GS.setInputSelection(control, 0, control.value.length);
+                }
+
+                // There may be another combobox open, trigger event to close
+                //      all open combo dropdowns
+                GS.triggerEvent(window, 'comboclose');
+
+                // time to shine, get the dropdown into the DOM, it's appended
+                //      to the body becuase it has to display in front of
+                //      everything else. It's basically a modal dialog. POTENIAL
+                //      IMPROVEMENT: we could potentially replace this a
+                //      GS-DIALOG.
+                document.body.appendChild(element.elems.dropDownContainer);
+
+                // resize dropdown, we may want to re-position the dropdown at
+                //      any given moment, so it's been moved into it's own
+                //      function.
+                positionDropdown(element);
+
+                // gather templates
+                strHeader = element.internalTemplates.header;
+                strRow = element.internalTemplates.row;
+
+                // fill dropdown with table, we use the GS-TABLE here so that
+                //      we don't have to code table rendering all over again.
+                //      This will also make it easy to handle 100000s of records
+                //      worth of data
+                element.elems.scrollContainer.appendChild(
+                    GS.stringToElement(
+                        ml(function () {/*
+                            <gs-table
+                                id="combo-dropdown-table"
+                                selection-mode="single-row"
+                                no-x-overscroll    no-y-overscroll
+                                no-resize-record   no-resize-column
+                                no-column-reorder  no-context-menu
+                                column-auto-resize no-column-dropdown
+                                no-force-select    no-copy
+                            >
+                                <template for="header-record">
+                                    {{HEADER}}
+                                </template>
+                                <template for="data-record">
+                                    {{DATA}}
+                                </template>
+                            </gs-table>*/
+                        })
+                            .replace(/\{\{HEADER\}\}/gi, strHeader)
+                            .replace(/\{\{DATA\}\}/gi, strRow)
+                    )
+                );
+
+                // get gs-table element
+                gsTable = element.elems.scrollContainer.children[0];
+                element.elems.gsTable = gsTable;
+
+                // load data/columns/display info into table
+                intMaxTop = 0;
+                arrHeights = [];
+                recordHeight = gsTable.internalDisplay.defaultRecordHeight;
+                i = 0;
+                len = element.internalData.records.length;
+                while (i < len) {
+                    intMaxTop += recordHeight;
+                    arrHeights.push(recordHeight);
+                    i += 1;
+                }
+
+                gsTable.internalData.records = element.internalData.records;
+                gsTable.internalDisplay.recordHeights = arrHeights;
+                gsTable.internalData.columnNames = (
+                    element.internalData.columnNames
+                );
+                gsTable.internalData.columnTypes = (
+                    element.internalData.columnTypes
+                );
+                gsTable.internalData.bolFirstLoadFinished = true;
+                gsTable.internalScroll.maxTop = intMaxTop;
+
+                // if there is a selected record
+                if (element.internalDisplay.lastVerifiedIndex) {
+                    // load selection into table
+                    // scroll to the selected record (if any)
+                    gsTable.goToLine(
+                        element.internalDisplay.lastVerifiedIndex + 1
+                    );
+                }
+
+                // render table now that we have everything inside it
+                gsTable.refresh();
+                gsTable.render();
+                gsTable.renderSelection();
+
+                // we want to close the dropdown if we scroll the window, or
+                //      if we click out, scroll with the mousewheel, etc.
+                bindDropDown(element);
+
+                // we are now open, tell the world!
+                element.classList.add('open');
+                element.internalDisplay.open = true;
+                element.internalDisplay.opening = false;
+            });
+        }
+    }
+
+    // toggle combobox dropdown, this function will handle making sure we don't
+    //      open the dropdown twice.
+    function toggleDropdown(element) {
+        // no sense opening the dropdown twice
+        if (element.internalDisplay.open === false) {
+            openDropDown(element);
+
+        // if we're already open, close the dropdown
+        } else {
+            closeDropDown(element);
+        }
+    }
+
+    // now that we have the templates, we need to figure out the id and
+    //      display columns. Sometimes, they're the same column, but not
+    //      every time. In table templates, the display column is a dot.js
+    //      template in the "value" attribute of the tr. In gs-cell
+    //      templates, it's in the "value" attribute in the first gs-cell.
+    function getValueAndDisplayTemplates(element) {
+        var firstCell = GS.stringToElement(element.internalTemplates.row);
+        var strValueAttribute;
+        var strTextContent;
+
+        strValueAttribute = firstCell.getAttribute('value');
+        strTextContent = firstCell.textContent;
+
+        // most HTML display should be HTML encoded. If that's what the
+        //      developer did, we need to make sure we change it to unencoded
+        //      for the value display because the input element will display the
+        //      exact text we give it
+        if (strTextContent.indexOf('{{!') > -1) {
+            strTextContent = strTextContent.replace(/\{\{!/gi, '{{=');
+        }
+
+        element.internalTemplates.valueText = (
+            strValueAttribute ||
+            strTextContent
+        );
+
+        element.internalTemplates.valueDisplay = strTextContent;
+    }
+
+
+// #############################################################################
+// ############################# ELEMENT FUNCTIONS #############################
+// #############################################################################
+
+    // some attributes can't be used in their normal, dev-friendly format,
+    //      this function translates those attributes to their final formats
+    // some attributes need to be defaulted, even if they're not present
+    function resolveElementAttributes(element) {
+        var arrParts;
+
+        // GS-COMBO elements that are connected to Envelope need to have "pk"
+        //      attribute
+        if (element.getAttribute('src')) {
+            // split "src" into "schema" and "object" attributes
+            arrParts = GS.templateWithQuerystring(
+                element.getAttribute('src')
+            ).split('.');
+
+            // I don't know who added this. I don't inderstand why someone
+            //      would put something like "biz.bar.foo" in the "src"
+            //      attribute. That's the case that this code handles. If
+            //      you added this code: PUT A COMMENT!!!! We have comments
+            //      for a reason. Don't ruin this beautiful code. Only YOU
+            //      can prevent spaghetti code.
+            //  ~Michael
+            // It appears to be a solution to quote idented object names that
+            //      contain a period like this: test."test.asdf"
+            //      The problem with this solution (other than being unclear)
+            //      is that it wont work for schema names that contain a period.
+            //      We need a better solution for this. Perhaps it's time to
+            //      create a function that understands ident quoted names for
+            //      real, using actual parsing.
+            //  ~Also Michael
+            if (arrParts[2]) {
+                arrParts[1] = arrParts[1] + '.' + arrParts[2];
+            }
+
+            // put the split sections of the object name into separate
+            //      attributes
+            element.setAttribute('schema', arrParts[0]);
+            element.setAttribute('object', arrParts[1]);
+        }
+
+        // default null string attribute
+        element.setAttribute(
+            'null-string',
+            (element.getAttribute('null-string') || '')
+        );
+    }
+
+    // create internal structures and inner elements that persist through the
+    //      whole lifetime of the element
+    function prepareElement(element) {
+        var rootElement;
+        var dropDownContainer;
+        var positionContainer;
+        var scrollContainer;
+
+        // we want a place to store elements
+        element.elems = {};
+
+        // we want a place to look to for data
+        element.internalData = {
+            "records": [],
+            "columnNames": [],
+            "columnTypes": [],
+            "staticHeaders": [],
+            "staticTypes": [],
+            "staticRecords": [],
+            "clearCache": false
+        };
+
+        // we need a place to store event functions because, to unbind a
+        //      specific event javascript requires that you have the
+        //      original function that was bound to that event
+        element.internalEvents = {};
+
+        // Some events need persistent storage of a related variable. This
+        //      bucket will hold that info.
+        element.internalEventData = {
+            "defaultAttributes": {}
+        };
+
+        // we need a place to store our templates, so we'll create an
+        //      element.internalTemplates JSON object and store each
+        //      template under a unique name
+        element.internalTemplates = {
+            "header": "",
+            "row": "",
+            "valueText": "",
+            "valueDisplay": ""
+        };
+
+        // we need a place to store cell dimensions and other display
+        //      related info
+        // anything in here set to "undefined" is set that way because the dev
+        //      may set it to 0 or [] and we need to be able to tell that it
+        //      hasn't been set yet
+        element.internalDisplay = {
+            // we always want to know if the dropdown is open or not.
+            "open": false,
+            "opening": false,
+
+            // when user leaves combo or chooses item from dropdown, we compare
+            //      to these to see if the verified values are different from
+            //      when they entered the field. If they are, that means that
+            //      it's time to trigger a change event. We set these on
+            //      entering the combobox. That way, the latest published value
+            //      is always fresh.
+            "lastPublishedIndex": undefined,
+            "lastPublishedValue": undefined,
+            "lastPublishedDisplay": undefined,
+
+            // If the combo has a "value" attribute and we find the related
+            //      record and display, that's a verified value. If the user
+            //      is in the middle of typing, that's not a verified value.
+            //      Verified values are the latest savepoint.
+            "lastVerifiedIndex": undefined,
+            "lastVerifiedValue": undefined,
+            "lastVerifiedDisplay": undefined,
+
+            // we want to maintain information about the last search
+            "lastNotFoundSearch": undefined
+        };
+
+        // we need a place to store selection information
+        element.internalSelection = {};
+
+        // we need to make the persistent elements
+        rootElement = document.createElement('div');
+        rootElement.setAttribute('gs-dynamic', '');
+        rootElement.classList.add('root');
+
+        rootElement.innerHTML = (
+            '<input role="textbox" aria-autocomplete="none" ' +
+                'gs-dynamic class="control" type="text" />' +
+            '<gs-button gs-dynamic aria-label="Open the Combo box" ' +
+                'alt="Open the Combo box" class="drop_down_button" ' +
+                'icononly icon="angle-down" tabindex="9999"></gs-button>'
+            // the [tabindex="9999"] is because the blur event will only
+            //      tell us where the focus went if the element that stole
+            //      the focus can take focus. While it needs to accept
+            //      focus for the blur event to work the way it does, we
+            //      don't want users to have to tab twice in every combobox.
+            //      So the combo buttons are the last thing to be tabbed to.
+        );
+
+        // We create a fresh dropdown element every time.
+        dropDownContainer = document.createElement('div');
+
+        // create and store the dropdown's children
+        dropDownContainer.classList.add('gs-combo-dropdown-container');
+        dropDownContainer.setAttribute('gs-dynamic', '');
+        dropDownContainer.innerHTML = (
+            '<div class="gs-combo-positioning-container" gs-dynamic>' +
+            '    <div class="gs-combo-scroll-container" gs-dynamic></div>' +
+            '</div>'
+        );
+        positionContainer = dropDownContainer.children[0];
+        scrollContainer = positionContainer.children[0];
+
+        // gather element shortcuts
+        element.elems.root = rootElement;
+        element.elems.control = rootElement.children[0];
+        element.elems.button = rootElement.children[1];
+        element.elems.dropDownContainer = dropDownContainer;
+        element.elems.positionContainer = positionContainer;
+        element.elems.scrollContainer = scrollContainer;
+
+        // for backwards compatibility:
+        element.control = element.elems.control;
+
+        // append root
+        element.appendChild(element.elems.root);
+    }
+
+    // get attributes and templates and extract all necessary information
+    function siphonElement(element) {
+        var headerTemplate;
+        var rowTemplate;
+        var unnamedTemplate;
+        var i;
+        var len;
         var jsnAttr;
+        var arrAttributes;
+        var prevElem;
+        var forElem;
 
-        // we need a place to store the attributes
-        element.internal.defaultAttributes = {};
+        // get each template element and save them to each their own variable,
+        //      for easy access
+        headerTemplate = cmbQryKids(element, '[for="header"]')[0];
+        rowTemplate = cmbQryKids(element, '[for="row"]')[0];
 
-        // loop through attributes and store them in the internal defaultAttributes object
+        // some people put incorrect "for" attributes on templates. We need to
+        //      get any unnamed or unrecognized template and assume it's old
+        //      school.
+        unnamedTemplate = cmbQryKids(
+            element,
+            (
+                'template:not([for]),' +
+                'template:not([for="header"]):not([for="row"])'
+            )
+        )[0];
+
+        // remove all templates from the dom to prevent reflows
+        if (headerTemplate) {
+            element.removeChild(headerTemplate);
+        }
+        if (rowTemplate) {
+            element.removeChild(rowTemplate);
+        }
+        if (unnamedTemplate) {
+            element.removeChild(unnamedTemplate);
+        }
+
+        if (
+            headerTemplate &&
+            (
+                headerTemplate.innerHTML.indexOf('&gt;') > -1 ||
+                headerTemplate.innerHTML.indexOf('&lt;') > -1
+            )
+        ) {
+            console.warn(
+                'GS-TABLE WARNING: &gt; or &lt; detected in ' +
+                'header template, this can have undesired ' +
+                'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
+                'lt(x,y), or lte(x,y) to silence this warning.'
+            );
+        }
+        if (
+            rowTemplate &&
+            (
+                rowTemplate.innerHTML.indexOf('&gt;') > -1 ||
+                rowTemplate.innerHTML.indexOf('&lt;') > -1
+            )
+        ) {
+            console.warn(
+                'GS-TABLE WARNING: &gt; or &lt; detected in ' +
+                'row template, this can have undesired ' +
+                'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
+                'lt(x,y), or lte(x,y) to silence this warning.'
+            );
+        }
+        if (
+            unnamedTemplate &&
+            (
+                unnamedTemplate.innerHTML.indexOf('&gt;') > -1 ||
+                unnamedTemplate.innerHTML.indexOf('&lt;') > -1
+            )
+        ) {
+            console.warn(
+                'GS-TABLE WARNING: &gt; or &lt; detected in ' +
+                'template, this can have undesired ' +
+                'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
+                'lt(x,y), or lte(x,y) to silence this warning.'
+            );
+        }
+
+        // pull in header template. because the header template is a straight
+        //      passthrough to the gs-table we'll use for the dropdown, we just
+        //      need to save the text of the template.
+        if (headerTemplate) {
+            element.internalTemplates.header = headerTemplate.innerHTML;
+        }
+
+        // pull in record template (for backwards compatibility, we need to be
+        //      able to accept a template without a "for" attribute as the
+        //      record template. Additionally, we need to be able to take a
+        //      TABLE element here and convert it to gs-cell. Unless it's a
+        //      static combobox. In which case, we convert it to static data
+        //      and gs-cells.
+        if (rowTemplate) {
+            if (rowTemplate.content.children[0].nodeName === 'TABLE') {
+                extractAndConvertTableTemplate(element, rowTemplate);
+            } else {
+                element.internalTemplates.row = rowTemplate.innerHTML;
+            }
+        }
+
+        if (unnamedTemplate) {
+            if (unnamedTemplate.content.children[0].nodeName === 'TABLE') {
+                extractAndConvertTableTemplate(element, unnamedTemplate);
+            } else {
+                element.internalTemplates.row = unnamedTemplate.innerHTML;
+            }
+        }
+
+        // if we haven't found a template and there is no datasource to create
+        //      a template from, error
+        if (!element.internalTemplates.row && !element.hasAttribute('src')) {
+            throw 'GS-COMBO Error: No template provided.';
+        }
+
+        // if we have the templates, extract the value and display templates
+        if (element.internalTemplates.row) {
+            getValueAndDisplayTemplates(element);
+        }
+
+        // if the developer has set a tabindex, we need to transfer that to the
+        //      control because that's where the focus is going to go
+        if (element.hasAttribute('tabindex')) {
+            element.elems.control.setAttribute(
+                'tabindex',
+                element.getAttribute('tabindex')
+            );
+            element.removeAttribute('tabindex');
+        }
+
+        // some attributes are always directly passed through to the control
+        arrAttributes = [
+            'placeholder', 'name', 'maxlength', 'autofocus', 'readonly', 'title'
+        ];
+
+        i = 0;
+        len = arrAttributes.length;
+        while (i < len) {
+            if (element.hasAttribute(arrAttributes[i])) {
+                element.elems.control.setAttribute(
+                    arrAttributes[i],
+                    (element.getAttribute(arrAttributes[i]) || '')
+                );
+            }
+            i += 1;
+        }
+
+        // autocomplete attributes
+        if (element.hasAttribute('autocorrect')) {
+            element.elems.control.setAttribute('autocorrect', 'off');
+        }
+        if (element.hasAttribute('autocapitalize')) {
+            element.elems.control.setAttribute('autocapitalize', 'off');
+        }
+        if (element.hasAttribute('autocomplete')) {
+            element.elems.control.setAttribute('autocomplete', 'off');
+        }
+        if (element.hasAttribute('spellcheck')) {
+            element.elems.control.setAttribute('spellcheck', 'false');
+        }
+
+        // if this combobox has an id, the control should have a related id
+        if (element.hasAttribute('id')) {
+            element.elems.control.setAttribute(
+                'id',
+                element.getAttribute('id') + '_control'
+            );
+        }
+
+        // if this combobox has an id attribute, check and update label
+        //      association
+        if (element.hasAttribute('id')) {
+            prevElem = element.previousElementSibling;
+            if (
+                prevElem &&
+                prevElem.tagName.toUpperCase() === 'LABEL' &&
+                prevElem.hasAttribute('for') &&
+                prevElem.getAttribute('for') === element.getAttribute('id')
+            ) {
+                forElem = prevElem;
+            } else {
+                forElem = xtag.query(
+                    document,
+                    'label[for="' + element.getAttribute('id') + '"]'
+                )[0];
+            }
+
+            if (forElem) {
+                forElem.setAttribute(
+                    'for',
+                    element.getAttribute('id') + '_control'
+                );
+            }
+        }
+
+        // we need to store the defaults of the attributes in case of QS
+        //      binding. Because we'll need to retemplate the initial attribute
+        //      setting every time.
         i = 0;
         len = element.attributes.length;
-        arrAttr = element.attributes;
         while (i < len) {
             jsnAttr = element.attributes[i];
 
-            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
-
+            element.internalEventData.defaultAttributes[jsnAttr.nodeName] = (
+                jsnAttr.value ||
+                ''
+            );
             i += 1;
         }
     }
 
-    function pushReplacePopHandler(element) {
-        var i;
-        var len;
-        var strQS = GS.getQueryString();
-        var strQSCol = element.getAttribute('qs');
-        var strQSValue;
-        var strQSAttr;
-        var arrQSParts;
-        var arrAttrParts;
-        var arrPopKeys;
-        var currentValue;
-        var bolRefresh;
-        var strOperator;
+// #############################################################################
+// ############################# RENDER FUNCTIONS ##############################
+// #############################################################################
 
-        if (strQSCol) {
-            if (strQSCol.indexOf('=') !== -1) {
-                arrAttrParts = strQSCol.split(/[\s]*,[\s]*/);
+    // the display value isn't always the same as the "value" attribute. If the
+    //      hidden value is different from the display value, we need to search
+    //      the data to render the display value.
+    function renderControl(element, bolFullRerender) {
+        var bolLimitToList;
+        var bolLoaded;
+        var jsnFound;
+
+        var currValue;
+        var currDisplay;
+        var lastValue;
+        var lastDisplay;
+        var finalValue;
+        var finalDisplay;
+        var bolValueChange;
+        var bolDisplayChange;
+
+        // if no value has been set, skip
+        if (!element.hasAttribute('value')) {
+            return;
+        }
+
+        // if no control, this has been called too early, cancel
+        if (!element.elems || !element.elems.root) {
+            return;
+        }
+
+        // we need the current hidden and display values. The attribute is the
+        //      only way of setting the value of the combobox internally and
+        //      externally. useing the .value accessor on the combo is just a
+        //      window to setting the attribute. We'll also grab the current
+        //      display value. If the hidden and display values are the same as
+        //      the last verified value, we don't need to continue.
+        currValue = element.getAttribute('value') || '';
+        currDisplay = element.elems.control.value || '';
+        lastValue = element.internalDisplay.lastVerifiedValue || '';
+        lastDisplay = element.internalDisplay.lastVerifiedDisplay || '';
+        bolValueChange = (lastValue !== currValue);
+        bolDisplayChange = (lastDisplay !== currDisplay);
+
+        // we don't want to search if the value hasn't changed
+        if (bolValueChange || bolDisplayChange || bolFullRerender) {
+            // we need the null-string in order to properly decode WS data
+            bolLimitToList = element.hasAttribute('limit-to-list');
+
+            // we do things differently if the data isn't loaded yet
+            bolLoaded = element.internalData.loaded;
+
+            // find record by current value
+            jsnFound = findRecord(element, currValue, currDisplay);
+
+            // We found the record, set attribute and display text to the new
+            //      values
+            if (jsnFound.found) {
+                finalValue = jsnFound.value;
+                finalDisplay = jsnFound.display;
+
+            // if we're not limit to list, and the display has been changed, or
+            //      we have a display, set value and display to display.
+            } else if (!bolLimitToList && (bolDisplayChange || currDisplay)) {
+                finalValue = currDisplay;
+                finalDisplay = currDisplay;
+
+            // if we're not limit to list, and the value has been changed, or
+            //      we have a value, set value and display to value.
+            } else if (!bolLimitToList && (bolValueChange || currValue)) {
+                finalValue = currValue;
+                finalDisplay = currValue;
+
+            // we got nothing. clear out combo
+            } else {
+                finalValue = '';
+                finalDisplay = '';
+            }
+
+            // if there's no hidden value, coalesce to display value
+            finalValue = (finalValue || finalDisplay);
+
+            // we've verified the values, let's save them so that we can prevent
+            //      re-searching through lots of data
+            element.internalDisplay.lastVerifiedIndex = jsnFound.index;
+            element.internalDisplay.lastVerifiedValue = finalValue;
+            element.internalDisplay.lastVerifiedDisplay = finalDisplay;
+
+            // finally, set the attribute and the display (display first,
+            //      because we compare the last verified display to the current
+            //      display in order to prevent recursion, and setting the
+            //      attribute causes a re-render).
+            if (!bolLimitToList || bolLoaded) {//bolFound || bolLoaded
+                element.elems.control.value = finalDisplay;
+                element.setAttribute('value', finalValue);
+            }
+        }
+    }
+
+
+// ############################################################################
+// ############################## DATA FUNCTIONS ##############################
+// ############################################################################
+
+    function dataSELECTcallback(element) {
+        element.internalData.loaded = true;
+
+        renderControl(element, true);
+
+        triggerEvent(element, 'after_select');
+    }
+
+    function databaseWSSELECT(element) {
+        var templateQS = GS.templateWithQuerystring;
+        var arrRecords;
+        var strHeaderCells;
+        var strRecordCells;
+        var arrHide;
+        var arrCols;
+        var strCols;
+        var arrColNames;
+        var saveColumns;
+
+        // we need to get the column names and types
+        saveColumns = function (data) {
+            var i;
+            var len;
+            var strCol;
+            var strType;
+
+            element.internalData.columnNames = [];
+            element.internalData.columnTypes = [];
+            arrColNames = data.arrDecodedColumnNames;
+
+            i = 0;
+            len = arrColNames.length;
+            while (i < len) {
+                strCol = arrColNames[i];
+                strType = data.arrDecodedColumnTypes[i];
+
+                element.internalData.columnNames.push(strCol);
+                element.internalData.columnTypes.push(strType);
+                i += 1;
+            }
+
+            // if we don't have a template, it's because the developer expects
+            //      the combo to build it's own template from the data. the
+            //      "hide" attribute is a comma separated list of columns to
+            //      ignore when building the template.
+            if (!element.internalTemplates.row) {
+                strHeaderCells = '';
+                strRecordCells = '';
                 i = 0;
-                len = arrAttrParts.length;
+                len = arrColNames.length;
                 while (i < len) {
-                    strQSCol = arrAttrParts[i];
+                    // if this column is not hidden
+                    if (
+                        arrHide.indexOf((i + 1) + '') === -1 &&
+                        arrHide.indexOf(arrColNames[i]) === -1
+                    ) {
+                        strHeaderCells += (
+                            '<gs-cell gs-dynamic>' +
+                                encodeHTML(arrColNames[i]) +
+                            '</gs-cell>'
+                        );
 
-                    if (strQSCol.indexOf('!=') !== -1) {
-                        strOperator = '!=';
-                        arrQSParts = strQSCol.split('!=');
-                    } else {
-                        strOperator = '=';
-                        arrQSParts = strQSCol.split('=');
-                    }
-
-                    strQSCol = arrQSParts[0];
-                    strQSAttr = arrQSParts[1] || arrQSParts[0];
-
-                    // if the key is not present or we've got the negator: go to the attribute's default or remove it
-                    if (strOperator === '!=') {
-                        // if the key is not present: add the attribute
-                        if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
-                            element.setAttribute(strQSAttr, '');
-                        // else: remove the attribute
+                        // first cell needs to have the first data column as
+                        //      it's hidden value attribute. This is how it was
+                        //      in the old combo.
+                        if (!strRecordCells) {
+                            strRecordCells += (
+                                '<gs-cell gs-dynamic value="' +
+                                    '{{! row[\'' + arrColNames[0] + '\']}}' +
+                                '">' +
+                                    '{{! row[\'' + arrColNames[i] + '\'] }}' +
+                                '</gs-cell>'
+                            );
                         } else {
-                            element.removeAttribute(strQSAttr);
-                        }
-                    } else {
-                        // if the key is not present: go to the attribute's default or remove it
-                        if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
-                            if (element.internal.defaultAttributes[strQSAttr] !== undefined) {
-                                element.setAttribute(strQSAttr, (element.internal.defaultAttributes[strQSAttr] || ''));
-                            } else {
-                                element.removeAttribute(strQSAttr);
-                            }
-                        // else: set attribute to exact text from QS
-                        } else {
-                            element.setAttribute(strQSAttr, (
-                                GS.qryGetVal(strQS, strQSCol) ||
-                                element.internal.defaultAttributes[strQSAttr] ||
-                                ''
-                            ));
+                            strRecordCells += (
+                                '<gs-cell gs-dynamic>' +
+                                    '{{! row[\'' + arrColNames[i] + '\'] }}' +
+                                '</gs-cell>'
+                            );
                         }
                     }
                     i += 1;
                 }
-            } else if (GS.qryGetKeys(strQS).indexOf(strQSCol) > -1) {
-                strQSValue = GS.qryGetVal(strQS, strQSCol);
 
-                if (element.internal.bolQSFirstRun !== true) {
-                    if (strQSValue !== '' || !element.getAttribute('value')) {
-                        element.setAttribute('value', strQSValue);
-                    }
-                } else {
-                    element.value = strQSValue;
-                }
+                element.internalTemplates.header = strHeaderCells;
+                element.internalTemplates.row = strRecordCells;
+
+                // we need to know how to extract the value and display values
+                getValueAndDisplayTemplates(element);
             }
-        }
+        };
 
-        // handle "refresh-on-querystring-values" and "refresh-on-querystring-change" attributes
-        if (element.internal.bolQSFirstRun === true) {
-            if (element.hasAttribute('refresh-on-querystring-values')) {
-                arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
+        // create an array of hidden column names/numbers
+        arrHide = (element.getAttribute('hide') || '');
+        arrHide = arrHide.split(/[\s]*,[\s]*/);
 
-                for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
-                    currentValue = GS.qryGetVal(strQS, arrPopKeys[i]);
-
-                    if (element.popValues[arrPopKeys[i]] !== currentValue) {
-                        bolRefresh = true;
-                    }
-
-                    element.popValues[arrPopKeys[i]] = currentValue;
-                }
-            } else if (element.hasAttribute('refresh-on-querystring-change')) {
-                bolRefresh = true;
-            }
-
-            if (bolRefresh && element.hasAttribute('src')) {
-                getData(element);
-            } else if (bolRefresh && !element.hasAttribute('src')) {
-                console.warn('gs-combo Warning: element has "refresh-on-querystring-values" or "refresh-on-querystring-change", but no "src".', element);
-            }
+        // limit column list
+        if (element.getAttribute('cols')) {
+            arrCols = templateQS(element.getAttribute('cols') || '').trim();
+            arrCols = arrCols.split(/[\s]*,[\s]*/);
+            strCols = arrCols.join('\t');
         } else {
-            if (element.hasAttribute('refresh-on-querystring-values')) {
-                arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
-
-                for (i = 0, len = arrPopKeys.length; i < len; i += 1) {
-                    element.popValues[arrPopKeys[i]] = GS.qryGetVal(strQS, arrPopKeys[i]);
-                }
-            }
+            strCols = '*';
         }
 
-        element.internal.bolQSFirstRun = true;
-    }
+        // we need to make sure that no old data persists across select calls,
+        //      so we'll clear out the internal data object
+        element.internalData.records = [];
 
-    // dont do anything that modifies the element here
-    function elementCreated(element) {
-        // if "created" hasn't been suspended: run created code
-        if (!element.hasAttribute('suspend-created')) {
-            if (!element.hasAttribute('role')) {
-                element.setAttribute('role', 'combobox');
-            }
-        }
-    }
-    
-    function findFor(element) {
-        var forElem;
-        //console.log(element, element.previousElementSibling)
-        if (element.previousElementSibling && element.previousElementSibling.tagName.toUpperCase() == 'LABEL'
-            && element.previousElementSibling.hasAttribute('for')
-            && element.previousElementSibling.getAttribute('for') == element.getAttribute('id')
-        ) {
-            forElem = element.previousElementSibling;
-        } else if (xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]').length > 0) {
-            forElem = xtag.query(document, 'label[for="' + element.getAttribute('id') + '"]')[0];
-        }
-        //console.log(forElem);
-        if (forElem) {
-            forElem.setAttribute('for', element.getAttribute('id') + '_control');
-            if (element.control) {
-                element.control.setAttribute('id', element.getAttribute('id') + '_control');
-                if (element.hasAttribute('aria-labelledby')) {
-                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
+        // storing references to the arrays for faster access
+        arrRecords = element.internalData.records;
+
+        // we need the user to know that the envelope is re-fetching data,
+        //      so we'll put a loader on
+        GS.requestCachingSelect(
+            getSocket(element),                                // Socket
+            templateQS(element.getAttribute('schema') || ''),  // Schema
+            templateQS(element.getAttribute('object') || ''),  // Object
+            strCols,                                           // Columns
+            templateQS(element.getAttribute('where') || ''),   // Where
+            templateQS(element.getAttribute('ord') || ''),     // Order
+            templateQS(element.getAttribute('limit') || ''),   // Limit
+            templateQS(element.getAttribute('offset') || '0'), // Offset
+            function (data, error) {
+                var i;
+                var strRecord;
+                var strMessage;
+                var index;
+
+                // sometimes, elements get removed during the wait for a
+                //      callback
+                if (!element.elems.root) {
+                    return false;
                 }
-                if (element.hasAttribute('title')) {
-                    element.control.setAttribute('title', element.getAttribute('title'));
-                }
-            }
-        }
-        
-        /*
-            if (element.hasAttribute('id')) {
-                findFor(element);
-            }
-        // please ensure that if the element has an id it is given an id
-                if (element.hasAttribute('id')) {
-                    element.control.setAttribute('id', element.getAttribute('id') + '_control');
-                }
-                if (element.hasAttribute('aria-labelledby')) {
-                    element.control.setAttribute('aria-labelledby', element.getAttribute('aria-labelledby'));
-                }
-                if (element.hasAttribute('title')) {
-                    element.control.setAttribute('title', element.getAttribute('title'));
-                }
-        */
-    }
 
-    //
-    var comboID = 0;
-    function elementInserted(element) {
-        var tableTemplateElement, tableTemplateElementCopy, oldRootElement, i, len,
-            recordElement, strQueryString = GS.getQueryString(), arrElement, currentElement, strQSValue;
-
-        // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
-        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
-            // if this is the first time inserted has been run: continue
-            if (!element.inserted) {
-                element.inserted = true;
-                element.internal = {};
-                element.internalData = {};
-                saveDefaultAttributes(element);
-
-                element.internal.id = comboID;
-                comboID += 1;
-
-                element.dropdownOpen = false;
-                element.error = false;
-                element.ready = false;
-
-                // handle "qs" attribute
-                if (element.getAttribute('qs') ||
-                        element.getAttribute('refresh-on-querystring-values') ||
-                        element.hasAttribute('refresh-on-querystring-change')) {
-
-                    element.popValues = {};
-                    pushReplacePopHandler(element);
-                    window.addEventListener('pushstate', function () {    pushReplacePopHandler(element); });
-                    window.addEventListener('replacestate', function () { pushReplacePopHandler(element); });
-                    window.addEventListener('popstate', function () {     pushReplacePopHandler(element); });
-                }
-                if (element.hasAttribute('defer-insert')) {
-                    if (!element.hasAttribute('tabindex')) {
-                        element.setAttribute('tabindex', '0');
-                    }
-                    element.bolSelect = true;
-                }
-                
-
-                //
-                tableTemplateElement = xtag.queryChildren(element, 'template')[0];
-
-                if (tableTemplateElement) {
-                    if (tableTemplateElement.innerHTML.indexOf('&gt;') > -1 || tableTemplateElement.innerHTML.indexOf('&lt;') > -1) {
-                        console.warn('GS-COMBO WARNING: &gt; or &lt; detected in table template, this can have undesired effects on doT.js. Please use gt(x,y), gte(x,y), lt(x,y), or lte(x,y) to silence this warning.');
+                if (!error) {
+                    // we need to get the column names and types
+                    if (data.intCallback === 0) {
+                        saveColumns(data);
                     }
 
-                    tableTemplateElementCopy = document.createElement('template');
-                    tableTemplateElementCopy.innerHTML = tableTemplateElement.innerHTML;
+                    // if we see the last message of the select: render
+                    if (data.strMessage === 'TRANSACTION COMPLETED') {
+                        element.classList.remove('error');
+                        element.elems.button.setAttribute('title', '');
+                        element.elems.button.setAttribute(
+                            'icon',
+                            'angle-down'
+                        );
+                        dataSELECTcallback(element);
 
-                    recordElement = xtag.query(xtag.query(tableTemplateElementCopy.content, 'tbody')[0], 'tr')[0];
+                    // we need to capture the records and columns and store
+                    //      them in the internal data
+                    } else {
+                        // we need to parse the TSV into records and push them
+                        //      to the internalData "records" array
+                        // with Envelope Websocket data all we have to is split
+                        //      on \n. Also, it always ends in \n so the loop
+                        //      doesn't need to do anything special to get the
+                        //      last record
+                        strMessage = data.strMessage;
+                        strRecord = '';
 
-                    if (recordElement) {
-                        arrElement = xtag.query(recordElement, '[column]');
+                        i = 0;
+                        while (i < 15) {
+                            index = strMessage.indexOf('\n');
+                            strRecord = strMessage.substring(0, index);
+                            strMessage = strMessage.substring(index + 1);
 
-                        for (i = 0, len = arrElement.length; i < len; i += 1) {
-                            currentElement = arrElement[i];
-
-                            if ((!currentElement.getAttribute('value')) && currentElement.getAttribute('column')) {
-                                currentElement.setAttribute('value', '{{! row.' + currentElement.getAttribute('column') + ' }}');
-                            }
-                        }
-
-                        element.tableTemplate = tableTemplateElementCopy.innerHTML;
-
-                        if (!element.getAttribute('src') && !element.getAttribute('source') && !element.getAttribute('initalize')) {
-                            element.dropDownTable = GS.cloneElement(xtag.query(tableTemplateElementCopy.content, 'table')[0]);
-                        }
-                    }
-                }
-
-                // filling root
-                if (element.hasAttribute('defer-insert')) {
-                    refreshControl(element, true);
-                    element.addEventListener(evt.mousedown, function (event) {
-                        if (event.target.classList.contains('drop_down_button')) {
-                            var element = event.target.parentNode.parentNode;
-                            if (!element.dropdownOpen && !element.error) {
-                                openDropDown(element);
-                                element.ignoreClick = true;
-    
-                                event.stopImmediatePropagation();
-                                event.stopPropagation();
-                                event.preventDefault();
-                            }
-                        }// else if (evt.touchDevice && event.target.classList.contains('control')) {
-                        //     var element = event.target.parentNode.parentNode;
-                        //     //alert(event.target.outerHTML);
-                        //     focusFunction(event);
-    
-                        //     if (document.activeElement == element.control) {
-                        //         event.stopImmediatePropagation();
-                        //         event.stopPropagation();
-                        //         event.preventDefault();
-                        //     }
-                        // }
-                    });
-                    if (evt.touchDevice) {
-                        element.addEventListener(evt.click, focusFunction);
-                        element.addEventListener(evt.mousedown, function (event) {
-                            //alert(event.touches[0].clientX);
-                            element.startX = event.touches[0].clientX;
-                            element.startY = event.touches[0].clientY;
-                            element.addEventListener('touchmove', function (event) {
-                                //alert(event.touches[0].clientX);
-                                element.lastX = event.touches[0].clientX;
-                                element.lastY = event.touches[0].clientY;
-                                
-                            });
-                        });
-                        element.addEventListener(evt.mouseup, function (event) {
-                            var element = event.target;
-                            if (event.target.classList.contains('control')) {
-                                element = event.target.parentNode.parentNode;
-                            }
-                            //alert(element.outerHTML);
-                            //alert(element.startX + ' : ' + element.lastX + ' : ' + element.startY + ' : ' + element.lastY);
-                            if (element.lastX && element.lastY &&
-                                (parseInt(element.lastX, 10) > (parseInt(element.startX, 10) + 10) ||
-                                parseInt(element.lastX, 10) < (parseInt(element.startX, 10) - 10) ||
-                                parseInt(element.lastY, 10) > (parseInt(element.startY, 10) + 10) ||
-                                parseInt(element.lastY, 10) < (parseInt(element.startY, 10) - 10))
-                            ) {
-                            } else {// if (element.startY && element.startX) {
-                                focusFunction(event);
-                            }
-                        });
-                    }
-                    
-                } else {
-                    refreshControl(element);
-                    element.addEventListener('click', function (event) {
-                        var clickHandler;
-                        if (event.target.classList.contains('drop_down_button')) {
-                            //console.log(element.dropdownOpen, element.error);
-                            if (!element.dropdownOpen && !element.error) {
-                                clickHandler = function () {
-                                    openDropDown(element);
-                                    window.removeEventListener('click', clickHandler);
-                                };
-                                
-                                window.addEventListener('click', clickHandler);
+                            if (strRecord !== '' || strMessage !== '') {
+                                arrRecords.push(strRecord);
                             } else {
-                                //closeDropDown(element);
+                                break;
+                            }
+                            i += 1;
+                        }
+                    }
+
+                // we need to make sure that the user knows that the select
+                //      failed and we need to prevent using any old select
+                //      info, so we'll re-render, remove the loader and pop
+                //      up an error
+                } else {
+                    dataSELECTcallback(element);
+                    //GS.webSocketErrorDialog(data);
+                    element.internalData.errorData = data;
+                    element.classList.add('error');
+                    element.elems.button.setAttribute(
+                        'title',
+                        'This combobox has failed to load.'
+                    );
+                    element.elems.button.setAttribute(
+                        'icon',
+                        'exclamation-circle'
+                    );
+                }
+            },
+            element.internalData.clearCache
+        );
+
+        element.internalData.clearCache = false;
+    }
+
+    function internalSELECT(element) {
+        element.internalData.columnNames = element.internalData.staticHeaders;
+        element.internalData.columnTypes = element.internalData.staticTypes;
+        element.internalData.records = element.internalData.staticRecords;
+        dataSELECTcallback(element);
+    }
+
+    function dataSELECT(element) {
+        triggerEvent(element, 'before_select');
+
+        if (element.hasAttribute('src')) {
+            databaseWSSELECT(element);
+        } else {
+            internalSELECT(element);
+        }
+    }
+
+
+// #############################################################################
+// ############################## EVENT FUNCTIONS ##############################
+// #############################################################################
+
+    // ############# QS EVENTS #############
+    function unbindQuerystringEvents(element) {
+        window.removeEventListener(
+            'pushstate',
+            element.internalEvents.queryStringResolve
+        );
+        window.removeEventListener(
+            'replacestate',
+            element.internalEvents.queryStringResolve
+        );
+        window.removeEventListener(
+            'popstate',
+            element.internalEvents.queryStringResolve
+        );
+    }
+    function bindQuerystringEvents(element) {
+        element.internalEvents.queryStringResolve = function () {
+            var i;
+            var len;
+            var strQS = GS.getQueryString();
+            var strQSCol = element.getAttribute('qs');
+            var strQSValue;
+            var strQSAttr;
+            var arrQSParts;
+            var arrAttrParts;
+            var arrPopKeys;
+            var currentValue;
+            var bolRefresh;
+            var strOperator;
+            var jsnDefaultAttr;
+
+            if (strQSCol) {
+                jsnDefaultAttr = element.internalEventData.defaultAttributes;
+
+                if (strQSCol.indexOf('=') !== -1) {
+                    arrAttrParts = strQSCol.split(',');
+                    i = 0;
+                    len = arrAttrParts.length;
+                    while (i < len) {
+                        strQSCol = arrAttrParts[i];
+
+                        if (strQSCol.indexOf('!=') !== -1) {
+                            strOperator = '!=';
+                            arrQSParts = strQSCol.split('!=');
+                        } else {
+                            strOperator = '=';
+                            arrQSParts = strQSCol.split('=');
+                        }
+
+                        strQSCol = arrQSParts[0];
+                        strQSAttr = arrQSParts[1] || arrQSParts[0];
+
+                        // if the key is not present or we've got the negator:
+                        //      go to the attribute's default or remove it
+                        if (strOperator === '!=') {
+                            // if the key is not present: add the attribute
+                            if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
+                                element.setAttribute(strQSAttr, '');
+                            // else: remove the attribute
+                            } else {
+                                element.removeAttribute(strQSAttr);
+                            }
+                        } else {
+                            // if the key is not present:
+                            //      go to the attribute's default or remove it
+                            if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
+                                if (jsnDefaultAttr[strQSAttr] !== undefined) {
+                                    element.setAttribute(
+                                        strQSAttr,
+                                        (jsnDefaultAttr[strQSAttr] || '')
+                                    );
+                                } else {
+                                    element.removeAttribute(strQSAttr);
+                                }
+                            // else: set attribute to exact text from QS
+                            } else {
+                                element.setAttribute(strQSAttr, (
+                                    GS.qryGetVal(strQS, strQSCol) ||
+                                    jsnDefaultAttr[strQSAttr] ||
+                                    ''
+                                ));
                             }
                         }
-                    });
+                        i += 1;
+                    }
+                } else if (GS.qryGetKeys(strQS).indexOf(strQSCol) > -1) {
+                    strQSValue = GS.qryGetVal(strQS, strQSCol);
+
+                    if (element.internalData.bolQSFirstRun !== true) {
+                        if (
+                            strQSValue !== '' ||
+                            !element.getAttribute('value')
+                        ) {
+                            element.setAttribute('value', strQSValue);
+                        }
+                    } else {
+                        element.value = strQSValue;
+                    }
+                }
+            }
+
+            // handle
+            //      "refresh-on-querystring-values" and
+            //      "refresh-on-querystring-change" attributes
+            if (element.internalData.bolQSFirstRun === true) {
+                if (element.hasAttribute('refresh-on-querystring-values')) {
+                    arrPopKeys = (
+                        element.getAttribute('refresh-on-querystring-values')
+                            .split(/\s*,\s*/gim)
+                    );
+
+                    i = 0;
+                    len = arrPopKeys.length;
+                    while (i < len) {
+                        currentValue = GS.qryGetVal(strQS, arrPopKeys[i]);
+
+                        if (element.popValues[arrPopKeys[i]] !== currentValue) {
+                            bolRefresh = true;
+                        }
+
+                        element.popValues[arrPopKeys[i]] = currentValue;
+                        i += 1;
+                    }
+
+                } else if (
+                    element.hasAttribute('refresh-on-querystring-change')
+                ) {
+                    bolRefresh = true;
                 }
 
-                element.addEventListener('keydown', function (event) {
-                    if (event.target.classList.contains('control')) {
-                        handleKeyDown(element, event);
-                    }
-                });
+                if (bolRefresh && element.hasAttribute('src')) {
+                    element.refresh();
 
-                element.addEventListener('keyup', function (event) {
-                    if (event.target.classList.contains('control')) {
-                        handleKeyUp(element, event);
-                    }
-                });
-
-                if (xtag.queryChildren(element, '.root').length < 1) {
-                    refreshControl(element);
+                } else if (bolRefresh && !element.hasAttribute('src')) {
+                    console.warn(
+                        'gs-table Warning: ' +
+                                'element has "refresh-on-querystring-values" ' +
+                                'or "refresh-on-querystring-change", but no ' +
+                                '"src".',
+                        element
+                    );
                 }
+            } else {
+                if (element.hasAttribute('refresh-on-querystring-values')) {
+                    arrPopKeys = (
+                        element.getAttribute('refresh-on-querystring-values')
+                            .split(/\s*,\s*/gim)
+                    );
 
-                if (element.getAttribute('src') || element.getAttribute('source') || element.getAttribute('initalize')) {
-                    getData(element, true);
+                    i = 0;
+                    len = arrPopKeys.length;
+                    while (i < len) {
+                        element.popValues[arrPopKeys[i]] = (
+                            GS.qryGetVal(strQS, arrPopKeys[i])
+                        );
+                        i += 1;
+                    }
+                }
+            }
+
+            element.internalData.bolQSFirstRun = true;
+        };
+
+        if (
+            element.getAttribute('qs') ||
+            element.getAttribute('refresh-on-querystring-values') ||
+            element.hasAttribute('refresh-on-querystring-change')
+        ) {
+            element.popValues = {};
+
+            element.internalEvents.queryStringResolve();
+            window.addEventListener(
+                'pushstate',
+                element.internalEvents.queryStringResolve
+            );
+            window.addEventListener(
+                'replacestate',
+                element.internalEvents.queryStringResolve
+            );
+            window.addEventListener(
+                'popstate',
+                element.internalEvents.queryStringResolve
+            );
+        }
+    }
+
+
+    // ############# FOCUS EVENTS #############
+    function unbindFocus(element) {
+        element.elems.root.removeEventListener(
+            'focus',
+            element.internalEvents.rootFocus,
+            true
+        );
+        element.control.removeEventListener(
+            evt.mouseout,
+            element.internalEvents.mouseOut
+        );
+        element.control.removeEventListener(
+            evt.mouseover,
+            element.internalEvents.mouseOver
+        );
+    }
+    function bindFocus(element) {
+        element.internalEvents.rootFocus = function () {
+            // retarget event
+            event.stopPropagation();
+            triggerEvent(element, 'focus');
+
+            // save last verified value so that we can trigger a change
+            //      event if we change verified value after they leave
+            element.internalDisplay.lastPublishedIndex = (
+                element.internalDisplay.lastVerifiedIndex
+            );
+            element.internalDisplay.lastPublishedValue = (
+                element.internalDisplay.lastVerifiedValue
+            );
+            element.internalDisplay.lastPublishedDisplay = (
+                element.internalDisplay.lastVerifiedDisplay
+            );
+
+            // focus display
+            element.classList.add('focus');
+        };
+
+        element.elems.root.addEventListener(
+            'focus',
+            element.internalEvents.rootFocus,
+            true
+        );
+
+        // we want the combo to get some visual depth when the user hovers
+        //      their mouse over
+        element.internalEvents.mouseOut = function () {
+            element.classList.remove('hover');
+        };
+        element.internalEvents.mouseOver = function () {
+            element.classList.add('hover');
+        };
+
+        element.control.addEventListener(
+            evt.mouseout,
+            element.internalEvents.mouseOut
+        );
+        element.control.addEventListener(
+            evt.mouseover,
+            element.internalEvents.mouseOver
+        );
+    }
+
+    // ############# BLUR EVENTS #############
+    function unbindBlur(element) {
+        element.elems.root.removeEventListener(
+            'blur',
+            element.internalEvents.rootBlur,
+            true
+        );
+    }
+    function bindBlur(element) {
+        element.internalEvents.rootBlur = function () {
+            event.stopPropagation();
+
+            // if the currently focused element is the dropdown button, the
+            //      combobox hasn't actually lost focus.
+            if (
+                event.relatedTarget !== element.elems.button &&
+                event.relatedTarget !== element.elems.control &&
+                event.relatedTarget !== element
+            ) {
+                // retarget event
+                triggerEvent(element, 'blur');
+
+                // may need to trigger a change event
+                triggerChangeIfNeeded(element);
+
+                // remove focus css
+                element.classList.remove('focus');
+            }
+        };
+
+        element.elems.root.addEventListener(
+            'blur',
+            element.internalEvents.rootBlur,
+            true
+        );
+    }
+
+    // ############# CHANGE EVENTS #############
+    function unbindChange(element) {
+        element.elems.control.removeEventListener(
+            'change',
+            element.internalEvents.change
+        );
+    }
+    function bindChange(element) {
+        element.internalEvents.change = function () {
+            event.preventDefault();
+            event.stopPropagation();
+        };
+        element.elems.control.addEventListener(
+            'change',
+            element.internalEvents.change
+        );
+    }
+
+    // ############# KEY EVENTS #############
+    function unbindKey(element) {
+        element.elems.control.removeEventListener(
+            'keydown',
+            element.internalEvents.keydown
+        );
+        element.elems.control.removeEventListener(
+            'keyup',
+            element.internalEvents.keyup
+        );
+    }
+    function bindKey(element) {
+        element.internalEvents.keydown = function (event) {
+            var key = (event.keyCode || event.which);
+            var mod = (event.shiftKey || event.metaKey || event.ctrlKey);
+            var del = (key === 46 || key === 8);
+            var keyLeft = (key === 37);
+            var keyUp = (key === 38);
+            var keyRight = (key === 39);
+            var keyDown = (key === 40);
+            var arr = (keyLeft || keyUp || keyRight || keyDown);
+            var control = element.elems.control;
+            var intRow;
+            var intMaxRow;
+
+            // When the combo is disabled, only allow the tab key, or keyboard
+            //      shortcuts
+            if (
+                (
+                    element.hasAttribute('disabled') ||
+                    element.hasAttribute('readonly')
+                ) &&
+                key !== 9 &&
+                !(event.metaKey || event.ctrlKey)
+            ) {
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
+            }
+
+            // vertical arrow, no error, no modifier keys
+            if ((keyUp || keyDown) && !mod) {
+                // dropdown not open, time to open
+                if (!element.internalDisplay.open) {
+                    toggleDropdown(element);
+
+                // else, move selection
                 } else {
-                    element.ready = true;
+                    // we used up the key event, nothing else should get it
+                    event.preventDefault();
+                    event.stopPropagation();
 
-                    if (element.getAttribute('value')) {
-                        selectRecordFromValue(element, element.getAttribute('value'), false);
+                    // get selected row, stop if any item we need is unavailable
+                    intRow = getSelectedRowFromDropdown(element);
+                    intMaxRow = (element.internalData.records.length - 1);
 
-                    } else if (element.value) {
-                        selectRecordFromValue(element, element.value, false);
+                    // don't move forward unless we found a row.
+                    if (intRow === null) {
+                        intRow = 0;
+
+                    // next record or loop to first if already at the end
+                    } else if (keyUp) {
+                        if (intRow === 0) {
+                            intRow = intMaxRow;
+                        } else {
+                            intRow -= 1;
+                        }
+
+                    // prev record or loop to first if already at the end
+                    } else if (keyDown) {
+                        if (intRow === intMaxRow) {
+                            intRow = 0;
+                        } else {
+                            intRow += 1;
+                        }
+                    }
+
+                    // set selection and render
+                    element.elems.gsTable.goToLine(intRow + 1);
+
+                    // set control, value attribute, and record as verified
+                    if (setValueFromDropdown(element)) {
+                        // select the whole value so that the user can delete
+                        GS.setInputSelection(control, 0, control.value.length);
                     }
                 }
+
+            // right arrow, return, tab, no control keys, close dropdown
+            } else if ((keyRight || key === 13 || key === 9) && !mod) {
+                if (element.internalDisplay.open) {
+                    closeDropDown(element);
+
+                    triggerChangeIfNeeded(element);
+                }
+
+            // if the esc key is pressed
+            } else if (key === 27) {
+                // restore the previous value
+                element.internalDisplay.lastVerifiedIndex = (
+                    element.internalDisplay.lastPublishedIndex
+                );
+                element.internalDisplay.lastVerifiedValue = (
+                    element.internalDisplay.lastPublishedValue
+                );
+                element.internalDisplay.lastVerifiedDisplay = (
+                    element.internalDisplay.lastPublishedDisplay
+                );
+
+                // apply values
+                element.elems.control.value = (
+                    element.internalDisplay.lastVerifiedDisplay
+                );
+                element.setAttribute(
+                    'value',
+                    element.internalDisplay.lastVerifiedValue
+                );
+
+                // close the dropdown
+                if (element.internalDisplay.open) {
+                    closeDropDown(element);
+                }
+
+            // not modifier, delete or arrow keys, allow paste
+            } else if (
+                (!mod && !del && !arr) ||
+                // allow paste otherwise pasting a value and leaving the combo
+                //      won't trigger resize because the verified value wont be
+                //      updated.
+                (mod && key === 86) // CMD/CTRL - V
+            ) {
+                // we only want to search the records on keyup, because it
+                //      can be resource intensive. So, if we're not using a
+                //      modifier key, delete key, or arrow key, then we want
+                //      to search on the next keyup.
+                element.internalEvents.searchNextKeyUp = true;
             }
-            if (element.hasAttribute('id')) {
-                findFor(element);
+        };
+        element.internalEvents.keyup = function () {
+            var intLastIndex;
+            var strLastDisplay;
+            var strSearch;
+            var jsnSelection;
+            var jsnSearch;
+            var gsTable;
+            var strValue;
+            var strDisplay;
+
+            // get search string
+            strSearch = element.elems.control.value;
+
+            // get current selection
+            jsnSelection = GS.getInputSelection(element.elems.control);
+
+            // get last verified display value
+            intLastIndex = element.internalDisplay.lastVerifiedIndex;
+            strLastDisplay = element.internalDisplay.lastVerifiedDisplay;
+
+            // we want to prevent extra searching if we can, because with lots
+            //      of data it can get pretty intensive
+            if (
+                element.internalEvents.searchNextKeyUp &&
+                intLastIndex !== null &&
+                intLastIndex !== undefined &&
+                strLastDisplay &&
+                strSearch &&
+                strLastDisplay.indexOf(strSearch) === 0
+            ) {
+                // prefill the rest of the value
+                element.elems.control.value = strLastDisplay;
+
+                // make sure to select the added text so that it can be
+                //      overridden easily
+                GS.setInputSelection(
+                    element.elems.control,
+                    strSearch.length,
+                    strLastDisplay.length
+                );
+
+            // if we want to search on the next keyup
+            } else if (
+                element.internalEvents.searchNextKeyUp &&
+                // only search when we have a search string
+                strSearch &&
+                // only search when at the end of the field
+                jsnSelection.start === strSearch.length &&
+                // we don't want to search if a string that started this way
+                //      already failed
+                strSearch.indexOf(
+                    element.internalDisplay.lastNotFoundSearch
+                ) === -1
+            ) {
+                // perform partial search through our data
+                jsnSearch = findRecord(element, strSearch, strSearch, true);
+
+                if (jsnSearch.found) {
+                    strValue = jsnSearch.value;
+                    strDisplay = jsnSearch.display;
+                } else {
+                    strValue = strSearch;
+                    strDisplay = strSearch;
+
+                    // we don't want to search next key if this search didn't
+                    //      find anything
+                    element.internalDisplay.lastNotFoundSearch = strSearch;
+                }
+
+                // save search results as the last verified value, this will be
+                //      important if we try to trigger a change
+                element.internalDisplay.lastVerifiedIndex = jsnSearch.index;
+                element.internalDisplay.lastVerifiedValue = strValue;
+                element.internalDisplay.lastVerifiedDisplay = strDisplay;
+
+                // prefill the rest of the value
+                element.elems.control.value = strDisplay;
+                element.setAttribute('value', strValue);
+
+                //make sure to select the added text so that it can be
+                //      overridden easily
+                GS.setInputSelection(
+                    element.elems.control,
+                    strSearch.length,
+                    strDisplay.length
+                );
+
+                // we want the dropdown table to stay up to date if it's open
+                if (element.internalDisplay.open) {
+                    gsTable = element.elems.gsTable;
+
+                    if (jsnSearch.found) {
+                        gsTable.goToLine(jsnSearch.index + 1);
+                    } else {
+                        // if there's no match, we want to scroll to top and
+                        //      deselect all records
+                        gsTable.goToLine(0);
+                        gsTable.internalSelection.ranges = [];
+                        gsTable.renderSelection();
+                    }
+                }
+
+            // not in the list, no searching
+            } else if (element.internalEvents.searchNextKeyUp) {
+                // save current display value for the change event
+                strLastDisplay = element.elems.control.value;
+                element.internalDisplay.lastVerifiedIndex = null;
+                element.internalDisplay.lastVerifiedValue = strLastDisplay;
+                element.internalDisplay.lastVerifiedDisplay = strLastDisplay;
             }
+
+            element.internalEvents.searchNextKeyUp = false;
+        };
+
+        element.elems.control.addEventListener(
+            'keydown',
+            element.internalEvents.keydown
+        );
+        element.elems.control.addEventListener(
+            'keyup',
+            element.internalEvents.keyup
+        );
+    }
+
+    // ############# DROPDOWN EVENTS #############
+    function unbindDropdown(element) {
+        element.removeEventListener(
+            'click',
+            element.internalEvents.dropdownClick
+        );
+    }
+    function bindDropdown(element) {
+        element.internalEvents.dropdownClick = function () {
+            // if this click propagates/bubbles, it triggers the close drop down
+            //      code. Because, we want to close the dropdown after the first
+            //      registered click.
+            event.stopPropagation();
+
+            // time to toggle
+            toggleDropdown(element);
+        };
+
+        element.elems.button.addEventListener(
+            'click',
+            element.internalEvents.dropdownClick
+        );
+    }
+
+    // ############# DEVELOPER EVENTS #############
+    function unbindDeveloper(element) {
+        element.removeEventListener(
+            evt.mousedown,
+            element.internalEvents.developerMouseDown
+        );
+    }
+    function bindDeveloper(element) {
+        element.internalEvents.developerMouseDown = function (event) {
+            var bolCMDorCTRL = (event.ctrlKey || event.metaKey);
+            var bolShift = (event.shiftKey);
+            var strHTML;
+            var arrAttr;
+            var jsnAttr;
+            var i;
+            var len;
+
+            if (bolCMDorCTRL && bolShift) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                strHTML = '';
+                arrAttr = element.attributes;
+                i = 0;
+                len = arrAttr.length;
+                while (i < len) {
+                    jsnAttr = arrAttr[i];
+
+                    strHTML += (
+                        '<b>Attribute "' + encodeHTML(jsnAttr.name) + '":</b>' +
+                        '<pre>' + encodeHTML(jsnAttr.value) + '</pre>'
+                    );
+
+                    i += 1;
+                }
+
+                GS.msgbox('Developer Info', strHTML, ['Ok']);
+            }
+        };
+
+        element.addEventListener(
+            evt.mousedown,
+            element.internalEvents.developerMouseDown
+        );
+    }
+
+
+    // ############# HIGH LEVEL BINDING #############
+    function unbindElement(element) {
+        unbindQuerystringEvents(element);
+        unbindFocus(element);
+        unbindBlur(element);
+        unbindChange(element);
+        unbindKey(element);
+        unbindDropdown(element);
+        unbindDeveloper(element);
+    }
+    function bindElement(element) {
+        bindQuerystringEvents(element);
+        bindFocus(element);
+        bindBlur(element);
+        bindChange(element);
+        bindKey(element);
+        bindDropdown(element);
+        bindDeveloper(element);
+    }
+
+
+// #############################################################################
+// ############################## XTAG DEFINITION ##############################
+// #############################################################################
+
+    function elementInserted(element) {
+        if (
+            // if "created"/"inserted" are not suspended: continue
+            !element.hasAttribute('suspend-created') &&
+            !element.hasAttribute('suspend-inserted') &&
+            // if this is the first time inserted has been run: continue
+            !element.inserted
+        ) {
+            element.inserted = true;
+
+            resolveElementAttributes(element);
+            prepareElement(element);
+            siphonElement(element);
+            bindElement(element);
+            renderControl(element);
+            dataSELECT(element);
+            triggerEvent(element, 'initialized');
         }
     }
 
     xtag.register('gs-combo', {
+
+// #############################################################################
+// ############################# ELEMENT LIFECYCLE #############################
+// #############################################################################
+
         lifecycle: {
-            created: function () {
-                // if the value was set before the "created" lifecycle code runs: set attribute
-                //      (discovered when trying to set a value of a date control in the after_open of a dialog)
-                //      ("delete" keyword added because of firefox)
-                if (this.value && !this.hasAttribute('value')) {
-                    this.setAttribute('value', this.value);
-                    delete this.value;
-                }
-
-                elementCreated(this);
-            },
-
-            inserted: function () {
+            'inserted': function () {
                 elementInserted(this);
             },
 
-            attributeChanged: function (strAttrName, oldValue, newValue) {
-                // if "suspend-created" has been removed: run created and inserted code
-                if (strAttrName === 'suspend-created' && newValue === null) {
-                    elementCreated(this);
-                    elementInserted(this);
-
-                // if "suspend-inserted" has been removed: run inserted code
-                } else if (strAttrName === 'suspend-inserted' && newValue === null) {
-                    elementInserted(this);
-
-                } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
-                    if (strAttrName === 'value' && oldValue !== newValue) {
-                        this.value = newValue;
-                    }
-                }
-            }
-        },
-        events: {},
-        accessors: {
-            value: {
-                get: function () {
-                    if (this.control || this.innerValue) {
-                        return this.innerValue || this.control.value;
-                    } else if (this.getAttribute('value')) {
-                        return this.getAttribute('value');
-                    }
-                    return undefined;
-                },
-
-                // set the value of the input and set the value attribute
-                set: function (newValue) {
-                    if (this.hasAttribute('defer-insert')) {
-                        // if we have not yet templated: just stick the value in an attribute
-                        if (this.ready === false) {
-                            if (newValue !== this.getAttribute('value')) {
-                                this.setAttribute('value', newValue);
-                            }
-    
-                        // else if the value is empty and allow-empty is present
-                        } else if (newValue === '' && this.hasAttribute('allow-empty')) {
-                            this.innerValue = '';
-                            this.control.value = '';
-    
-                        // else select the record using the string that was sent
-                        } else {
-                            selectRecordFromValue(this, newValue, false);
-                        }
-                        if (this.control && this.control.tagName.toUpperCase() === 'SPAN') {
-                            refreshControl(this, true);
-                        } else {
-                            refreshControl(this);
-                        }
-                    } else {
-                        // if we have not yet templated: just stick the value in an attribute
-                        if (this.ready === false) {
-                            if (newValue !== this.getAttribute('value')) {
-                                this.setAttribute('value', newValue);
-                            }
-                            
-                        // else if the value is empty and allow-empty is present
-                        } else if (newValue === '' && this.hasAttribute('allow-empty')) {
-                            this.innerValue = '';
-                            this.control.value = '';
-                            
-                        // else select the record using the string that was sent
-                        } else {
-                            selectRecordFromValue(this, newValue, false);
-                        }
-                    }
-                }
+            'removed': function () {
+                this.destroy();
             },
-            textValue: {
-                // get value straight from the input
-                get: function () {
-                    return this.control.value;
-                },
 
-                // set the value of the input and set the value attribute
-                set: function (newValue) {
-                    if (this.hasAttribute('defer-insert')) {
-                        // if we have not yet templated: just stick the value in an attribute
-                        if (this.ready === false) {
-                            this.setAttribute('value', newValue);
-    
-                        // else select the record using the string that was sent
-                        } else {
-                            selectRecordFromValue(this, newValue, false);
-                        }
-                        if (this.control.tagName.toUpperCase() === 'SPAN') {
-                            refreshControl(this, true);
-                        } else {
-                            refreshControl(this);
-                        }
-                    } else {
-                        // if we have not yet templated: just stick the value in an attribute
-                        if (this.ready === false) {
-                            this.setAttribute('value', newValue);
-                            
-                        // else select the record using the string that was sent
-                        } else {
-                            selectRecordFromValue(this, newValue, false);
-                        }
-                    }
-                }
-            }
-        },
-        methods: {
-            focus: function () {
+            'attributeChanged': function (attr) {//, oldValue, newValue
                 var element = this;
-                if (element.hasAttribute('defer-insert')) {
-                    element.toInput();
+
+                // if suspend attribute: run inserted event
+                if (attr === 'suspend-created' || attr === 'suspend-inserted') {
+                    elementInserted(element);
+
+                // if the element is not suspended: handle attribute changes
+                } else if (
+                    !element.hasAttribute('suspend-created') &&
+                    !element.hasAttribute('suspend-inserted')
+                ) {
+                    if (attr === 'value') {
+                        renderControl(element);
+                    }
                 }
-                element.control.focus();
+            }
+        },
+
+// #############################################################################
+// ############################# ELEMENT ACCESSORS #############################
+// #############################################################################
+
+        accessors: {
+            // the "value" attribute is the master location for the hidden value
+            //      anything else would lead to confusion. So, the .value
+            //      accessor just sets the attribute.
+            'value': {
+                'get': function () {
+                    return this.getAttribute('value');
+                },
+                'set': function (newValue) {
+                    this.setAttribute('value', newValue);
+                }
             },
 
-            'getData': function (callback) {
-                getData(this, undefined, true, callback);
+            // the "textValue" is the value that the user sees, not the hidden
+            //      value
+            'textValue': {
+                'get': function () {
+                    return this.elems.control.value;
+                },
+                'set': function (newValue) {
+                    this.setAttribute('value', newValue);
+                }
+            }
+        },
+
+// #############################################################################
+// ############################## ELEMENT METHODS ##############################
+// #############################################################################
+
+        methods: {
+            // we don't want a bunch of data hanging in memory, so this allows
+            //      the browser to forget everything and use that memory for
+            //      other things. This is especially important if the combo has
+            //      a boatload of data.
+            'destroy': function () {
+                var element = this;
+
+                // sometimes, the element gets destroyed multiple times.
+                //      we don't want to cause any errors when this happens.
+                if (element.elems.control) {
+                    // prevent the element from recieving any events
+                    unbindElement(element);
+
+                    // this is the fastest way to destroy all of the data
+                    element.internalData = {};
+                    element.internalEvents = {};
+                    element.internalEventData = {};
+                    element.internalTemplates = {};
+                    element.internalDisplay = {};
+                    element.internalSelection = {};
+
+                    // destroy element store
+                    element.elems = {};
+
+                    // empty innerHTML
+                    element.innerHTML = '';
+                }
             },
 
+            // allow the user to refetch the data
+            // needs to force a reload, instead of accessing cache
             'refresh': function (callback) {
-                getData(this, undefined, true, callback);
+                var singleUseEvent;
+
+                // we want to run a callback without binding to every
+                //      after_select. So, it'll unbind itself after the first
+                //      call.
+                singleUseEvent = function () {
+                    callback();
+                    this.removeEventListener('after_select', singleUseEvent);
+                };
+                this.addEventListener('after_select', singleUseEvent);
+
+                // we cache select results for comboboxes. So, we need to make
+                //      sure to clear the cache before we reselect.
+                this.internalData.clearCache = true;
+                dataSELECT(this);
             },
 
+            // "getData" is an alias for refresh
+            'getData': function () {
+                this.refresh();
+            },
+
+            // open combobox dropdown
             'open': function () {
                 openDropDown(this);
             },
 
+            // close combobox dropdown
             'close': function () {
                 closeDropDown(this);
             },
 
+            // we want to focus the control, not the combobox
+            'focus': function () {
+                this.elems.control.focus();
+            },
+
+            // allow the user to take columns related to the selected record
             'column': function (strColumn) {
-                if (this.selectedRecord) {
-                    return this.internalData.records.dat[this.selectedRecord.rowIndex][this.internalData.records.arr_column.indexOf(strColumn)];
-                } else {
-                    return null;
-                }
-            },
-
-            'toSpan': function () {
                 var element = this;
-                // var newControl = document.createElement('div');
-                // newControl.innerHTML = '<span gs-dynamic class="control">' + element.value + '</span>';
-                // newControl = newControl.children[0];
-                // if (element.hasAttribute('tabindex')) {
-                //     newControl.setAttribute('tabindex', element.getAttribute('tabindex'))
-                // } else {
-                //     newControl.setAttribute('tabindex', '0');
-                // }
-                // element.root.replaceChild(newControl, element.root.children[0]);
-                // element.control = element.root.children[0];
-                // if(evt.touchDevice){
-                //     var inputWidth = element.offsetWidth;
-                // }
-                element.control.removeEventListener('blur', blurFunction);
-                element.removeEventListener('focus', focusFunction);
-                refreshControl(element, true);
-                element.control.value = element.value;
-                element.control.setInputSelectionRange = function () {
-                  //console.log('Intercepted');
-                };
-                if (element.getAttribute('placeholder') && element.control.innerHTML === '') {
-                    element.control.classList.add('placeholder');
-                     element.control.innerHTML = element.getAttribute('placeholder');
-                }
-                if(evt.touchDevice){
-                    element.style.width = inputWidth + 'px';
-                }
-                selectRecordFromValue(element, element.value, false);
-                //console.log(element.control.value);
-            },
+                var jsnRecord;
+                var templateFunc;
+                var intRow;
 
-            'toInput': function () {
-                var element = this;
-                // var controlWidth = element.control.offsetWidth + 'px';
-                // var elementStyle = getComputedStyle(element);
-                //console.log(elementStyle.marginLeft);
-                // var elementMargin = parseFloat((elementStyle.marginLeft.substring(0, elementStyle.marginLeft.length - 2) || 0), 10) + parseFloat((elementStyle.marginRight.substring(0, elementStyle.marginRight.length - 2) || 0), 10);
-                // var elementWidth = (element.offsetWidth - elementMargin) + 'px';
-                //console.log(element.control.offsetWidth, element.offsetWidth, elementMargin);
-                // element.control.removeEventListener('blur', blurFunction);
-                // var newControl = document.createElement('div');
-                // newControl.innerHTML = '<input gs-dynamic class="control" type="text" />';
-                // newControl = newControl.children[0];
-                // element.root.replaceChild(newControl, element.root.children[0]);
-                // element.control = element.root.children[0];
-                element.control.removeEventListener('blur', blurFunction);
-                element.removeEventListener('focus', focusFunction);
-                //console.log(element.value);
-                refreshControl(element);
-                //console.log('test');
-                element.control.value = element.value;
-                // element.control.style.width = controlWidth;
-                //console.log(element.offsetWidth);
-                // element.style.width = elementWidth;
-                //console.log(element.offsetWidth);
-                selectRecordFromValue(element, element.value, false);
+                intRow = element.internalDisplay.lastVerifiedIndex;
+
+                if (typeof intRow === 'number') {
+                    jsnRecord = recordToJSON(
+                        element,
+                        element.internalData.records[intRow]
+                    );
+                    templateFunc = doT.template(
+                        '{{var row = jo;}}' +
+                        '{{! row[\'' + strColumn + '\'] }}'
+                    );
+
+                    return templateFunc(jsnRecord);
+                }
+                return null;
             }
         }
     });

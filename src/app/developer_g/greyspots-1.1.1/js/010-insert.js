@@ -1,112 +1,24 @@
-//global GS, ml, xtag, window, document, registerDesignSnippet, designRegisterElement, addProp, encodeHTML, setOrRemoveTextAttribute, addFlexContainerProps, addFlexProps
-//jslint this
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps, addDataEvents, addDataAttributes
+//jslint browser:true, white:false, this:true
+//, maxlen:80
+
 window.addEventListener('design-register-element', function () {
     "use strict";
-    registerDesignSnippet('<gs-insert>', '<gs-insert>', 'gs-insert src="${1:test.tpeople}">\n    ${2}\n</gs-insert>');
-    designRegisterElement('gs-insert', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#record_insert');
+    addSnippet(
+        '<gs-insert>',
+        '<gs-insert>',
+        'gs-insert src="${1:test.tpeople}">\n    ${2}\n</gs-insert>'
+    );
+    addElement('gs-insert', '#record_insert');
 
     window.designElementProperty_GSINSERT = function (selectedElement) {
-        addProp(
-            'Source&nbsp;Query',
-            true,
-            '<gs-memo rows="1" autoresize class="target" value="' + encodeHTML(selectedElement.getAttribute('src') || selectedElement.getAttribute('source') || '') + '" mini></gs-memo>',
-            function () {
-                return setOrRemoveTextAttribute(selectedElement, 'src', this.value);
-            }
-        );
-
-        addProp('Additional&nbsp;Values', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('addin') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'addin', this.value);
-        });
-
-        // TITLE attribute
-        addProp('Title', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('title') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'title', this.value);
-        });
-
-        addProp('Primary Keys', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('pk') || '') + '" mini></gs-text>',
-                function () {
-            return setOrRemoveTextAttribute(selectedElement, 'pk', this.value);
-        });
-
-        addProp('Sequences', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('seq') || '') + '" mini></gs-text>',
-                function () {
-            return setOrRemoveTextAttribute(selectedElement, 'seq', this.value);
-        });
-
-        addProp('Before Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_select') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_select', this.value);
-        });
-
-        addProp('After Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_select') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_select', this.value);
-        });
-
-        addProp('Before Insert', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_insert') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_insert', this.value);
-        });
-
-        addProp('After Insert', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_insert') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_insert', this.value);
-        });
-
-
-        // visibility attributes
-        var strVisibilityAttribute = '';
-        if (selectedElement.hasAttribute('hidden')) {
-            strVisibilityAttribute = 'hidden';
-        }
-        if (selectedElement.hasAttribute('hide-on-desktop')) {
-            strVisibilityAttribute = 'hide-on-desktop';
-        }
-        if (selectedElement.hasAttribute('hide-on-tablet')) {
-            strVisibilityAttribute = 'hide-on-tablet';
-        }
-        if (selectedElement.hasAttribute('hide-on-phone')) {
-            strVisibilityAttribute = 'hide-on-phone';
-        }
-        if (selectedElement.hasAttribute('show-on-desktop')) {
-            strVisibilityAttribute = 'show-on-desktop';
-        }
-        if (selectedElement.hasAttribute('show-on-tablet')) {
-            strVisibilityAttribute = 'show-on-tablet';
-        }
-        if (selectedElement.hasAttribute('show-on-phone')) {
-            strVisibilityAttribute = 'show-on-phone';
-        }
-
-        addProp(
-            'Visibility',
-            true,
-            (
-                '<gs-select class="target" value="' + strVisibilityAttribute + '" mini>' +
-                    '<option value="">Visible</option>' +
-                    '<option value="hidden">Invisible</option>' +
-                    '<option value="hide-on-desktop">Invisible at desktop size</option>' +
-                    '<option value="hide-on-tablet">Invisible at tablet size</option>' +
-                    '<option value="hide-on-phone">Invisible at phone size</option>' +
-                    '<option value="show-on-desktop">Visible at desktop size</option>' +
-                    '<option value="show-on-tablet">Visible at tablet size</option>' +
-                    '<option value="show-on-phone">Visible at phone size</option>' +
-                '</gs-select>'
-            ),
-            function () {
-                selectedElement.removeAttribute('hidden');
-                selectedElement.removeAttribute('hide-on-desktop');
-                selectedElement.removeAttribute('hide-on-tablet');
-                selectedElement.removeAttribute('hide-on-phone');
-                selectedElement.removeAttribute('show-on-desktop');
-                selectedElement.removeAttribute('show-on-tablet');
-                selectedElement.removeAttribute('show-on-phone');
-
-                if (this.value) {
-                    selectedElement.setAttribute(this.value, '');
-                }
-
-                return selectedElement;
-            }
-        );
-
+        addDataAttributes('insert');
+        addText('D', 'Additional&nbsp;Values', 'addin');
+        addDataEvents('insert');
         addFlexContainerProps(selectedElement);
         addFlexProps(selectedElement);
     };
@@ -114,6 +26,16 @@ window.addEventListener('design-register-element', function () {
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
+    // the user needs to be able to set a custom websocket for this element,
+    //      so this function will use an attribute to find out what socket to
+    //      use (and it'll default to "GS.envSocket")
+    function getSocket(element) {
+        if (element.getAttribute('socket')) {
+            return GS[element.getAttribute('socket')];
+        }
+        return GS.envSocket;
+    }
+
     xtag.register('gs-insert', {
         lifecycle: {},
         events: {},
@@ -188,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 strResponseColumns = (strPkCols + (strPkCols ? '\t' : '') + strColumns);
 
                 GS.requestInsertFromSocket(
-                    GS.envSocket,
+                    getSocket(element),
                     strSchema,
                     strObject,
                     strResponseColumns,

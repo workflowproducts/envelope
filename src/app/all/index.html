@@ -411,7 +411,7 @@
                             <gs-block>
                                 <gs-button jumbo target="_blank" data-group="adr_g" href="../adr_g/index.html">Address Book</gs-button>
                                 <gs-button jumbo target="_blank" data-group="days_g" href="../days_g/ages.html">Ages</gs-button>
-                                <gs-button jumbo target="_blank" data-group="cal2_g" href="../cal2_g/calendar.html">Calendar</gs-button>
+                                <!--<gs-button jumbo target="_blank" data-group="cal2_g" href="../cal2_g/calendar.html">Calendar</gs-button>-->
                                 <gs-button jumbo target="_blank" data-group="days_g" href="../days_g/index.html">Countdown</gs-button>
                                 <gs-button jumbo target="_blank" data-group="adr_g" href="../adr_g/clist/index.html">Craigslist ads</gs-button>
                                 <gs-button jumbo target="_blank" data-group="a8g_g" href="../a8g_g/index.html">EasyBooks</gs-button>
@@ -424,7 +424,7 @@
                                 <!--<gs-button jumbo target="_blank" data-group="lph_g" href="../lph_g/lph.html">LPH</gs-button>-->
                                 <gs-button jumbo target="_blank" data-group="meal_g" href="../meal_g/calendar.html">Meals 3.0</gs-button>
                                 <gs-button jumbo target="_blank" data-group="trkng_g" href="../trkng_g/index.html">Packages</gs-button>
-                                <gs-button jumbo target="_blank" data-group="pvt_g" href="../pvt_g/index.html">Private Old</gs-button>
+                                <!--<gs-button jumbo target="_blank" data-group="pvt_g" href="../pvt_g/index.html">Private Old</gs-button>-->
                             </gs-block>
                             <gs-block>
                                 <gs-button jumbo target="_blank" data-group="pvt_g" href="../pvt_g/index_new.html">Private</gs-button>
@@ -447,7 +447,7 @@
                                 <gs-button jumbo target="_blank" data-group="wtk_g" href="../wtk_g/time.html">Time Graph</gs-button>
                                 <gs-button jumbo target="_blank" data-group="days_g" href="../days_g/toccical.html">TocciCal</gs-button>
                                 <gs-button jumbo target="_blank" data-group="days_g" href="../todo_g/todo.html">Todo</gs-button>
-                                <gs-button jumbo target="_blank" data-group="days_g" href="file_manager/file_manager.html?socket=true&path=%2Frole%2Fftp_g">Uploads</gs-button>
+                                <!--<gs-button jumbo target="_blank" data-group="days_g" href="file_manager/file_manager.html?socket=true&path=%2Frole%2Fftp_g">Uploads</gs-button>-->
                                 <gs-button jumbo target="_blank" data-group="wiki_g" href="../wiki_g/index.html">Wiki (Markdown)</gs-button>
                                 <gs-button jumbo target="_blank" data-group="wiki_g" href="../wiki_g/index_dotty.html">Wiki (Dotty XLD)</gs-button>
                                 <gs-button jumbo target="_blank" data-group="enwk_g" href="../enwk_g/index.html">Wiki (Encrypted)</gs-button>
@@ -533,7 +533,7 @@
                             </gs-block>
                         </gs-grid>
                     </div>
-                    
+                    <!--
                     <br data-group="cbl_g" />
                     <div class="group-container" data-group="cbl_g">
                         <h4><i>Cable Com Inc. Demo</i></h4>
@@ -544,6 +544,17 @@
                             </gs-block>
                             <gs-block>
                                 <gs-button data-group="cbl_g" href="../cbl_g/quote_list.html" target="_self" jumbo>Quote List</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </div>
+                    -->
+                    <br data-group="hac_g" />
+                    <div class="group-container" data-group="hac_g">
+                        <h4><i>Horizon Auto Center Demo</i></h4>
+                        <span class="space"></span>
+                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                            <gs-block>
+                                <gs-button data-group="hac_g" href="../hac_g/index.html" target="_self" jumbo>Incident Management</gs-button>
                             </gs-block>
                         </gs-grid>
                     </div>
@@ -565,18 +576,15 @@
                         <h4><i>Developer</i></h4>
                         <span class="space"></span>
                         
-                        <gs-grid widths="1,1,1,1" reflow-at="500px" gutter>
+                        <gs-grid widths="1,1,1,1" reflow-at="500px">
                             <gs-block>
                                 <gs-button target="_blank" data-group="developer_g" href="../developer_g/greyspots-1.1.1/documentation/index.html" jumbo>Documentation</gs-button>
-                                <div style="height: 0.25em"></div>
                             </gs-block>
                             <gs-block>
                                 <gs-button id="button-file-manager" target="_blank" data-group="developer_g" href="../all/file_manager/file_manager.html?socket=true" jumbo>File Manager</gs-button>
-                                <div style="height: 0.25em"></div>
                             </gs-block>
                             <gs-block>
                                 <gs-button target="_blank" data-group="pdf_g" href="../pdf_g/pdf_list.html" jumbo>PDF Design</gs-button>
-                                <div style="height: 0.25em"></div>
                             </gs-block>
                             <gs-block>
                                 <gs-button jumbo target="_blank" data-group="developer_g" href="/env/acs.accept_accessibility_metrics/accessibility_metrics.html">Accessibility Metrics</gs-button>
@@ -595,9 +603,7 @@
                             </gs-block>
                         </gs-grid>
                         
-                        <div style="height: 0.25em"></div>
-                        
-                        <gs-grid widths="1,1,1,1,1" reflow-at="500px" gutter>
+                        <gs-grid widths="1,1,1,1,1" reflow-at="500px">
                             <gs-block>
                                 <gs-button jumbo onclick="buttonAbandon()" bg-danger txt-danger><b>Abandon</b></gs-button>
                             </gs-block>
@@ -614,9 +620,8 @@
                                 <gs-button jumbo onclick="buttonPush()"><b>Push</b></gs-button>
                             </gs-block>
                         </gs-grid>
-                        <div style="height: 0.25em"></div>
                         
-                        <gs-grid widths="1,1,1" reflow-at="500px" gutter>
+                        <gs-grid widths="1,1,1" reflow-at="500px">
                             <gs-block>
                                 <gs-button jumbo onclick="buttonRefreshBackupFromLive()"><b>Live -> Backup</b></gs-button>
                             </gs-block>
@@ -629,7 +634,7 @@
                         </gs-grid>
                     </div>
                     
-                    
+                    <!--
                     <br data-group="fta_g" />
                     <div class="group-container" data-group="fta_g">
                         <h4><i>FTA</i></h4>
@@ -640,12 +645,12 @@
                             </gs-block>
                         </gs-grid>
                     </div>
-                    
+                    -->
                     <br data-group="sls_g" />
                     <div class="group-container" data-group="sls_g">
                         <h4><i>CRM</i></h4>
                         <span class="space"></span>
-                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                        <gs-grid widths="1,1" reflow-at="500px">
                             <gs-block>
                                 <gs-button target="_blank" data-group="sls_g" href="../sls_g/account_search.html" jumbo>CRM Account Search</gs-button>
                             </gs-block>
@@ -660,7 +665,7 @@
                             </gs-block>
                         </gs-grid>
                     </div>
-                    
+                    <!--
                     <br data-group="ckt_g" />
                     <div class="group-container" data-group="ckt_g">
                         <h4><i>CKT</i></h4>
@@ -682,7 +687,7 @@
                             </gs-block>
                         </gs-grid>
                     </div>
-                    
+                    -->
                     <br data-group="ssi_g" />
                     <div class="group-container" data-group="ssi_g">
                         <h4><i>Demo</i></h4>
@@ -693,7 +698,7 @@
                             </gs-block>
                         </gs-grid>
                     </div>
-                    
+                    <!--
                     <br data-group="ndt_admin_g" />
                     <div class="group-container" data-group="ndt_admin_g">
                         <h4><i>North Dallas Tutoring Demo</i></h4>
@@ -704,7 +709,8 @@
                             </gs-block>
                         </gs-grid>
                     </div>
-                    
+                    -->
+                    <!--
                     <br data-group="arg_g" />
                     <div class="group-container" data-group="arg_g">
                         <h4><i>Aeroglen Demo</i></h4>
@@ -721,7 +727,7 @@
                             </gs-block>
                         </gs-grid>
                     </div>
-                    
+                    -->
                     
                     
                     <!--<div class="group-container" data-group="tbn_g">
@@ -759,9 +765,11 @@
                     </div>
                     <br data-group="klr_g" />-->
                     
+                    <!--
                     <gs-button target="_self" data-group="ftp_w" href="upload.html" jumbo bg-primary>Upload Your File</gs-button>
                     <gs-button target="_self" data-group="ftp_denton_w" href="upload.html?mode=_denton" jumbo bg-primary>Upload file for Denton County</gs-button>
                     <br data-group="ftp_w" />
+                    -->
                     
                     <!--<br data-group="trc_g" />
                     <div class="group-container" data-group="trc_g">
@@ -807,7 +815,7 @@
                         <h4><i>FRS Submission Form</i></h4>
                         <span class="space"></span>
                         
-                        <gs-grid widths="1,1" reflow-at="500px" gutter>
+                        <gs-grid widths="1,1" reflow-at="500px">
                             <gs-block>
                                 <gs-button target="_self" jumbo data-group="hsc_g" href="../hsc_g/pdf/index.html" bg-primary>Menu</gs-button>
                             </gs-block>
@@ -845,7 +853,7 @@
                         </gs-grid>
                     </div>
                     <br data-group="pgi_g" />-->
-                    
+                    <!--
                     <br data-group="ss_g" />
                     <div class="group-container" data-group="ss_g">
                         <h4><i>Salon supply</i></h4>
@@ -859,6 +867,7 @@
                             </gs-block>
                         </gs-grid>
                     </div>
+                    -->
                     <!--<br data-group="ss_g" />
                     <div class="group-container" data-group="ss_g">
                         <h4><i>Salon supply</i></h4>
@@ -1099,7 +1108,7 @@
                         </gs-grid>
                     </div>
                     <br data-group="jcs_g" />-->
-                    
+                    <!--
                     <br data-group="wsh_g" />
                     <div class="group-container" data-group="wsh_g">
                         <h4><i>Whoosh Animations Demo</i></h4>
@@ -1112,7 +1121,7 @@
                     </div>
                     <br data-group="wsh_g" />
 
-                    
+                    -->
                 </div>
             </gs-body>
         </gs-page>

@@ -1,47 +1,48 @@
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps
+//jslint browser:true, white:false, this:true
+//, maxlen:80
 
 window.addEventListener('design-register-element', function () {
     'use strict';
-    registerDesignSnippet('<gs-panel>', '<gs-panel>', 'gs-panel id="panel">\n' +
-                                                      '    <gs-page id="${1:left-bar}" style="width: 17em;">\n' +
-                                                      '        \n' +
-                                                      '    </gs-page>\n' +
-                                                      '    <gs-page>\n' +
-                                                      '        \n' +
-                                                      '    </gs-page>\n' +
-                                                      '</gs-panel>');
-    
-    designRegisterElement('gs-panel', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#layout_panel');
-    
+    addSnippet(
+        '<gs-panel>',
+        '<gs-panel>',
+        (
+            'gs-panel id="panel">\n' +
+            '    <gs-page id="${1:left-bar}" style="width: 17em;">\n' +
+            '        \n' +
+            '    </gs-page>\n' +
+            '    <gs-page>\n' +
+            '        \n' +
+            '    </gs-page>\n' +
+            '</gs-panel>'
+        )
+    );
+
+    addElement('gs-panel', '#layout_panel');
+
     window.designElementProperty_GSPANEL = function(selectedElement) {
-        // no-shadow-dismiss attribute
-        addProp('Dismissible By Clicking The Shadow', true, '<gs-checkbox class="target" value="' + (!selectedElement.hasAttribute('no-shadow-dismiss')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-shadow-dismiss', this.value === 'true', false);
-        });
-        
-        // dismissible attribute
-        addProp('Dismissible On Desktop', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('dismissible') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'dismissible', this.value === 'true', true);
-        });
-        
-        // SUSPEND-CREATED attribute
-        addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
-        });
-        
-        // SUSPEND-INSERTED attribute
-        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
-        });
+        addCheck('O', 'Dismissible By Clicking The Shadow', 'no-shadow-dismiss');
+        addCheck('O', 'Dismissible On Desktop', 'dismissible');
     };
 });
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
-    
+
     function pushReplacePopHandler(element) {
-        var query = GS.getQueryString(), arrQueryKeys = GS.qryGetKeys(query),
-            strID = element.getAttribute('id'), strAttributeName, i, len, strNewValue;
-        
+        var query = GS.getQueryString();
+        var arrQueryKeys = GS.qryGetKeys(query);
+        var strID = element.getAttribute('id');
+        var strAttributeName;
+        var i;
+        var len;
+        var strNewValue;
+
         for (i = 0, len = arrQueryKeys.length; i < len; i += 1) {
             if (arrQueryKeys[i].indexOf(strID + '.') === 0 &&
                 element.panelIDs.indexOf(arrQueryKeys[i].split('.')[1]) > -1) {

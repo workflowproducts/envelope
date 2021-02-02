@@ -1,73 +1,31 @@
-//global GS, ml, encodeHTML, addProp, registerDesignSnippet, designRegisterElement, xtag, window, document, setOrRemoveTextAttribute, setOrRemoveBooleanAttribute
-//jslint this
-
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps, addDataEvents
+//jslint browser:true, white:false, this:true
+//, maxlen:80
 
 window.addEventListener('design-register-element', function () {
     "use strict";
-    window.designElementProperty_GSFOLDER = function (selectedElement) {
-        addProp('Column In Querystring', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('qs') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'qs', this.value, false);
-        });
+    addSnippet(
+        '<gs-folder>',
+        '<gs-folder>',
+        'gs-folder path="${0:/}" folder="${1:role}"></gs-folder>'
+    );
 
-        addProp('Path', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('path') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'path', this.value);
-        });
+    addElement('gs-folder', '#controls_folder');
 
-        addProp('Hide Folders', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-folders')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-folders', (this.value === 'true'), true);
-        });
-
-        addProp('Hide Files', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('no-files')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'no-files', (this.value === 'true'), true);
-        });
-
-        addProp('Side-By-Side', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('horizontal')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'horizontal', (this.value === 'true'), true);
-        });
-
-        addProp('Mini', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('mini')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'mini', (this.value === 'true'), true);
-        });
-
-        addProp('Disabled', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('mini')) + '" mini></gs-checkbox>', function () {
-            return setOrRemoveBooleanAttribute(selectedElement, 'disabled', (this.value === 'true'), true);
-        });
-                addProp('Before Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_select') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_select', this.value);
-        });
-
-        addProp('After Select', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_select') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_select', this.value);
-        });
-
-        addProp('Before Insert', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_insert') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_insert', this.value);
-        });
-
-        addProp('After Insert', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_insert') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_insert', this.value);
-        });
-
-        addProp('Before Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_update') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_update', this.value);
-        });
-
-        addProp('After Update', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_update') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_update', this.value);
-        });
-
-        addProp('Before Delete', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onbefore_delete') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onbefore_delete', this.value);
-        });
-
-        addProp('After Delete', true, '<gs-text class="target" value="' + encodeHTML(selectedElement.getAttribute('onafter_delete') || '') + '" mini></gs-text>', function () {
-            return setOrRemoveTextAttribute(selectedElement, 'onafter_delete', this.value);
-        });
+    window.designElementProperty_GSFOLDER = function () {
+        addText('D', 'Path', 'path');
+        addCheck('V', 'Hide Folders', 'no-folders');
+        addCheck('V', 'Hide Files', 'no-files');
+        addCheck('V', 'Side-By-Side', 'horizontal');
+        addCheck('V', 'Mini', 'mini');
+        addCheck('V', 'Disabled', 'disabled');
+        addDataEvents('select,insert,update,delete');
+        addText('O', 'Column In QS', 'qs');
     };
-
-    registerDesignSnippet('<gs-folder>', '<gs-folder>', 'gs-folder path="${0:/}" folder="${1:role}"></gs-folder>');
-
-    designRegisterElement('gs-folder', '/env/app/developer_g/greyspots-' + GS.version() + '/documentation/index.html#controls_folder');
 });
 
 (function () {

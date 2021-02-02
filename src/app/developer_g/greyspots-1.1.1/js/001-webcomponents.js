@@ -79,7 +79,7 @@ if (!window.hasOwnProperty('customElements')) {
                         options.lifecycle.attributeChanged.apply(this, arguments);
                     }
                 };
-                Object.defineProperty(ElementConstructor, 'observedAttributes', { get: function () { return ['disabled','for','format','href','media','min-width','no-focus','no-huddelete','no-hudlimit','no-hudorderby','no-hudrefresh','no-picker','path','placeholder','qs','reflow','reflow-at','src','suspend-created','suspend-inserted','tabindex','template','value','widths']; } });
+                Object.defineProperty(ElementConstructor, 'observedAttributes', { get: function () { return ['disabled','for','format','href','media','min-width','no-focus','no-huddelete','no-hudlimit','no-hudorderby','no-hudrefresh','no-picker','path','placeholder','qs','reflow','reflow-at','src','suspend-created','suspend-inserted','tabindex','template','value','widths'].concat(options.observedAttributes); } });
             }
         }
     

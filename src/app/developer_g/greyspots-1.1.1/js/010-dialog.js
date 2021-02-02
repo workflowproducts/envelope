@@ -1,9 +1,14 @@
-
+//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+//global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+//global addControlProps, addFlexContainerProps, addProp
+//global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+//global addIconProps
+//jslint browser:true, white:false, this:true
+//, maxlen:80
 
 window.addEventListener('design-register-element', function () {
     'use strict';
-    
-    registerDesignSnippet('Dialog From Coded Template', 'Dialog From Coded Template', 'var templateElement = document.createElement(\'template\');\n' +
+    addSnippet('Dialog From Coded Template', 'Dialog From Coded Template', 'var templateElement = document.createElement(\'template\');\n' +
                                                                           '\n' +
                                                                           'templateElement.setAttribute(\'data-max-width\', \'50em;\');\n' +
                                                                           'templateElement.innerHTML = ml(function () {/*\n' +
@@ -34,8 +39,8 @@ window.addEventListener('design-register-element', function () {
                                                                           '        $0\n' +
                                                                           '    }\n' +
                                                                           '});');
-    
-    registerDesignSnippet('Dialog From Template', 'Dialog From Template', 'GS.openDialog(\'${1:templateID}\', function () {\n' +
+
+    addSnippet('Dialog From Template', 'Dialog From Template', 'GS.openDialog(\'${1:templateID}\', function () {\n' +
                                                                           '    // after dialog open \n' +
                                                                           '}, function (event, strAnswer) {\n' +
                                                                           '    if (strAnswer === \'${2:Ok}\') {\n' +
@@ -43,8 +48,8 @@ window.addEventListener('design-register-element', function () {
                                                                           '        $0\n' +
                                                                           '    }\n' +
                                                                           '});');
-    
-    registerDesignSnippet('GS.openDialog', 'GS.openDialog', 'GS.openDialog(\'${1:templateID}\', function () {\n' +
+
+    addSnippet('GS.openDialog', 'GS.openDialog', 'GS.openDialog(\'${1:templateID}\', function () {\n' +
                                                             '    // after dialog open \n' +
                                                             '}, function (event, strAnswer) {\n' +
                                                             '    if (strAnswer === \'${2:Ok}\') {\n' +
@@ -52,42 +57,37 @@ window.addEventListener('design-register-element', function () {
                                                             '        $0\n' +
                                                             '    }\n' +
                                                             '});');
-    
-    
-    registerDesignSnippet('GS.closeDialog', 'GS.closeDialog', 'GS.closeDialog(${1:dialog}, ${2:\'Ok\'});');
-    registerDesignSnippet('Close Dialog', 'Close Dialog', 'GS.closeDialog(${1:dialog}, ${2:\'Ok\'});');
-    
-    
-    
-    
-    
-    registerDesignSnippet('GS.msgbox', 'GS.msgbox', 'GS.msgbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, ' +
+
+    addSnippet('GS.closeDialog', 'GS.closeDialog', 'GS.closeDialog(${1:dialog}, ${2:\'Ok\'});');
+    addSnippet('Close Dialog', 'Close Dialog', 'GS.closeDialog(${1:dialog}, ${2:\'Ok\'});');
+
+    addSnippet('GS.msgbox', 'GS.msgbox', 'GS.msgbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, ' +
                                                                             '${3:[\'Cancel\', \'Ok\']}, function (strAnswer) {\n' +
                                                     '    if (strAnswer === ${4:\'Ok\'}) {\n' +
                                                     '        // before dialog close\n' +
                                                     '        $0\n' +
                                                     '    }\n' +
                                                     '});');
-    registerDesignSnippet('Message Box', 'Message Box', 'GS.msgbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, ' +
+    addSnippet('Message Box', 'Message Box', 'GS.msgbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, ' +
                                                                                 '${3:[\'Cancel\', \'Ok\']}, function (strAnswer) {\n' +
                                                         '    if (strAnswer === ${4:\'Ok\'}) {\n' +
                                                         '        // before dialog close\n' +
                                                         '        $0\n' +
                                                         '    }\n' +
                                                         '});');
-    
-    registerDesignSnippet('GS.inputbox', 'GS.inputbox', 'GS.inputbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, ' +
+
+    addSnippet('GS.inputbox', 'GS.inputbox', 'GS.inputbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, ' +
                                                                                 'function (strInputValue) {\n' +
                                                         '    // before dialog close\n' +
                                                         '    $0\n' +
                                                         '});');
-    registerDesignSnippet('Input Box', 'Input Box', 'GS.inputbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, ' +
+    addSnippet('Input Box', 'Input Box', 'GS.inputbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, ' +
                                                                             'function (strInputValue) {\n' +
                                                     '    // before dialog close\n' +
                                                     '    $0\n' +
                                                     '});');
-    
-    registerDesignSnippet('GS.openDialogToElement', 'GS.openDialogToElement',
+
+    addSnippet('GS.openDialogToElement', 'GS.openDialogToElement',
                                         'GS.openDialogToElement(${1:document.getElementById(\'target\')}, \'${2:templateID}\', ' +
                                                                             '\'${3:right}\', function () {\n' +
                                         '    // after dialog open \n' +
@@ -97,7 +97,7 @@ window.addEventListener('design-register-element', function () {
                                         '        $0\n' +
                                         '    }\n' +
                                         '});');
-    registerDesignSnippet('Dialog For Element', 'Dialog For Element',
+    addSnippet('Dialog For Element', 'Dialog For Element',
                                         'GS.openDialogToElement(${1:document.getElementById(\'target\')}, \'${2:templateID}\', ' +
                                                                             '\'${3:right}\', function () {\n' +
                                         '    // after dialog open \n' +
@@ -1504,7 +1504,7 @@ GS.closeDialog = function (dialog, strAnswer) {
 
                         this.windowResizeHandler();
                     }
-                    
+
                     this.addEventListener('click', function (event) {
                         var dialogcloseElement = GS.findParentElement(event.target, '[dialogclose]');
 
