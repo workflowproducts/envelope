@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>On-Event Test</title>
+        <script>
+//jslint browser
+//global console
+function onCheckHandler(testObj, event) {
+    "use strict";
+    console.log('testObj: %O', testObj);
+    console.log('onCheckHandler: %O', event);
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    //event.preventDefault();
+}
+
+function eventListener(event) {
+    "use strict";
+    console.log('eventListener: %O', event);
+}
+
+(function () {
+    "use strict";
+    var template = `<div>Click to Check</div>`;
+    class MyEl extends HTMLElement {
+        constructor() {
+            super();
+
+            var rootEl = this.attachShadow({mode: 'open'});
+            rootEl.innerHTML = template;
+            rootEl.firstChild.addEventListener('click', () => {
+                var checkEvent = new CustomEvent("check", {bubbles:true,cancelable:true});
+                if (this.dispatchEvent(checkEvent)) {
+                    // Do default operation here
+                    console.log('Performing default operation');
+                }
+            });
+            this._onCheckFn = null;
+        }
+
+        static get observedAttributes() {
+            return ['oncheck'];
+        }
+
+        attributeChangedCallback(attrName, oldVal, newVal) {
+            if (attrName === 'oncheck' && oldVal !== newVal) {
+                if (newVal === null) {
+                  this.oncheck = null;
+                } else {
+                  this.oncheck = Function(`return function oncheck(event) {\n\t${newVal};\n};`)();
+                }
+            }
+        }
+
+        get oncheck() {
+            return this._onCheckFn;
+        }
+        set oncheck(handler) {
+            if (this._onCheckFn) {
+                this.removeEventListener('check', this._onCheckFn);
+                this._onCheckFn = null;
+            }
+            
+            if (typeof handler === 'function') {
+                this._onCheckFn = handler;
+                this.addEventListener('check', this._onCheckFn);
+            }
+        }
+    }
+
+    // Define our web component
+    customElements.define('my-el', MyEl);
+})();
+        </script>
+    </head>
+    <body>
+        <my-el oncheck="onCheckHandler(this, event);console.log('test123');"></my-el>
+    </body>
+</html>

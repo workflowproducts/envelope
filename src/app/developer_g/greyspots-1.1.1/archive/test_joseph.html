@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        <!-- Make this page use standard caching procedure when used as an iframe -->
+        <meta http-equiv="Cache-control" content="no-store, must-revalidate" />
+        
+        <title>New Page</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+
+function getElem(strID) {
+    "use strict";
+    return document.getElementById(strID);
+}
+
+        </script>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header>
+                <center><h3>test page</h3></center>
+            </gs-header>
+            <gs-body padded>
+                
+                <!--
+                <gs-toggle
+                    onbefore_select="console.log('onbefore_select - gs-listbox');"
+                     onafter_select="console.log('onafter_select  - gs-listbox');"
+                            onclick="console.log('onclick         - gs-listbox');"
+                            onfocus="console.log('onfocus         - gs-listbox');"
+                             onblur="console.log('onblur          - gs-listbox');"
+                           onchange="console.log('onchange        - gs-listbox');"
+                        onmousedown="console.log('onmousedown     - gs-listbox');"
+                          onmouseup="console.log('onmouseup       - gs-listbox');"
+                        onmousemove="console.log('onmousemove     - gs-listbox');"
+                          onkeydown="console.log('onkeydown       - gs-listbox');"
+                            onkeyup="console.log('onkeyup         - gs-listbox');"
+                         onkeypress="console.log('onkeypress      - gs-listbox');"
+                >
+                    Test
+                </gs-toggle>
+                <gs-timestamp
+                    onbefore_select="console.log('onbefore_select - gs-listbox');"
+                     onafter_select="console.log('onafter_select  - gs-listbox');"
+                            onclick="console.log('onclick         - gs-listbox');"
+                            onfocus="console.log('onfocus         - gs-listbox');"
+                             onblur="console.log('onblur          - gs-listbox');"
+                           onchange="console.log('onchange        - gs-listbox');"
+                        onmousedown="console.log('onmousedown     - gs-listbox');"
+                          onmouseup="console.log('onmouseup       - gs-listbox');"
+                        onmousemove="console.log('onmousemove     - gs-listbox');"
+                          onkeydown="console.log('onkeydown       - gs-listbox');"
+                            onkeyup="console.log('onkeyup         - gs-listbox');"
+                         onkeypress="console.log('onkeypress      - gs-listbox');"
+                >
+                </gs-timestamp>
+                <gs-time
+                    onbefore_select="console.log('onbefore_select - gs-listbox');"
+                     onafter_select="console.log('onafter_select  - gs-listbox');"
+                            onclick="console.log('onclick         - gs-listbox');"
+                            onfocus="console.log('onfocus         - gs-listbox');"
+                             onblur="console.log('onblur          - gs-listbox');"
+                           onchange="console.log('onchange        - gs-listbox');"
+                        onmousedown="console.log('onmousedown     - gs-listbox');"
+                          onmouseup="console.log('onmouseup       - gs-listbox');"
+                        onmousemove="console.log('onmousemove     - gs-listbox');"
+                          onkeydown="console.log('onkeydown       - gs-listbox');"
+                            onkeyup="console.log('onkeyup         - gs-listbox');"
+                         onkeypress="console.log('onkeypress      - gs-listbox');"
+                >
+                </gs-time>
+                <gs-text
+                    onbefore_select="console.log('onbefore_select - gs-listbox');"
+                     onafter_select="console.log('onafter_select  - gs-listbox');"
+                            onclick="console.log('onclick         - gs-listbox');"
+                            onfocus="console.log('onfocus         - gs-listbox');"
+                             onblur="console.log('onblur          - gs-listbox');"
+                           onchange="console.log('onchange        - gs-listbox');"
+                        onmousedown="console.log('onmousedown     - gs-listbox');"
+                          onmouseup="console.log('onmouseup       - gs-listbox');"
+                        onmousemove="console.log('onmousemove     - gs-listbox');"
+                          onkeydown="console.log('onkeydown       - gs-listbox');"
+                            onkeyup="console.log('onkeyup         - gs-listbox');"
+                         onkeypress="console.log('onkeypress      - gs-listbox');"
+                >
+                </gs-text>
+                -->
+                
+                <!--
+                <gs-date
+                        onclick="console.log('onclick     - gs-date');"
+                        onfocus="console.log('onfocus     - gs-date');"
+                         onblur="console.log('onblur      - gs-date');"
+                       onchange="console.log('onchange    - gs-date');"
+                    onmousedown="console.log('onmousedown - gs-date');"
+                      onmouseup="console.log('onmouseup   - gs-date');"
+                    onmousemove="console.log('onmousemove - gs-date');"
+                      onkeydown="console.log('onkeydown   - gs-date');"
+                        onkeyup="console.log('onkeyup     - gs-date');"
+                     onkeypress="console.log('onkeypress  - gs-date');"
+                ></gs-date>
+                <gs-datetime
+                        onclick="console.log('onclick     - gs-datetime');"
+                        onfocus="console.log('onfocus     - gs-datetime');"
+                         onblur="console.log('onblur      - gs-datetime');"
+                       onchange="console.log('onchange    - gs-datetime');"
+                    onmousedown="console.log('onmousedown - gs-datetime');"
+                      onmouseup="console.log('onmouseup   - gs-datetime');"
+                    onmousemove="console.log('onmousemove - gs-datetime');"
+                      onkeydown="console.log('onkeydown   - gs-datetime');"
+                        onkeyup="console.log('onkeyup     - gs-datetime');"
+                     onkeypress="console.log('onkeypress  - gs-datetime');"
+                ></gs-datetime>
+                <gs-dt
+                        onclick="console.log('onclick     - gs-dt');"
+                        onfocus="console.log('onfocus     - gs-dt');"
+                         onblur="console.log('onblur      - gs-dt');"
+                       onchange="console.log('onchange    - gs-dt');"
+                    onmousedown="console.log('onmousedown - gs-dt');"
+                      onmouseup="console.log('onmouseup   - gs-dt');"
+                    onmousemove="console.log('onmousemove - gs-dt');"
+                      onkeydown="console.log('onkeydown   - gs-dt');"
+                        onkeyup="console.log('onkeyup     - gs-dt');"
+                     onkeypress="console.log('onkeypress  - gs-dt');"
+                ></gs-dt>
+                -->
+                <!--
+                <gs-checkbox
+                        onclick="console.log('onclick     - gs-checkbox');"
+                        onfocus="console.log('onfocus     - gs-checkbox');"
+                         onblur="console.log('onblur      - gs-checkbox');"
+                       onchange="console.log('onchange    - gs-checkbox');"
+                    onmousedown="console.log('onmousedown - gs-checkbox');"
+                      onmouseup="console.log('onmouseup   - gs-checkbox');"
+                    onmousemove="console.log('onmousemove - gs-checkbox');"
+                      onkeydown="console.log('onkeydown   - gs-checkbox');"
+                        onkeyup="console.log('onkeyup     - gs-checkbox');"
+                     onkeypress="console.log('onkeypress  - gs-checkbox');"
+                >
+                    Test (gs-button)
+                </gs-checkbox>
+                -->
+                
+                <!--
+                <gs-button
+                        onclick="console.log('onclick     - gs-button');"
+                        onfocus="console.log('onfocus     - gs-button');"
+                         onblur="console.log('onblur      - gs-button');"
+                       onchange="console.log('onchange    - gs-button');"
+                    onmousedown="console.log('onmousedown - gs-button');"
+                      onmouseup="console.log('onmouseup   - gs-button');"
+                    onmousemove="console.log('onmousemove - gs-button');"
+                      onkeydown="console.log('onkeydown   - gs-button');"
+                        onkeyup="console.log('onkeyup     - gs-button');"
+                     onkeypress="console.log('onkeypress  - gs-button');"
+                >
+                    Test (gs-button)
+                </gs-button>
+                
+                <gs-email-button
+                    value="michael@tocci.org"
+                        onclick="console.log('onclick     - gs-email-button');"
+                        onfocus="console.log('onfocus     - gs-email-button');"
+                         onblur="console.log('onblur      - gs-email-button');"
+                       onchange="console.log('onchange    - gs-email-button');"
+                    onmousedown="console.log('onmousedown - gs-email-button');"
+                      onmouseup="console.log('onmouseup   - gs-email-button');"
+                    onmousemove="console.log('onmousemove - gs-email-button');"
+                      onkeydown="console.log('onkeydown   - gs-email-button');"
+                        onkeyup="console.log('onkeyup     - gs-email-button');"
+                     onkeypress="console.log('onkeypress  - gs-email-button');"
+                >
+                    Test (gs-email-button)
+                </gs-email-button>
+                
+                <gs-facetime-button
+                    value="michael@tocci.org"
+                        onclick="console.log('onclick     - gs-facetime-button');"
+                        onfocus="console.log('onfocus     - gs-facetime-button');"
+                         onblur="console.log('onblur      - gs-facetime-button');"
+                       onchange="console.log('onchange    - gs-facetime-button');"
+                    onmousedown="console.log('onmousedown - gs-facetime-button');"
+                      onmouseup="console.log('onmouseup   - gs-facetime-button');"
+                    onmousemove="console.log('onmousemove - gs-facetime-button');"
+                      onkeydown="console.log('onkeydown   - gs-facetime-button');"
+                        onkeyup="console.log('onkeyup     - gs-facetime-button');"
+                     onkeypress="console.log('onkeypress  - gs-facetime-button');"
+                >
+                    Test (gs-facetime-button)
+                </gs-facetime-button>
+                
+                <gs-map-button
+                    value="7813 Harwood Road"
+                        onclick="console.log('onclick     - gs-map-button');"
+                        onfocus="console.log('onfocus     - gs-map-button');"
+                         onblur="console.log('onblur      - gs-map-button');"
+                       onchange="console.log('onchange    - gs-map-button');"
+                    onmousedown="console.log('onmousedown - gs-map-button');"
+                      onmouseup="console.log('onmouseup   - gs-map-button');"
+                    onmousemove="console.log('onmousemove - gs-map-button');"
+                      onkeydown="console.log('onkeydown   - gs-map-button');"
+                        onkeyup="console.log('onkeyup     - gs-map-button');"
+                     onkeypress="console.log('onkeypress  - gs-map-button');"
+                >
+                    Test (gs-map-button)
+                </gs-map-button>
+                
+                <gs-phone-button
+                    value="8178466982"
+                        onclick="console.log('onclick     - gs-phone-button');"
+                        onfocus="console.log('onfocus     - gs-phone-button');"
+                         onblur="console.log('onblur      - gs-phone-button');"
+                       onchange="console.log('onchange    - gs-phone-button');"
+                    onmousedown="console.log('onmousedown - gs-phone-button');"
+                      onmouseup="console.log('onmouseup   - gs-phone-button');"
+                    onmousemove="console.log('onmousemove - gs-phone-button');"
+                      onkeydown="console.log('onkeydown   - gs-phone-button');"
+                        onkeyup="console.log('onkeyup     - gs-phone-button');"
+                     onkeypress="console.log('onkeypress  - gs-phone-button');"
+                >
+                    Test (gs-phone-button)
+                </gs-phone-button>
+                
+                <gs-tracking-button
+                    value="23454356345"
+                        onclick="console.log('onclick     - gs-tracking-button');"
+                        onfocus="console.log('onfocus     - gs-tracking-button');"
+                         onblur="console.log('onblur      - gs-tracking-button');"
+                       onchange="console.log('onchange    - gs-tracking-button');"
+                    onmousedown="console.log('onmousedown - gs-tracking-button');"
+                      onmouseup="console.log('onmouseup   - gs-tracking-button');"
+                    onmousemove="console.log('onmousemove - gs-tracking-button');"
+                      onkeydown="console.log('onkeydown   - gs-tracking-button');"
+                        onkeyup="console.log('onkeyup     - gs-tracking-button');"
+                     onkeypress="console.log('onkeypress  - gs-tracking-button');"
+                >
+                    Test (gs-tracking-button)
+                </gs-tracking-button>
+                
+                <gs-skype-button
+                    value="michael-tocci"
+                        onclick="console.log('onclick     - gs-skype-button');"
+                        onfocus="console.log('onfocus     - gs-skype-button');"
+                         onblur="console.log('onblur      - gs-skype-button');"
+                       onchange="console.log('onchange    - gs-skype-button');"
+                    onmousedown="console.log('onmousedown - gs-skype-button');"
+                      onmouseup="console.log('onmouseup   - gs-skype-button');"
+                    onmousemove="console.log('onmousemove - gs-skype-button');"
+                      onkeydown="console.log('onkeydown   - gs-skype-button');"
+                        onkeyup="console.log('onkeyup     - gs-skype-button');"
+                     onkeypress="console.log('onkeypress  - gs-skype-button');"
+                >
+                    Test (gs-skype-button)
+                </gs-skype-button>
+                
+                <gs-delete-button
+                    value="1234"
+                    src="test.tpeople"
+                        onclick="console.log('onclick     - gs-delete-button');"
+                        onfocus="console.log('onfocus     - gs-delete-button');"
+                         onblur="console.log('onblur      - gs-delete-button');"
+                       onchange="console.log('onchange    - gs-delete-button');"
+                    onmousedown="console.log('onmousedown - gs-delete-button');"
+                      onmouseup="console.log('onmouseup   - gs-delete-button');"
+                    onmousemove="console.log('onmousemove - gs-delete-button');"
+                      onkeydown="console.log('onkeydown   - gs-delete-button');"
+                        onkeyup="console.log('onkeyup     - gs-delete-button');"
+                     onkeypress="console.log('onkeypress  - gs-delete-button');"
+                >
+                    Test (gs-delete-button)
+                </gs-delete-button>
+                
+                <gs-dialog-button
+                        onclick="console.log('onclick     - gs-dialog-button');"
+                        onfocus="console.log('onfocus     - gs-dialog-button');"
+                         onblur="console.log('onblur      - gs-dialog-button');"
+                       onchange="console.log('onchange    - gs-dialog-button');"
+                    onmousedown="console.log('onmousedown - gs-dialog-button');"
+                      onmouseup="console.log('onmouseup   - gs-dialog-button');"
+                    onmousemove="console.log('onmousemove - gs-dialog-button');"
+                      onkeydown="console.log('onkeydown   - gs-dialog-button');"
+                        onkeyup="console.log('onkeyup     - gs-dialog-button');"
+                     onkeypress="console.log('onkeypress  - gs-dialog-button');"
+                >
+                    Test (gs-dialog-button)
+                </gs-dialog-button>
+                -->
+                <!--<gs-ace
+                    value="test"
+                    style="border: 1px solid #AAA;"
+                    rows="10"
+                    
+                    onclick="console.log('onclick');"
+                    onfocus="console.log('onfocus');"
+                    onblur="console.log('onblur');"
+                    onchange="console.log('onchange');"
+                    onmousedown="console.log('onmousedown');"
+                    onmouseup="console.log('onmouseup');"
+                    onmousemove="console.log('onmousemove');"
+                    onkeydown="console.log('onkeydown');"
+                    onkeyup="console.log('onkeyup');"
+                    onkeypress="console.log('onkeypress');"
+                ></gs-ace>
+                -->
+                <!--<gs-table
+                    id="test-table"
+                    src="test.tpeople"
+                    pk="id"
+                    lock="change_stamp"
+                    ord="id ASC"
+                    focus-on-load
+                    style="width: 100%; height: 100%;"
+                    onbefore_select="console.log('onbefore_select');"
+                    onafter_select="console.log('onafter_select');"
+                    onbefore_insert="console.log('onbefore_insert');"
+                    onafter_insert="console.log('onafter_insert');"
+                    onbefore_update="console.log('onbefore_update');"
+                    onafter_update="console.log('onafter_update');"
+                    onbefore_delete="console.log('onbefore_delete');"
+                    onafter_delete="console.log('onafter_delete');"
+                >
+                    <template for="top-hud">
+                        <gs-button onclick="getElem('test-table').deleteSelected()" inline no-focus icononly icon="times">&nbsp;</gs-button>
+                        <gs-button onclick="getElem('test-table').openInsertDialog()" inline no-focus icononly icon="plus">&nbsp;</gs-button>
+                        <gs-button onclick="getElem('test-table').refresh()" inline no-focus icononly icon="refresh">&nbsp;</gs-button>
+                        <gs-button onclick="getElem('test-table').openPrefs(this)" inline no-focus icononly icon="sliders">&nbsp;</gs-button>
+                        <gs-button onclick="getElem('test-table').toFullscreen(this)" inline no-focus icononly icon="expand">&nbsp;</gs-button>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <gs-button onclick="getElem('test-table').sort('asc')" inline no-focus iconleft icon="sort-alpha-asc">Sort A to Z</gs-button>
+                        <gs-button onclick="getElem('test-table').sort('desc')" inline no-focus iconleft icon="sort-alpha-desc">Sort Z to A</gs-button>
+                        <gs-button onclick="getElem('test-table').sort('clear')" inline no-focus iconleft icon="trash">Clear Sort</gs-button>
+                        <gs-button onclick="getElem('test-table').clearFilter()" inline no-focus iconleft icon="trash">Clear Filter</gs-button>
+                    </template>
+                    <template for="bottom-hud">
+                        <gs-button onclick="getElem('test-table').goToLine('first')" inline no-focus icononly icon="step-backward">&nbsp;</gs-button>
+                        <gs-button onclick="getElem('test-table').goToLine('previous')" inline no-focus icononly icon="caret-left">&nbsp;</gs-button>
+                        <gs-current-record inline for="test-table"></gs-current-record>
+                        <gs-button onclick="getElem('test-table').goToLine('next')" inline no-focus icononly icon="caret-right">&nbsp;</gs-button>
+                        <gs-button onclick="getElem('test-table').goToLine('last')" inline no-focus icononly icon="step-forward">&nbsp;</gs-button>
+                        <gs-button onclick="getElem('test-table').goToLine('insert')" inline no-focus icononly icon="plus">&nbsp;</gs-button>
+                    </template>
+                    <template for="header-record">
+                        <gs-cell>First Name</gs-cell>
+                        <gs-cell>Last Name</gs-cell>
+                        <gs-cell>Test</gs-cell>
+                        <gs-cell>Birthday</gs-cell>
+                        <gs-cell>Age</gs-cell>
+                        <gs-cell># of Pets</gs-cell>
+                    </template>
+                    <template for="data-record">
+                        <gs-cell header="First Name"><gs-text mini column="first_name"></gs-text></gs-cell>
+                        <gs-cell header="Last Name"><gs-text mini column="last_name"></gs-text></gs-cell>
+                        <gs-cell header="Test"><gs-checkbox mini column="test_checkbox" class="text-center"></gs-checkbox></gs-cell>
+                        <gs-cell header="Birthday"><gs-date mini column="birth_date"></gs-date></gs-cell>
+                        <gs-cell header="Age"><gs-text mini column="age" disabled></gs-text></gs-cell>
+                        <gs-cell header="# of Pets"><gs-text mini column="number_of_pets" disabled></gs-text></gs-cell>
+                    </template>
+                    <template for="copy">
+                        <gs-cell header="First Name">{{! row.first_name }}</gs-cell>
+                        <gs-cell header="Last Name">{{! row.last_name }}</gs-cell>
+                        <gs-cell header="Test">{{! row.test_checkbox }}</gs-cell>
+                        <gs-cell header="Birthday">{{! row.birth_date }}</gs-cell>
+                        <gs-cell header="Age">{{! row.age }}</gs-cell>
+                        <gs-cell header="# of Pets">{{! row.number_of_pets }}</gs-cell>
+                    </template>
+                    <template for="insert-record">
+                        <gs-cell header="First Name"><gs-text mini column="first_name"></gs-text></gs-cell>
+                        <gs-cell header="Last Name"><gs-text mini column="last_name"></gs-text></gs-cell>
+                        <gs-cell header="Test"><gs-checkbox mini column="test_checkbox" class="text-center"></gs-checkbox></gs-cell>
+                        <gs-cell header="Birthday"><gs-date mini column="birth_date"></gs-date></gs-cell>
+                        <gs-cell header="Age"><gs-text mini disabled></gs-text></gs-cell>
+                        <gs-cell header="# of Pets"><gs-text mini disabled></gs-text></gs-cell>
+                    </template>
+                </gs-table>-->
+                <!--
+                <gs-datasheet
+                    id="test-datasheet"
+                    src="test.tpeople"
+                    limit="10"
+                    ord="first_name ASC"
+                    onbefore_select="console.log('onbefore_select');"
+                    onafter_select="console.log('onafter_select');"
+                    onbefore_insert="console.log('onbefore_insert');"
+                    onafter_insert="console.log('onafter_insert');"
+                    onbefore_update="console.log('onbefore_update');"
+                    onafter_update="console.log('onafter_update');"
+                    onbefore_delete="console.log('onbefore_delete');"
+                    onafter_delete="console.log('onafter_delete');"
+                >
+                    <template for="hud"></template>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td heading="First Name"><gs-text mini column="first_name"></gs-text></td>
+                                    <td heading="Last Name"><gs-text mini column="last_name"></gs-text></td>
+                                    <td heading="Test"><gs-checkbox mini column="test_checkbox" class="text-center"></gs-checkbox></td>
+                                    <td heading="Birthday"><gs-date mini column="birth_date"></gs-date></td>
+                                    <td heading="Age"><gs-text mini column="age" disabled></gs-text></td>
+                                    <td heading="# of Pets"><gs-text mini column="number_of_pets" disabled></gs-text></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template for="insert">
+                        <label>First Name:</label>
+                        <gs-text column="first_name"></gs-text>
+                        <label>Last Name:</label>
+                        <gs-text column="last_name"></gs-text>
+                    </template>
+                </gs-datasheet>
+                -->
+                <!--
+                <gs-folder
+                    path="/"
+                    folder="role"
+                    onbefore_select="console.log('onbefore_select');"
+                    onafter_select="console.log('onafter_select');"
+                    onbefore_insert="console.log('onbefore_insert');"
+                    onafter_insert="console.log('onafter_insert');"
+                    onbefore_update="console.log('onbefore_update');"
+                    onafter_update="console.log('onafter_update');"
+                    onbefore_delete="console.log('onbefore_delete');"
+                    onafter_delete="console.log('onafter_delete');"
+                ></gs-folder>
+                -->
+                <!--
+                <gs-form
+                    src="test.tpeople"
+                    ord="first_name ASC"
+                    onbefore_select="console.log('onbefore_select');"
+                    onafter_select="console.log('onafter_select');"
+                    onbefore_update="console.log('onbefore_update');"
+                    onafter_update="console.log('onafter_update');"
+                >
+                    <template>
+                        <label>First Name:</label>
+                        <gs-text column="first_name"></gs-text>
+                        <label>Last Name:</label>
+                        <gs-text column="last_name"></gs-text>
+                        <label>Test</label>
+                        <gs-checkbox column="test_checkbox" class="text-center"></gs-checkbox>
+                    </template>
+                </gs-form>
+                -->
+                <!--
+                <gs-insert
+                    id="test-insert"
+                    src="test.tpeople"
+                    onbefore_insert="console.log('onbefore_insert');"
+                    onafter_insert="console.log('onafter_insert'); document.getElementById('test-envelope').refresh(); "
+                >
+                    <label>First Name:</label>
+                    <gs-text column="first_name"></gs-text>
+                    <label>Last Name:</label>
+                    <gs-text column="last_name"></gs-text>
+                    <br />
+                    <gs-button onclick="document.getElementById('test-insert').submit();" bg-primary>Insert</gs-button>
+                </gs-insert>
+                -->
+                <!--
+                <gs-envelope
+                    id="test-envelope"
+                    src="test.tpeople"
+                    limit="10"
+                    ord="first_name ASC"
+                    onbefore_select="console.log('onbefore_select');"
+                    onafter_select="console.log('onafter_select');"
+                    onbefore_insert="console.log('onbefore_insert');"
+                    onafter_insert="console.log('onafter_insert');"
+                    onbefore_update="console.log('onbefore_update');"
+                    onafter_update="console.log('onafter_update');"
+                    onbefore_delete="console.log('onbefore_delete');"
+                    onafter_delete="console.log('onafter_delete');"
+                >
+                    <template for="hud"></template>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td heading="First Name"><gs-text mini column="first_name"></gs-text></td>
+                                    <td heading="Last Name"><gs-text mini column="last_name"></gs-text></td>
+                                    <td heading="Test"><gs-checkbox mini column="test_checkbox" class="text-center"></gs-checkbox></td>
+                                    <td heading="Birthday"><gs-date mini column="birth_date"></gs-date></td>
+                                    <td heading="Age"><gs-text mini column="age" disabled></gs-text></td>
+                                    <td heading="# of Pets"><gs-text mini column="number_of_pets" disabled></gs-text></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template for="insert">
+                        <label>First Name:</label>
+                        <gs-text column="first_name"></gs-text>
+                        <label>Last Name:</label>
+                        <gs-text column="last_name"></gs-text>
+                    </template>
+                </gs-envelope>
+                -->
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

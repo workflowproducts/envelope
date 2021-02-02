@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Test Element</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+        
+        // SUSPEND-CREATED attribute
+        addProp('suspend-created', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-created') || '') + '" mini></gs-checkbox>', function () {
+            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-created', this.value === 'true', true);
+        });
+        
+        // SUSPEND-INSERTED attribute
+        addProp('suspend-inserted', true, '<gs-checkbox class="target" value="' + (selectedElement.hasAttribute('suspend-inserted') || '') + '" mini></gs-checkbox>', function () {
+            return setOrRemoveBooleanAttribute(selectedElement, 'suspend-inserted', this.value === 'true', true);
+        });
+
+(function () {
+    'use strict';
+    
+    // dont do anything that modifies the element here
+    function elementCreated(element) {
+        // if "created" hasn't been suspended: run created code
+        if (!element.hasAttribute('suspend-created')) {
+            // CODE GOES HERE
+            console.log('Created: ', element.getAttribute('id'));
+        }
+    }
+    
+    //
+    function elementInserted(element) {
+        // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
+        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+            // if this is the first time inserted has been run: continue
+            if (!element.inserted) {
+                element.inserted = true;
+                // CODE GOES HERE
+                console.log('Inserted:', element.getAttribute('id'));
+            }
+        }
+    }
+    
+    xtag.register('gs-test', {
+        lifecycle: {
+            created: function () {
+                elementCreated(this);
+            },
+            
+            inserted: function () {
+                elementInserted(this);
+            },
+            
+            attributeChanged: function (strAttrName, oldValue, newValue) {
+                // if "suspend-created" has been removed: run created and inserted code
+                if (strAttrName === 'suspend-created' && newValue === null) {
+                    elementCreated(this);
+                    elementInserted(this);
+                    
+                // if "suspend-inserted" has been removed: run inserted code
+                } else if (strAttrName === 'suspend-inserted' && newValue === null) {
+                    elementInserted(this);
+                    
+                } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
+                    // attribute code
+                }
+            }
+        },
+        events: {},
+        accessors: {},
+        methods: {
+            
+        }
+    });
+})();
+        </script>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>Test Element</h3></gs-header>
+            <gs-body>
+                <gs-test id="test1" suspend-created></gs-test>
+                <gs-test id="test2" suspend-inserted></gs-test>
+                <gs-test id="test3" suspend-created suspend-inserted></gs-test>
+                <gs-test id="test4"></gs-test>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

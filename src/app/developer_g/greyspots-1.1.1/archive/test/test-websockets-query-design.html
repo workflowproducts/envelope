@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>WS ENV Query Design</title>
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        <script src="test-websockets-datagrid.js" type="text/javascript"></script>
+        <link href="test-websockets-datagrid.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+            // Array Remove - By John Resig (MIT Licensed)
+            Array.prototype.remove = function(from, to) {
+              var rest = this.slice((to || from) + 1 || this.length);
+              this.length = from < 0 ? this.length + from : from;
+              return this.push.apply(this, rest);
+            };
+            
+            var strViewName = 'tpeople',
+                strSchemaName = 'test',
+                strViewDefSQL = ml(function () {/*
+                    SELECT pg_get_viewdef(c.oid, 100) AS full_sql
+                        FROM pg_class c
+                        LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+                        LEFT JOIN pg_roles ON pg_roles.oid = c.relowner
+                        LEFT JOIN pg_description ON pg_description.objoid = c.oid
+                        WHERE c.relkind = 'v'::char AND n.nspname = $SCHEMA${{SCHEMA}}$SCHEMA$ AND c.relname = $VIEW${{VIEW}}$VIEW$;
+                */}).replace('{{SCHEMA}}', strSchemaName).replace('{{VIEW}}', strViewName),
+                strTableColumnSQL = ml(function () {/*
+                    SELECT attname
+                        FROM pg_class
+                        LEFT JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
+                        LEFT JOIN pg_attribute ON pg_class.oid = pg_attribute.attrelid
+                        JOIN pg_type ON pg_type.oid = pg_attribute.atttypid
+                        LEFT OUTER JOIN pg_attrdef ON pg_attrdef.adrelid = pg_attribute.attrelid AND pg_attrdef.adnum = pg_attribute.attnum
+                        WHERE pg_attribute.attisdropped IS FALSE AND pg_attribute.attnum > 0 AND pg_namespace.nspname = $SCHEMA${{SCHEMA}}$SCHEMA$ AND pg_class.relname = $VIEW${{VIEW}}$VIEW$
+                        ORDER BY attnum ASC;
+                */}),
+                strTableColumnSQLTemp;
+            
+            function splitOnDot(strTableName) {
+                var intI, intJ, intLen, bolQuote = false, arrRet = [];
+                for (intI = 0, intJ = 0, intLen = strTableName.length; intI < intLen; intI += 1) {
+                    if (strTableName[intI] === '\\') {
+                        
+                    } else if (strTableName[intI] === '"') {
+                        bolQuote = !bolQuote;
+                    } else if (!bolQuote && strTableName[intI] === '.') {
+                        intJ += 1;
+                        continue;
+                    }
+                    if (!arrRet[intJ]) {
+                        arrRet[intJ] = strTableName[intI];
+                    } else {
+                        arrRet[intJ] += strTableName[intI];
+                    }
+                }
+                return arrRet;
+            }
+            
+            function splitSQL(strToSplit, strToSplitOn) {
+                var intI, intJ, intLen, intParen = 0, bolQuote = false, arrRet = [], intStrSplitLen = strToSplitOn.length;
+                for (intI = 0, intJ = 0, intLen = strToSplit.length; intI < intLen; intI += 1) {
+                    if (strToSplit[intI] == '\\') {
+                        
+                    } else if (strToSplit[intI] == '"') {
+                        bolQuote = !bolQuote;
+                    } else if (!bolQuote && strToSplit[intI] === '(') {
+                        intParen += 1;
+                    } else if (!bolQuote && strToSplit[intI] === ')') {
+                        intParen -= 1;
+                    } else if (!bolQuote && intParen === 0 && strToSplit.substring(intI, intI + intStrSplitLen) === strToSplitOn) {
+                        // if there was no - 1, then it would cut off the next char
+                        intI += intStrSplitLen - 1;
+                        intJ += 1;
+                        continue;
+                    }
+                    if (!arrRet[intJ]) {
+                        arrRet[intJ] = strToSplit[intI];
+                    } else {
+                        arrRet[intJ] += strToSplit[intI];
+                    }
+                }
+                return arrRet;
+            }
+            
+            // get css of rotated line based on 2 sets of coordinates
+            function lineStyle(xPos1, yPos1, xPos2, yPos2) {
+                'use strict';
+                var height, length, hypLength, hypAngle, hypBottom, hypLeft, hypXCenter, style = '';
+                
+                //console.trace(typeof xPos1, typeof yPos1, typeof xPos2, typeof yPos2);//, arguments.callee.toString().substring(0, 50));
+                
+                // find height
+                height = yPos1 - yPos2;
+                
+                // find length
+                length = xPos2 - xPos1;
+                
+                // find hyp length via square root of (height^2 + length^2 )
+                hypLength = Math.sqrt((height * height) + (length * length));
+                
+                // find angle of hyp via atan2(y,x)
+                hypAngle = Math.atan2(height, length);
+                
+                // find the center point of hyp height
+                hypBottom = (height / 2) + yPos2;
+                
+                // find the center point of hyp left
+                hypXCenter = (Math.abs(xPos2 - xPos1) / 2) + (xPos1 > xPos2 ? xPos2: xPos1);
+                hypLeft = hypXCenter - (hypLength / 2);
+                
+                //console.log('xPos1:', xPos1, 'yPos1:', yPos1, 'xPos2:', xPos2, 'yPos2:', yPos2);
+                //console.log('height:', height, 'length:', length);
+                //console.log('hypLength 160.9:', hypLength, ' hypAngle 0.5:', hypAngle, ' hypBottom 36:', hypBottom,
+                //            'hypLeft 63.5:', hypLeft, 'hypXCenter 144:', hypXCenter);
+                
+                // generate style
+                style += 'width:' + hypLength + 'px;';
+                style += 'bottom:' + (hypBottom - 0.5) + 'px;';
+                style += 'left:' + hypLeft + 'px;';
+                style += 'transform:rotate(' + hypAngle + 'rad);';
+                style += '-o-transform:rotate(' + hypAngle + 'rad);';
+                style += '-moz-transform:rotate(' + hypAngle + 'rad);';
+                style += '-webkit-transform:rotate(' + hypAngle + 'rad);';
+                
+                // return generated left, bottom, rotation
+                return style;
+            }
+            
+            function drawLine(border, x0, y0, x1, y1, zindex, strLineClass) {
+                'use strict';
+                var html = '';
+                html += '<div class="' + strLineClass + '" data-x0="' + x0 + '" data-x1="' + x1 + '" data-y0="' + y0 + '" data-y1="' + y1 + '" style="z-index: ' + zindex + '; ';
+                
+                html += 'position: absolute; border-top: ' + border + '; background-color: #000;';
+                
+                html += lineStyle(x0, y0, x1, y1);
+                html += '"><\/div>';
+                
+                return html;
+            }
+            
+            function buildDesigner(arrQueryColumns, arrTables, arrTableColumns) {
+                var intI, intLen, intJ, intLen1, intK, intLen2, intL, intX = 3, strHTML = '', pos0 = {}, pos1 = {}, elem = document.createElement('div');
+                
+                for (intI = 0, intLen = arrTables.length; intI < intLen; intI += 1) {
+                    strHTML += '<div class="table" id="table-';
+                    strHTML += intI;
+                    strHTML += '" style="position: absolute; top: 3em; left: ';
+                    strHTML += intX;
+                    strHTML += 'em;">';
+                    strHTML += arrTables[intI][1].join('.');
+                    
+                    for (intJ = 0, intLen1 = arrTableColumns[intI].length; intJ < intLen1; intJ += 1) {
+                        strHTML += '<div class="column" id="column-';
+                        strHTML += intI;
+                        strHTML += '-';
+                        strHTML += intJ;
+                        strHTML += '">';
+                        strHTML += arrTableColumns[intI][intJ];
+                        strHTML += '</div>';
+                    }
+                    strHTML += '</div>';
+                    intX += 20;
+                    
+                    elem.innerHTML = strHTML;
+                    strHTML = '';
+                    document.getElementById('query-designer').appendChild(elem.firstChild);
+                    
+                    if (arrTables[intI][2] !== '') {
+                        // TODO: other types of comparison
+                        // TODO: more than one comparison
+                        var arrJoinParts = arrTables[intI][2].split(' = ');
+                        arrJoinParts[0] = splitOnDot(arrJoinParts[0]);
+                        arrJoinParts[1] = splitOnDot(arrJoinParts[1]);
+                        
+                        for (intK = 0, intLen2 = 2; intK < intLen2; intK += 1) {
+                            var intTableIndex = 0, intColumnIndex;
+                            
+                            for (intL = 0; intL < intLen; intL += 1) {
+                                if (arrTables[intL][1][1] === arrJoinParts[intK][0]) {
+                                    intTableIndex = intL;
+                                    break;
+                                }
+                            }
+                            
+                            intColumnIndex = arrTableColumns[intI].indexOf(arrJoinParts[intK][1]);
+                            
+                            arrJoinParts[intK][0] = 'table-';
+                            arrJoinParts[intK][0] += intTableIndex;
+                            
+                            arrJoinParts[intK][1] = 'column-';
+                            arrJoinParts[intK][1] += intTableIndex;
+                            arrJoinParts[intK][1] += '-';
+                            arrJoinParts[intK][1] += intColumnIndex;
+                        }
+                        
+                        var table1 =  document.getElementById(arrJoinParts[0][0]),
+                            column1 = document.getElementById(arrJoinParts[0][1]),
+                            table2 = document.getElementById(arrJoinParts[1][0]),
+                            column2 = document.getElementById(arrJoinParts[1][1]),
+                            pos00 = GS.getElementOffset(table1),
+                            pos01 = GS.getElementOffset(column1),
+                            pos10 = GS.getElementOffset(table2),
+                            pos11 = GS.getElementOffset(column2);
+                        
+                        var pos2 = GS.getElementOffset(document.getElementById('query-designer'));
+                        
+                        pos0.left   = pos01.left  - pos2.left;
+                        pos0.bottom = pos2.bottom - pos01.bottom;
+                        
+                        pos1.left   = pos11.left  - pos2.left;
+                        pos1.bottom = pos2.bottom - pos11.bottom;
+                        
+                        if (arrTables.indexOf(arrJoinParts[0][0]) < arrTables.indexOf(arrJoinParts[1][0])) {
+                            pos0.left += table1.clientWidth - 10;
+                            pos1.left += 3;
+                        } else {
+                            pos1.left += table2.clientWidth - 10;
+                            pos0.left += 3;
+                        }
+                        
+                        pos0.bottom += GS.emToPx(table1, 0.5);
+                        pos1.bottom += GS.emToPx(table1, 0.5);
+                        
+                        elem.innerHTML = drawLine('1px solid #000000', pos0.left, pos0.bottom, pos1.left, pos1.bottom, 1000, 'joinLine');
+                        document.getElementById('query-designer').appendChild(elem.firstChild);
+                    }
+                }
+                
+                strHTML = '';
+                
+                strHTML += '<table><tbody><tr>';
+                
+                for (intI = 0, intLen = arrQueryColumns.length; intI < intLen; intI += 1) {
+                    //console.log(splitSQL(arrQueryColumns[intI], ' AS ').reverse().join(':'));
+                    strHTML += '<td><textarea rows="1">';
+                    strHTML += arrQueryColumns[intI];
+                    strHTML += '</textarea></td>';
+                }
+                strHTML += '</tr>';
+                
+                elem.innerHTML = strHTML;
+                strHTML = '';
+                document.getElementById('query-columns').appendChild(elem.firstChild);
+            }
+            
+            document.addEventListener('DOMContentLoaded', function () {
+                'use strict';
+                
+                GS.addLoader(document.body, 'Getting query SQL...');
+                GS.requestFromSocket(GS.envSocket, 'RAW\n' + strViewDefSQL, function (data, error, errorData) {
+                    GS.removeLoader(document.body);
+                    var strQuery = decodeFromTabDelimited(data.substring(9)),
+                        intSelectIndex = strQuery.indexOf('SELECT'),
+                        intFromIndex = strQuery.indexOf('FROM'),
+                        strFrom = strQuery.substring(intFromIndex),
+                        arrFrom = strFrom.split('\n'),
+                        arrJoin = [],
+                        strQueryColumns = strQuery.substring(intSelectIndex + 7, intFromIndex),
+                        arrQueryColumns = splitSQL(strQueryColumns, ','),
+                        arrTables = [],
+                        arrTableColumns = [],
+                        intI, intJ, intLen;
+                    
+                    for (intI = 0, intLen = arrFrom.length; intI < intLen; intI += 1) {
+                        arrFrom[intI] = arrFrom[intI].trim();
+                        if (arrFrom[intI].indexOf('FROM') !== -1) {
+                            strFrom = arrFrom[intI].substring(5);
+                        } else if (arrFrom[intI].indexOf('JOIN') !== -1) {
+                            arrJoin.push(arrFrom[intI]);
+                        }
+                    }
+                    arrFrom = splitOnDot(strFrom);
+                    
+                    for (intI = 0, intLen = arrQueryColumns.length; intI < intLen; intI += 1) {
+                        arrQueryColumns[intI] = arrQueryColumns[intI].trim();
+                    }
+                    
+                    arrTables = [['', arrFrom, '']];
+                    for (intI = 0, intLen = arrJoin.length; intI < intLen; intI += 1) {
+                        arrTables.push([
+                            arrJoin[intI].substring(0, arrJoin[intI].indexOf('JOIN')),
+                            splitOnDot(arrJoin[intI].substring(arrJoin[intI].indexOf('JOIN') + 5, arrJoin[intI].indexOf('ON') - 1)),
+                            arrJoin[intI].substring(arrJoin[intI].indexOf('ON') + 3),
+                        ]);
+                    }
+                    
+                    
+                    for (intI = 0, intLen = arrTables.length; intI < intLen; intI += 1) {
+                        strTableColumnSQLTemp = strTableColumnSQL.replace('{{SCHEMA}}', arrTables[intI][1][0]).replace('{{VIEW}}', arrTables[intI][1][1])
+                        GS.addLoader(document.body, 'Getting table columns...');
+                        
+                        // This create another level of scope so that bolBuildDesigner is unchanged once it is defined
+                        (function () {
+                            var bolBuildDesigner = intI == intLen - 1;
+                            GS.requestFromSocket(GS.envSocket, 'RAW\n' + strTableColumnSQLTemp, function (data, error, errorData) {
+                                GS.removeLoader(document.body);
+                                arrTableColumns.push(decodeFromTabDelimited(data.substring(8)).split('\n'));
+                                
+                                if (bolBuildDesigner) {
+                                    buildDesigner(arrQueryColumns, arrTables, arrTableColumns);
+                                }
+                            });
+                        }());
+                    }
+                });
+            });
+        </script>
+        
+        <style>
+            
+            #query-design {
+                height: 100%;
+                overflow: auto;
+                border: 1px solid #000000;
+            }
+            #query-design, gs-datagrid {
+                width: 50%;
+                float: left;
+                
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                -ms-box-sizing: border-box;
+                -o-box-sizing: border-box;
+                box-sizing: border-box;
+            }
+            
+            #query-editor, #query-columns {
+                padding: 0;
+                margin: 0;
+                height: 25%;
+            }
+            
+            #query-editor, #query-designer, #query-columns {
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                -ms-box-sizing: border-box;
+                -o-box-sizing: border-box;
+                box-sizing: border-box;
+            }
+            
+            #query-editor, #query-designer {
+                border-bottom: 1px solid #000000;
+            }
+            
+            #query-designer {
+                /* without this, the tables will be positioned relative to the #query-design div */
+                position: relative;
+                padding: 0;
+                margin: 0;
+                height: 50%;
+            }
+            #query-designer > .table {
+                padding: 0.25em;
+                overflow: auto;
+                border: 1px solid #000000;
+                
+                display: inline-block;
+                
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                -ms-box-sizing: border-box;
+                -o-box-sizing: border-box;
+                box-sizing: border-box;
+            }
+            #query-designer > .table > .column:first-child {
+                border-top: 1px solid #000000;
+            }
+            #query-designer > .table > .column {
+                border-bottom: 1px solid #000000;
+                border-left: 1px solid #000000;
+                border-right: 1px solid #000000;
+            }
+            
+            #query-columns > table > tr > td > textarea {
+                display: block;
+                resize: none;
+                width: 100%;
+                border: 0 none;
+                cursor: text;
+                padding: 0 0.1em;
+                
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                -ms-box-sizing: border-box;
+                -o-box-sizing: border-box;
+                box-sizing: border-box;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="query-design">
+            <div id="query-editor">
+                
+            </div>
+            <div id="query-designer">
+                
+            </div>
+            <div id="query-columns">
+                
+            </div>
+        </div>
+        <gs-datagrid cols="*" object="tpeople" schema="test"></gs-datagrid>
+    </body>
+</html>

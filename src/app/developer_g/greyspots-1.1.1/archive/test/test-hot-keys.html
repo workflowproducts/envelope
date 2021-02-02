@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Hot Keys Testing</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>Hot Keys Test</h3></gs-header>
+            <gs-body padded>
+                <gs-button          onclick="alert('test (CMD-a or CTRL-a)');" key="a">test (CMD-a or CTRL-a)</gs-button><br />
+                <gs-delete-button   onclick="alert('test (CMD-b or CTRL-b)');" key="b">test (CMD-b or CTRL-b)</gs-delete-button><br />
+                <gs-email-button    onclick="alert('test (CMD-c or CTRL-c)');" key="c">test (CMD-c or CTRL-c)</gs-email-button><br />
+                <gs-facetime-button onclick="alert('test (CMD-d or CTRL-d)');" key="d">test (CMD-d or CTRL-d)</gs-facetime-button><br />
+                <gs-map-button      onclick="alert('test (CMD-e or CTRL-e)');" key="e">test (CMD-e or CTRL-e)</gs-map-button><br />
+                <gs-phone-button    onclick="alert('test (CMD-f or CTRL-f)');" key="f">test (CMD-f or CTRL-f)</gs-phone-button><br />
+                <gs-skype-button    onclick="alert('test (CMD-g or CTRL-g)');" key="g">test (CMD-g or CTRL-g)</gs-skype-button><br />
+                <gs-tracking-button onclick="alert('test (CMD-h or CTRL-h)');" key="h">test (CMD-h or CTRL-h)</gs-tracking-button>
+                <br />
+                <hr />
+                <br />
+                <gs-button          onclick="alert('test 2 (i)');" key="i" no-modifier-key>test 2 (i)</gs-button><br />
+                <gs-delete-button   onclick="alert('test 2 (j)');" key="j" no-modifier-key>test 2 (j)</gs-delete-button><br />
+                <gs-email-button    onclick="alert('test 2 (k)');" key="k" no-modifier-key>test 2 (k)</gs-email-button><br />
+                <gs-facetime-button onclick="alert('test 2 (l)');" key="l" no-modifier-key>test 2 (l)</gs-facetime-button><br />
+                <gs-map-button      onclick="alert('test 2 (m)');" key="m" no-modifier-key>test 2 (m)</gs-map-button><br />
+                <gs-phone-button    onclick="alert('test 2 (n)');" key="n" no-modifier-key>test 2 (n)</gs-phone-button><br />
+                <gs-skype-button    onclick="alert('test 2 (o)');" key="o" no-modifier-key>test 2 (o)</gs-skype-button><br />
+                <gs-tracking-button onclick="alert('test 2 (p)');" key="p" no-modifier-key>test 2 (p)</gs-tracking-button>
+                <br />
+                <hr />
+                <br />
+                <gs-text></gs-text>
+                <gs-memo></gs-memo>
+                <input type="text" /><br />
+                <textarea></textarea><br />
+                <div tabindex="0">test</div>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

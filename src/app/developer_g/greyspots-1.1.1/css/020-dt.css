@@ -1,0 +1,43 @@
+gs-dt, gs-dt .control {
+    text-align: right;
+}
+
+gs-dt {
+    position: relative;
+}
+
+.dt-arrows {
+    background: #FFFFFF !important;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    padding: 0.25em;
+    min-height: 1.2em;
+    margin: 0;
+    
+    box-shadow: 0 0 0.1em 0 rgba(0,0,0,.2), 0 0 0.2em 0 rgba(0,0,0,.4);
+    
+    display: inline-block;
+    
+    z-index: 2000;
+    width: 8.75em;
+}
+
+@media only screen and (max-width: 768px) {
+    gs-dt .dt-arrows {
+        font-size: 1.5em;
+    }
+}
+
+.dt-arrow {
+    display: inline-block;
+}
+
+gs-dt[readonly] {
+    box-shadow: 0 0 0 0 #000 inset;
+    opacity: 0.9;
+    border-color: #E6E6E6;
+    cursor: default;
+    padding: 0.2em;
+}
+

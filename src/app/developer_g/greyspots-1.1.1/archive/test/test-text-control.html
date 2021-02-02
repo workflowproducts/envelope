@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        <script>
+            // window.crypto_password = 'secret123';
+            
+        </script>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>Inputs:</h3></gs-header>
+            <gs-body padded>
+                <label>Normal:</label>
+                <gs-text></gs-text>
+                <br />
+                <label>Encrypted value:</label>
+                <gs-text value="U2FsdGVkX19ebrehOy6kSrB/+OcVj1TIkYql8yfWZQY=" encrypted></gs-text>
+                <!--<label>Encrypted value:</label>-->
+                <!--<gs-text value="U2FsdGVkX19ebrehOy6kSrB/+OcVj1TIkYql8yfWZQY=" encrypted></gs-text>-->
+                <br />
+                <label>Pre value:</label>
+                <gs-text value="asdf"></gs-text>
+                <br />
+                <label>Disabled:</label>
+                <gs-text value="asdf" disabled></gs-text>
+                <br />
+                <label>Onchange attribute:</label>
+                <gs-text onchange="alert(this.value);"></gs-text>
+                <br />
+                <label>placeholder:</label>
+                <gs-text placeholder="A Text"></gs-text>
+                <br />
+                <label>disabled, placeholder:</label>
+                <gs-text placeholder="A Text" disabled></gs-text>
+                <br />
+                <label>qs attribute:</label>
+                <gs-text qs="test"></gs-text>
+                <br />
+                <label>qs attribute, value attribute:</label>
+                <gs-text qs="test" value="default value when qs is empty"></gs-text>
+                <br />
+                
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                <gs-text value="true" qs="visibility"></gs-text>
+                <br />
+                
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                <gs-text value="true" qs="visibility=,limit=,test=" visibility="true"></gs-text>
+                <br />
+                
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                <gs-text value="true" qs="visibility=hidden,limit=asdf,test=qwer"></gs-text>
+                <br />
+                
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                <gs-text value="true" qs="visibility!=hidden"></gs-text>
+                <br />
+                
+                <label>readonly, no value</label>
+                <gs-text readonly></gs-text>
+                <br />
+                
+                <label>readonly, value</label>
+                <gs-text readonly value="1-1-2011"></gs-text>
+                <br />
+            </gs-body>
+        </gs-page>
+    </body>
+</html>
+<!--//CryptoJS.AES.encrypt('Plum', 'test').toString(CryptoJS.enc.UTF8)
+            var names = ['Plum'
+, 'Lemon'
+, 'Coconut'
+, 'Cranberries'
+, 'John'
+, 'John'
+, 'Coconut'
+, 'Grapes'
+, 'Coconut'
+, 'Lime'
+, 'Grapefruit'
+, 'Grapefruit'
+, 'Pear'
+, 'Pineapple'
+, 'Kiwi'
+, 'Orange'
+, 'Pear'
+, 'Blackberries'
+, 'Coconut'
+, 'Coconut'
+, 'Pear'
+, 'Strawberries'
+, 'Plum'
+, 'Blackberries'
+, 'Pear'
+, 'Plum'
+, 'Lemon'
+, 'B'
+, 'Pear'
+, 'Blueberries'
+, 'Lime'
+, 'Grapes'
+, 'Coconut'
+, 'Fig'
+, 'Lemon'
+, 'Kiwi'
+, 'Grapefruit'
+, 'Fig'
+, 'Plum'
+, 'Plum'
+, 'Apple'
+, 'Blueberries'
+, 'Strawberries'
+, 'Orange'
+, 'Lemon'
+, 'Pineapple'
+, 'Grapefruit'
+, 'Strawberries'
+, 'Apple'
+, 'Pear'
+, 'Cranberries'
+, 'Persimmon'
+, 'Cranberries'
+, 'Blackberries'
+, 'John'
+, 'Blueberries'
+, 'Pear'
+, 'Grapes'
+, 'Grapes'
+, 'Strawberries'
+, 'Cranberries'
+, 'Plum'
+, 'Strawberries'
+, 'Blueberries'
+, 'Cranberries'
+, 'Grapes'
+, 'Cranberries'
+, 'Mango'
+, 'Pineapple'
+, 'Cranberries'
+, 'Banana'
+, 'Pineapple'
+, 'Blackberries'
+, 'Kiwi'
+, 'Pear'
+, 'Lime'
+, 'Strawberries'
+, 'Pineapple'
+, 'Strawberries'
+, 'Plum'
+, 'Watermelon'
+, 'Fig'
+, 'Lemon'
+, 'Plum'
+, 'Strawberries'
+, 'Fig'
+, 'Lemon'
+, 'Lemon'
+, 'Cranberries'
+, 'Blackberries'
+, 'Lemon'
+, 'Pineapple'
+, 'Fig'
+, 'Grapes'
+, 'Blackberries'
+, 'Fig'
+, 'Banana'
+, 'Banana'
+, 'Mushy'
+, 'John'
+, 'Lemon'];
+var names2 = [];
+var i = 0, len = names.length;
+while (i < len) {
+    names2.push(CryptoJS.AES.encrypt(names[i], 'test').toString(CryptoJS.enc.UTF8));
+    i++;
+}-->

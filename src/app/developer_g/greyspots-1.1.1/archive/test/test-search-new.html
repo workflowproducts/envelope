@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>Inputs:</h3></gs-header>
+            <gs-body padded>
+                <gs-search id="search" qs="search"></gs-search>
+                <gs-listbox src="gsdoc.tpeople" where="{{! GS.searchToWhere('first_name,last_name', qs.search) }}" refresh-on-querystring-values="search"></gs-listbox>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

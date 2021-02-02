@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script src="/js/ace/ace.js" data-ace-base="/js/ace/" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/ace/ext-language_tools.js" type="text/javascript"></script>
+        <script src="/js/ace/ext-searchbox.js" type="text/javascript"></script>
+        
+        <script src="/js/beautify.js" type="text/javascript"></script>
+        <script src="./ui-test.js"></script>
+        <link href="./ui-test.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h1>Optionboxes:</h1></gs-header>
+            <gs-body padded>
+                <label>standard:</label>
+                <gs-optionbox>
+                    <gs-option value="0">Defcon 1</gs-option>
+                    <gs-option value="1">Defcon 2</gs-option>
+                    <gs-option value="2">Defcon 3</gs-option>
+                    <gs-option value="3">Defcon 4</gs-option>
+                    <gs-option value="4">Defcon 5</gs-option>
+                </gs-optionbox>
+                <br />
+                <label>clearable:</label>
+                <gs-optionbox clearable tabindex="-1">
+                    <gs-option value="0">Defcon 1</gs-option>
+                    <gs-option value="1">Defcon 2</gs-option>
+                    <gs-option value="2">Defcon 3</gs-option>
+                    <gs-option value="3">Defcon 4</gs-option>
+                    <gs-option value="4">Defcon 5</gs-option>
+                </gs-optionbox>
+                <br />
+                <label>onchange/qs attributes:</label>
+                <gs-optionbox qs="test" mini onchange="GS.pushQueryString('test=' + this.value);" no-target>
+                    <gs-grid>
+                        <gs-block></gs-block>
+                        <gs-block><gs-option value="0" jumbo>Defcon 1</gs-option></gs-block>
+                        <gs-block><gs-option value="1" jumbo>Defcon 2</gs-option></gs-block>
+                        <gs-block><gs-option value="2" jumbo>Defcon 3</gs-option></gs-block>
+                        <gs-block></gs-block>
+                    </gs-grid>
+                </gs-optionbox>
+                <br />
+                <label>mini attribute</label>
+                <gs-optionbox mini>
+                    <gs-option value="0">Defcon 1</gs-option>
+                    <gs-option value="1">Defcon 2</gs-option>
+                    <gs-option value="2">Defcon 3</gs-option>
+                    <gs-option value="3">Defcon 4</gs-option>
+                    <gs-option value="4">Defcon 5</gs-option>
+                </gs-optionbox>
+                <br />
+                <label>value attribute:</label>
+                <gs-optionbox id="testoptionbox0" value="1">
+                    <gs-option value="0">test 1</gs-option>
+                    <gs-option value="1">test 2</gs-option>
+                    <gs-option value="2">test 3</gs-option>
+                </gs-optionbox>
+                <br />
+                <label>no-target attribute:</label>
+                <gs-optionbox id="testoptionbox0" no-target>
+                    <gs-option value="0">test 1</gs-option>
+                    <gs-option value="1">test 2</gs-option>
+                    <gs-option value="2">test 3</gs-option>
+                </gs-optionbox>
+                <br />
+                
+                
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                <gs-optionbox value="0" qs="visibility">
+                    <gs-option value="0">test 1</gs-option>
+                    <gs-option value="1">test 2</gs-option>
+                    <gs-option value="2">test 3</gs-option>
+                </gs-optionbox>
+                <br />
+                
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                <gs-optionbox value="0" qs="visibility=,limit=,test=" visibility="true">
+                    <gs-option value="0">test 1</gs-option>
+                    <gs-option value="1">test 2</gs-option>
+                    <gs-option value="2">test 3</gs-option>
+                </gs-optionbox>
+                <br />
+                
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                <gs-optionbox value="0" qs="visibility=hidden,limit=asdf,test=qwer">
+                    <gs-option value="0">test 1</gs-option>
+                    <gs-option value="1">test 2</gs-option>
+                    <gs-option value="2">test 3</gs-option>
+                </gs-optionbox>
+                <br />
+                
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                <gs-optionbox value="0" qs="visibility!=hidden">
+                    <gs-option value="0">test 1</gs-option>
+                    <gs-option value="1">test 2</gs-option>
+                    <gs-option value="2">test 3</gs-option>
+                </gs-optionbox>
+                <br />
+                
+                <label>readonly, no value</label>
+                <gs-optionbox readonly>
+                    <gs-option value="0">test 1</gs-option>
+                    <gs-option value="1">test 2</gs-option>
+                    <gs-option value="2">test 3</gs-option>
+                </gs-optionbox>
+                <br />
+                
+                <label>readonly, value</label>
+                <gs-optionbox value="0" readonly>
+                    <gs-option value="0">test 1</gs-option>
+                    <gs-option value="1">test 2</gs-option>
+                    <gs-option value="2">test 3</gs-option>
+                </gs-optionbox>
+                <br />
+                
+                <!--
+                <br />
+                <h3>Attributes</h3>
+                <gs-ui-test heading="column (sets what column it gets from gs-envelope or gs-form)"><br />
+                    <template>
+                        <gs-envelope src="test.tpeople" ord="first_name ASC" limit="2">
+                            <template for="table">
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <th>{{! row_number }}</th>
+                                            <td>
+                                                <gs-optionbox id="testoptionbox0" column="last_name">
+                                                    <gs-option>Apple</gs-option>
+                                                    <gs-option>Cherry</gs-option>
+                                                </gs-optionbox>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-envelope>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="value (sets value)"><br />
+                    <template>
+                        <gs-optionbox id="testoptionbox0" value="1">
+                            <gs-option value="0">test 1</gs-option>
+                            <gs-option value="1">test 2</gs-option>
+                            <gs-option value="2">test 3</gs-option>
+                        </gs-optionbox>
+                    </template>
+                </gs-ui-test>
+                
+                <br />
+                <h3>Events</h3>
+                <gs-ui-test heading="change: bubbles, cancelable (canceling has no effect, but is still useful)"><br />
+                    <template>
+                        <gs-optionbox id="testoptionbox1">
+                            <gs-option value="0">test 1</gs-option>
+                            <gs-option value="1">test 2</gs-option>
+                            <gs-option value="2">test 3</gs-option>
+                        </gs-optionbox>
+                    </template>
+                    <template>
+document.getElementById('testoptionbox1').addEventListener('change', function (event) {
+    event.preventDefault();
+});</template>
+                </gs-ui-test>
+                
+                <br />
+                <h3>Examples</h3>
+                <br />
+                <gs-ui-test heading="hidden value"><br />
+                    <template>
+                        <gs-optionbox id="testoptionbox2">
+                            <gs-option value="0">Defcon 1</gs-option>
+                            <gs-option value="1">Defcon 2</gs-option>
+                            <gs-option value="2">Defcon 3</gs-option>
+                            <gs-option value="3">Defcon 4</gs-option>
+                            <gs-option value="4">Defcon 5</gs-option>
+                        </gs-optionbox>
+                    </template>
+                </gs-ui-test>
+                
+                <br />
+                <gs-ui-test heading="hidden value, preset value"><br />
+                    <template>
+                        <gs-optionbox id="testoptionbox3" value="3">
+                            <gs-option value="0">Defcon 1</gs-option>
+                            <gs-option value="1">Defcon 2</gs-option>
+                            <gs-option value="2">Defcon 3</gs-option>
+                            <gs-option value="3">Defcon 4</gs-option>
+                            <gs-option value="4">Defcon 5</gs-option>
+                        </gs-optionbox>
+                    </template>
+                </gs-ui-test>
+                
+                <br />
+                <gs-ui-test heading="text value"><br />
+                    <template>
+                        <gs-optionbox id="testoptionbox4">
+                            <gs-option>Basketball</gs-option>
+                            <gs-option>Football (United States)</gs-option>
+                            <gs-option>Football (Europe)</gs-option>
+                            <gs-option>Racquetball</gs-option>
+                            <gs-option>Baseball</gs-option>
+                        </gs-optionbox>
+                    </template>
+                </gs-ui-test>
+                
+                <br />
+                <gs-ui-test heading="text value, preset value"><br />
+                    <template>
+                        <gs-optionbox id="testoptionbox5" value="Racquetball">
+                            <gs-option>Basketball</gs-option>
+                            <gs-option>Football (United States)</gs-option>
+                            <gs-option>Football (Europe)</gs-option>
+                            <gs-option>Racquetball</gs-option>
+                            <gs-option>Baseball</gs-option>
+                        </gs-optionbox>
+                    </template>
+                </gs-ui-test>
+                -->
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

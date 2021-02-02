@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Table Design</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+            function initTableDesign(strTableName, strColumnData) {
+                'use strict';
+                var i, len, col_i, col_len, arrColumns, arrColumnTypes, arrRecords, arrRecord, recordHTML, strRecords;
+                
+                //console.log(strTableName, strColumnData);
+                
+                // if last character is a \n: remove it
+                if (strColumnData[strColumnData.length - 1] === '\n') {
+                    strColumnData = strColumnData.substring(0, strColumnData.length - 1);
+                }
+                
+                // split records
+                arrRecords = strColumnData.split('\n');
+                
+                // seperate first record (for column names)
+                arrColumns = arrRecords[0].split('\t');
+                arrRecords.splice(0, 1);
+                
+                //// seperate second record (for column types)
+                //arrColumnTypes = arrRecords[0].split('\t');
+                //arrRecords.splice(0, 1);
+                
+                //console.log(arrColumns, arrColumnTypes, arrRecords);
+                
+                // build json object
+                for (i = 0, len = arrRecords.length; i < len; i += 1) {
+                    arrRecord = arrRecords[i].split('\t');
+                    
+                    arrRecords[i] = {};
+                    arrRecords[i].grid_record_number = i + 1;
+                    
+                    for (col_i = 0, col_len = arrRecord.length; col_i < col_len; col_i += 1) {
+                        arrRecords[i][arrColumns[col_i]] = decodeFromTabDelimited(arrRecord[col_i]);
+                    }
+                }
+                
+                // build select contents
+                for (i = 0, len = arrColumns.length, recordHTML = ''; i < len; i += 1) {
+                    recordHTML += '<td>';
+                    recordHTML +=   '<textarea column="' + encodeHTML(arrColumns[i]) + '" rows="1">';
+                    recordHTML +=     '{{! row[\'' + arrColumns[i].replace(/\'/gim, '\\\'') + '\'] }}';
+                    recordHTML +=   '</textarea>';
+                    recordHTML += '</td>';
+                }
+                
+                recordHTML = '<th>{{! row.grid_record_number }}</th>' + recordHTML;
+                
+                // build tbody contents
+                strRecords = doT.template(
+                                    '{{ var row, i, len, qs = GS.qryToJSON(GS.getQueryString());\n' +
+                                    '\n' +
+                                    'for (i = 0, len = jo.length; i < len; i += 1) {\n' +
+                                    '    row = jo[i]; }}\n' +
+                                    '    <tr>' + recordHTML + '</tr>\n' +
+                                    '{{ } }}')(arrRecords);
+                
+                console.log(strRecords);
+                
+                document.getElementById('div-column-list-container').innerHTML =
+                    '<table>' +
+                        '<thead>' +
+                            '<th style="width: 3em;">#</th>' +
+                            '<th>Name</th>' +
+                            '<th>Type</th>' +
+                            '<th style="width: 3em;">Not NULL?</th>' +
+                            '<th>Default</th>' +
+                        '</thead>' +
+                        '<tbody>' +
+                            strRecords +
+                        '</tbody>' +
+                    '</table>';
+                
+                //{
+                //    FUNCEXPR
+                //    :funcid 480 
+                //    :funcresulttype 23 
+                //    :funcretset false 
+                //    :funcformat 2 
+                //    :funccollid 0 
+                //    :inputcollid 0 
+                //    :args ({
+                //        FUNCEXPR 
+                //        :funcid 1574 
+                //        :funcresulttype 20 
+                //        :funcretset false 
+                //        :funcformat 0 
+                //        :funccollid 0 
+                //        :inputcollid 0 
+                //        :args ({
+                //            FUNCEXPR 
+                //            :funcid 1079 
+                //            :funcresulttype 2205 
+                //            :funcretset false 
+                //            :funcformat 1 
+                //            :funccollid 0 
+                //            :inputcollid 100 
+                //            :args ({
+                //                CONST 
+                //                :consttype 25 
+                //                :consttypmod -1 
+                //                :constcollid 100 
+                //                :constlen -1 
+                //                :constbyval false 
+                //                :constisnull false 
+                //                :location 57 
+                //                :constvalue 20 [ 80 0 0 0 119 116 107 118 50 46 103 108 111 98 97 108 95 115 101 113 ]
+                //            })
+                //            :location 82
+                //        })
+                //        :location 48
+                //    })
+                //    :location -1
+                //}
+            }
+            
+            // encodeForTabDelimited('asdf\\asdf\\asdf\r\nasdf\r\nasdf\tasdf\tasdf')
+            function encodeForTabDelimited(strValue) {
+                return  strValue === '\\N' ? strValue :
+                        strValue.replace(/\\/g, '\\\\') // double up backslashes
+                                .replace(/\n/g, '\\n')  // replace newline with the text representation '\n'
+                                .replace(/\r/g, '\\r')  // replace carriage return with the text representation '\r'
+                                .replace(/\t/g, '\\t')  // replace tab with the text representation '\t'
+                                .replace(/^NULL$/g, '\\N');
+            }
+            
+            // decodeFromTabDelimited('asdf\\\\asdf\\\\asdf\\r\\nasdf\\r\\nasdf\\tasdf\\tasdf')
+            function decodeFromTabDelimited(strValue) {
+                return strValue.replace(/\\\\/g, '\\')
+                               .replace(/\\n/g, '\n')
+                               .replace(/\\r/g, '\r')
+                               .replace(/\\t/g, '\t')
+                               .replace(/\\N/g, 'NULL');
+            }
+            
+            window.addEventListener('load', function () {
+                var strQueryString = GS.getQueryString(),
+                    strOID = GS.qryGetVal(strQueryString, 'oid'),
+                    templateElement;
+                
+                // if there is no oid: ask for one
+                if (!strOID) {
+                    templateElement = document.createElement('template');
+                    templateElement.setAttribute('data-theme', 'error');
+                    
+                    templateElement.innerHTML = ml(function () {/*
+                        <gs-page>
+                            <gs-header><center><h3>Missing Parameter</h3></center></gs-header>
+                            <gs-body padded>
+                                This page needs an object ID to edit. You can manually set one by typing one in and clicking "Go".
+                                <br />
+                                <label><b>Manual OID:</b></label>
+                                <gs-text id="text-page-load-oid"></gs-text>
+                            </gs-body>
+                            <gs-footer>
+                                <gs-button dialogclose listen-for-return>Go</gs-button>
+                            </gs-footer>
+                        </gs-page>
+                    */});
+                    
+                    GS.openDialog(templateElement, '', function () {
+                        window.location.search = '?oid=' + encodeURIComponent(document.getElementById('text-page-load-oid').value);
+                    });
+                    
+                // if there is an oid
+                } else {
+                    initTableDesign('wtkv2.rcust_poc',
+                                    'attname\tformat_type\tcol_not_null\tcol_default\n' +
+                                        'id\tinteger\t-1\tDEFAULT nextval((\'wtkv2.global_seq\'::text)::regclass)\n' +
+                                        'cust_id\tinteger\t0\t\n' +
+                                        'poc\tcharacter varying(50)\t0\t\n' +
+                                        'phone\tcharacter varying(20)\t0\t\n' +
+                                        'ext\tcharacter varying(10)\t0\t\n' +
+                                        'fax\tcharacter varying(20)\t0\t\n' +
+                                        'email\tcharacter varying(150)\t0\t\n' +
+                                        'mobile\tcharacter varying(20)\t0\t\n' +
+                                        'dept\tcharacter varying(100)\t0\t\n' +
+                                        'notes\ttext\t0\t\n' +
+                                        'change_login\tname\t0\tDEFAULT CURRENT_USER\n' +
+                                        'change_stamp\ttimestamp with time zone\t0\tDEFAULT date_trunc(\'second\'::text, (\'now\'::text)::timestamp with time zone)\n' +
+                                        'create_stamp\ttimestamp with time zone\t0\tDEFAULT date_trunc(\'second\'::text, (\'now\'::text)::timestamp with time zone)\n' +
+                                        'bol_send_email\tcharacter varying(2)\t0\t');
+                    
+                    
+                    
+                    
+                    //         SELECT attname, format_type(atttypid, atttypmod),
+                    //                (CASE WHEN attnotnull THEN '-1' ELSE '0' END) AS col_not_null,
+                    //                (CASE WHEN atthasdef THEN ' DEFAULT ' || pg_catalog.pg_get_expr(adbin, adrelid) ELSE '' END) AS col_default
+                    //           FROM pg_attribute
+                    //LEFT OUTER JOIN pg_attrdef ON pg_attrdef.adrelid = pg_attribute.attrelid AND pg_attrdef.adnum = pg_attribute.attnum
+                    //          WHERE pg_attribute.attisdropped IS FALSE AND pg_attribute.attnum > 0 AND attrelid = 259242
+                    //       ORDER BY attnum ASC
+                    
+                    //GS.requestFromSocket(GS.envSocket, 'RAW\nSELECT \'test1\'; SELECT \'test2\'; SELECT \'test3\';', function (data, error, errorData) {
+                    //    console.log(data, error, errorData);
+                    //});
+                }
+            });
+        </script>
+        
+        <style>
+            #div-column-list-container {
+                display: block;
+                position: relative;
+                height: 100%;
+                overflow: auto;
+            }
+            
+            #div-column-list-container table textarea {
+                display: block;
+                resize: none;
+                width: 100%;
+                border: 0 none;
+                cursor: text;
+                padding: 0 0.1em;
+                
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                -ms-box-sizing: border-box;
+                -o-box-sizing: border-box;
+                box-sizing: border-box;
+            }
+            
+            #div-column-list-container table {
+                
+            }
+            
+            #div-column-list-container th, #div-column-list-container td {
+                padding: 0.15em 0.2em;
+                cursor: pointer;
+                
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                -o-user-select: none;
+                user-select: none;
+            }
+            
+            #div-column-list-container th, #div-column-list-container td {
+                vertical-align: top;
+            }
+            
+            #div-column-list-container th:first-child {
+                vertical-align: middle;
+            }
+            
+            #div-column-list-container thead th {
+                cursor: s-resize;
+                overflow: hidden;
+                width: 150px;
+            }
+        </style>
+    </head>
+    <body>
+        <gs-panel id="panel">
+            <gs-page>
+                <gs-header><h4>Table Design</h4></gs-header>
+                <gs-body padded>
+                    <div id="div-column-list-container"></div>
+                </gs-body>
+            </gs-page>
+            <gs-page id="right-bar" style="width: 17em; max-width: 17em;">
+                <gs-header><h4>Column Properties</h4></gs-header>
+                <gs-body>
+                    
+                </gs-body>
+            </gs-page>
+        </gs-panel>
+    </body>
+</html>

@@ -1,0 +1,14 @@
+gs-slide {
+    position: relative;
+    display: block;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+gs-slide > div {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    background-color: white;
+}

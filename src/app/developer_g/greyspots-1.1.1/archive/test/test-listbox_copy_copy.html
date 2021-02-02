@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+            document.addEventListener('load', function (event) {
+                document.getElementById('test_form').addEventListener('after_update', function (event) {
+                    console.log('after_update');
+                });
+            });
+        </script>
+    </head>
+    <body >
+        <gs-page>
+            <gs-header>
+                <h4>Listbox scrolling testing:</h4>
+            </gs-header>
+            <gs-body>
+                <gs-form id="dialog-envelope-so-line" id="test_form" src="test.tpeople" where="id = 5260455">
+                    <template>
+                        <gs-listbox src="test.tpeople_line" ord="pet_name ASC" letter-scrollbar onchange="console.log('test');" letter-dividers id="test_listbox" column="favorite_pet_id">
+                            <template for="table">
+                                <table>
+                                    <tbody>
+                                        <tr value="{{! row.id }}">
+                                            <td>{{! row.id + ' ' + row.pet_name }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-listbox>
+                    </template>
+                </gs-form>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

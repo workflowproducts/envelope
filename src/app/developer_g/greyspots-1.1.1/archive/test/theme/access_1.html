@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        <link href="/css/inset_theme.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h1>Access Theme 1:</h1></gs-header>
+            <gs-body padded>
+                <gs-grid padded gutter widths="1,1,1,1">
+                    <gs-block>
+                        <label>Text:</label>
+                        <gs-text value="test"></gs-text>
+                    </gs-block>
+                    <gs-block>
+                        <label>Static:</label>
+                        <gs-static value="test"></gs-static>
+                    </gs-block>
+                    <gs-block>
+                        <label>Select:</label>
+                        <gs-select>
+                            <option>Test 1</option>
+                            <option>Test 2</option>
+                            <option>Test 3</option>
+                        </gs-select>
+                    </gs-block>
+                    <gs-block>
+                        <label>Checkbox:</label>
+                        <gs-checkbox type="smallint" value="-1"></gs-checkbox>
+                    </gs-block>
+                    
+                    <gs-block width="4">
+                        <br/>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <label>Text Disabled:</label>
+                        <gs-text disabled value="test"></gs-text>
+                    </gs-block>
+                    <gs-block>
+                        <label>Static Disabled:</label>
+                        <gs-static disabled value="test"></gs-static>
+                    </gs-block>
+                    <gs-block>
+                        <label>Select Disabled:</label>
+                        <gs-select disabled>
+                            <option>Test 1</option>
+                            <option>Test 2</option>
+                            <option>Test 3</option>
+                        </gs-select>
+                    </gs-block>
+                    <gs-block>
+                        <label>Checkbox Disabled:</label>
+                        <gs-checkbox disabled type="smallint" value="-1"></gs-checkbox>
+                    </gs-block>
+                    
+                    <gs-block width="4">
+                        <br/>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <label>Mini Text:</label>
+                        <gs-text mini value="test"></gs-text>
+                    </gs-block>
+                    <gs-block>
+                        <label>Mini Static:</label>
+                        <gs-static mini value="test"></gs-static>
+                    </gs-block>
+                    <gs-block>
+                        <label>Mini Select:</label>
+                        <gs-select mini>
+                            <option>Test 1</option>
+                            <option>Test 2</option>
+                            <option>Test 3</option>
+                        </gs-select>
+                    </gs-block>
+                    <gs-block>
+                        <label>Mini Checkbox:</label>
+                        <gs-checkbox mini type="smallint" value="-1"></gs-checkbox>
+                    </gs-block>
+                    
+                    <gs-block width="4">
+                        <br/>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <label>Combobox:</label>
+                        <gs-combo src="gsdoc.tpeople_list"></gs-combo>
+                    </gs-block>
+                    <gs-block>
+                        <label>Date:</label>
+                        <gs-date value="03/03/03"></gs-date>
+                    </gs-block>
+                    <gs-block>
+                        <label>Date:</label>
+                        <gs-number value="4215"></gs-number>
+                    </gs-block>
+                    <gs-block>
+                        <label>Button:</label>
+                        <gs-button txt-primary>Button</gs-button>
+                    </gs-block>
+                    
+                    <gs-block width="4">
+                        <br/>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <label>Mini Combobox:</label>
+                        <gs-combo mini src="gsdoc.tpeople_list"></gs-combo>
+                    </gs-block>
+                    <gs-block>
+                        <label>Mini Date:</label>
+                        <gs-date mini value="03/03/03"></gs-date>
+                    </gs-block>
+                    <gs-block>
+                        <label>Mini Date:</label>
+                        <gs-number mini value="4215"></gs-number>
+                    </gs-block>
+                    <gs-block>
+                        <label>Mini Button:</label>
+                        <gs-button mini>Button</gs-button>
+                    </gs-block>
+                    
+                    <gs-block width="4">
+                        <br/>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <label>Optionbox:</label>
+                        <gs-optionbox>
+                            <gs-option>Option 1</gs-option>
+                            <gs-option>Option 2</gs-option>
+                            <gs-option>Option 3</gs-option>
+                            <gs-option>Option 4</gs-option>
+                        </gs-optionbox>
+                    </gs-block>
+                    <gs-block>
+                        <label>Toggle:</label>
+                        <gs-toggle>Toggle</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Button Disabled:</label>
+                        <gs-button disabled>Button</gs-button>
+                    </gs-block>
+                    <gs-block>
+                        <label>Memo:</label>
+                        <gs-memo value="Test"></gs-memo>
+                    </gs-block>
+                    
+                    <gs-block width="4">
+                        <br/>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <label>Toggle Primary:</label>
+                        <gs-toggle bg-primary>Toggle</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Toggle Primary Disabled:</label>
+                        <gs-toggle disabled bg-primary>Toggle</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Toggle:</label>
+                        <gs-toggle>Toggle</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Toggle Disabled:</label>
+                        <gs-toggle disabled>Toggle</gs-toggle>
+                    </gs-block>
+                    
+                    <gs-block width="4">
+                        <br/>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <label>Button Success:</label>
+                        <gs-toggle bg-success>Button</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Toggle Info:</label>
+                        <gs-toggle bg-info>Toggle</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Button Warning:</label>
+                        <gs-toggle bg-warning>Button</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Button Danger:</label>
+                        <gs-toggle bg-danger>Button</gs-toggle>
+                    </gs-block>
+                    
+                    <gs-block width="4">
+                        <br/>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <label>Toggle Success Disabled:</label>
+                        <gs-toggle disabled bg-success>Toggle</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Toggle Info Disabled:</label>
+                        <gs-toggle disabled bg-info>Toggle</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Toggle Warning Disabled:</label>
+                        <gs-toggle disabled bg-warning>Toggle</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Toggle Danger Disabled:</label>
+                        <gs-toggle disabled bg-danger>Toggle</gs-toggle>
+                    </gs-block>
+                    
+                    <gs-block width="4">
+                        <br/>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <label>Button Primary:</label>
+                        <gs-button txt-primary>Button</gs-button>
+                    </gs-block>
+                    <gs-block>
+                        <label>Toggle Primary Disabled:</label>
+                        <gs-toggle disabled txt-primary>Toggle</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Button Blue:</label>
+                        <gs-button class="blue">Button</gs-button>
+                    </gs-block>
+                    <gs-block>
+                        <label>Toggle Blue Disabled:</label>
+                        <gs-toggle disabled class="blue">Toggle</gs-toggle>
+                    </gs-block>
+                    
+                    <gs-block width="4">
+                        <br/>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <label>Button Success:</label>
+                        <gs-button txt-success>Button</gs-button>
+                    </gs-block>
+                    <gs-block>
+                        <label>Toggle Info:</label>
+                        <gs-toggle txt-info>Toggle</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Button Warning:</label>
+                        <gs-button txt-warning>Button</gs-button>
+                    </gs-block>
+                    <gs-block>
+                        <label>Button Danger:</label>
+                        <gs-button txt-danger>Button</gs-button>
+                    </gs-block>
+                    
+                    <gs-block width="4">
+                        <br/>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <label>Button Success Disabled:</label>
+                        <gs-button disabled txt-success>Button</gs-button>
+                    </gs-block>
+                    <gs-block>
+                        <label>Toggle Info Disabled:</label>
+                        <gs-toggle disabled txt-info>Toggle</gs-toggle>
+                    </gs-block>
+                    <gs-block>
+                        <label>Button Warning Disabled:</label>
+                        <gs-button disabled txt-warning>Button</gs-button>
+                    </gs-block>
+                    <gs-block>
+                        <label>Button Danger Disabled:</label>
+                        <gs-button disabled txt-danger>Button</gs-button>
+                    </gs-block>
+                    
+                    <gs-block width="4">
+                        <br/>
+                        <label>Listbox:</label>
+                        <gs-listbox src="gsdoc.tpeople_list" style="height: 225px;"></gs-listbox>
+                        <br/>
+                        <label>Envelope:</label>
+                        <gs-envelope src="gsdoc.texample" style="height: 225px;">
+                            <template for="table">
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <th heading="#">
+                                                <gs-static column="row_number"></gs-static>
+                                            </th>
+                                            <td heading="First Name">
+                                                <gs-text mini column="first_name"></gs-text>
+                                            </td>
+                                            <td heading="Last Name">
+                                                <gs-text mini column="last_name"></gs-text>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-envelope>
+                        <br/>
+                        <label>Datasheet:</label>
+                        <gs-datasheet src="gsdoc.texample" pk="id" style="height: 225px;">
+                            <template for="table">
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <th heading="#">{{! row_number }}</th>
+                                            <td heading="First Name">
+                                                <gs-text mini column="first_name"></gs-text>
+                                            </td>
+                                            <td heading="Last Name">
+                                                <gs-text mini column="last_name"></gs-text>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-datasheet>
+                        <br/>
+                    </gs-block>
+                </gs-grid>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

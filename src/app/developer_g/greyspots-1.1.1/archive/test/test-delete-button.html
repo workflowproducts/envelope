@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Delete Button</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>Delete Button</h3></gs-header>
+            <gs-body flex-horizontal flex-fill>
+                <div flex flex-vertical>
+                    <gs-listbox id="people" src="test.tpeople" flex onchange="GS.pushQueryString('id=' + this.value)" qs="id" cols="id,first_name,last_name" hide="id" ord="first_name ASC, last_name ASC"></gs-listbox>
+                </div>
+                <div flex>
+                    <gs-delete-button src="test.tpeople" onsuccess="GS.pushQueryString('id='); document.getElementById('people').refresh();" qs="id">Delete</gs-delete-button>
+                    <gs-delete-button src="test.tpeople" onsuccess="GS.pushQueryString('id='); document.getElementById('people').refresh();" qs="id" icononly icon="times"></gs-delete-button>
+                    <gs-delete-button src="test.tpeople" onsuccess="GS.pushQueryString('id='); document.getElementById('people').refresh();" qs="id" icononly icon="times" inline></gs-delete-button>
+                    <br />
+                    Suspended:
+                    <gs-delete-button suspend-inserted src="test.tpeople" onsuccess="GS.pushQueryString('id='); document.getElementById('people').refresh();" qs="id">Delete</gs-delete-button>
+                    <gs-delete-button suspend-inserted onsuccess="GS.pushQueryString('id='); document.getElementById('people').refresh();" qs="id">No src attribute</gs-delete-button>
+                </div>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

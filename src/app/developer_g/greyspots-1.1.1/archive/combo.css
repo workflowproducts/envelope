@@ -1,0 +1,398 @@
+
+gs-lombo input,
+gs-lombo .placeholder {
+    display: inline-block;
+    width: 100%;
+    font-size: 1em;
+    font-family: inherit;
+    
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    
+    -webkit-border-radius: inherit;
+    /*-moz-border-radius: none;*/
+    
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+    
+    line-height: 1.2em;
+    
+    background-color: white;
+    color: black;
+    
+    padding: 0;
+    border: none;
+    margin: 0;
+    
+    border-radius: 0;
+}
+
+/*show values as password dots*/
+gs-lombo[type="password"] {
+  -webkit-text-security: disc;
+}
+
+
+/*placeholder spans showed as password dots*/
+gs-lombo .placeholder {
+    color: #8e8e8e;
+    -webkit-text-security: none;
+    pointer-events: none;
+}
+
+/*Prevent spans from breaking into multiple lines: not gs-memo*/
+gs-lombo {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+gs-lombo span {
+    height: 1em;
+    /*width: 100% !important;*/
+    display: inline-block;
+}
+
+gs-lombo {
+    position: relative;
+    display: block;
+    
+    background-color: white;
+    color: black;
+    
+    padding: 0.25em;
+    border: none;
+    margin: 0.25em;
+    
+    border-radius: 0;
+    
+    min-height: 1.2em;/*gs-text-new: 1.2em*/
+    line-height: 1.2em;
+    font-size: 1em;
+    
+    box-shadow: 0 0 0.1em 0 rgba(0,0,0,.2), 0 0 0.2em 0 rgba(0,0,0,.4);
+    transition: box-shadow 0.5s;
+}
+
+gs-lombo.hover {
+    box-shadow: 0.3em 0.3em 0.1em 0 rgba(0,0,0,.2), 0 0 0.2em 0 rgba(0,0,0,.4);
+    transition: box-shadow 0.5s;
+}
+
+gs-lombo[disabled], gs-lombo[disabled] .control {
+    background: #D8D8D8 !important;
+    color: #000000 !important;
+}
+
+gs-lombo.focus {
+    box-shadow: 0.3em 0.3em 0.1em 0 rgba(230,138,84,.5), 0 0 0.2em 0 rgba(230,138,84,1);
+    transition: box-shadow 0.5s;
+}
+
+gs-lombo[mini] {
+    background-color: transparent;
+    box-shadow: none !important;
+}
+
+gs-lombo[mini] input {
+    background-color: transparent;
+    box-shadow: none !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ########################################################## */
+/* ###################### NORMAL STATE ###################### */
+/* ########################################################## */
+
+gs-lombo > .root {
+    padding-right: 1.6em;
+}
+
+gs-lombo .drop_down_button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1.6em;
+    
+    margin-top: 0;
+    border-top: 0;
+    border-right: 0;
+    border-bottom: 0;
+    height: 100% !important;
+    min-height: 0;
+    
+    /*
+    padding-top: 0.2em;
+    text-align: center;
+    */
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+/*
+gs-lombo .drop_down_button:after {
+    font-family: fontawesome;
+    content: '\f107';
+}*/
+
+/* ########################################################## */
+/* ####################### MINI STATE ####################### */
+/* ########################################################## */
+
+gs-lombo[mini] {
+    padding: 0;
+    border: 0;
+    box-shadow: 0 0 0 0 #FFFFFF;
+    border-radius: 0;
+}
+
+gs-lombo[mini] > .root {
+    padding-right: 1.2em;
+}
+
+gs-lombo[mini] .drop_down_button {
+    width: 1.2em;
+    height: 1.6em;
+    right: 0.2em;
+    min-height: 0;
+}
+
+gs-lombo[mini] input {
+    padding: 0;
+    border: 0;
+}
+
+
+/* ########################################################## */
+/* ##################### READONLY STATE ##################### */
+/* ########################################################## */
+
+gs-lombo[readonly] {
+    box-shadow: 0 0 0 0 #000 inset;
+    opacity: 0.9;
+    border-color: #E6E6E6;
+    cursor: default;
+}
+
+gs-lombo[disabled] > .root,
+gs-lombo[readonly] > .root {
+    padding-right: 0;
+}
+
+gs-lombo[disabled] .drop_down_button,
+gs-lombo[readonly] .drop_down_button {
+    display: none;
+    cursor: default;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+
+/* ######################################################### */
+/* ###################### ERROR STATE ###################### */
+/* ######################################################### */
+
+gs-lombo.error .drop_down_button {
+    color: #FFFF00;
+    background: #FF0000;
+}
+/*
+gs-lombo.error .drop_down_button:after {
+    content: '\f071';
+}
+*/
+
+/* ########################################################## */
+/* ###################### OPENED STATE ###################### */
+/* ########################################################## */
+
+/*gs-lombo.open {
+    position: fixed;
+    z-index: 101;
+}*/
+
+gs-lombo.open .drop_down_button {
+    background: #FAFFA9;
+}
+
+
+/* ######################################################### */
+/* ####################### DROP DOWN ####################### */
+/* ######################################################### */
+
+/* the dropdown appears outside of the combo element, hence the long class names */
+
+.gs-lombo-dropdown-container > .gs-lombo-positioning-container {
+    position: fixed;
+    z-index: 101; /* this z-index is arbituary, we need a system that makes sense for choosing z-indexes */
+}
+
+.gs-lombo-dropdown-container .gs-lombo-scroll-container {
+    width: 100%;
+    height: 100%;
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+    background-color: #FFFFFF;
+    border: 1px solid #AEAEAE;
+    
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.gs-lombo-dropdown-container.above .gs-lombo-positioning-container {
+    box-shadow: 0 -3px 0.2em 0.1em #C5C5C5;
+}
+
+.gs-lombo-dropdown-container.below .gs-lombo-positioning-container {
+    box-shadow: 0 3px 0.2em 0.1em #C5C5C5;
+}
+
+
+/* ########################################################## */
+/* #################### DROP DOWN TABLE  #################### */
+/* ########################################################## */
+
+.gs-lombo-dropdown-container tbody tr:first-child,
+.gs-lombo-dropdown-container tbody tr:first-child td,
+.gs-lombo-dropdown-container tbody tr:first-child th {
+    border-top: 0 none;
+}
+.gs-lombo-dropdown-container tbody tr:last-child,
+.gs-lombo-dropdown-container tbody tr:last-child td,
+.gs-lombo-dropdown-container tbody tr:last-child th {
+    border-bottom: 0 none;
+}
+
+/* ########################################################## */
+/* ################# DROP DOWN TABLE REFLOW ################# */
+/* ########################################################## */
+
+.gs-lombo-dropdown-container .reflow td,
+.gs-lombo-dropdown-container .reflow th,
+.gs-lombo-dropdown-container .reflow tbody th,
+.gs-lombo-dropdown-container .reflow tbody td,
+.gs-lombo-dropdown-container .reflow thead td,
+.gs-lombo-dropdown-container .reflow thead th {
+    width: 100%;
+    float: left;
+    clear: left;
+    
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+
+.gs-lombo-dropdown-container .reflow thead td,
+.gs-lombo-dropdown-container .reflow thead th {
+    display: none;
+}
+
+
+/*
+.gs-lombo-dropdown-container .reflow thead th,
+.gs-lombo-dropdown-container .reflow thead td {
+    height: auto;
+    min-height: 3em;
+}
+
+*/
+
+.gs-lombo-dropdown-container .reflow tbody th,
+.gs-lombo-dropdown-container .reflow tbody td {
+    height: auto;
+    min-height: 3em;
+}
+
+.gs-lombo-dropdown-container .reflow tbody th {
+    padding-top: 1.3em;
+    text-align: center;
+    font-size: 1.5em;
+}
+
+.gs-lombo-dropdown-container .reflow tbody tr td:first-child {
+    margin-top: 2em;
+}
+
+.gs-lombo-dropdown-container .reflow tbody td {
+    padding: 0;
+}
+
+.gs-lombo-dropdown-container .reflow .cell-label {
+    padding: 0.3em;
+    width: 100%;
+    display: inline-block;
+    
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.gs-lombo-dropdown-container .reflow .cell-label:after {
+    content: attr(data-text);
+}
+
+#table_wrapper.reflow table tbody tr {
+    border-top: 2px solid #AAAAAA;
+    border-bottom: 2px solid #AAAAAA;
+}
+
+#table_wrapper.reflow .cell-label {
+    width: 100%;
+    margin: 0;
+    margin-top: 0.4em;
+    border: 0 none;
+    
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+
+/* #################################################### */
+/* ###################### HEADER ###################### */
+/* #################################################### */
+
+
+
+.gs-lombo-dropdown-container thead {
+	position: absolute;
+	width: 100% !important;
+}
+
+.gs-lombo-dropdown-container thead tr {
+	position: static;
+	width: 100% !important;
+}
+
+.gs-lombo-dropdown-container td, th {
+    border-right: none; 
+}

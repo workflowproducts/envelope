@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Query String and Local Variable</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+            // ######################################################
+            // #################### QUERY STRING ####################
+            // ######################################################
+            var qs;
+            
+            (function () {
+                // load current querystring into the qs variable
+                qs = GS.qryToJSON(GS.getQueryString());
+                
+                // bind to popstate so that we can have a custom name for the popstate event
+                window.addEventListener('popstate', function () {
+                    qs = GS.qryToJSON(GS.getQueryString());
+                    GS.triggerEvent(window, 'qs-pop');
+                });
+                
+                
+                
+                // bind to qs-push, qs-replace and qs-pop and emit a qs-refresh event so that
+                //      if you just want to do something whenever there is a push, replace or
+                //      pop: you just bind to qs-refresh
+                window.addEventListener('qs-push', function () {
+                    GS.triggerEvent(window, 'qs-refresh');
+                });
+                window.addEventListener('qs-replace', function () {
+                    GS.triggerEvent(window, 'qs-refresh');
+                });
+                window.addEventListener('qs-pop', function () {
+                    GS.triggerEvent(window, 'qs-refresh');
+                });
+                
+                
+                
+                // push changes to the querystring
+                GS.pushQueryString = function (pushQS) {
+                    var strQueryString = GS.getQueryString()
+                      , strOldQueryString = strQueryString
+                      , arrPushQS = pushQS.split('&'), i, len;
+                    
+                    for (i = 0, len = arrPushQS.length; i < len; i += 1) {
+                        strQueryString = GS.qrySetVal(strQueryString, arrPushQS[i]);
+                    }
+                    
+                    // update "qs" variable
+                    qs = GS.qryToJSON(strQueryString);
+                    
+                    // update url
+                    history.pushState({}, '', '?' + strQueryString);
+                    
+                    // trigger "qs-push" event so that javascript can be run when the querystring is changed
+                    GS.triggerEvent(window, 'qs-push');
+                    
+                    // trigger the "pushstate" event for backwards compatibility
+                    GS.triggerEvent(window, 'pushstate',
+                                {'a_WARNING': 'The "pushstate" event has been replaced, please use "qs-push" instead.'});
+                };
+                
+                // GS.pushQS is a shortcut to GS.pushQueryString
+                GS.pushQS = GS.pushQueryString;
+                
+                
+                
+                // replace the querystring
+                GS.replaceQueryString = function (strQueryString) {
+                    // update "qs" variable
+                    qs = GS.qryToJSON(strQueryString);
+                    
+                    // update url
+                    history.pushState({}, '', '?' + strQueryString);
+                    
+                    // trigger "qs-replace" event so that javascript can be run when the querystring is changed
+                    GS.triggerEvent(window, 'qs-replace');
+                    
+                    // trigger the "replacestate" event for backwards compatibility
+                    GS.triggerEvent(window, 'replacestate',
+                                {'a_WARNING': 'The "replacestate" event has been replaced, please use "qs-replace" instead.'});
+                };
+                
+                // GS.replaceQS is a shortcut to GS.replaceQueryString
+                GS.replaceQS = GS.replaceQueryString;
+            })();
+            
+            
+            
+            // ######################################################
+            // ################### LOCAL VARIABLE ###################
+            // ######################################################
+            var lv;
+            
+            (function () {
+                // "lv" is not preserved between page loads. So every time the page loads
+                //      we start it off the same way: as an empty JSON object.
+                lv = {};
+                
+                
+                
+                // bind to lv-push and lv-replace and emit a lv-refresh event so that
+                //      if you just want to do something whenever there is a push or
+                //      replace: you just bind to lv-refresh
+                window.addEventListener('lv-push', function () {
+                    GS.triggerEvent(window, 'lv-refresh');
+                });
+                window.addEventListener('lv-replace', function () {
+                    GS.triggerEvent(window, 'lv-refresh');
+                });
+                
+                
+                
+                // push changes to the local variables
+                GS.pushLocalVariable = function (pushLV) {
+                    var strLVString = GS.qryFromJSON(lv)
+                      , arrPushLV = pushLV.split('&'), i, len;
+                    
+                    for (i = 0, len = arrPushLV.length; i < len; i += 1) {
+                        strLVString = GS.qrySetVal(strLVString, arrPushLV[i]);
+                    }
+                    
+                    // update "lv" variable
+                    lv = GS.qryToJSON(strLVString);
+                    
+                    // trigger "qs-push" event so that javascript can be run when the local variables have changed
+                    GS.triggerEvent(window, 'lv-push');
+                };
+                
+                // GS.pushLV is a shortcut to GS.pushLocalVariable
+                GS.pushLV = GS.pushLocalVariable;
+                
+                
+                
+                // replace the local variables
+                GS.replaceLocalVariable = function (strLVString) {
+                    // update "lv" variable
+                    lv = GS.qryToJSON(strLVString);
+                    
+                    // trigger "lv-replace" event so that javascript can be run when the local variables have changed
+                    GS.triggerEvent(window, 'lv-replace');
+                };
+                
+                // GS.replaceLV is a shortcut to GS.replaceLocalVariable
+                GS.replaceLV = GS.replaceLocalVariable;
+            })();
+            
+            
+            
+            
+            
+            // ######################################################
+            // ################### TESTING EVENTS ###################
+            // ######################################################
+            
+            window.addEventListener('qs-push', function () {
+                console.log('1*** qs-push    |', qs);
+            });
+            
+            window.addEventListener('qs-replace', function () {
+                console.log('2*** qs-replace |', qs);
+            });
+            
+            window.addEventListener('qs-pop', function () {
+                console.log('5*** qs-pop     |', qs);
+            });
+            
+            
+            window.addEventListener('lv-push', function () {
+                console.log('3*** lv-push    |', lv);
+            });
+            
+            window.addEventListener('lv-replace', function () {
+                console.log('4*** lv-replace |', lv);
+            });
+        </script>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><center><h3>Query String and Local Variable</h3></center></gs-header>
+            <gs-body padded>
+                <gs-button onclick="GS.pushQS('asdf=' + parseInt((Math.random() * 1000), 10));" jumbo>Push QS (1)</gs-button>
+                <gs-button onclick="GS.replaceQS('asdf=REPLACED-' + parseInt((Math.random() * 1000), 10));" jumbo>Replace QS (2)</gs-button>
+                <br />
+                <gs-button onclick="GS.pushLV('test=' + parseInt((Math.random() * 1000), 10));" jumbo>Push LV (3)</gs-button>
+                <gs-button onclick="GS.replaceLV('test=REPLACED-' + parseInt((Math.random() * 1000), 10));" jumbo>Replace LV (4)</gs-button>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

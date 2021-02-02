@@ -1,0 +1,26 @@
+/*beginprogresscss*/
+gs-progress {
+    height: 1em;
+    
+    box-shadow: 0 0 7px 0 #000;
+    background-color: #F5F5F5;
+    -webkit-border-radius: 0.25em;
+    -moz-border-radius: 0.25em;
+    -ms-border-radius: 0.25em;
+    -o-border-radius: 0.25em;
+    border-radius: 0.25em;
+    display: block;
+}
+
+gs-progress > .control {
+    height: 1em;
+    width: 0;
+    
+    background-color: #006E00;
+    -webkit-border-radius: 0.25em;
+    -moz-border-radius: 0.25em;
+    -ms-border-radius: 0.25em;
+    -o-border-radius: 0.25em;
+    border-radius: 0.25em;
+}
+/*endprogresscss*/

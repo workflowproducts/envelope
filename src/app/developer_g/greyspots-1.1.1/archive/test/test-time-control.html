@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>gs-time Testing</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+            window.addEventListener('load', function () {
+                "use strict";
+                
+                document.getElementById('test').value = '10:30';
+            });
+        </script>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><center><h3>gs-time Testing</h3></center></gs-header>
+            <gs-body padded>
+                <label>No attributes</label>
+                <gs-time></gs-time>
+                <br />
+                <label>Attributes: 'suspend-inserted'</label>
+                <gs-time suspend-inserted></gs-time>
+                <br />
+                <label>Attributes: 'value=""'</label>
+                <gs-time value=""></gs-time>
+                <br />
+                <label>Attributes: 'value="now"'</label>
+                <gs-time value="now"></gs-time>
+                <br />
+                <label>Attributes: 'value="10:30"'</label>
+                <gs-time value="10:30"></gs-time>
+                <br />
+                <label>Attributes: 'value="10:30PM"'</label>
+                <gs-time value="10:30PM"></gs-time>
+                <br />
+                <label>Attributes: 'value="10:30AM"'</label>
+                <gs-time value="10:30AM"></gs-time>
+                <br />
+                <label>Attributes: 'non-empty'</label>
+                <gs-time non-empty></gs-time>
+                <br />
+                <label>Attributes: 'value="10:30" non-empty'</label>
+                <gs-time value="10:30" non-empty></gs-time>
+                <br />
+                <label>Attributes: 'disabled'</label>
+                <gs-time disabled></gs-time>
+                <br />
+                <label>Attributes: 'value="10:30" disabled'</label>
+                <gs-time value="10:30" disabled></gs-time>
+                <br />
+                <label>Attributes: 'disabled', value set by accessor on window load</label>
+                <gs-time id="test" disabled></gs-time>
+                <br />
+                <label>Attributes: 'no-picker'</label>
+                <gs-time no-picker></gs-time>
+                <br />
+                <label>Attributes: 'mini'</label>
+                <gs-time mini></gs-time>
+                <br />
+                <label>Attributes: 'placeholder="Time of Tardis Appearence"'</label>
+                <gs-time placeholder="Time of Tardis Appearence"></gs-time>
+                <br />
+                <label>Attributes: 'placeholder="Time of Tardis Appearence" disabled'</label>
+                <gs-time placeholder="Time of Tardis Appearence" disabled></gs-time>
+                <br />
+                <label>Attributes: 'tabindex="3"'</label>
+                <gs-time tabindex="3"></gs-time>
+                <label>Attributes: 'tabindex="1"'</label>
+                <gs-time tabindex="1"></gs-time>
+                <label>Attributes: 'tabindex="2"'</label>
+                <gs-time tabindex="2"></gs-time>
+                <br />
+                <label>Attributes: 'no-now-button'</label>
+                <gs-time no-now-button></gs-time>
+                <br />
+                <label>Attributes: 'qs="testtime"'</label>
+                <gs-time qs="testtime"></gs-time>
+                <br />
+                <label>Attributes: 'format="military"'</label>
+                <gs-time format="military"></gs-time>
+                <br />
+                <label>Attributes: 'output-format="military"'</label>
+                <gs-time output-format="military"></gs-time>
+                <br />
+                <label>Attributes: 'no-keys value="2:00AM"'</label>
+                <gs-time no-keys value="2:00AM"></gs-time>
+                <br />
+                <label>Attributes: 'onchange="alert('test');" value="2:00AM"'</label>
+                <gs-time onchange="alert('test');" value="2:00AM"></gs-time>
+                <br />
+                
+                
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                <gs-time value="5:00pm" qs="visibility"></gs-time>
+                <br />
+                
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                <gs-time value="5:00pm" qs="visibility=,limit=,test=" visibility="true"></gs-time>
+                <br />
+                
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                <gs-time value="5:00pm" qs="visibility=hidden,limit=asdf,test=qwer"></gs-time>
+                <br />
+                
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                <gs-time value="5:00pm" qs="visibility!=hidden"></gs-time>
+                <br />
+                
+                <label>readonly, no value</label>
+                <gs-time readonly></gs-time>
+                <br />
+                
+                <label>readonly, value</label>
+                <gs-time readonly value="5:00pm"></gs-time>
+                <br />
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

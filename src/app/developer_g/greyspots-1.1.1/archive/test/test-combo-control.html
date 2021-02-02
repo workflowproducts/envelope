@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <!--
+        <script src="/js/ace/ace.js" data-ace-base="/js/ace/" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/ace/ext-language_tools.js" type="text/javascript"></script>
+        <script src="/js/ace/ext-searchbox.js" type="text/javascript"></script>
+        
+        <script src="/js/beautify.js" type="text/javascript"></script>
+        <script src="./ui-test.js"></script>
+        <link href="./ui-test.css" type="text/css" rel="stylesheet" />
+        -->
+        <title>Combo Test</title>
+        <script>
+            function initializeTestCombo() {
+                document.getElementById('test').innerHTML = ml(function () {/*
+                    <template>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Column 1</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr value="1"><td>qwer</td></tr>
+                                <tr value="2"><td>asdf</td></tr>
+                                <tr value="3"><td>zxcv</td></tr>
+                                <tr value="4"><td>rtyu</td></tr>
+                            </tbody>
+                        </table>
+                    </template>*/});
+                
+                document.getElementById('test').removeAttribute('suspend-inserted');
+            }
+        </script>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>Comboboxes:</h3></gs-header>
+            <gs-body padded>
+                
+                <label>plain:</label>
+                <gs-combo src="test.tpeople">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr><th>First Name</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr value="{{! row.id }}"><td>{{! row.first_name }}</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                
+                <!--<label>Large values: <small>(should scroll within the popup)</small></label>
+                <gs-combo>
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr><th>First Name</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf</td></tr>
+                                <tr><td>asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf</td></tr>
+                                <tr><td>asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf</td></tr>
+                                <tr><td>asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf</td></tr>
+                                <tr><td>asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                <label>Zero value: <small>(test for zero-coalesce issues)</small></label>
+                <gs-combo src="test.tzero" cols="id,title" hide="id" onchange="alert(this.value)"></gs-combo>
+                <br />
+                
+                <label>Cols test: <small>(should only show first and last name)</small></label>
+                <gs-combo src="test.tpeople" cols="first_name,last_name" onchange="alert(this.value)"></gs-combo>
+                <br />
+                
+                <label>Suspended combo: <small>(should only initailize after the button is clicked)</small></label>
+                <gs-button onclick="initializeTestCombo()">initialize Test Combo</gs-button>
+                <gs-combo id="test" suspend-inserted src="test.tpeople" cols="first_name,last_name"></gs-combo>
+                <br />
+                
+                <label>readonly, no value</small></label>
+                <gs-combo readonly>
+                    <template>
+                        <table>
+                            <tbody>
+                                <tr value="true"><td>True... AHA!</td></tr>
+                                <tr value="false"><td>False... Perhaps...</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                <label>readonly, value</small></label>
+                <gs-combo readonly value="true">
+                    <template>
+                        <table>
+                            <tbody>
+                                <tr value="true"><td>True... AHA!</td></tr>
+                                <tr value="false"><td>False... Perhaps...</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                <label>qs:</label>
+                <gs-combo src="test.tpeople" qs="test" value="Rasberries Apple">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr><th>First Name</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr value="{{! row.id }}"><td>{{! row.first_name }} {{! row.last_name }}</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                <gs-combo value="true" qs="visibility">
+                    <template>
+                        <table>
+                            <tbody>
+                                <tr value="true"><td>True... AHA!</td></tr>
+                                <tr value="false"><td>False... Perhaps...</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                <gs-combo value="true" qs="visibility=,limit=,test=" visibility="false">
+                    <template>
+                        <table>
+                            <tbody>
+                                <tr value="true"><td>True... AHA!</td></tr>
+                                <tr value="false"><td>False... Perhaps...</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                <gs-combo value="true" qs="visibility=hidden,limit=asdf,test=qwer">
+                    <template>
+                        <table>
+                            <tbody>
+                                <tr value="true"><td>True... AHA!</td></tr>
+                                <tr value="false"><td>False... Perhaps...</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                <gs-combo value="true" qs="visibility!=hidden">
+                    <template>
+                        <table>
+                            <tbody>
+                                <tr value="true"><td>True... AHA!</td></tr>
+                                <tr value="false"><td>False... Perhaps...</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                
+                
+                
+                <label>refresh-on-querystring-values</label>
+                <gs-combo value="true" refresh-on-querystring-values="limit,test">
+                    <template>
+                        <table>
+                            <tbody>
+                                <tr value="true"><td>True... AHA!</td></tr>
+                                <tr value="false"><td>False... Perhaps...</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                <label>refresh-on-querystring-change</label>
+                <gs-combo value="true" refresh-on-querystring-change>
+                    <template>
+                        <table>
+                            <tbody>
+                                <tr value="true"><td>True... AHA!</td></tr>
+                                <tr value="false"><td>False... Perhaps...</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />-->
+                
+                
+                
+                
+                
+                <!--<label>initialize: <small>(tells the combo where to get the initial data from)</small></label>
+                <gs-combo src="test.tpeople" initialize="test.tpeople" value="5186866">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr><th>Name</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr value="{{! row.id }}"><td>{{! row.first_name }} {{! row.last_name }}</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                <label>hide: <small>(hides columns so that you don't have to write the template)</small></label>
+                <gs-combo src="test.tpeople" hide="1,4,5,6"></gs-combo>
+                <br />
+                
+                <label>where: <small>(a PostgreSQL WHERE clause)</small></label>
+                <gs-combo src="test.tpeople" where="first_name = 'Rasberries'">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr><th>Name</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr value="{{! row.id }}"><td>{{! row.first_name }} {{! row.last_name }}</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                <label>ord: <small>(a PostgreSQL ORDER BY)</small></label>
+                <gs-combo src="test.tpeople" ord="first_name ASC, last_name ASC">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr><th>Name</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr value="{{! row.id }}"><td>{{! row.first_name }} {{! row.last_name }}</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                <label>limit: <small>(a PostgreSQL LIMIT)</small></label>
+                <gs-combo src="test.tpeople" ord="first_name ASC, last_name ASC" limit="25">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr><th>Name</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr value="{{! row.id }}"><td>{{! row.first_name }} {{! row.last_name }}</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                <br />
+                
+                <label>limit: <small>(a PostgreSQL LIMIT)</small></label>
+                <gs-combo src="wtkv2.ttime" cols="detail" ord="detail ASC" limit="2000"></gs-combo>
+                <br />-->
+                <!--
+                <gs-ui-test heading="offset: (a PostgreSQL OFFSET)">
+                    <template>
+                        <gs-combo src="test.tpeople" ord="first_name ASC, last_name ASC" offset="25">
+                            <template for="table">
+                                <table>
+                                    <thead>
+                                        <tr><th>Name</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr value="{{! row.id }}"><td>{{! row.first_name }} {{! row.last_name }}</td></tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-combo>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="column: (tells the parent envelope what column to update)">
+                    <template>
+                        <gs-envelope src="test.tpeople" limit="5">
+                            <template for="hud"></template>
+                            <template for="table">
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                            <td heading="First Name">
+                                                <gs-combo src="test.tpeople" column="first_name">
+                                                    <template for="table">
+                                                        <table>
+                                                            <thead>
+                                                                <tr><th>Name</th></tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr><td>{{! row.first_name }}</td></tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </template>
+                                                </gs-combo>
+                                            </td>
+                                            <td heading="Last Name">
+                                                <gs-combo src="test.tpeople" column="last_name">
+                                                    <template for="table">
+                                                        <table>
+                                                            <thead>
+                                                                <tr><th>Name</th></tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr><td>{{! row.last_name }}</td></tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </template>
+                                                </gs-combo>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                            <template for="insert"></template>
+                        </gs-envelope>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="value: (sets the inital value (only works with initialize attr))">
+                    <template>
+                        <gs-combo src="test.tpeople" initialize="test.tpeople" value="5186866">
+                            <template for="table">
+                                <table>
+                                    <thead>
+                                        <tr><th>Name</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr value="{{! row.id }}"><td>{{! row.first_name }} {{! row.last_name }}</td></tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-combo>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="limit-to-list: (tells the combo to not accept any values not in the list)">
+                    <template>
+                        <gs-combo src="test.tpeople">
+                            <template for="table" limit-to-list>
+                                <table>
+                                    <thead>
+                                        <tr><th>Name</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr value="{{! row.id }}"><td>{{! row.first_name }} {{! row.last_name }}</td></tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-combo>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="allow-empty: (allows the combo to have no value (only does anything with limit-to-list))">
+                    <template>
+                        <gs-combo src="test.tpeople" allow-empty limit-to-list>
+                            <template for="table">
+                                <table>
+                                    <thead>
+                                        <tr><th>Name</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr value="{{! row.id }}"><td>{{! row.first_name }} {{! row.last_name }}</td></tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-combo>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="mini: (makes it look nice in a table)">
+                    <template>
+                        <gs-combo src="test.tpeople" mini="">
+                            <template for="table">
+                                <table>
+                                    <thead>
+                                        <tr><th>Name</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr value="{{! row.id }}"><td>{{! row.first_name }} {{! row.last_name }}</td></tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <br />
+                <h3>Events</h3>
+                <gs-ui-test heading="change: bubbles, cancelable">
+                    <template>
+                        <gs-combo id="eventTest1" src="test.tpeople">
+                            <template for="table">
+                                <table>
+                                    <thead>
+                                        <tr><th>Name</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr value="{{! row.id }}"><td>{{! row.first_name }} {{! row.last_name }}</td></tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-combo>
+                    </template>
+                    <template>
+document.getElementById('eventTest1').addEventListener('change', function () {
+    alert(this.value);
+});</template>
+                </gs-ui-test>
+                <gs-ui-test heading="beforechange: bubbles, cancelable">
+                    <template>
+                        <gs-combo id="eventTest2" src="test.tpeople">
+                            <template for="table">
+                                <table>
+                                    <thead>
+                                        <tr><th>Name</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr value="{{! row.id }}"><td>{{! row.first_name }} {{! row.last_name }}</td></tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-combo>
+                    </template>
+                    <template>
+document.getElementById('eventTest2').addEventListener('change', function () {
+    alert(this.value);
+});</template>
+                </gs-ui-test>
+                
+                <br />
+                <h3>Examples</h3>
+                <gs-ui-test heading="static, value attr, pre value">
+                    <template>
+                        <gs-combo value="4">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Column 1</th>
+                                    <th>Column 2</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr value="1">
+                                    <td>qwer</td>
+                                    <td>rewq</td>
+                                </tr>
+                                <tr value="2">
+                                    <td>asdf</td>
+                                    <td>fdsa</td>
+                                </tr>
+                                <tr value="3">
+                                    <td>zxcv</td>
+                                    <td>vcxz</td>
+                                </tr>
+                                <tr value="4">
+                                    <td>rtyu</td>
+                                    <td>uytr</td>
+                                </tr>
+                                <tr value="5">
+                                    <td>fghjjhg</td>
+                                    <td>jhgf</td>
+                                </tr>
+                                <tr value="6">
+                                    <td>uiop</td>
+                                    <td>lkhj</td>
+                                </tr>
+                                <tr value="7">
+                                    <td>vbnm</td>
+                                    <td>mnbv</td>
+                                </tr>
+                                <tr value="8">
+                                    <td>2345rtyu</td>
+                                    <td>6543uytr</td>
+                                </tr>
+                                <tr value="9">
+                                    <td>4567fghjjhg</td>
+                                    <td>4321jhgf</td>
+                                </tr>
+                                <tr value="10">
+                                    <td>56789uiop</td>
+                                    <td>0789lkhj</td>
+                                </tr>
+                                <tr value="11">
+                                    <td>356vbnm</td>
+                                    <td>6543mnbv</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="static, no value attr">
+                    <template>
+                        <gs-combo>
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Column 1</th>
+                                    <th>Column 2</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>qwer</td>
+                                    <td>rewq</td>
+                                </tr>
+                                <tr>
+                                    <td>asdf</td>
+                                    <td>fdsa</td>
+                                </tr>
+                                <tr>
+                                    <td>zxcv</td>
+                                    <td>vcxz</td>
+                                </tr>
+                                <tr>
+                                    <td>rtyu</td>
+                                    <td>uytr</td>
+                                </tr>
+                                <tr>
+                                    <td>fghjjhg</td>
+                                    <td>jhgf</td>
+                                </tr>
+                                <tr>
+                                    <td>uiop</td>
+                                    <td>lkhj</td>
+                                </tr>
+                                <tr>
+                                    <td>vbnm</td>
+                                    <td>mnbv</td>
+                                </tr>
+                                <tr>
+                                    <td>2345rtyu</td>
+                                    <td>6543uytr</td>
+                                </tr>
+                                <tr>
+                                    <td>4567fghjjhg</td>
+                                    <td>4321jhgf</td>
+                                </tr>
+                                <tr>
+                                    <td>56789uiop</td>
+                                    <td>0789lkhj</td>
+                                </tr>
+                                <tr>
+                                    <td>356vbnm</td>
+                                    <td>6543mnbv</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="sql, pre-value, allow-empty">
+                    <template>
+                        <gs-combo value="499227" allow-empty src="(SELECT%20id%2C%20first_name%20%7C%7C%2B%20last_name%20AS%20Name%20FROM%20adr.tcard_header%20WHERE%20co%20%3D%20'0')%20ema" hide="1"></gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="view, where">
+                    <template>
+                        <gs-combo src="adr.tcard_header" where="co = '0'"></gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="view, where, custom template">
+                    <template>
+                        <gs-combo src="adr.tcard_header" where="co = '0'">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Co Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr value="{{! row.id }}">
+                                    <td>{{! row.first_name }}</td>
+                                    <td>{{! row.last_name }}</td>
+                                    <td>{{! row.company_name }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="view, where, limit, offset, order_by">
+                    <template>
+                        <gs-combo src="adr.tcard_header" where="co = '0'" limit="20" offset="20" order_by="first_name%20ASC"></gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="static, value attr, limit to list">
+                    <template>
+                        <gs-combo limit-to-list>
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Column 1</th>
+                                    <th>Column 2</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr value="1">
+                                    <td>qwer</td>
+                                    <td>rewq</td>
+                                </tr>
+                                <tr value="2">
+                                    <td>asdf</td>
+                                    <td>fdsa</td>
+                                </tr>
+                                <tr value="3">
+                                    <td>zxcv</td>
+                                    <td>vcxz</td>
+                                </tr>
+                                <tr value="4">
+                                    <td>rtyu</td>
+                                    <td>uytr</td>
+                                </tr>
+                                <tr value="5">
+                                    <td>fghjjhg</td>
+                                    <td>jhgf</td>
+                                </tr>
+                                <tr value="6">
+                                    <td>uiop</td>
+                                    <td>lkhj</td>
+                                </tr>
+                                <tr value="7">
+                                    <td>vbnm</td>
+                                    <td>mnbv</td>
+                                </tr>
+                                <tr value="8">
+                                    <td>2345rtyu</td>
+                                    <td>6543uytr</td>
+                                </tr>
+                                <tr value="9">
+                                    <td>4567fghjjhg</td>
+                                    <td>4321jhgf</td>
+                                </tr>
+                                <tr value="10">
+                                    <td>56789uiop</td>
+                                    <td>0789lkhj</td>
+                                </tr>
+                                <tr value="11">
+                                    <td>356vbnm</td>
+                                    <td>6543mnbv</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="sql error">
+                    <template>
+                        <gs-combo src="SELE%20CT%20id%2C%20first_name%2C%20last_name%2C%20company_name%2C%20co%20FROM%20adr.tcard_header%20WHERE%20co%20%3D%20'0'%3B" hide="1"></gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="static, disabled, initial value">
+                    <template>
+                        <gs-combo value="6" disabled>
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr><th>Column 1</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr value="1"><td>qwer</td></tr>
+                                <tr value="2"><td>asdf</td></tr>
+                                <tr value="3"><td>vcxz</td></tr>
+                                <tr value="4"><td>fghjjhg</td></tr>
+                                <tr value="5"><td>jhgf</td></tr>
+                                <tr value="6"><td>lkhj</td></tr>
+                                <tr value="7"><td>vbnm</td></tr>
+                                <tr value="8"><td>2345rtyu</td></tr>
+                                <tr value="9"><td>4567fghjjhg</td></tr>
+                                <tr value="10"><td>56789uiop</td></tr>
+                                <tr value="11"><td>6543mnbv</td></tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="sql error, limit to list (should disable itself)">
+                    <template>
+                        <gs-combo limit-to-list src="SELE%20CT%20id%2C%20first_name%2C%20last_name%2C%20company_name%2C%20co%20FROM%20adr.tcard_header%20WHERE%20co%20%3D%20'0'%3B" hide="1"></gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="static, value attr, limit to list, allow empty">
+                    <template>
+                        <gs-combo value="3" limit-to-list allow-empty>
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Column 1</th>
+                                    <th>Column 2</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr value="1">
+                                    <td>qwer</td>
+                                    <td>rewq</td>
+                                </tr>
+                                <tr value="2">
+                                    <td>asdf</td>
+                                    <td>fdsa</td>
+                                </tr>
+                                <tr value="3">
+                                    <td>zxcv</td>
+                                    <td>vcxz</td>
+                                </tr>
+                                <tr value="4">
+                                    <td>rtyu</td>
+                                    <td>uytr</td>
+                                </tr>
+                                <tr value="5">
+                                    <td>fghjjhg</td>
+                                    <td>jhgf</td>
+                                </tr>
+                                <tr value="6">
+                                    <td>uiop</td>
+                                    <td>lkhj</td>
+                                </tr>
+                                <tr value="7">
+                                    <td>vbnm</td>
+                                    <td>mnbv</td>
+                                </tr>
+                                <tr value="8">
+                                    <td>2345rtyu</td>
+                                    <td>6543uytr</td>
+                                </tr>
+                                <tr value="9">
+                                    <td>4567fghjjhg</td>
+                                    <td>4321jhgf</td>
+                                </tr>
+                                <tr value="10">
+                                    <td>56789uiop</td>
+                                    <td>0789lkhj</td>
+                                </tr>
+                                <tr value="11">
+                                    <td>356vbnm</td>
+                                    <td>6543mnbv</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="sql, initial sql, value attr">
+                    <template>
+                        <gs-combo value="499227" src="(SELECT%20id%2C%20first_name%20%7C%7C%2B%20last_name%20AS%20Name%2C%20co%20FROM%20adr.tcard_header%20WHERE%20co%20%3D%20'0')%20ema" initialize="(SELECT%20id%2C%20first_name%20%7C%7C%2B%20last_name%20AS%20Name%20FROM%20adr.tcard_header%20WHERE%20co%20%3D%20'0')%20ema" hide="1"></gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="reflow testing (make screen small)">
+                    <template>
+                        <gs-combo id="test_combo_13" src="adr.tcard_header"></gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="sql, initial sql, value attr, mini">
+                    <template>
+                        <gs-combo value="499227" mini src="(SELECT%20id%2C%20first_name%20%7C%7C%2B%20last_name%20AS%20name%2C%20company_name%2C%20co%20FROM%20adr.tcard_header%20WHERE%20co%20%3D%20'0')%20ema" initialize="(SELECT%20id%2C%20first_name%20%7C%7C%2B%20last_name%20AS%20name%20FROM%20adr.tcard_header%20WHERE%20co%20%3D%20'0')%20ema" hide="1"></gs-combo>
+                    </template>
+                </gs-ui-test>
+                
+                <gs-ui-test heading="sql (w/qs templating), initial sql (w/qs templating)">
+                    <template>
+                        <gs-combo src="(SELECT%20id%2C%20first_name%20%7C%7C%2B%20last_name%20AS%20name%2C%20company_name%2C%20co%20FROM%20adr.tcard_header%20WHERE%20co%20%3D%20'%7B%7B!%20qs.is_co%20%3F%20qs.is_co%20%3A%200%20%7D%7D'%3B" initialize="(SELECT%20id%2C%20first_name%20%7C%7C%2B%20last_name%20AS%20name%2C%20company_name%2C%20co%20FROM%20adr.tcard_header%20WHERE%20co%20%3D%20'%7B%7B!%20qs.is_co%20%3F%20qs.is_co%20%3A%200%20%7D%7D')%20ema" hide="1"></gs-combo>
+                    </template>
+                </gs-ui-test>
+                -->
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

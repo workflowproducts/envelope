@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        <!-- Make this page use standard caching procedure when used as an iframe -->
+        <meta http-equiv="Cache-control" content="no-store, must-revalidate" />
+        
+        <title>Speed Test</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+//global document, window, console
+function getAvg(arr) {
+  return arr.reduce(function (p, c) {
+    return p + c;
+  }) / arr.length;
+}
+
+
+function runTest1() {
+    "use strict";
+    var container1 = document.getElementById('test-1-1');
+
+    var container2 = document.getElementById('test-1-2');
+    var container2input1;
+    var container2input2;
+
+    var container3 = document.getElementById('test-1-3');
+    var container3input1;
+    var container3input2;
+
+    var container4 = document.getElementById('test-1-4');
+    var container4input1;
+    var container4input2;
+
+    var testStart1;
+    var testStart2;
+    var testStart3;
+    var testStart4;
+    var testEnd1;
+    var testEnd2;
+    var testEnd3;
+    var testEnd4;
+
+
+    container1.innerHTML = (
+        '<input column="test1" value="test1" style="width: 100px;" />' +
+        '<input column="test2" value="test2" style="width: 150px;" />'
+    );
+
+    container2.innerHTML = (
+        '<input column="test1" value="test1" style="width: 100px;" />' +
+        '<input column="test2" value="test2" style="width: 150px;" />'
+    );
+    container2input1 = container2.children[0];
+    container2input2 = container2.children[1];
+
+    container3.innerHTML = (
+        '<input column="test1" value="test1" style="width: 100px;" />' +
+        '<input column="test2" value="test2" style="width: 150px;" />'
+    );
+    container3input1 = container3.children[0];
+    container3input2 = container3.children[1];
+
+    container4.innerHTML = (
+        '<input column="test1" value="test1" style="width: 100px;" />' +
+        '<input column="test2" value="test2" style="width: 150px;" />'
+    );
+    container4input1 = container4.children[0];
+
+
+
+    // test 1: straight replacement
+    testStart1 = window.performance.now();
+    container1.innerHTML = (
+        '<input column="test2" value="test2" style="width: 150px;" />' +
+        '<input column="test3" value="test3" style="width: 200px;" />'
+    );
+    testEnd1 = window.performance.now();
+
+
+    // test 2: attribute modification
+    testStart2 = window.performance.now();
+    container2input1.setAttribute('column', 'test2');
+    container2input1.setAttribute('value', 'test2');
+    container2input1.style.width = '150px';
+    container2input2.setAttribute('column', 'test3');
+    container2input2.setAttribute('value', 'test3');
+    container2input2.style.width = '200px';
+    testEnd2 = window.performance.now();
+
+
+    // test 3: element removal and appendAfter
+    testStart3 = window.performance.now();
+    container3.removeChild(container3input1);
+    container3input2.insertAdjacentHTML('afterEnd', '<input column="test3" value="test3" style="width: 200px;" />');
+    testEnd3 = window.performance.now();
+
+
+    // test 4: element removal and appendChild
+    testStart4 = window.performance.now();
+    container4.removeChild(container4input1);
+
+    container4input2 = document.createElement('input');
+    container4input2.setAttribute('column', 'test3');
+    container4input2.setAttribute('value', 'test3');
+    container4input2.style.width = '200px';
+
+    container4.appendChild(container4input2);
+    testEnd4 = window.performance.now();
+
+    return {
+        "t1": (testEnd1 - testStart1),
+        "t2": (testEnd2 - testStart2),
+        "t3": (testEnd3 - testStart3),
+        "t4": (testEnd4 - testStart4)
+    };
+}
+
+function runTests1() {
+    "use strict";
+    var i;
+    var len;
+    var arrT1 = [];
+    var arrT2 = [];
+    var arrT3 = [];
+    var arrT4 = [];
+    var jsnResult;
+
+    i = 0;
+    len = 100;
+    while (i < len) {
+        jsnResult = runTest1();
+        arrT1.push(jsnResult.t1);
+        arrT2.push(jsnResult.t2);
+        arrT3.push(jsnResult.t3);
+        arrT4.push(jsnResult.t4);
+
+        i += 1;
+    }
+
+    console.log(
+        'T1: ' + getAvg(arrT1).toFixed(16) + '    ' +
+        'T2: ' + getAvg(arrT2).toFixed(16) + '    ' +
+        'T3: ' + getAvg(arrT3).toFixed(16) + '    ' +
+        'T4: ' + getAvg(arrT4).toFixed(16)
+    );
+}
+
+
+
+
+
+
+
+function runTest2() {
+    "use strict";
+    
+    // use .getElementsByTagName
+    
+    
+}
+
+function runTests2() {
+    "use strict";
+    var i;
+    var len;
+    var strHTML;
+
+    strHTML = '';
+    i = 0;
+    len = 25;
+    while (i < len) {
+        strHTML += (
+            '<div class="test-2-block" data-col-number="1"><input value="asdf" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="2"><input value="qwer" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="3"><input value="zxcv" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="4"><input value="cvbn" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="5"><input value="dfgh" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="6"><input value="tyui" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="7"><input value="ghjk" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="8"><input value="hjkl" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="9"><input value="bnop" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="10"><input value="rtyu" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="11"><input value="jhgf" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="12"><input value="vbnm" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="13"><input value="hgfd" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="14"><input value="hrdr" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="15"><input value="dfgh" type="text" /></div>' +
+            '<div class="test-2-block" data-col-number="16"><input value="cvbh" type="text" /></div><br />'
+        );
+
+        i += 1;
+    }
+    document.getElementById('test-2-1').innerHTML = strHTML;
+
+    i = 0;
+    len = 100;
+    while (i < len) {
+        runTest2();
+
+        i += 1;
+    }
+}
+        </script>
+        <style>
+
+#test-2-1 {
+    white-space: nowrap;
+    width: 2500px;
+}
+.test-2-block {
+    display: inline-block;
+    vertical-align: top;
+    width: 150px;
+}
+.test-2-block input {
+    width: 100%;
+}
+
+        </style>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header>
+                <center><h3>Speed Test</h3></center>
+            </gs-header>
+            <gs-body>
+                <center>
+                    <gs-button jumbo no-focus inline onclick="runTests1()">Run First Test Battery</gs-button>
+                </center>
+                <br />
+                <div id="test-1-1"></div>
+                <div id="test-1-2"></div>
+                <div id="test-1-3"></div>
+                <div id="test-1-4"></div>
+                <br />
+                <br />
+                <br />
+                <br />
+                <center>
+                    <gs-button jumbo no-focus inline onclick="runTests2()">Run Second Test Battery</gs-button>
+                </center>
+                <br />
+                <div style="overflow: auto;"><div id="test-2-1"></div></div>
+                <br />
+                <br />
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

@@ -1,0 +1,48 @@
+
+gs-contextmenu {
+    display: block;
+    position: fixed;
+    z-index: 999;
+
+    opacity: 0.97;
+    background-color: #f5f5f5;
+    border-radius: 0.3em;
+    border: 1px solid #F0F0F0;
+    box-shadow: 0 0 0.4em 0 #AAA;
+}
+
+gs-contextmenu-blocker {
+    display: block;
+    position: fixed;
+    z-index: 998;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+}
+
+
+/* #######################################################################
+############################## CONTEXT MENU ##############################
+####################################################################### */
+
+gs-contextmenu > .root {
+    
+}
+
+gs-contextmenu > .root > .scroll-container {
+    
+}
+
+gs-contextmenu > .root > .scroll-container > hr {
+    display: block;
+    border: 0 none;
+    border-bottom: 2px solid #e8e8e8;
+    height: 0.3em;
+    margin: 0;
+    margin-bottom: 0.3em;
+}
+
+gs-contextmenu > .root > .scroll-container > gs-button {
+    
+}

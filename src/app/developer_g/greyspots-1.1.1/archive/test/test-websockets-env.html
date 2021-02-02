@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>WS ENV</title>
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        <script src="test-websockets-datagrid.js" type="text/javascript"></script>
+        <link href="test-websockets-datagrid.css" type="text/css" rel="stylesheet" />
+        
+        <style>
+            body {
+                padding: 1em;
+                
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                -ms-box-sizing: border-box;
+                -o-box-sizing: border-box;
+                box-sizing: border-box;
+            }
+        </style>
+    </head>
+    <body>
+        <!--
+        <script>
+            window.addEventListener('load', function () {
+                document.getElementById('button-test').addEventListener(evt.mouseup, function () {
+                    //var templateElement = document.createElement('template');
+                    //
+                    //templateElement.setAttribute('data-max-width', '400px');
+                    //templateElement.setAttribute('data-overlay-close', 'true');
+                    //templateElement.innerHTML = '<div id="datagrid-column-list">test<br />test<br />test<br />test<br />test<br />test<br />test<br />test<br />test<br />test<br />test<br />test<br />test<br />test</div>';
+                    //
+                    //// open column dialog
+                    //GS.openDialogToElement(this, templateElement, 'left');
+                    //columnPopup(document.getElementsByTagName('gs-datagrid')[0]);
+                    //console.trace('test');
+                    GS.triggerEvent(document.getElementsByTagName('gs-datagrid')[0].columnButton, 'click');
+                });
+            });
+        </script>
+        <gs-button id="button-test">test</gs-button>
+        -->
+        
+        <gs-datagrid cols="*" object="rpeople" schema="test"></gs-datagrid>
+        <!--
+            cols="*"            - column list for what columns are going to be in the datagrid
+            pk="id"             - comma seperated column list
+            lock="change_stamp" - comma seperated column list
+            ord="id ASC"        - SQL order by
+            where="id=505"      - SQL where
+            limit="500"         - SQL limit
+            offset="0"          - SQL offset
+        -->
+    </body>
+</html>

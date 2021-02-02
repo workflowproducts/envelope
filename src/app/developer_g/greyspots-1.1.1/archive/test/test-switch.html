@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta http-equiv="pragma" content="no-cache">
+        <meta http-equiv="Expires" content="-1">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, minimal-ui">
+
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet">
+        
+        <title>gs-switch testing</title>
+        
+        <script>
+//global document, console
+var pageSwitch;
+
+document.addEventListener('DOMContentLoaded', function () {
+    "use strict";
+    pageSwitch = document.querySelector('gs-switch');
+    pageSwitch.addEventListener('template_change', function (event) {
+        console.log('template changed to:', event.templateName);
+    });
+});
+        </script>
+    </head>
+	<body>
+        <gs-page>
+            <gs-header><h3>Switch</h3></gs-header>
+            <gs-body padded>
+                <!--<gs-switch value="{{! 'template-2' }}" style="height: 300px; border: 1px solid #000000;">
+                    <template for="template-1">
+                        template-1
+                    </template>
+                    <template for="template-2">
+                        template-2
+                    </template>
+                </gs-switch>
+                
+                <br />
+                -->
+                <!--<gs-switch value="{{! qs.page || 'list' }}" refresh-on-querystring-values="page" style="height: 300px; border: 1px solid #000000;">
+                    <template for="list">
+                        <gs-page>
+                            <gs-header>
+                                <h3>People</h3>
+                            </gs-header>
+                            <gs-body>
+                                <gs-listbox src="test.tpeople" ord="first_name ASC, last_name ASC">
+                                    <template for="table">
+                                        <table>
+                                            <tbody>
+                                                <tr onclick="GS.pushQueryString('page=detail&id={{! row.id }}&people_name={{! row.first_name + '%20' + row.last_name }}')">
+                                                    <td>{{! row.first_name }} {{! row.last_name }} ({{! row.number_of_pets }} pets)</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </template>
+                                </gs-listbox>
+                            </gs-body>
+                        </gs-page>
+                    </template>
+                    <template for="detail">
+                        <gs-page>
+                            <gs-header flex-horizontal>
+                                <gs-button onclick="GS.pushQueryString('page=list')">Back</gs-button>
+                                <h3 flex>Pets owned by <span id="people_name"></span></h3>
+                            </gs-header>
+                            <gs-body>
+                                <gs-envelope src="test.tpeople_line" ord="pet_name ASC" where="people_id = {{! qs.id }}" refresh-on-querystring-values="id" no-hudlimit no-hudorderby>
+                                    <template for="table">
+                                        <table>
+                                            <tbody>
+                                                <tr>
+                                                    <td>{{! row.pet_name }} (born {{! row.birth_date }})</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </template>
+                                </gs-envelope>
+                            </gs-body>
+                        </gs-page>
+                    </template>
+                </gs-switch>-->
+                
+                <label>using the "qs" attribute:</label>
+                <gs-switch qs="page" style="height: 300px; border: 1px solid #000000;">
+                    <template for="list">
+                        <gs-page>
+                            <gs-header>
+                                <h3>People</h3>
+                            </gs-header>
+                            <gs-body>
+                                <gs-listbox src="test.tpeople" ord="first_name ASC, last_name ASC">
+                                    <template for="table">
+                                        <table>
+                                            <tbody>
+                                                <tr onclick="GS.pushQueryString('page=detail&id={{! row.id }}&people_name={{! row.first_name + '%20' + row.last_name }}')">
+                                                    <td>{{! row.first_name }} {{! row.last_name }} ({{! row.number_of_pets }} pets)</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </template>
+                                </gs-listbox>
+                            </gs-body>
+                        </gs-page>
+                    </template>
+                    <template for="detail">
+                        <gs-page>
+                            <gs-header flex-horizontal>
+                                <gs-button onclick="GS.pushQueryString('page=list')">Back</gs-button>
+                                <h3 flex>Pets</h3>
+                            </gs-header>
+                            <gs-body>
+                                <gs-envelope src="test.tpeople_line" ord="pet_name ASC" where="people_id = {{! qs.id }}" refresh-on-querystring-values="id" no-hudlimit no-hudorderby>
+                                    <template for="table">
+                                        <table>
+                                            <tbody><tr><td>{{! row.pet_name }} (born {{! row.birth_date }})</td></tr></tbody>
+                                        </table>
+                                    </template>
+                                </gs-envelope>
+                            </gs-body>
+                        </gs-page>
+                    </template>
+                </gs-switch>
+                <br />
+                <label>using the new "template" attribute:</label>
+                <gs-switch template="{{! qs.page || 'list' }}" style="height: 300px; border: 1px solid #000000;">
+                    <template for="list">
+                        <gs-page>
+                            <gs-header>
+                                <h3>People</h3>
+                            </gs-header>
+                            <gs-body>
+                                <gs-listbox src="test.tpeople" ord="first_name ASC, last_name ASC">
+                                    <template for="table">
+                                        <table>
+                                            <tbody>
+                                                <tr onclick="GS.pushQueryString('page=detail&id={{! row.id }}&people_name={{! row.first_name + '%20' + row.last_name }}')">
+                                                    <td>{{! row.first_name }} {{! row.last_name }} ({{! row.number_of_pets }} pets)</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </template>
+                                </gs-listbox>
+                            </gs-body>
+                        </gs-page>
+                    </template>
+                    <template for="detail">
+                        <gs-page>
+                            <gs-header flex-horizontal>
+                                <gs-button onclick="GS.pushQueryString('page=list')">Back</gs-button>
+                                <h3 flex>Pets</h3>
+                            </gs-header>
+                            <gs-body>
+                                <gs-envelope src="test.tpeople_line" ord="pet_name ASC" where="people_id = {{! qs.id }}" refresh-on-querystring-values="id" no-hudlimit no-hudorderby>
+                                    <template for="table">
+                                        <table>
+                                            <tbody><tr><td>{{! row.pet_name }} (born {{! row.birth_date }})</td></tr></tbody>
+                                        </table>
+                                    </template>
+                                </gs-envelope>
+                            </gs-body>
+                        </gs-page>
+                    </template>
+                </gs-switch>
+                <br />
+                <label>using the deprecated "value" attribute:</label>
+                <gs-switch value="{{! qs.page || 'list' }}" style="height: 300px; border: 1px solid #000000;">
+                    <template for="list">
+                        <gs-page>
+                            <gs-header>
+                                <h3>People</h3>
+                            </gs-header>
+                            <gs-body>
+                                <gs-listbox src="test.tpeople" ord="first_name ASC, last_name ASC">
+                                    <template for="table">
+                                        <table>
+                                            <tbody>
+                                                <tr onclick="GS.pushQueryString('page=detail&id={{! row.id }}&people_name={{! row.first_name + '%20' + row.last_name }}')">
+                                                    <td>{{! row.first_name }} {{! row.last_name }} ({{! row.number_of_pets }} pets)</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </template>
+                                </gs-listbox>
+                            </gs-body>
+                        </gs-page>
+                    </template>
+                    <template for="detail">
+                        <gs-page>
+                            <gs-header flex-horizontal>
+                                <gs-button onclick="GS.pushQueryString('page=list')">Back</gs-button>
+                                <h3 flex>Pets</h3>
+                            </gs-header>
+                            <gs-body>
+                                <gs-envelope src="test.tpeople_line" ord="pet_name ASC" where="people_id = {{! qs.id }}" refresh-on-querystring-values="id" no-hudlimit no-hudorderby>
+                                    <template for="table">
+                                        <table>
+                                            <tbody><tr><td>{{! row.pet_name }} (born {{! row.birth_date }})</td></tr></tbody>
+                                        </table>
+                                    </template>
+                                </gs-envelope>
+                            </gs-body>
+                        </gs-page>
+                    </template>
+                </gs-switch>
+                <br />
+                
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                <gs-switch qs="visibility" style="height: 100px; border: 1px solid #000000;">
+                    <template for="test1">test1</template>
+                    <template for="test2">test2</template>
+                </gs-switch>
+                <br />
+                
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                <gs-switch qs="visibility=,limit=,test=" visibility="true" style="height: 100px; border: 1px solid #000000;">
+                    <template for="test1">test1</template>
+                    <template for="test2">test2</template>
+                </gs-switch>
+                <br />
+                
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                <gs-switch qs="visibility=hidden,limit=asdf,test=qwer" style="height: 100px; border: 1px solid #000000;">
+                    <template for="test1">test1</template>
+                    <template for="test2">test2</template>
+                </gs-switch>
+                <br />
+                
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                <gs-switch qs="visibility!=hidden" style="height: 100px; border: 1px solid #000000;">
+                    <template for="test1">test1</template>
+                    <template for="test2">test2</template>
+                </gs-switch>
+                <br />
+                
+                
+                
+                
+                <!--
+                <br /><hr /><br />
+                <gs-envelope src="test.tpeople_line" ord="pet_name ASC" where="people_id = 5186804" style="height: 300px; border: 1px solid #000000;" no-huddelete no-hudrefresh no-hudlimit no-hudorderby>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <gs-combo column="pet_name" src="(SELECT DISTINCT pet_name FROM test.tpeople_line)%20ema">
+                                            <template>
+                                                <table>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>{{! row.pet_name }}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </template>
+                                        </gs-combo>
+                                        <gs-switch value="{{! row.row_number % 2 === 0 ? 'even' : 'odd' }}" style="height: auto;">
+                                            <template for="even">
+                                                Even:
+                                                <gs-static column="pet_name" inline mini></gs-static>
+                                                <gs-switch value="{{! row.row_number % 4 === 0 ? 'div_by_four' : 'not' }}" style="height: auto;">
+                                                    <template for="div_by_four">
+                                                        <b>Divisible By Four:</b>
+                                                        <gs-static column="pet_name" inline mini></gs-static>
+                                                    </template>
+                                                    <template for="not">
+                                                        Not Divisible By Four:
+                                                        <gs-static column="pet_name" inline mini></gs-static>
+                                                    </template>
+                                                </gs-switch>
+                                            </template>
+                                            <template for="odd">
+                                                Odd:
+                                                <gs-static column="pet_name" inline mini></gs-static>
+                                                
+                                                <gs-switch value="{{! row.row_number % 3 === 0 ? 'div_by_three' : 'not' }}" style="height: auto;">
+                                                    <template for="div_by_three">
+                                                        <b>Divisible By Three:</b>
+                                                        <gs-combo column="pet_name" src="(SELECT DISTINCT pet_name FROM test.tpeople_line)%20ema">
+                                                            <template>
+                                                                <table>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td>{{! row.pet_name }}</td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </template>
+                                                        </gs-combo>
+                                                    </template>
+                                                    <template for="not">
+                                                        Not Divisible By Three:
+                                                        <gs-static column="pet_name" inline mini></gs-static>
+                                                    </template>
+                                                </gs-switch>
+                                            </template>
+                                        </gs-switch>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-envelope>
+                <br /><hr /><br />
+                <gs-form src="test.tpeople_line" where="id=5186928" style="height: 300px; border: 1px solid #000000;">
+                    <template>
+                        <template>
+                            <gs-static column="pet_name" inline mini></gs-static>
+                        </template>
+                        <gs-combo column="pet_name" src="(SELECT DISTINCT pet_name FROM test.tpeople_line)%20ema">
+                            <template>
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{! row.pet_name }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-combo>
+                        <gs-switch value="odd" style="height: auto;">
+                            <template for="even">
+                                Should never see this template.
+                            </template>
+                            <template for="odd">
+                                Odd:
+                                <gs-static column="pet_name" inline mini></gs-static>
+                                
+                                <gs-switch value="not" style="height: auto;">
+                                    <template for="div_by_three">
+                                        <b>Divisible By Three:</b>
+                                        <gs-combo column="pet_name" src="(SELECT DISTINCT pet_name FROM test.tpeople_line)%20ema">
+                                            <template>
+                                                <table>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>{{! row.pet_name }}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </template>
+                                        </gs-combo>
+                                    </template>
+                                    <template for="not">
+                                        Not Divisible By Three:
+                                        <gs-static column="pet_name" inline mini></gs-static>
+                                    </template>
+                                </gs-switch>
+                            </template>
+                        </gs-switch>
+                    </template>
+                </gs-form>-->
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

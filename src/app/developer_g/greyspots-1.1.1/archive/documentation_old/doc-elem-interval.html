@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Interval Documentation</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script src="/js/ace/ace.js" data-ace-base="/js/ace/" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/ace/ext-language_tools.js" type="text/javascript"></script>
+        <script src="/js/ace/ext-searchbox.js" type="text/javascript"></script>
+        
+        <script src="doc-library/doc.js" type="text/javascript"></script>
+        <link href="doc-library/doc.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-jumbo>
+            <h1 class="text-center">Interval</h1>
+        </gs-jumbo>
+        
+        
+        
+        <gs-container min-width="sml;med;lrg">
+            <h3>Tag:</h3>
+            <pre><code>&lt;gs-interval&gt;&lt;/gs-interval&gt;</code></pre>
+            
+            <h3>Description:</h3>
+            <div>
+                <p>The <code>&lt;gs-interval&gt;</code> control is like the <code>&lt;gs-text&gt;</code> control, but it is specialized for amounts of time.</p>
+            </div>
+            
+            <h1>Examples:</h1>
+            <div class="doc-example-description">
+                <span class="h3">Skeleton Example:</span>
+               <p>A basic <code>&lt;gs-interval&gt;</code> element. Without attributes the <code>&lt;gs-interval&gt;</code> control will have the following behaviors:</p>
+               <ol>
+                    <li>There is a button that activates the time picker.</li>
+                    <li>After choosing a time with the time picker, the time picker disappears and the data changes in the control.</li>
+                    <li>You can also change the time manually.</li>
+                    <li>The <code>[value=""]</code> attribute will contain the amount of time with minute precision.</li>
+                </ol>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="10">
+                    <gs-interval></gs-interval>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[column]</code>:</span>
+                <p>When you have a <code>gs-interval</code> inside a data element and you want to use it to display cell data you use the <code>column</code> attribute.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="14">
+                    <gs-form src="gsdoc.tpeople" where="id=2317">
+                        <template>
+                            <b>Age:</b>
+                            <gs-interval column="age" disabled></gs-interval>
+                        </template>
+                    </gs-form>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[value=""]</code>:</span>
+                <p>To set the value for the <code>&lt;gs-interval&gt;</code>, use the <code>[value=""]</code> attribute.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="10">
+                    <gs-interval value="62"></gs-interval>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[unit=""]</code>:</span>
+                <p>The <code>&lt;gs-interval&gt;</code> defaults to treating it's value as a number of minutes. However, you may need to more or less precision than that. To store using hour or second precision you need to adjust the unit that this control uses to translate/store it's value in. To do this you can use the <code>[unit=""]</code> attribute.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="10">
+                    <gs-interval value="5" unit="hours"></gs-interval>
+                    <gs-interval value="315" unit="minutes"></gs-interval>
+                    <gs-interval value="18915" unit="seconds"></gs-interval>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[hour-places=""]</code>:</span>
+                <p>To change the number of hours that can be shown in the <code>&lt;gs-interval&gt;</code> use the <code>[hour-places=""]</code> attribute.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="13">
+                    <gs-interval hour-places="1"></gs-interval>
+                    <gs-interval hour-places="2"></gs-interval>
+                    <gs-interval hour-places="3"></gs-interval>
+                    <gs-interval hour-places="4"></gs-interval>
+                    <gs-interval hour-places="5"></gs-interval>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[onchange=""]</code>:</span>
+                <p>To run javascript when the value changes you can use the <code>[onchange=""]</code> attribute.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="10">
+                    <gs-interval onchange="alert('new value: ' + this.value)"></gs-interval>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                    <span class="h3">Attribute <code>[qs=""]</code>:</span><br />
+                    <p>The name <code>[qs]</code> stands for "querystring". The querystring is the part in the URL after the "?". The <code>[qs]</code> attribute has two formats, each with their own use.</p>
+                    
+                    <ul>
+                        <li>qs="<i>key1</i>=<i>attribute1</i>". This format allows you to fill any attribute with any key from the querystring. To use multiple keys from the querystring you can put a comma-separated list of these expressions (for example: qs="<i>key1</i>=<i>attribute1</i>,<i>key2</i>=<i>attribute2</i>"). If you need an attribute to be added when a querystring key is not present, replace the "=" with "!=" (for example: qs="<i>key1</i>!=<i>attribute1</i>", attribute1 will only be added if key1 is not in the querystring). As a shorthand, if the key in the querystring is the same name as the attribute you want to fill, you can omit the attribute name in the expression (for example: qs="<i>key1</i>="). If an expression doesn't find it's key in the querystring: it reverts the attribute that it fills to it's original value.</li>
+                        <li>qs="<i>key</i>". This format will update the <code>[value]</code> attribute with the querystring whenever the querystring changes.</li>
+                    </ul>
+                </div>
+                <gs-doc-example query-string="test1=444&test2=444">
+                    <template for="html" height="35">
+                        <gs-interval qs="test1"></gs-interval>
+                        <gs-interval qs="test2=value"></gs-interval>
+                        <gs-interval qs="test3=hidden"></gs-interval>
+                        <gs-interval qs="test4!=hidden"></gs-interval>
+                        <br />
+                        <br />
+                        <gs-grid widths="1,1">
+                            <gs-block>
+                                <gs-button onclick="GS.pushQueryString('test1=555');">Add "test1"</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button onclick="GS.removeFromQueryString('test1');">Remove "test1"</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button onclick="GS.pushQueryString('test2=555');">Add "test2"</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button onclick="GS.removeFromQueryString('test2');">Remove "test2"</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button onclick="GS.pushQueryString('test3=yes');">Add "test3"</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button onclick="GS.removeFromQueryString('test3');">Remove "test3"</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button onclick="GS.pushQueryString('test4=yes');">Add "test4"</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button onclick="GS.removeFromQueryString('test4');">Remove "test4"</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </template>
+                </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[mini]</code>:</span>
+                <p>Sometimes you are limited on space. The <code>[mini]</code> attribute can be used to make the <code>&lt;gs-interval&gt;</code> smaller by removing the borders and padding.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html">
+                    <gs-interval mini></gs-interval>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[no-picker]</code>:</span>
+                <p>If you want to remove the time picker button, simply add the <code>[no-picker]</code> attribute.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html">
+                    <gs-interval no-picker></gs-interval>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[tabindex=""]</code>:</span>
+                <p>With the <code>[tabindex=""]</code> attribute, you can control what order your controls are tabbed to.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="25">
+                    <label for="control_1">1:</label>
+                    <gs-interval id="control_1" tabindex="1"></gs-interval>
+                    <label for="control_3">3:</label>
+                    <gs-interval id="control_3" tabindex="3"></gs-interval>
+                    <label for="control_2">2:</label>
+                    <gs-interval id="control_2" tabindex="2"></gs-interval>
+                    <label for="control_4">4:</label>
+                    <gs-interval id="control_4" tabindex="4"></gs-interval>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[disabled]</code>:</span>
+                <p>With the <code>[disabled]</code> attribute, you can control whether or not you can use the control.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="15">
+                    <label for="control_disabled">Disabled:</label>
+                    <gs-interval id="control_disabled" disabled></gs-interval>
+                    <label for="control_enabled">Not Disabled:</label>
+                    <gs-interval id="control_enabled"></gs-interval>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[readonly]</code>:</span><br />
+                <p>The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The differences are that readonly is styled differently and allows you to copy the current text from the control.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="15">
+                    <gs-interval readonly value="2341"></gs-interval>
+                </template>
+            </gs-doc-example>
+                
+            <div class="doc-example-description">
+                <span class="h3">Javascript Methods:</span>
+                <p>These functions can be run on individual <code>&lt;gs-interval&gt;</code> elements:<br />
+                <i>INTERVAL</i>.open() &lt;-- This method opens the <code>&lt;gs-interval&gt;</code>.<br />
+            </div>
+            <gs-doc-example>
+                <template for="html" height="10">
+                    <gs-button onclick="testOpen()">Open Interval</gs-button>
+                    <br />
+                    <gs-interval id="test-elem"></gs-interval>
+                </template>
+                <template for="js" height="10">
+                    function testOpen() {
+                        document.getElementById('test-elem').open();
+                    }
+                </template>
+            </gs-doc-example>
+
+        </gs-container>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+    </body>
+</html>

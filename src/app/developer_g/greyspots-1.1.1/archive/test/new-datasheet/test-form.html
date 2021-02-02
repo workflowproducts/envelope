@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        <style>
+            label {
+                padding: 0.268em;
+            }
+            gs-cell > label > input {
+                width: 100%;
+                border: 0 none;
+                margin: 0;
+                padding: 0;
+                font-size: 1em;
+                font-family: inherit;
+                
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                
+                -webkit-border-radius: inherit;
+                /*-moz-border-radius: none;*/
+            }
+            
+            gs-current-record[inline] {
+                display: inline-block;
+            }
+        </style>
+        <script>
+       
+        </script>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h1>Buttons:</h1></gs-header>
+            <gs-body>
+                <!--<gs-dt id="dt-insert-start_date" value="today"></gs-dt>-->
+            
+                <!--<gs-text tabindex="1" max-length="10"></gs-text><gs-text max-length="10"></gs-text><a href="#">test</a>-->
+                
+                <!--<gs-wheel values="3-10">-->
+                <!--</gs-wheel>-->
+                <!--<gs-wheel>-->
+                <!--    <option value="mon">Monday</option>-->
+                <!--    <option value="tue">Tuesday</option>-->
+                <!--    <option value="wed">Wednesday</option>-->
+                <!--    <option value="thu">Thursday</option>-->
+                <!--    <option value="fri">Friday</option>-->
+                <!--    <option value="sat">Saturday</option>-->
+                <!--    <option value="sun">Sunday</option>-->
+                <!--</gs-wheel>-->
+                <!--<gs-wheel min="1" max="3">-->
+                
+                <gs-form
+                    where="id = 2704"
+                    src="test.asdf3"
+                    ord="id ASC"
+                    limit="1"
+                    style="width: 100%; height: 100%;"
+                 >
+                 <template>
+                    <gs-text max-length="10" column="asdf_1"></gs-text>
+                    <gs-text max-length="10" column="asdf_2"></gs-text>
+                    <gs-text max-length="10" column="asdf_3"></gs-text>
+                    </template>
+                </gs-form>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

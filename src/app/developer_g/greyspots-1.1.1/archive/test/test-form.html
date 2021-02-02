@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <style>
+            /* these styles are just for the demo */
+            
+            /* make scrolling easier  */
+            gs-body {
+                padding: 2em;
+                box-sizing: border-box;
+            }
+            
+            /* make the deviders between examples more obvious */
+            hr {
+                border: 3px solid #000000;
+            }
+        </style>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>Form</h3></gs-header>
+            <gs-body>
+                
+                <!--
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                qs="visibility"
+                <br />
+                
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                qs="visibility=,limit=,test=" visibility="true"
+                <br />
+                
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                qs="visibility=hidden,limit=asdf,test=qwer"
+                <br />
+                
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                qs="visibility!=hidden"
+                <br />
+                
+                
+                refresh-on-querystring-change
+                refresh-on-querystring-values="visibility"
+                -->
+                
+                <center><b>view, qs</b></center>
+                <gs-form src="test.tpeople" limit="2" qs="visibility!=hidden">
+                    <template>
+                        <gs-grid gutter reflow-at="767px">
+                            <gs-block>
+                                <label>First Name:</label>
+                                <gs-text column="first_name"></gs-text>
+                            </gs-block>
+                            <gs-block>
+                                <label>Last Name:</label>
+                                <gs-checkbox column="last_name"></gs-checkbox>
+                            </gs-block>
+                        </gs-grid>
+                        <gs-grid gutter reflow-at="767px">
+                            <gs-block>
+                                <label>First Name:</label>
+                                <gs-text column="first_name"></gs-text>
+                            </gs-block>
+                            <gs-block>
+                                <label>Last Name:</label>
+                                <gs-checkbox></gs-checkbox>
+                            </gs-block>
+                        </gs-grid>
+                    </template>
+                </gs-form>
+                <br />
+                <hr />
+                <br />
+                
+                <center><b>view, qs</b></center>
+                <gs-form src="test.tpeople" qs="id">
+                    <template>
+                        <gs-grid gutter reflow-at="767px">
+                            <gs-block>
+                                <label for="input_form_1_{{! row.id }}_first_name">First Name:</label>
+                                <gs-text id="input_form_1_{{! row.id }}_first_name" column="first_name"></gs-text>
+                            </gs-block>
+                            <gs-block>
+                                <label for="input_form_1_{{! row.id }}_last_name">Last Name:</label>
+                                <gs-text id="input_form_1_{{! row.id }}_last_name" column="last_name"></gs-text>
+                            </gs-block>
+                        </gs-grid>
+                        <gs-grid gutter reflow-at="767px">
+                            <gs-block>
+                                <label for="input_form_1_{{! row.id }}_birth_date">Birth Date:</label>
+                                <gs-date id="input_form_1_{{! row.id }}_birth_date" column="birth_date"></gs-date>
+                            </gs-block>
+                            <gs-block>
+                                <br />
+                                <span>Age:</span><b>{{! row.age }}</b>
+                            </gs-block>
+                        </gs-grid>
+                    </template>
+                </gs-form>
+                <br />
+                <hr />
+                <br />
+                
+                <center><b>view, limit="4", ord="first_name ASC, last_name ASC", save-while-typing</b></center>
+                <gs-form src="test.tpeople" limit="4" ord="first_name ASC, last_name ASC" save-while-typing>
+                    <template>
+                        <gs-grid gutter reflow-at="767px">
+                            <gs-block>
+                                <label for="input_form_2_{{! row.id }}_first_name">First Name:</label>
+                                <gs-text id="input_form_2_{{! row.id }}_first_name" column="first_name"></gs-text>
+                            </gs-block>
+                            <gs-block>
+                                <label for="input_form_2_{{! row.id }}_last_name">Last Name:</label>
+                                <gs-text id="input_form_2_{{! row.id }}_last_name" column="last_name"></gs-text>
+                            </gs-block>
+                        </gs-grid>
+                        <gs-grid gutter reflow-at="767px">
+                            <gs-block>
+                                <label for="input_form_2_{{! row.id }}_birth_date">Birth Date:</label>
+                                <gs-date id="input_form_2_{{! row.id }}_birth_date" column="birth_date"></gs-date>
+                            </gs-block>
+                            <gs-block>
+                                <br />
+                                <span>Age:</span><b>{{! row.age }}</b>
+                            </gs-block>
+                        </gs-grid>
+                    </template>
+                </gs-form>
+                <br />
+                <hr />
+                <br />
+                <center><b>view, limit="4", ord="first_name ASC, last_name ASC"</b></center>
+                <gs-form src="test.tpeople" limit="4" ord="first_name ASC, last_name ASC">
+                    <template>
+                        <gs-grid gutter reflow-at="767px">
+                            <gs-block>
+                                <label for="input_form_3_{{! row.id }}_first_name">First Name:</label>
+                                <gs-text id="input_form_3_{{! row.id }}_first_name" column="first_name"></gs-text>
+                            </gs-block>
+                            <gs-block>
+                                <label for="input_form_3_{{! row.id }}_last_name">Last Name:</label>
+                                <gs-text id="input_form_3_{{! row.id }}_last_name" column="last_name"></gs-text>
+                            </gs-block>
+                        </gs-grid>
+                        <gs-grid gutter reflow-at="767px">
+                            <gs-block>
+                                <label for="input_form_3_{{! row.id }}_birth_date">Birth Date:</label>
+                                <gs-date id="input_form_3_{{! row.id }}_birth_date" column="birth_date"></gs-date>
+                            </gs-block>
+                            <gs-block>
+                                <br />
+                                <span>Age:</span><b>{{! row.age }}</b>
+                            </gs-block>
+                        </gs-grid>
+                    </template>
+                </gs-form>
+                <br />
+                <hr />
+                <br />
+                <center><b>view</b></center> <!--, where id=5186800-->
+                <gs-form src="test.tpeople"><!-- where="id=5186800"-->
+                    <template>
+                        <gs-grid gutter reflow-at="767px">
+                            <gs-block>
+                                <label for="input_form_4_{{! row.id }}_first_name">First Name:</label>
+                                <gs-text id="input_form_4_{{! row.id }}_first_name" column="first_name"></gs-text>
+                            </gs-block>
+                            <gs-block>
+                                <label for="input_form_4_{{! row.id }}_last_name">Last Name:</label>
+                                <gs-text id="input_form_4_{{! row.id }}_last_name" column="last_name"></gs-text>
+                            </gs-block>
+                        </gs-grid>
+                        <label for="input_form_4_{{! row.id }}_birth_date">birth_date</label>
+                        <gs-date id="input_form_4_{{! row.id }}_birth_date" column="birth_date"></gs-date>
+                        <br />
+                        <label for="input_form_4_{{! row.id }}_age">age</label>
+                        <gs-number id="input_form_4_{{! row.id }}_age" column="age"></gs-number>
+                        <br />
+                        <h3>Pets:</h3>
+                        <gs-envelope src="test.tpeople_line" column="id" child-column="people_id" limit="20" order_by="id DESC" style="height: 200px;">
+                            <template for="table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>pet_name</th>
+                                            <th>birth_date</th>
+                                            <th>age</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th>{{! row_number }}</th>
+                                            <td><gs-text mini column="pet_name" value="{{! row.pet_name }}" ></gs-text></td>
+                                            <td><gs-date mini column="birth_date" value="{{! row.birth_date }}"></gs-date></td>
+                                            <td><gs-number mini column="age" value="{{! row.age }}" disabled></gs-number></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                            <template for="insert">
+                                Name:
+                                <gs-text column="pet_name"></gs-text>
+                                <br />
+                                Birth Date:
+                                <gs-date column="birth_date"></gs-date>
+                            </template>
+                        </gs-envelope>
+                    </template>
+                </gs-form>
+                <br />
+                <hr />
+                <br />
+                <center><b>sql, where id=5186800, save-while-typing</b></center>
+                <gs-form src="test.tpeople" where="id=5186800" save-while-typing>
+                    <template>
+                        <label for="input_form_5_{{! row.id }}_first_name">first_name</label>
+                        <gs-text id="input_form_5_{{! row.id }}_first_name" column="first_name"></gs-text>
+                        <br />
+                        <h3>Pets:</h3>
+                        <gs-envelope src="test.tpeople_line" column="id" child-column="people_id" limit="20" order_by="id DESC" style="height: 200px;">
+                            <template for="table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>pet_name</th>
+                                            <th>birth_date</th>
+                                            <th>age</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th>{{! row_number }}</th>
+                                            <td><gs-text mini column="pet_name" value="{{! row.pet_name }}" ></gs-text></td>
+                                            <td><gs-date mini column="birth_date" value="{{! row.birth_date }}"></gs-date></td>
+                                            <td><gs-number mini column="age" value="{{! row.age }}" disabled></gs-number></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                            <template for="insert">
+                                Name:
+                                <gs-text column="pet_name"></gs-text>
+                                <br />
+                                Birth Date:
+                                <gs-date column="birth_date"></gs-date>
+                            </template>
+                        </gs-envelope>
+                    </template>
+                </gs-form>
+                <br />
+                <hr />
+                <br />
+                <center><b>view, disabled</b></center>
+                <gs-form src="test.ttime" disabled>
+                    <template>
+                        <label for="input_form_2_{{! row.id }}_user_name">user_name</label>
+                        <gs-text id="input_form_2_{{! row.id }}_user_name" column="user_name"></gs-text>
+                        <br />
+                        <label for="input_form_2_{{! row.id }}_cust_id">cust_id</label>
+                        <gs-combo id="input_form_2_{{! row.id }}_cust_id" column="cust_id" src="wtkv2.tcust_list" hide="1"></gs-combo>
+                        <br />
+                        <label for="input_form_2_{{! row.id }}_project_name">project_name</label>
+                        <gs-text id="input_form_2_{{! row.id }}_project_name" column="project_name"></gs-text>
+                        <br />
+                        <label for="input_form_2_{{! row.id }}_detail">detail</label>
+                        <gs-memo id="input_form_2_{{! row.id }}_detail" column="detail"></gs-memo>
+                        <br />
+                        <label for="input_form_2_{{! row.id }}_billable">billable</label>
+                        <gs-checkbox id="input_form_2_{{! row.id }}_billable" column="billable"></gs-checkbox>
+                    </template>
+                </gs-form><!--
+                <br />
+                <hr />
+                <br />
+                <center><b>sql error</b></center>
+                <gs-form src="SE LECT * test.ttime">
+                    <template>
+                        <label for="input_form_3_user_name">user_name</label>
+                        <gs-text id="input_form_3_user_name" column="user_name"></gs-text>
+                        <br />
+                        <label for="input_form_3_cust_id">cust_id</label>
+                        <gs-combo id="input_form_3_cust_id" column="cust_id" src="wtkv2.tcust_list" hide="1"></gs-combo>
+                        <br />
+                        <label for="input_form_3_project_name">project_name</label>
+                        <gs-text id="input_form_3_project_name" column="project_name"></gs-text>
+                        <br />
+                        <label for="input_form_3_detail">detail</label>
+                        <gs-memo id="input_form_3_detail" column="detail"></gs-memo>
+                        <br />
+                        <label for="input_form_3_billable">billable</label>
+                        <gs-checkbox id="input_form_3_billable" column="billable"></gs-checkbox>
+                    </template>
+                </gs-form>-->
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

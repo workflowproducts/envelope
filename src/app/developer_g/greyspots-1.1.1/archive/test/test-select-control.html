@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <title>Selectbox</title>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header>
+                <center>
+                    <h3>Selectbox</h3>
+                </center>
+            </gs-header>
+            <gs-body padded>
+                <label>Normal:</label>
+                <gs-select>
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                </gs-select><br />
+                
+                <label>Pre value:</label>
+                <gs-select value="test2">
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                </gs-select><br />
+                
+                <label>Hidden value, pre value:</label>
+                <gs-select value="hidden value 2">
+                    <option value="hidden value 1">test1</option>
+                    <option value="hidden value 2">test2</option>
+                    <option value="hidden value 3">test3</option>
+                </gs-select><br />
+                
+                <label>Option group:</label>
+                <gs-select>
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                    <optgroup label="test group">
+                        <option>test4</option>
+                        <option>test5</option>
+                        <option>test6</option>
+                    </optgroup>
+                    <optgroup label="test group">
+                        <option>test7</option>
+                        <option>test8</option>
+                        <option>test9</option>
+                    </optgroup>
+                </gs-select><br />
+                
+                <label>Mini:</label>
+                <gs-select mini>
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                    <option>test4</option>
+                    <option>test5</option>
+                    <option>test6</option>
+                    <option>test7</option>
+                    <option>test8</option>
+                    <option>test9</option>
+                </gs-select><br />
+                
+                <label>QS:</label>
+                <gs-select qs="test">
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                    <option>test4</option>
+                    <option>test5</option>
+                    <option>test6</option>
+                    <option>test7</option>
+                    <option>test8</option>
+                    <option>test9</option>
+                </gs-select><br />
+                
+                <label>QS, Value:</label>
+                <gs-select qs="test" value="test2">
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                    <option>test4</option>
+                    <option>test5</option>
+                    <option>test6</option>
+                    <option>test7</option>
+                    <option>test8</option>
+                    <option>test9</option>
+                </gs-select><br />
+                
+                
+                
+                
+                
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                <gs-select value="test2" qs="visibility">
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                    <option>test4</option>
+                    <option>test5</option>
+                </gs-select>
+                <br />
+                
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                <gs-select value="test2" qs="visibility=,limit=,test=" visibility="true">
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                    <option>test4</option>
+                    <option>test5</option>
+                </gs-select>
+                <br />
+                
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                <gs-select value="test2" qs="visibility=hidden,limit=asdf,test=qwer">
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                    <option>test4</option>
+                    <option>test5</option>
+                </gs-select>
+                <br />
+                
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                <gs-select value="test2" qs="visibility!=hidden">
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                    <option>test4</option>
+                    <option>test5</option>
+                </gs-select>
+                <br />
+                
+                <label>readonly, no value</label>
+                <gs-select readonly>
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                    <option>test4</option>
+                    <option>test5</option>
+                </gs-select>
+                <br />
+                
+                <label>readonly, value</label>
+                <gs-select readonly value="test2">
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                    <option>test4</option>
+                    <option>test5</option>
+                </gs-select>
+                <br />
+                
+                
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

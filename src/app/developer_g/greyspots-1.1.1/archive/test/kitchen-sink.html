@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <!--
+        <link href="../css/001-document.css" type="text/css" rel="stylesheet" />
+        <link href="../css/002-normalize.css" type="text/css" rel="stylesheet" />
+        <link href="../css/003-typography.css" type="text/css" rel="stylesheet" />
+        <link href="../css/004-curl.css" type="text/css" rel="stylesheet" />
+        <link href="../css/004-window-helper.css" type="text/css" rel="stylesheet" />
+        <link href="../css/005-utl.css" type="text/css" rel="stylesheet" />
+        <link href="../css/010-reset-control.css" type="text/css" rel="stylesheet" />
+        <link href="../css/010-reset-misc.css" type="text/css" rel="stylesheet" />
+        <link href="../css/010-reset-table.css" type="text/css" rel="stylesheet" />
+        <link href="../css/015-button-and-toggle-and-checkbox-icon-css" type="text/css" rel="stylesheet" />
+        <link href="../css/020-checkbox.css" type="text/css" rel="stylesheet" />
+        <link href="../css/020-checkbox.css" type="text/css" rel="stylesheet" />
+        <link href="../css/020-grid.css" type="text/css" rel="stylesheet" />
+        <link href="../css/020-listbox.css" type="text/css" rel="stylesheet" />
+        <link href="../css/020-envelope.css" type="text/css" rel="stylesheet" />
+        -->
+        
+        <title>Kitchen Sink</title>
+        
+        <script src="./axe/axe.min.js" type="text/javascript"></script>
+        
+        <script>
+window.addEventListener('load', function () {
+    "use strict";
+    setTimeout(function () {
+        axe.run(document, [], function (strError, jsnResult) {
+            if (strError) {
+                GS.msgbox('Error running Axe', strError, ['Ok']);
+            } else {
+                console.log(jsnResult);
+
+                var i;
+                var len;
+
+                var intInapplicable = 0;
+                len = jsnResult.inapplicable.length;
+                for (i = 0; i < len; i += 1) {
+                    if (jsnResult.inapplicable[i].nodes) {
+                        intInapplicable = intInapplicable + jsnResult.inapplicable[i].nodes.length;
+                    }
+                }
+                console.log('intInapplicable', intInapplicable);
+
+                var intIncomplete = 0;
+                len = jsnResult.incomplete.length;
+                for (i = 0; i < len; i += 1) {
+                    if (jsnResult.incomplete[i].nodes) {
+                        intIncomplete = intIncomplete + jsnResult.incomplete[i].nodes.length;
+                    }
+                }
+                console.log('intIncomplete', intIncomplete);
+
+                var intPasses = 0;
+                len = jsnResult.passes.length;
+                for (i = 0; i < len; i += 1) {
+                    if (jsnResult.passes[i].nodes) {
+                        intPasses = intPasses + jsnResult.passes[i].nodes.length;
+                    }
+                }
+                console.log('intPasses', intPasses);
+
+                var intViolations = 0;
+                len = jsnResult.violations.length;
+                for (i = 0; i < len; i += 1) {
+                    if (jsnResult.violations[i].nodes) {
+                        intViolations = intViolations + jsnResult.violations[i].nodes.length;
+                    }
+                }
+                console.log('intViolations', intViolations);
+
+
+                GS.ajaxJSON('/env/acs.action_save', 'action=save&url='
+                    + encodeURIComponent(window.location)
+                    + '&data=' + encodeURIComponent(JSON.stringify(jsnResult))
+                    + '&inapplicable=' + encodeURIComponent(intInapplicable)
+                    + '&incomplete=' + encodeURIComponent(intIncomplete)
+                    + '&passes=' + encodeURIComponent(intPasses)
+                    + '&violations=' + encodeURIComponent(intViolations)
+                    + '&user_agent=' + encodeURIComponent(navigator.userAgent)
+                    , function (data, error) {
+                    if (!error) {
+                        console.log('Saved results');
+                    } else {
+                        GS.ajaxErrorDialog(data);
+                    }
+                });
+            }
+        });
+    }, 5000);
+});
+        </script>
+        
+        <style>
+            /* make the envelopes take up a reasonable amount of space */
+            gs-envelope {
+                height: 300px;
+            }
+        </style>
+            
+        <style>
+/*layout*/
+.layout {
+    box-sizing: border-box;
+    display: block;
+    
+    background-color: white;
+    color: black;
+    
+    padding: 0.25em;
+    border: none;
+    margin: 0;
+    
+    border-radius: 0;
+    
+    
+    box-shadow: 0.3em 0.3em 0.1em 0 rgba(0,0,0,.1), 0 0 0.2em 0 rgba(0,0,0,.2);
+}
+        </style>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header>
+                <h2>Kitchen Sink</h2>
+            </gs-header>
+            <gs-body>
+                <label for="test-grid">Grid:</label>
+                <gs-grid padded gutter id="test-grid" widths="1,1,1,1">
+                    <gs-block>
+                        <br/>
+                        <gs-button onfocus="console.log('onfocus');" onclick="console.log('click');" onblur="console.log('onblur');" id="test_button1">Button</gs-button>
+                    </gs-block>
+                    <gs-block>
+                        <br/>
+                        <gs-button id="test_button2" onclick="console.log('click, but you are not supposed to be able to');" disabled>Disabled Button</gs-button>
+                    </gs-block>
+                    <gs-block>
+                        <label for="test_checkbox1">Label:</label>
+                        <gs-checkbox id="test_checkbox1">Placeholder</gs-checkbox>
+                    </gs-block>
+                    <gs-block>
+                        <label for="test_checkbox2">Label:</label>
+                        <gs-checkbox id="test_checkbox2" disabled></gs-checkbox>
+                    </gs-block>
+                    
+                    <gs-block width="4"><br/></gs-block>
+                    
+                    <gs-block>
+                        <label for="test_select">Which One:</label>
+                        <gs-select id="test_select">
+                            <option>test1</option>
+                            <option>test2</option>
+                            <option>test3</option>
+                            <optgroup label="test group">
+                                <option>test4</option>
+                                <option>test5</option>
+                                <option>test6</option>
+                            </optgroup>
+                            <optgroup label="test group">
+                                <option>test7</option>
+                                <option>test8</option>
+                                <option>test9</option>
+                            </optgroup>
+                        </gs-select>
+                    </gs-block>
+                    <gs-block>
+                        <label for="test_glass">Combination Box:</label>
+                        <gs-combo id="test_glass">
+                            <template for="table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Column 1</th>
+                                            <th>Column 2</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr value="1">
+                                            <td>qwer</td>
+                                            <td>rewq</td>
+                                        </tr>
+                                        <tr value="2">
+                                            <td>asdf</td>
+                                            <td>fdsa</td>
+                                        </tr>
+                                        <tr value="3">
+                                            <td>zxcv</td>
+                                            <td>vcxz</td>
+                                        </tr>
+                                        <tr value="4">
+                                            <td>rtyu</td>
+                                            <td>uytr</td>
+                                        </tr>
+                                        <tr value="5">
+                                            <td>fghjjhg</td>
+                                            <td>jhgf</td>
+                                        </tr>
+                                        <tr value="6">
+                                            <td>uiop</td>
+                                            <td>lkhj</td>
+                                        </tr>
+                                        <tr value="7">
+                                            <td>vbnm</td>
+                                            <td>mnbv</td>
+                                        </tr>
+                                        <tr value="8">
+                                            <td>2345rtyu</td>
+                                            <td>6543uytr</td>
+                                        </tr>
+                                        <tr value="9">
+                                            <td>4567fghjjhg</td>
+                                            <td>4321jhgf</td>
+                                        </tr>
+                                        <tr value="10">
+                                            <td>56789uiop</td>
+                                            <td>0789lkhj</td>
+                                        </tr>
+                                        <tr value="11">
+                                            <td>356vbnm</td>
+                                            <td>6543mnbv</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-combo>
+                    </gs-block>
+                    <gs-block>
+                        <label for="test-toggle-1">On/Off:</label>
+                        <gs-toggle id="test-toggle-1">Hey</gs-toggle>
+                        </gs-block>
+                    <gs-block>
+                        <label for="test_checkbox3">On/Off/Mixed:</label>
+                        <gs-checkbox id="test_checkbox3" triplestate></gs-checkbox>
+                    </gs-block>
+                    
+                    <gs-block width="4"><br/></gs-block>
+                    
+                    <gs-block><label for="Text">Label for Text</label><gs-text id="Text" placeholder="Text"></gs-text></gs-block>
+                    <gs-block><label for="Text4">Label for Text 4</label><gs-text id="Text2" placeholder="Text 2"></gs-text></gs-block>
+                    <gs-block><label for="Text2">Label for Text 2</label><gs-text id="Text3" placeholder="Text 3"></gs-text></gs-block>
+                    <gs-block><label for="Text3">Label</label><gs-text placeholder="Text 4" id="Text4"></gs-text></gs-block>
+                    
+                    <gs-block><label for="number">Label</label><gs-number id="number" placeholder="Number"></gs-number></gs-block>
+                    <gs-block><label for="date">Label</label><gs-date id="date" placeholder="Date"></gs-date></gs-block>
+                    <gs-block><label for="text_disabled">Label</label><gs-text id="text_disabled" placeholder="Disabled Text" disabled></gs-text></gs-block>
+                    <gs-block></gs-block>
+                    
+                    <gs-block width="4"><br/></gs-block>
+                    
+                    <gs-block><label for="interval">Label</label><gs-interval id="interval" placeholder="Interval"></gs-interval></gs-block>
+                    <gs-block><label for="search">Label</label><gs-search id="search" placeholder="Search"></gs-search></gs-block>
+                    <gs-block><label for="static">Label</label><gs-static id="static" value="Static"></gs-static></gs-block>
+                    <gs-block>
+                        <gs-dialog-button>
+                            <template>
+                                <gs-header>
+                                    <h5>Example Dialog</h5>
+                                </gs-header>
+                                <gs-body>
+                                    <p>Content for the dialog.</p>
+                                </gs-body>
+                                <gs-footer>
+                                    <gs-button dialogclose>Done</gs-button>
+                                </gs-footer>
+                            </template>
+                            Open Example Dialog
+                        </gs-dialog-button>
+                    </gs-block>
+                    
+                    <gs-block width="4"><br/></gs-block>
+                    
+                    <gs-block><gs-button iconleft icon="bullseye">Bullseye</gs-button></gs-block>
+                    <gs-block><gs-button style="background-color: red !important; color: black !important;" iconleft icon="bullseye">Bullseye</gs-button></gs-block>
+                    <gs-block><label for="time">Label</label><gs-time id="time" value="05:05:05"></gs-time></gs-block>
+                    <gs-block><label for="dt">dt</label><gs-dt id="dt" date-format="isodate" value="03/03/2016 04:00:00"></gs-dt></gs-block>
+                    
+                    <gs-block width="4"><br/></gs-block>
+                    
+                    <gs-block width="4">
+                        <gs-group name="Group">
+                            <gs-button inline>Button 1</gs-button>
+                            <gs-button inline>Button 2</gs-button>
+                            <gs-button inline>Button 3</gs-button>
+                            <gs-button inline>Button 4</gs-button>
+                            <gs-button inline icononly icon="bullseye">Bullseye</gs-button>
+                            <gs-checkbox inline>Checkbox</gs-checkbox>
+                            <gs-checkbox inline></gs-checkbox>
+                        </gs-group>
+                    </gs-block>
+                    
+                    <gs-block width="4"><br/></gs-block>
+                    
+                    <gs-block width="2">
+                        <label for="test_optionbox1">Optionbox:</label>
+                        <gs-optionbox id="test_optionbox1" value="3">
+                            <gs-option value="0">Defcon 1</gs-option>
+                            <gs-option value="1">Defcon 2</gs-option>
+                            <gs-option value="2">Defcon 3</gs-option>
+                            <gs-option value="3">Defcon 4</gs-option>
+                            <gs-option value="4">Defcon 5</gs-option>
+                        </gs-optionbox>
+                    </gs-block>
+                    <gs-block width="2">
+                        <label for="test_buttonbox1">Button Group:</label>
+                        <gs-button remove-margin-bottom remove-bottom>Button 1</gs-button>
+                        <gs-button remove-margin-bottom remove-bottom remove-margin-top remove-top>Button 2</gs-button>
+                        <gs-button remove-margin-bottom remove-bottom remove-margin-top remove-top>Button 3</gs-button>
+                        <gs-button remove-margin-bottom remove-bottom remove-margin-top remove-top>Button 4</gs-button>
+                        <gs-button remove-margin-top remove-top>Button 5</gs-button>
+                    </gs-block>
+                    
+                    <gs-block width="4"><br/></gs-block>
+                    
+                    <gs-block width="2">
+                        <label for="test-memo-1">Memo: (<b>test</b>)</label>
+                        <gs-memo id="test-memo-1"></gs-memo>
+                    </gs-block>
+                    <gs-block width="2">
+                        <label for="test-list-1">Listbox: (<b>test</b>)</label>
+                        <gs-listbox id="test-list-1" value="asdf" qs="visibility" style="height: 10em;">
+                            <template>
+                                <table>
+                                    <thead><tr><th>Test 1</th><th>TEST 2</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>asdf</td><td>xzcv</td></tr> <tr><td>qwer</td><td>tyui</td></tr>
+                                        <tr><td>uiop</td><td>hjkl</td></tr> <tr><td>bnm,</td><td>bnm,</td></tr>
+                                        <tr><td>2345</td><td>sgfd</td></tr> <tr><td>qwer</td><td>tyui</td></tr>
+                                        <tr><td>uiop</td><td>hjkl</td></tr> <tr><td>bnm,</td><td>bnm,</td></tr>
+                                        <tr><td>2345</td><td>sgfd</td></tr> <tr><td>qwer</td><td>tyui</td></tr>
+                                        <tr><td>uiop</td><td>hjkl</td></tr> <tr><td>bnm,</td><td>bnm,</td></tr>
+                                        <tr><td>2345</td><td>sgfd</td></tr> <tr><td>qwer</td><td>tyui</td></tr>
+                                        <tr><td>uiop</td><td>hjkl</td></tr> <tr><td>bnm,</td><td>bnm,</td></tr>
+                                        <tr><td>2345</td><td>sgfd</td></tr> <tr><td>qwer</td><td>tyui</td></tr>
+                                        <tr><td>uiop</td><td>hjkl</td></tr> <tr><td>bnm,</td><td>bnm,</td></tr>
+                                        <tr><td>2345</td><td>sgfd</td></tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </gs-listbox>
+                        <label for="test-list-2">Listbox:</label>
+                        <gs-listbox id="test-list-2" src="test.tpeople" style="height: 80em;" onchange="/*console.log('1', this.column('age'));console.log('2', this.value);console.log('3', this.selectedRecord);console.log('4', this.textValue);*/" multi-select></gs-listbox>
+                        <!--<br /><br />-->
+                        <!--<gs-listbox id="test-list-2" src="test.tpeople" style="height: 10em;" onchange="console.log('1', this.column('age'));console.log('2', this.value);console.log('3', this.selectedRecord);console.log('4', this.textValue);" multi-select>-->
+                        <!--    <template>-->
+                        <!--        <table>-->
+                        <!--            <thead><tr><th>TEST 2</th></tr></thead>-->
+                        <!--            <tbody>-->
+                        <!--                <tr><td><gs-static column="id"></gs-static></td><tr>-->
+                        <!--            </tbody>-->
+                        <!--        </table>-->
+                        <!--    </template>-->
+                        <!--</gs-listbox>-->
+                    </gs-block>
+                </gs-grid>
+                <br />
+                
+                <label for="test_events2">Form:</label>
+                <gs-form id="test_events2" src="test.tpeople">
+                    <template>
+                        <label for="test_events">Envelope:</label>
+                        <gs-envelope id="test_events" src="test.tpeople" ord="first_name ASC">
+                            <template for="table">
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <th heading="#">{{! row_number }}</th>
+                                            <td heading="First Name" style="min-width: 120px;"><label><gs-text title="First Name" mini column="first_name"></gs-text></label></td>
+                                            <td heading="Last Name"  style="min-width: 120px;"><label><gs-text title="Last Name" mini column="last_name"></gs-text></label></td>
+                                            <td heading="Birth Date" style="min-width: 122px;"><gs-date title="Birth Date" mini column="birth_date"></gs-date></td>
+                                            <td heading="Age"        style="min-width: 37px;">{{! row.age }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                            <template for="insert">
+                                First Name:
+                                <gs-text column="first_name"></gs-text><br />
+                                
+                                Last Name:
+                                <gs-text column="last_name"></gs-text><br />
+                                
+                                Birth Date:
+                                <gs-date column="birth_date"></gs-date><br />
+                            </template>
+                        </gs-envelope>
+                    </template>
+                </gs-form>
+                
+                <label for="test_datasheet">Datasheet</label>
+                <gs-datasheet id="test_datasheet" src="test.ttime" reflow-at="500px" limit="10" no-huddelete null-string="">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th style="width: 8em;">TEST: id</th>
+                                    <th>TEST: user_name</th>
+                                    <th>TEST: cust_id</th>
+                                    <th>TEST: project_name</th>
+                                    <th>TEST: detail</th>
+                                    <th>TEST: billable</th>
+                                    <th>TEST: taxable</th>
+                                    <th>TEST: notify_date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th heading="#">{{! row_number }}</th>
+                                    <td heading="id">{{! row.id }}</td>
+                                    <td heading="user_name">{{! row.user_name }}</td>
+                                    <td heading="cust_id">{{! row.cust_id }}</td>
+                                    <td heading="project_name">{{! row.project_name }}</td>
+                                    <td heading="detail"><gs-text aria-label="TEST: detail" column="detail" mini></gs-text></td>
+                                    <td heading="billable">{{! row.billable }}</td>
+                                    <td heading="taxable">{{! row.taxable }}</td>
+                                    <td heading="notify_date">{{! row.notify_date }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-datasheet>
+            </gs-body>
+            <gs-footer><center><h3>footer</h3></center></gs-footer>
+        </gs-page>
+    </body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        <!-- Make this page use standard caching procedure when used as an iframe -->
+        <meta http-equiv="Cache-control" content="no-store, must-revalidate" />
+        
+        <title>New Page</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        <script>
+        bolCurl = false;
+        </script>
+    </head>
+    <body>
+        <gs-form src="gsdoc.tpeople" where="id=2341" onbefore_select="console.log('before_select')" onafter_select="console.log('after_select')" onafter_update="console.log('after_update')">
+            <template>
+                <label for="first_name">First Name:</label>
+                <gs-text id="first_name" column="first_name"></gs-text>
+                
+                <label for="last_name">Last Name:</label>
+                <gs-text id="last_name" column="last_name"></gs-text>
+            </template>
+        </gs-form>
+    </body>
+</html>

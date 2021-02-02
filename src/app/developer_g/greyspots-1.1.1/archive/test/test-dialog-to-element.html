@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+//global GS, document
+function testDialog(strDirection) {
+    "use strict";
+    GS.openDialogToElement(
+        document.getElementById(document.getElementById('select-target').value),
+        'test-dialog',
+        strDirection,
+        function () {
+            document.getElementById('test-element').focus();
+        }
+    );
+}
+        </script>
+        
+        <style>
+            #target-parent {
+                position: relative;
+            }
+            
+            #target-1, #target-2, #target-3, #target-4, #target-5 {
+                position: absolute;
+                width: 9em;
+                height: 9em;
+                text-align: center;
+                padding-top: 3.5em;
+                
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                -ms-box-sizing: border-box;
+                -o-box-sizing: border-box;
+                box-sizing: border-box;
+            }
+            
+            #target-1 {
+                left: 2%;
+                top: 2%;
+                background-color: #FFAAAA;
+            }
+            
+            #target-2 {
+                right: 2%;
+                top: 2%;
+                background-color: #AAFFAA;
+            }
+            
+            #target-3 {
+                left: 50%;
+                top: 50%;
+                margin-left: -4.5em;
+                margin-top: -4.5em;
+                background-color: #AAAAFF;
+            }
+            
+            #target-4 {
+                left: 2%;
+                bottom: 2%;
+                background-color: #FFFFAA;
+            }
+            
+            #target-5 {
+                right: 2%;
+                bottom: 2%;
+                background-color: #AAFFFF;
+            }
+        </style>
+    </head>
+    <body>
+        <template id="test-dialog">
+            <gs-header><h3>Dialog To Element:</h3></gs-header>
+            <gs-body padded>
+                this is a test dialog.
+                <gs-text id="test-element" value="firefox callback test control (should have focus)"></gs-text>
+            </gs-body>
+            <gs-footer>
+                <gs-button dialogclose>Done</gs-button>
+            </gs-footer>
+        </template>
+        <gs-page>
+            <gs-header>
+                <h3>Dialog To Element:</h3>
+                <div flex-horizontal>
+                    <label for="select-target">Target:</label>
+                    <gs-select id="select-target" value="target-1" flex>
+                        <option value="target-1">TOP-LEFT Target</option>
+                        <option value="target-2">TOP-RIGHT Target</option>
+                        <option value="target-3">CENTER Target</option>
+                        <option value="target-4">BOTTOM-LEFT Target</option>
+                        <option value="target-5">BOTTOM-RIGHT Target</option>
+                    </gs-select>
+                </div>
+                <gs-grid>
+                    <gs-block><gs-button onclick="testDialog()" remove-right>Default</gs-button></gs-block>
+                    <gs-block><gs-button onclick="testDialog('left')" remove-all>Left</gs-button></gs-block>
+                    <gs-block><gs-button onclick="testDialog('up')" remove-all>Top</gs-button></gs-block>
+                    <gs-block><gs-button onclick="testDialog('down')" remove-all>Bottom</gs-button></gs-block>
+                    <gs-block><gs-button onclick="testDialog('right')" remove-left>Right</gs-button></gs-block>
+                </gs-grid>
+            </gs-header>
+            <gs-body id="target-parent">
+                <div id="target-1">TOP-LEFT<br />TARGET</div>
+                <div id="target-2">TOP-RIGHT<br />TARGET</div>
+                <div id="target-3">CENTER<br />TARGET</div>
+                <div id="target-4">BOTTOM-LEFT<br />TARGET</div>
+                <div id="target-5">BOTTOM-RIGHT<br />TARGET</div>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

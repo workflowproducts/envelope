@@ -1,0 +1,78 @@
+@media (prefers-color-scheme: dark) {
+    gs-header, gs-footer, gs-body, body, gs-dialog {
+        background-color: #222222;
+        color: #ff9900;
+    }
+    label, p {
+        color: #ff9900;
+    }
+    gs-button
+    , gs-text, gs-text .control
+    , gs-combo, gs-combo .control
+    , gs-date, gs-date .control
+    , gs-datetime, gs-datetime .control
+    , gs-select, gs-select .control
+    , gs-dt, gs-dt .control
+    , gs-checkbox, gs-checkbox .control
+    , gs-table:not([theme]) > .table-root > .table-table-container > .table-data-container > .table-data-viewport > gs-cell.table-cell
+    , input {
+        background-color: #555555;
+        color: #ff9900;
+    }
+    gs-table:not([theme]) > .table-root > .table-table-container > .table-data-container > .table-data-viewport {
+        background-color: #333333;
+    }
+    
+    tr {
+      background-color: #555555;
+    }
+    
+    tr > th {
+      background-color: #111111;
+    }
+    
+    tr:nth-of-type(odd) {
+      background-color: #666666;
+    }
+
+    gs-listbox table tbody tr.hover {
+        background-color: #333333;
+    }
+    
+    gs-listbox table tbody tr.down {
+        background-color: #FF9900;
+        color: #000000;
+    }
+
+    gs-envelope table > tbody > tr:hover {
+        background-color: #333333;
+    }
+    
+    gs-envelope .fixed-header-cell {
+        background-color: #111111;
+    }
+    
+    *[selected] {
+        background-color: #FF9900 !important;
+        color: #000000 !important;
+    }
+    *[selected-secondary] {
+        background-color: #333333 !important;
+    }
+    *[selected] gs-button
+    , *[selected] gs-text, *[selected] gs-text .control
+    , *[selected] gs-combo, *[selected] gs-combo .control
+    , *[selected] gs-date, *[selected] gs-date .control
+    , *[selected] gs-dt, *[selected] gs-dt .control
+    , *[selected] gs-checkbox, *[selected] gs-checkbox .control
+    , *[selected] input {
+        background-color: #FF9900 !important;
+        color: #000000 !important;
+    }
+    
+    gs-envelope .scroll-container
+    , gs-envelope .hud-container-top
+    , gs-envelope .hud-container-bottom {
+        background-color: #333333;
+    }
+}

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Datasheet Testing</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <style>
+            /*gs-datasheet table thead tr th,
+            gs-datasheet table thead tr td {
+                width: 1em;
+            }*/
+        </style>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><center><h3>Datasheet Testing</h3></center></gs-header>
+            <gs-body padded>
+                
+                <!--
+                
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                qs="visibility"
+                
+                
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                qs="visibility=,limit=,test=" visibility="true"
+                
+                
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                qs="visibility=hidden,limit=asdf,test=qwer"
+                
+                
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                qs="visibility!=hidden"
+                
+                -->
+                
+                
+                <gs-datasheet src="test.asdf3" reflow-at="500px" limit="1" no-huddelete null-string="" caption="Test">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th style="width: 8em;">TEST: id</th>
+                                    <th>TEST: user_name</th>
+                                    <th>TEST: cust_id</th>
+                                    <th>TEST: project_name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th heading="#">{{! row_number }}</th>
+                                    <td heading="id">{{! row.id }}</td>
+                                    <td heading="asdf_1"><gs-text mini column="asdf_1"></gs-text></td>
+                                    <td heading="asdf_2"><gs-text mini column="asdf_2"></gs-text></td>
+                                    <td heading="asdf_3"><gs-text mini column="asdf_3"></gs-text></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-datasheet>
+                <!--
+                <gs-datasheet src="test.ttime" reflow-at="500px" limit="10" no-huddelete null-string="" caption="Test">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th style="width: 8em;">TEST: id</th>
+                                    <th>TEST: user_name</th>
+                                    <th>TEST: cust_id</th>
+                                    <th>TEST: project_name</th>
+                                    <th>TEST: detail</th>
+                                    <th>TEST: billable</th>
+                                    <th>TEST: taxable</th>
+                                    <th>TEST: notify_date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th heading="#">{{! row_number }}</th>
+                                    <td heading="id">{{! row.id }}</td>
+                                    <td heading="user_name">{{! row.user_name }}</td>
+                                    <td heading="cust_id">{{! row.cust_id }}</td>
+                                    <td heading="project_name">{{! row.project_name }}</td>
+                                    <td heading="detail"><gs-text column="detail" mini></gs-text></td>
+                                    <td heading="billable">{{! row.billable }}</td>
+                                    <td heading="taxable">{{! row.taxable }}</td>
+                                    <td heading="notify_date">{{! row.notify_date }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-datasheet>
+                -->
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

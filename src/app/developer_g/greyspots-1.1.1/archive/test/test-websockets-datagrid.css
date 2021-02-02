@@ -1,0 +1,219 @@
+
+
+gs-datagrid {
+    display: block;
+    position: relative;
+    height: 100%;
+    overflow: auto;
+    border: 1px solid #000000;
+}
+
+gs-datagrid > .root {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0.25em;
+    
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+gs-datagrid[mini] {
+    border: 0 none;
+}
+
+gs-datagrid[mini] > .root {
+    padding: 0;
+}
+
+gs-datagrid table textarea {
+    display: block;
+    resize: none;
+    width: 100%;
+    border: 0 none;
+    cursor: text;
+    padding: 0 0.1em;
+    
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+gs-datagrid > .root .clauses {
+    margin-top: 0.25em;
+}
+
+gs-datagrid > .root .clauses gs-block {
+    padding: 0 0.1em;
+}
+
+gs-datagrid > .root .clauses textarea {
+    display: block;
+    resize: none;
+    width: 100%;
+    border: 1px solid #000000;
+    cursor: text;
+    padding: 0.125em;
+    
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#datagrid-column-list {
+    position: relative;
+    padding: 0.25em;
+}
+
+gs-datagrid > .root > .toolbar {
+    position: absolute;
+    padding: 0.25em;
+    left: 0;
+    top: 0;
+    background-color: #FFFFFF;
+    width: 100%;
+    
+    border-bottom: 1px solid #000000;
+    
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+gs-datagrid > .root > .table-container {
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+gs-datagrid > .root > .table-container > .floating-button-container {
+    display: inline-block;
+    position: fixed;
+}
+
+gs-datagrid > .root > .toolbar > gs-button {
+    margin-right: 0.25em;
+}
+
+gs-datagrid table {
+    border-left: 1px solid #ddd;
+    table-layout: fixed;
+}
+
+gs-datagrid textarea.hidden-focus-control {
+    width: 1px;
+    height: 1px;
+    border: 0 none;
+    margin: 0;
+    padding: 0;
+    
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    z-index: -5000;
+    opacity: 0.00000001;
+    
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+gs-datagrid th,
+gs-datagrid td {
+    padding: 0.15em 0.2em;
+    cursor: pointer;
+    
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+gs-datagrid th, gs-datagrid td {
+    vertical-align: top;
+}
+
+gs-datagrid th:first-child {
+    vertical-align: middle;
+}
+
+gs-datagrid thead th {
+    cursor: s-resize;
+    overflow: hidden;
+    /*min-width: 2px;*/
+    width: 150px;
+}
+
+gs-datagrid thead th div {
+    font-size: 0.9em;
+}
+
+gs-datagrid thead th b.small {
+    font-size: 0.7em;
+}
+
+gs-datagrid thead th:first-child {
+    cursor: se-resize;
+}
+
+gs-datagrid tbody th {
+    cursor: e-resize;
+    /*min-width: 2em;*/
+}
+
+.bg-red > th,
+.bg-red > td {
+    background-color: #FF9090 !important;
+}
+
+.bg-amber > th,
+.bg-amber > td {
+    background-color: #FFDEA0 !important;
+}
+
+.bg-green-fade > th,
+.bg-green-fade > td {
+    -webkit-animation-duration: 1s;
+    animation-duration: 1s;
+    
+    -webkit-animation-iteration-count: 1;
+    animation-iteration-count: 1;
+    
+    -webkit-animation-timing-function: ease-out;
+    animation-timing-function: ease-out;
+    
+    -webkit-animation-name: effect-green-fade;
+    animation-name: effect-green-fade;
+}
+
+/* ############## effect-slide-in-top ############## */
+@-webkit-keyframes effect-green-fade {
+    0%   {
+        background-color: #90FF90;
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+@keyframes effect-green-fade {
+    0%   {
+        background-color: #90FF90;
+    }
+    100% {
+        background-color: transparent;
+    }
+}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>doT.js</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script src="/js/ace/ace.js" data-ace-base="/js/ace/" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/ace/ext-language_tools.js" type="text/javascript"></script>
+        <script src="/js/ace/ext-searchbox.js" type="text/javascript"></script>
+        
+        <script src="doc-library/doc.js" type="text/javascript"></script>
+        <link href="doc-library/doc.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-jumbo>
+            <h1 class="text-center">doT.js</h1>
+        </gs-jumbo>
+            
+        <gs-container min-width="sml;med;lrg">
+            <h3>Description:</h3>
+            <p>Many of our webcomponents use doT.js for record templates (among other things). For general information about doT.js go to <a href="http://olado.github.io/doT/">http://olado.github.io/doT/</a></p>
+            
+            <hr/>
+            <h1><code>&lt;</code> and <code>&gt;</code></h1>
+            
+            <br />
+            <p>Sometimes you have a doT.js if like so:</p>
+            <pre>{{? i &lt; len }}
+    // do stuff
+{{?}}</pre>
+
+            <br />
+            <p>But when the javscript gets to it, it looks like this:</p>
+            <pre>{{? i &amp;lt; len }}
+    // do stuff
+{{?}}</pre>
+            
+            <br />
+            <p>So we wrote the following functions:</p>
+            <pre>gt(x,y):  x &gt;  y
+gte(x,y): x &gt;= y
+lt(x,y):  x &lt;  y
+lte(x,y): x &lt;= y
+</pre>
+            
+            <hr/>
+            <h1>Record templates</h1>
+            
+            <br />
+            <p>To address a column use <code>row.&lt;column&gt;</code>:</p>
+            <pre>{{! row.test1 }}
+<b> OR </b>
+{{= row.test1 }}</pre>
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+        </gs-container>
+    </body>
+</html>

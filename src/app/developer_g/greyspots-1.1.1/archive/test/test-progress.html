@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        <!-- Make this page use standard caching procedure when used as an iframe -->
+        <meta http-equiv="Cache-control" content="no-store, must-revalidate" />
+        
+        <title>New Page</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <style>
+
+        </style>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header>
+                <center><h3>testing the gs-progress</h3></center>
+            </gs-header>
+            <gs-body padded>
+                <gs-progress id="test1" value="0"></gs-progress><br />
+                <gs-progress value="25"></gs-progress><br />
+                <gs-progress value="50"></gs-progress><br />
+                <gs-progress value="75"></gs-progress><br />
+                <gs-progress value="100"></gs-progress><br />            
+            </gs-body>
+        </gs-page>
+        
+        <script>
+//global GS, ml, evt, document, window
+//jslint browser:true
+
+var value = 0;
+var test1 = document.getElementById('test1');
+
+var interval = setInterval(function () {
+    test1.value = value;
+    value += 1;
+    if (value > 100) {
+        clearInterval(interval);
+    }
+}, 100);
+
+        </script>
+    </body>
+</html>

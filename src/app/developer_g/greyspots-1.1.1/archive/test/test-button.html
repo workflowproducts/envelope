@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script src="/js/ace/ace.js" data-ace-base="/js/ace/" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/ace/ext-language_tools.js" type="text/javascript"></script>
+        <script src="/js/ace/ext-searchbox.js" type="text/javascript"></script>
+        
+        <script src="/js/beautify.js" type="text/javascript"></script>
+        <script src="./ui-test.js"></script>
+        <link href="./ui-test.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h1>Buttons:</h1></gs-header>
+            <gs-body padded>
+                
+                
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                <gs-toggle          value="test.html" qs="visibility">gs-toggle</gs-toggle>
+                <gs-email-button    value="test.html" qs="visibility">gs-email-button</gs-email-button>
+                <gs-facetime-button value="test.html" qs="visibility">gs-facetime-button</gs-facetime-button>
+                <gs-map-button      value="test.html" qs="visibility">gs-map-button</gs-map-button>
+                <gs-phone-button    value="test.html" qs="visibility">gs-phone-button</gs-phone-button>
+                <gs-tracking-button value="test.html" qs="visibility">gs-tracking-button</gs-tracking-button>
+                <gs-skype-button    value="test.html" qs="visibility">gs-skype-button</gs-skype-button>
+                <gs-delete-button   value="test.html" qs="visibility">gs-delete-button</gs-delete-button>
+                <gs-option          value="test.html" qs="visibility">gs-option</gs-option>
+                <gs-dialog-button   value="test.html" qs="visibility">gs-dialog-button</gs-dialog-button>
+                <gs-button          value="test.html" qs="visibility">gs-button</gs-button>
+                <br />
+                
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                <gs-toggle          value="test.html" qs="visibility=,limit=,test=" visibility="true">gs-toggle</gs-toggle>
+                <gs-email-button    value="test.html" qs="visibility=,limit=,test=" visibility="true">gs-email-button</gs-email-button>
+                <gs-facetime-button value="test.html" qs="visibility=,limit=,test=" visibility="true">gs-facetime-button</gs-facetime-button>
+                <gs-map-button      value="test.html" qs="visibility=,limit=,test=" visibility="true">gs-map-button</gs-map-button>
+                <gs-phone-button    value="test.html" qs="visibility=,limit=,test=" visibility="true">gs-phone-button</gs-phone-button>
+                <gs-tracking-button value="test.html" qs="visibility=,limit=,test=" visibility="true">gs-tracking-button</gs-tracking-button>
+                <gs-skype-button    value="test.html" qs="visibility=,limit=,test=" visibility="true">gs-skype-button</gs-skype-button>
+                <gs-delete-button   value="test.html" qs="visibility=,limit=,test=" visibility="true">gs-delete-button</gs-delete-button>
+                <gs-option          value="test.html" qs="visibility=,limit=,test=" visibility="true">gs-option</gs-option>
+                <gs-dialog-button   value="test.html" qs="visibility=,limit=,test=" visibility="true">gs-dialog-button</gs-dialog-button>
+                <gs-button          value="test.html" qs="visibility=,limit=,test=" visibility="true">gs-button</gs-button>
+                <br />
+                
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                <gs-toggle          value="test.html" qs="visibility=hidden,limit=asdf,test=qwer">gs-toggle</gs-toggle>
+                <gs-email-button    value="test.html" qs="visibility=hidden,limit=asdf,test=qwer">gs-email-button</gs-email-button>
+                <gs-facetime-button value="test.html" qs="visibility=hidden,limit=asdf,test=qwer">gs-facetime-button</gs-facetime-button>
+                <gs-map-button      value="test.html" qs="visibility=hidden,limit=asdf,test=qwer">gs-map-button</gs-map-button>
+                <gs-phone-button    value="test.html" qs="visibility=hidden,limit=asdf,test=qwer">gs-phone-button</gs-phone-button>
+                <gs-tracking-button value="test.html" qs="visibility=hidden,limit=asdf,test=qwer">gs-tracking-button</gs-tracking-button>
+                <gs-skype-button    value="test.html" qs="visibility=hidden,limit=asdf,test=qwer">gs-skype-button</gs-skype-button>
+                <gs-delete-button   value="test.html" qs="visibility=hidden,limit=asdf,test=qwer">gs-delete-button</gs-delete-button>
+                <gs-option          value="test.html" qs="visibility=hidden,limit=asdf,test=qwer">gs-option</gs-option>
+                <gs-dialog-button   value="test.html" qs="visibility=hidden,limit=asdf,test=qwer">gs-dialog-button</gs-dialog-button>
+                <gs-button          value="test.html" qs="visibility=hidden,limit=asdf,test=qwer">gs-button</gs-button>
+                <br />
+                
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                <gs-toggle          value="test.html" qs="visibility!=hidden">gs-toggle</gs-toggle>
+                <gs-email-button    value="test.html" qs="visibility!=hidden">gs-email-button</gs-email-button>
+                <gs-facetime-button value="test.html" qs="visibility!=hidden">gs-facetime-button</gs-facetime-button>
+                <gs-map-button      value="test.html" qs="visibility!=hidden">gs-map-button</gs-map-button>
+                <gs-phone-button    value="test.html" qs="visibility!=hidden">gs-phone-button</gs-phone-button>
+                <gs-tracking-button value="test.html" qs="visibility!=hidden">gs-tracking-button</gs-tracking-button>
+                <gs-skype-button    value="test.html" qs="visibility!=hidden">gs-skype-button</gs-skype-button>
+                <gs-delete-button   value="test.html" qs="visibility!=hidden">gs-delete-button</gs-delete-button>
+                <gs-option          value="test.html" qs="visibility!=hidden">gs-option</gs-option>
+                <gs-dialog-button   value="test.html" qs="visibility!=hidden">gs-dialog-button</gs-dialog-button>
+                <gs-button          value="test.html" qs="visibility!=hidden">gs-button</gs-button>
+                <br />
+                
+                
+                <!--
+                gs-button
+                    href
+                    value
+                    target
+                    qs
+                gs-delete-button
+                    src
+                    value
+                    action-delete
+                everything else
+                    value
+                
+                suspend-created
+                suspend-inserted
+                tabindex
+                no-focus
+                dialogclose
+                
+                remove-all
+                remove-top
+                remove-bottom
+                remove-top-left
+                remove-top-right
+                remove-bottom-left
+                remove-bottom-right
+                
+                disabled
+                inline
+                jumbo
+                mini
+                
+                iconrotateright
+                iconrotatedown
+                iconrotateleft
+                iconleft
+                icontop
+                iconbottom
+                iconright
+                icon
+                -->
+                
+                <br />
+                <h3>Attributes</h3>
+                <gs-button href="test-date-control.html" suspend-inserted>Test date control (suspended)</gs-button>
+                
+                <gs-grid widths="1,1" reflow-at="400px">
+                    <gs-block>test</gs-block>
+                    <gs-block>test</gs-block>
+                    <gs-block>test</gs-block>
+                    <gs-block>test</gs-block>
+                </gs-grid>
+                
+                <gs-ui-test heading="href and target (like a link)">
+                    <template>
+                        <gs-button href="test-date-control.html">Test date control</gs-button>
+                        <gs-button href="http://www.apple.com" target="_blank">apple.com</gs-button>
+                        <gs-button href="test-date-control.html" target="_self">Test date control</gs-button>
+                        <gs-button href="test-date-control.html" target="_self" icononly icon="arrow-right"></gs-button>
+                        <gs-button href="test-date-control.html" target="_self" icononly icon="arrow-right" inline></gs-button>
+                        <gs-button href="test-date-control.html" target="_self" icononly icon="arrow-right" style="width: 1.2em;"></gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="icon (specifies icon)">
+                    <template>
+                        <gs-button icon="eye">test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="icononly (specifies that only the icon is shown)">
+                    <template>
+                        <gs-button icon="eye" icononly>test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="iconleft (specifies that the icon is to the left of the text)">
+                    <template>
+                        <gs-button icon="eye" iconleft>test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="iconright (specifies that the icon is to the right of the text)">
+                    <template>
+                        <gs-button icon="eye" iconright>test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="icontop (specifies that the icon is above the text)">
+                    <template>
+                        <gs-button icon="eye" icontop>test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="iconbottom (specifies that the icon is below the text)">
+                    <template>
+                        <gs-button icon="eye" iconbottom>test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="iconrotateright (specifies that the icon is rotated 90 degrees or 1/2 &pi; radians)">
+                    <template>
+                        <gs-button icon="eye" iconrotateright>test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="iconrotateleft (specifies that the icon is rotated -90 degrees or -1/2 &pi; radians)">
+                    <template>
+                        <gs-button icon="eye" iconrotateleft>test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="iconrotatedown (specifies that the icon is rotated 180 degrees or &pi; radians)">
+                    <template>
+                        <gs-button icon="eye" iconrotatedown>test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="href (specifies where the button takes you)">
+                    <template>
+                        <gs-button icon="eye" href="http://www.apple.com">test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="target (specifies how it takes you there)">
+                    <template>
+                        <gs-button icon="eye" href="http://www.apple.com" target="_self">test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="no-focus (specifies whether or not you can focus the button)">
+                    <template>
+                        <gs-button icon="eye" no-focus>test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="inline (makes it display inline)">
+                    <template>
+                        <gs-button icon="eye" inline="">test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="mini (makes it look better in a table)">
+                    <template>
+                        <gs-button icon="eye" mini="">test</gs-button>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="title (specifies what the browser shows when you hover)">
+                    <template>
+                        <gs-button icon="eye" title="test">test</gs-button>
+                    </template>
+                </gs-ui-test>
+                
+                <br />
+                <h3>Events</h3>
+                <gs-ui-test heading="click: bubbles, cancelable (runs when clicked/tapped)">
+                    <template>
+                        <gs-button id="clickTest">test</gs-button>
+                    </template>
+                    <template>
+document.getElementById('clickTest').addEventListener('click', function (event) {
+    alert('test');
+});</template>
+                </gs-ui-test>
+                
+                <br />
+                <h3>Examples</h3>
+                <gs-ui-test heading="removing corners">
+                    <template>
+                        <gs-button icon="arrow-up" remove-all>test</gs-button><br />
+                        <gs-button icon="arrow-up" remove-top>test</gs-button><br />
+                        <gs-button icon="arrow-up" remove-bottom>test</gs-button><br />
+                        <gs-button icon="arrow-up" remove-left>test</gs-button><br />
+                        <gs-button icon="arrow-up" remove-right>test</gs-button><br />
+                        <gs-button icon="arrow-up" remove-top-left>test</gs-button><br />
+                        <gs-button icon="arrow-up" remove-top-right>test</gs-button><br />
+                        <gs-button icon="arrow-up" remove-bottom-left>test</gs-button><br />
+                        <gs-button icon="arrow-up" remove-bottom-right>test</gs-button><br />
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="arrow pads">
+                    <template>
+                        <div style="width: 5.4em;">
+                            <gs-button icon="arrow-up" icononly></gs-button>
+                            <gs-button icon="arrow-left" icononly inline></gs-button>
+                            <gs-button icon="arrow-down" icononly inline></gs-button>
+                            <gs-button icon="arrow-right" icononly inline></gs-button>
+                        </div>
+                        <div style="width: 5.4em;">
+                            <center>
+                                <gs-button id="test23" icon="arrow-up" icononly inline></gs-button>
+                            </center>
+                            <gs-button id="test24" icon="arrow-left" icononly inline></gs-button>
+                            <gs-button id="test25" icon="arrow-down" icononly inline></gs-button>
+                            <gs-button id="test26" icon="arrow-right" icononly inline></gs-button>
+                        </div>
+                    </template>
+                </gs-ui-test>
+                <gs-ui-test heading="keyboard">
+                    <template>
+                        <div>
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td><gs-button mini>TAB</gs-button></td>
+                                    <td><gs-button mini>Q</gs-button></td>
+                                    <td><gs-button mini>W</gs-button></td>
+                                    <td><gs-button mini>E</gs-button></td>
+                                    <td><gs-button mini>R</gs-button></td>
+                                    <td><gs-button mini>T</gs-button></td>
+                                    <td><gs-button mini>Y</gs-button></td>
+                                    <td><gs-button mini>U</gs-button></td>
+                                    <td><gs-button mini>I</gs-button></td>
+                                    <td><gs-button mini>O</gs-button></td>
+                                    <td><gs-button mini>P</gs-button></td>
+                                    <td><gs-button mini>[</gs-button></td>
+                                    <td><gs-button mini>]</gs-button></td>
+                                    <td><gs-button mini>\</gs-button></td>
+                                </tr>
+                            </table>
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td><gs-button mini>CAPS</gs-button></td>
+                                    <td><gs-button mini>A</gs-button></td>
+                                    <td><gs-button mini>S</gs-button></td>
+                                    <td><gs-button mini>D</gs-button></td>
+                                    <td><gs-button mini>F</gs-button></td>
+                                    <td><gs-button mini>G</gs-button></td>
+                                    <td><gs-button mini>H</gs-button></td>
+                                    <td><gs-button mini>J</gs-button></td>
+                                    <td><gs-button mini>K</gs-button></td>
+                                    <td><gs-button mini>L</gs-button></td>
+                                    <td><gs-button mini>;</gs-button></td>
+                                    <td><gs-button mini>'</gs-button></td>
+                                    <td><gs-button mini>RET</gs-button></td>
+                                </tr>
+                            </table>
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td><gs-button mini>SHIFT</gs-button></td>
+                                    <td><gs-button mini>Z</gs-button></td>
+                                    <td><gs-button mini>X</gs-button></td>
+                                    <td><gs-button mini>C</gs-button></td>
+                                    <td><gs-button mini>V</gs-button></td>
+                                    <td><gs-button mini>B</gs-button></td>
+                                    <td><gs-button mini>N</gs-button></td>
+                                    <td><gs-button mini>M</gs-button></td>
+                                    <td><gs-button mini>,</gs-button></td>
+                                    <td><gs-button mini>.</gs-button></td>
+                                    <td><gs-button mini>/</gs-button></td>
+                                    <td><gs-button mini>SHIFT</gs-button></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </template>
+                </gs-ui-test>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

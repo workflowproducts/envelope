@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+    <script>var testNum = 0, testNum2 = 0;</script>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>Inputs:</h3></gs-header>
+            <gs-body padded>
+                <gs-button onclick="document.getElementsByTagName('gs-text')[testNum].focus(); testNum += 1;">Focus</gs-button>
+                <b>First Name:</b>
+                <gs-text defer-insert column="first_name"></gs-text>
+                <b>Last Name:</b>
+                <gs-text defer-insert column="last_name" id="2"></gs-text>
+                <gs-form src="gsdoc.tpeople" where="id=2341">
+                    <template>
+                        <b>First Name:</b>
+                        <gs-text defer-insert column="first_name"></gs-text>
+                        <b>Last Name:</b>
+                        <gs-text defer-insert column="last_name" id="2"></gs-text>
+                    </template>
+                </gs-form>
+                
+                <gs-datasheet src="gsdoc.tpeople" limit= "1" style="height: 5em;">
+                    <template for="hud"></template>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td heading="First Name:"><gs-text defer-insert column="first_name"></gs-text></td>
+                                    <td heading="Last Name:"><gs-text defer-insert column="last_name"></gs-text></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-datasheet>
+                
+                <gs-envelope src="gsdoc.tpeople" limit= "1" style="height: 10em;">
+                    <template for="hud"></template>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td heading="First Name:"><gs-text defer-insert column="first_name"></gs-text></td>
+                                    <td heading="Last Name:"><gs-text defer-insert column="last_name"></gs-text></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-envelope>
+                <gs-table
+                    id="test-table-2"
+                    src="test.rtime_copy_datasheet"
+                    pk="id"
+                    ord="id ASC"
+                    focus-on-load
+                    style="width: 100%; height: 8em;"
+                    limit= "1"
+                >
+                    <template for="header-record">
+                        <gs-cell>id</gs-cell>
+                        <gs-cell>user_name</gs-cell>
+                        <gs-cell>cust_id</gs-cell>
+                        <gs-cell>project_name</gs-cell>
+                    </template>
+                    <template for="data-record">
+                        <gs-cell><gs-text defer-insert>{{! row.id }}</gs-text></gs-cell>
+                        <gs-cell><gs-text defer-insert column="user_name">{{! row.user_name }}</gs-text></gs-cell>
+                        <gs-cell><gs-text defer-insert column="cust_id">{{! row.cust_id }}</gs-text></gs-cell>
+                        <gs-cell><gs-text defer-insert column="project_name">{{! row.project_name }}</gs-text></gs-cell>
+                    </template>
+                </gs-table>
+                
+                <label>Month:</label>
+                <gs-text type="month" value="2019-06"></gs-text>
+                
+                <!--<label>Normal:</label>
+                <gs-text defer-insert id="1" tabindex="1"></gs-text>
+                <br />
+                <label>Pre value:</label>
+                <gs-text defer-insert id="2" column="age" value="asdf"></gs-text>
+                <br />
+                <label>Password:</label>
+                <gs-text defer-insert id="2" type="password" placeholder="test"></gs-text>
+                <br />
+                <label>Disabled:</label>
+                <gs-text defer-insert value="asdf" disabled></gs-text>
+                <br />
+                <label>Onchange attribute:</label>
+                <gs-text defer-insert onchange="alert(this.value);"></gs-text>
+                <br />
+                <label>placeholder:</label>
+                <gs-text defer-insert placeholder="A text"></gs-text>
+                <gs-text defer-insert placeholder="A text"></gs-text>
+                <br />
+                <label>disabled, placeholder:</label>
+                <gs-text defer-insert placeholder="A text" disabled></gs-text>
+                <br />
+                <label>qs attribute:</label>
+                <gs-text defer-insert qs="test"></gs-text>
+                <br />
+                <label>qs attribute, value attribute:</label>
+                <gs-text defer-insert qs="test" value="default value when qs is empty"></gs-text>
+                <br />
+                
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                <gs-text defer-insert value="true" qs="visibility"></gs-text>
+                <br />
+                
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                <gs-text defer-insert value="true" qs="visibility=,limit=,test=" visibility="true"></gs-text>
+                <br />
+                
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                <gs-text defer-insert value="true" qs="visibility=hidden,limit=asdf,test=qwer"></gs-text>
+                <br />
+                
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                <gs-text defer-insert value="true" qs="visibility!=hidden"></gs-text>
+                <br />
+                
+                <label>readonly, no value</label>
+                <gs-text defer-insert readonly></gs-text>
+                <br />
+                
+                <label>readonly, value</label>
+                <gs-text defer-insert readonly value="1-1-2011"></gs-text>
+                <br />-->
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

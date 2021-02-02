@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>HTML Encoding Test</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+            var i = 0;
+            
+            window.addEventListener('after_select', function () {
+                i += 1;
+                
+                if (i === 4) {
+                    console.log('innerHTML #1 : ' + document.getElementById('test-container-1').innerHTML);
+                    console.log('innerHTML #2 : ' + document.getElementById('test-container-2').innerHTML);
+                    console.log('innerHTML #3 : ' + document.getElementById('test-container-3').innerHTML);
+                    console.log('innerHTML #4 : ' + document.getElementById('test-container-4').innerHTML);
+                    console.log('innerHTML #5 : ' + document.getElementById('test-container-5').innerHTML);
+                    console.log('innerHTML #6 : ' + document.getElementById('test-container-6').innerHTML);
+                    console.log('innerHTML #7 : ' + document.getElementById('test-container-7').innerHTML);
+                    console.log('innerHTML #8 : ' + document.getElementById('test-container-8').innerHTML);
+                    console.log('innerHTML #9 : ' + document.getElementById('test-container-9').innerHTML);
+                    console.log('innerHTML #10: ' + document.getElementById('test-container-10').innerHTML);
+                    console.log('innerHTML #11: ' + document.getElementById('test-container-11').innerHTML);
+                    console.log('innerHTML #12: ' + document.getElementById('test-container-12').innerHTML);
+                    
+                    console.log('textContent #1 : ' + document.getElementById('test-container-1').textContent);
+                    console.log('textContent #2 : ' + document.getElementById('test-container-2').textContent);
+                    console.log('textContent #3 : ' + document.getElementById('test-container-3').textContent);
+                    console.log('textContent #4 : ' + document.getElementById('test-container-4').textContent);
+                    console.log('textContent #5 : ' + document.getElementById('test-container-5').textContent);
+                    console.log('textContent #6 : ' + document.getElementById('test-container-6').textContent);
+                    console.log('textContent #7 : ' + document.getElementById('test-container-7').textContent);
+                    console.log('textContent #8 : ' + document.getElementById('test-container-8').textContent);
+                    console.log('textContent #9 : ' + document.getElementById('test-container-9').textContent);
+                    console.log('textContent #10: ' + document.getElementById('test-container-10').textContent);
+                    console.log('textContent #11: ' + document.getElementById('test-container-11').textContent);
+                    console.log('textContent #12: ' + document.getElementById('test-container-12').textContent);
+                }
+            });
+        </script>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>HTML Encoding Test</h3></gs-header>
+            <gs-body padded>
+                <div id="test-container-1">&lt;gs-test&gt;</div>
+                <div id="test-container-2">&amp;lt;gs-test&amp;gt;</div>
+                <hr />
+                <template id="test-container-3">&lt;gs-test&gt;</template>
+                <template id="test-container-4">&amp;lt;gs-test&amp;gt;</template>
+                <hr />
+                <gs-form src="test.tpeople">
+                    <template>
+                        {{! row.first_name }} {{! row.last_name }}<br />
+                        <gs-text column="first_name"></gs-text>
+                        
+                        {{? 5 > 1 }}
+                            Math Still Works
+                        {{??}}
+                            Math Is Broken
+                        {{?}}
+                        
+                        <template>
+                            &lt;gs-test&gt;
+                            <gs-text column="first_name"></gs-text>
+                            <template>
+                                &amp;lt;gs-test&amp;gt;
+                                <gs-text column="first_name"></gs-text>
+                                <template>
+                                    <gs-text column="first_name"></gs-text>
+                                </template>
+                            </template>
+                        </template>
+                        
+                        <div id="test-container-5">&lt;gs-test&gt;</div>
+                        <div id="test-container-6">&amp;lt;gs-test&amp;gt;</div>
+                        <hr />
+                        <gs-form src="test.tpeople">
+                            <template>
+                                {{! row.first_name }} {{! row.last_name }}<br />
+                                
+                                <div id="test-container-7">&lt;gs-test&gt;</div>
+                                <div id="test-container-8">&amp;lt;gs-test&amp;gt;</div>
+                            </template>
+                        </gs-form>
+                    </template>
+                </gs-form>
+                <hr />
+                <gs-envelope src="test.tpeople" limit="1" no-huddelete no-hudlimit no-hudorderby expand-to-content>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <gs-text column="first_name"></gs-text>
+                                    </td>
+                                    <td>
+                                        <div id="test-container-9">&lt;gs-test&gt;</div>
+                                        <div id="test-container-10">&amp;lt;gs-test&amp;gt;</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-envelope>
+                <hr />
+                <gs-listbox src="test.tpeople" limit="1" style="height: auto;">
+                    <template>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <gs-text column="first_name"></gs-text>
+                                    </td>
+                                    <td>
+                                        <div id="test-container-11">&lt;gs-test&gt;</div>
+                                        <div id="test-container-12">&amp;lt;gs-test&amp;gt;</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-listbox>
+                <hr />
+                <gs-combo src="test.tpeople" limit="1">
+                    <template>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <gs-text column="first_name"></gs-text>
+                                    </td>
+                                    <td>
+                                        <div id="test-container-13">&lt;gs-test&gt;</div>
+                                        <div id="test-container-14">&amp;lt;gs-test&amp;gt;</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-combo>
+                
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

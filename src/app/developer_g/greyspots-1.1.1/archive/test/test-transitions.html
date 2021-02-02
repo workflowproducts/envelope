@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Transition Testing</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <style>
+            .demo-box {
+                display: block;
+                background-color: green;
+                width: 100px;
+                height: 100px;
+                margin: 0px auto;
+            }
+            
+            [from-top],
+            [from-topleft],
+            [from-left],
+            [from-bottomleft],
+            [from-bottom],
+            [from-bottomright],
+            [from-right],
+            [from-topright],
+            [fade-in],
+            [zoom-in] {
+                -webkit-animation-duration: 0.5s;
+                animation-duration: 0.5s;
+                
+                -webkit-animation-iteration-count: 1;
+                animation-iteration-count: 1;
+                
+                -webkit-animation-timing-function: ease-out;
+                animation-timing-function: ease-out;
+            }
+            
+            
+            /* timing */
+            [timing-linear] {
+                -webkit-animation-timing-function: linear;
+                animation-timing-function: linear;
+            }
+            
+            [timing-ease-out] {
+                -webkit-animation-timing-function: ease-out;
+                animation-timing-function: ease-out;
+            }
+            
+            
+            /* duration */
+            [duration-quarter] {
+                -webkit-animation-duration: 0.25s;
+                animation-duration: 0.25s;
+            }
+            
+            [duration-half] {
+                -webkit-animation-duration: 0.5s;
+                animation-duration: 0.5s;
+            }
+            
+            [duration-one] {
+                -webkit-animation-duration: 1s;
+                animation-duration: 1s;
+            }
+            
+            
+            /* effects */
+            [from-top] {
+                -webkit-animation-name: effect-slide-in-top;
+                animation-name: effect-slide-in-top;
+            }
+            
+            [from-topleft] {
+                -webkit-animation-name: effect-slide-in-topleft;
+                animation-name: effect-slide-in-topleft;
+            }
+            
+            [from-left] {
+                -webkit-animation-name: effect-slide-in-left;
+                animation-name: effect-slide-in-left;
+            }
+            
+            [from-bottomleft] {
+                -webkit-animation-name: effect-slide-in-bottomleft;
+                animation-name: effect-slide-in-bottomleft;
+            }
+            
+            [from-bottom] {
+                -webkit-animation-name: effect-slide-in-bottom;
+                animation-name: effect-slide-in-bottom;
+            }
+            
+            [from-bottomright] {
+                -webkit-animation-name: effect-slide-in-bottomright;
+                animation-name: effect-slide-in-bottomright;
+            }
+            
+            [from-right] {
+                -webkit-animation-name: effect-slide-in-right;
+                animation-name: effect-slide-in-right;
+            }
+            
+            [from-topright] {
+                -webkit-animation-name: effect-slide-in-topright;
+                animation-name: effect-slide-in-topright;
+            }
+            
+            [fade-in] {
+                -webkit-animation-name: effect-fade-in;
+                animation-name: effect-fade-in;
+            }
+            
+            [zoom-in] {
+                -webkit-animation-name: effect-zoom-in;
+                animation-name: effect-zoom-in;
+            }
+            
+            /* ############## effect-slide-in-top ############## */
+            @-webkit-keyframes effect-slide-in-top {
+                0%   {
+                    -webkit-transform: translate(0px, -600px);
+                }
+                100% {
+                    -webkit-transform: translate(0px, 0px);
+                }
+            }
+            @keyframes effect-slide-in-top {
+                0%   {
+                    transform: translate(0px, -600px);
+                }
+                100% {
+                    transform: translate(0px, 0px);
+                }
+            }
+            
+            /* ############## effect-slide-in-topleft ############## */
+            @-webkit-keyframes effect-slide-in-topleft {
+                0%   {
+                    -webkit-transform: translate(-600px, -600px);
+                }
+                100% {
+                    -webkit-transform: translate(0px, 0px);
+                }
+            }
+            @keyframes effect-slide-in-topleft {
+                0%   {
+                    transform: translate(-600px, -600px);
+                }
+                100% {
+                    transform: translate(0px, 0px);
+                }
+            }
+            
+            /* ############## effect-slide-in-left ############## */
+            @-webkit-keyframes effect-slide-in-left {
+                0%   {
+                    -webkit-transform: translate(-600px, 0px);
+                }
+                100% {
+                    -webkit-transform: translate(0px, 0px);
+                }
+            }
+            @keyframes effect-slide-in-left {
+                0%   {
+                    transform: translate(-600px, 0px);
+                }
+                100% {
+                    transform: translate(0px, 0px);
+                }
+            }
+            
+            /* ############## effect-slide-in-bottomleft ############## */
+            @-webkit-keyframes effect-slide-in-bottomleft {
+                0%   {
+                    -webkit-transform: translate(-600px, 600px);
+                }
+                100% {
+                    -webkit-transform: translate(0px, 0px);
+                }
+            }
+            @keyframes effect-slide-in-bottomleft {
+                0%   {
+                    transform: translate(-600px, 600px);
+                }
+                100% {
+                    transform: translate(0px, 0px);
+                }
+            }
+            
+            /* ############## effect-slide-in-bottom ############## */
+            @-webkit-keyframes effect-slide-in-bottom {
+                0%   {
+                    -webkit-transform: translate(0px, 600px);
+                }
+                100% {
+                    -webkit-transform: translate(0px, 0px);
+                }
+            }
+            @keyframes effect-slide-in-bottom {
+                0%   {
+                    transform: translate(0px, 600px);
+                }
+                100% {
+                    transform: translate(0px, 0px);
+                }
+            }
+            
+            /* ############## effect-slide-in-bottomright ############## */
+            @-webkit-keyframes effect-slide-in-bottomright {
+                0%   {
+                    -webkit-transform: translate(600px, 600px);
+                }
+                100% {
+                    -webkit-transform: translate(0px, 0px);
+                }
+            }
+            @keyframes effect-slide-in-bottomright {
+                0%   {
+                    transform: translate(600px, 600px);
+                }
+                100% {
+                    transform: translate(0px, 0px);
+                }
+            }
+            
+            /* ############## effect-slide-in-right ############## */
+            @-webkit-keyframes effect-slide-in-right {
+                0%   {
+                    -webkit-transform: translate(600px, 0px);
+                }
+                100% {
+                    -webkit-transform: translate(0px, 0px);
+                }
+            }
+            @keyframes effect-slide-in-right {
+                0%   {
+                    transform: translate(600px, 0px);
+                }
+                100% {
+                    transform: translate(0px, 0px);
+                }
+            }
+            
+            /* ############## effect-slide-in-topright ############## */
+            @-webkit-keyframes effect-slide-in-topright {
+                0%   {
+                    -webkit-transform: translate(600px, -600px);
+                }
+                100% {
+                    -webkit-transform: translate(0px, 0px);
+                }
+            }
+            @keyframes effect-slide-in-topright {
+                0%   {
+                    transform: translate(600px, -600px);
+                }
+                100% {
+                    transform: translate(0px, 0px);
+                }
+            }
+            
+            /* ############## effect-fade-in ############## */
+            @-webkit-keyframes effect-fade-in {
+                0%   {
+                    opacity: 0;
+                }
+                100% {
+                    opacity: 1;
+                }
+            }
+            @keyframes effect-fade-in {
+                0%   {
+                    opacity: 0;
+                }
+                100% {
+                    opacity: 1;
+                }
+            }
+            
+            /* ############## effect-zoom-in ############## */
+            @-webkit-keyframes effect-zoom-in {
+                0%   {
+                    -webkit-transform: scale(0, 0);
+                }
+                100% {
+                    -webkit-transform: scale(1, 1);
+                }
+            }
+            @keyframes effect-zoom-in {
+                0%   {
+                    transform: scale(0, 0);
+                }
+                100% {
+                    transform: scale(1, 1);
+                }
+            }
+            
+            
+        </style>
+    </head>
+    <body>
+        <div class="demo-box" from-top></div>
+        
+        <div class="demo-box" from-top timing-linear></div>
+        
+        <div class="demo-box" from-top duration-quarter></div>
+        
+        <div class="demo-box" from-top duration-quarter timing-linear></div>
+        
+        <div class="demo-box" from-top duration-one></div>
+        
+        <div class="demo-box" from-top duration-one timing-linear></div>
+        
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        
+        from-top<br />
+        <div class="demo-box" from-top></div><br /><br />
+        
+        from-topleft<br />
+        <div class="demo-box" from-topleft></div><br /><br />
+        
+        from-left<br />
+        <div class="demo-box" from-left></div><br /><br />
+        
+        from-bottomleft<br />
+        <div class="demo-box" from-bottomleft></div><br /><br />
+        
+        from-bottom<br />
+        <div class="demo-box" from-bottom></div><br /><br />
+        
+        from-bottomright<br />
+        <div class="demo-box" from-bottomright></div><br /><br />
+        
+        from-right<br />
+        <div class="demo-box" from-right></div><br /><br />
+        
+        from-topright<br />
+        <div class="demo-box" from-topright></div><br /><br />
+        
+        fade-in<br />
+        <div class="demo-box" fade-in></div><br /><br />
+        
+        zoom-in<br />
+        <div class="demo-box" zoom-in></div><br /><br />
+        
+        
+        
+        effects
+            from-top
+            from-topleft
+            from-left
+            from-bottomleft
+            from-bottom
+            from-bottomright
+            from-right
+            from-topright
+            
+            fade-in
+            
+            zoom-in
+        
+        timing
+            timing-linear
+            timing-ease-out (fast then slow down) (default)
+        
+        duration
+            duration-quarter
+            duration-half (default)
+            duration-one
+        
+        
+        
+    </body>
+</html>

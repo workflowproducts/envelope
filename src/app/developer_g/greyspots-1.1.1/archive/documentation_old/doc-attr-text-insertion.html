@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Text Insertion Attributes For Mobile Devices</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script src="/js/ace/ace.js" data-ace-base="/js/ace/" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/ace/ext-language_tools.js" type="text/javascript"></script>
+        <script src="/js/ace/ext-searchbox.js" type="text/javascript"></script>
+        
+        <script src="doc-library/doc.js" type="text/javascript"></script>
+        <link href="doc-library/doc.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-jumbo>
+            <h1 class="text-center">Text Insertion Attributes For Mobile Devices</h1>
+        </gs-jumbo>
+            
+        <gs-container min-width="sml;med;lrg">
+            <h3>Attributes:</h3>
+            <pre><code>autocorrect
+autocapitalize
+autocomplete
+spellcheck</code></pre>
+            
+            <h3>Description:</h3>
+            <div class="doc-section">
+                These attributes are for preventing text insertion behaviours for elements on mobile devices.
+            </div>
+            
+            <h1>Examples:</h1>
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[autocorrect=""]</code>:</span><br />
+                <p>This atribute is for removing mobile devices default autocorrect behaviour.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="10">
+                    <gs-text placeholder="autocorrect: on"></gs-text>
+                    <br />
+                    <gs-text placeholder="autocorrect: off" autocorrect="off"></gs-text>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[autocapitalize=""]</code>:</span><br />
+                <p>This atribute is for removing mobile devices default autocapitalize behaviour.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="10">
+                    <gs-text placeholder="autocapitalize: on"></gs-text>
+                    <br />
+                    <gs-text placeholder="autocapitalize: off" autocapitalize="off"></gs-text>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[autocomplete=""]</code>:</span><br />
+                <p>This atribute is for removing mobile devices default autocomplete behaviour.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="10">
+                    <gs-text placeholder="autocomplete: on"></gs-text>
+                    <br />
+                    <gs-text placeholder="autocomplete: off" autocomplete="off"></gs-text>
+                </template>
+            </gs-doc-example>
+            
+            <div class="doc-example-description">
+                <span class="h3">Attribute <code>[spellcheck=""]</code>:</span><br />
+                <p>This atribute is for removing mobile devices default spellcheck behaviour.</p>
+            </div>
+            <gs-doc-example>
+                <template for="html" height="10">
+                    <gs-text placeholder="spellcheck: on"></gs-text>
+                    <br />
+                    <gs-text placeholder="spellcheck: off" spellcheck="off"></gs-text>
+                </template>
+            </gs-doc-example>
+        </gs-container>
+    </body>
+</html>

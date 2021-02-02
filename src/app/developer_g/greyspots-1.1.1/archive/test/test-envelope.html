@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <style>
+            /* these styles are just for the demo */
+            
+            /* make the forms take up a reasonable amount of space */
+            gs-envelope {
+                height: 724px; /* 300px */
+            }
+            
+            /* make the dividers between examples more obvious */
+            hr {
+                border: 3px solid #000000;
+            }
+        </style>
+        <script>
+            /*document.addEventListener('DOMContentLoaded', function(event) {
+                //window.addEventListener('load', function(event) {
+                document.getElementById('test_events').addEventListener('after_select', function (event) {
+                    console.log('after_select');
+                });
+                document.getElementById('test_events').addEventListener('after_insert', function (event) {
+                    console.log('after_insert');
+                });
+                document.getElementById('test_events').addEventListener('after_update', function (event) {
+                    console.log('after_update');
+                });
+                document.getElementById('test_events').addEventListener('after_delete', function (event) {
+                    console.log('after_delete');
+                });
+                document.getElementById('test_events').addEventListener('after_selection', function (event) {
+                    console.log('after_selection');
+                });
+            });*/
+        </script>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>Envelope</h3></gs-header>
+            <gs-body padded>
+                
+                
+                <!--<gs-envelope src="test.tproject_list" limit="1">
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#">{{! row.row_number }}</th>
+                                    <td>
+                                        <gs-envelope src="test.ttime" limit="10" offset="1" no-hudorderby no-hudlimit no-huddelete no-hudrefresh expand-to-content ord="id ASC">
+                                            <template for="table">
+                                                <table>
+                                                    <tbody>
+                                                        <tr>
+                                                            <th heading="#">{{! row.row_number }}</th>
+                                                            <td heading="Detail"><gs-text column="detail" mini></gs-text></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </template>
+                                        </gs-envelope>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-envelope>-->
+                
+                
+                <!--<gs-envelope src="test.ttime" limit="500">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>User Name</th>
+                                    <th>Customer</th>
+                                    <th>Project</th>
+                                    <th>Bill</th>
+                                    <th>Tax&nbsp;</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><gs-text mini value="{{! row.user_name }}" column="user_name"></gs-text></td>
+                                    <td><gs-combo mini value="{{! row.cust_id }}" column="cust_id" src="test.tcust_list" hide="1"></gs-combo></td>
+                                    <td><gs-text mini value="{{! row.project_name }}" column="project_name"></gs-text></td>
+                                    <td><gs-checkbox mini value="{{! row.billable }}" column="billable"></gs-checkbox></td>
+                                    <td><gs-checkbox mini value="{{! row.taxable }}" column="taxable"></gs-checkbox></td>
+                                    <td><gs-button mini data-id="{{! row.id }}">button</gs-button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template for="insert">
+                        User Name:
+                        <gs-text column="user_name" ></gs-text><br />
+                        Customer:
+                        <gs-combo column="cust_id" src="test.tcust_list" hide="1"></gs-combo><br />
+                        Project:
+                        <gs-text column="project_name"></gs-text><br />
+                        Detail:
+                        <gs-text column="detail" autoresize multiline rows="1"></gs-text><br />
+                        Billable:
+                        <gs-checkbox column="billable"></gs-checkbox><br />
+                        Taxable:
+                        <gs-checkbox column="taxable"></gs-checkbox>
+                    </template>
+                </gs-envelope>
+                <br />-->
+                
+                <!--<gs-envelope src="test.tproject_list" child-column="cust_id" qs="id" limit="100">
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#">{{! row.row_number }}</th>
+                                    <td heading="Cust ID">{{! row.cust_id }}</td>
+                                    <td heading="Name">{{! row.project_name }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-envelope>
+                
+                <hr />-->
+                
+                <!--
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                qs="visibility"
+                
+                
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                qs="visibility=,limit=,test=" visibility="true"
+                
+                
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                qs="visibility=hidden,limit=asdf,test=qwer"
+                
+                
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                qs="visibility!=hidden"
+                
+                
+                refresh-on-querystring-change
+                refresh-on-querystring-values="visibility"
+                -->
+                
+                
+                
+                <gs-envelope id="ttime" limit="1" src="test.asdf3" ord="id DESC" limit="100">
+                    <template for="hud">
+                        <gs-button id="button_resume" inline="" tabindex="0">Resume</gs-button>
+                        <gs-button id="button_break" inline="" tabindex="0">Break</gs-button>
+                    </template>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#">
+                                        <gs-static column="row_number">row_number</gs-static>
+                                    </th>
+                                    <td heading="asdf 1" style="width: 20ex;">
+                                        <gs-text column="asdf_1" mini></gs-text>
+                                    </td>
+                                    <td heading="asdf 2" style="width: 9ex;">
+                                        <gs-text column="asdf_2" mini></gs-text>
+                                    </td>
+                                    <td heading="asdf 3" style="width: 9ex;">
+                                        <gs-text column="asdf_3" mini></gs-text>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template for="insert"></template>
+                </gs-envelope>
+                <!--<gs-envelope id="ttime" src="test.ttime" ord="id DESC" limit="100">
+                    <template for="hud">
+                        <gs-button id="button_resume" inline="" tabindex="0">Resume</gs-button>
+                        <gs-button id="button_break" inline="" tabindex="0">Break</gs-button>
+                    </template>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#">
+                                        <gs-static column="row_number">row_number</gs-static>
+                                    </th>
+                                    <td heading="Cust" style="width: 12ex;">
+                                        <gs-combo src="wtkv2.tcust_list" where="active = '-1'" column="cust_id" mini limit-to-list="" hide="id,active"></gs-combo>
+                                    </td>
+                                    <td heading="Project" style="min-width: 11em;">
+                                        <gs-combo src="wtkv2.tproject_list" where="cust_id={{! row.cust_id || 0 }}" allow-empty="" column="project_name" mini>
+                                            <template for="table">
+                                                <table>
+                                                    <thead>
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>Project Name</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr value="{{! row.project_name }}">
+                                                            <th>{{! row_number }}</th>
+                                                            <td>{{! row.project_name }}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </template>
+                                        </gs-combo>
+                                    </td>
+                                    <td heading="Detail" style="width: 20ex;">
+                                        <gs-text column="detail" mini></gs-text>
+                                    </td>
+                                    <td heading="Date" style="width: 9ex;">
+                                        <gs-text column="begin_stamp_date2" mini></gs-text>
+                                    </td>
+                                    <td heading="Start" style="width: 9ex;">
+                                        <gs-text column="begin_time" mini></gs-text>
+                                    </td>
+                                    <td heading="End" style="width: 9ex;">
+                                        <gs-text column="end_time" mini></gs-text>
+                                    </td>
+                                    <td heading="Time" style="width: 9ex;">
+                                        <gs-text disabled="" column="hours" mini></gs-text>
+                                    </td>
+                                    <td heading="Bill" style="width: 5ex;">
+                                        <gs-checkbox tabindex="0" column="billable" mini></gs-checkbox>
+                                    </td>
+                                    <td heading="Tax" style="width: 4ex;">
+                                        <gs-checkbox tabindex="0" column="taxable" mini></gs-checkbox>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template for="insert"></template>
+                </gs-envelope>-->
+                <!--view, order by, no-huddelete, no-hudrefresh, no-hudlimit, no-hudorderby
+                <gs-envelope src="test.tpeople" ord="first_name ASC" no-hudlimit no-hudorderby>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td heading="First Name" style="min-width: 120px;"><gs-text mini column="first_name"></gs-text></td>
+                                    <td heading="Last Name"  style="min-width: 120px;"><gs-text mini column="last_name"></gs-text></td>
+                                    <td heading="Birth Date" style="min-width: 122px;"><gs-date mini column="birth_date"></gs-date></td>
+                                    <td heading="Age"        style="min-width: 37px;">{{! row.age }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template for="insert">
+                        First Name:
+                        <gs-text column="first_name"></gs-text><br />
+                        
+                        Last Name:
+                        <gs-text column="last_name"></gs-text><br />
+                        
+                        Birth Date:
+                        <gs-date column="birth_date"></gs-date><br />
+                    </template>
+                </gs-envelope>-->
+                <!--view, order by, template within a template, no-huddelete
+                <gs-envelope src="test.tpeople" ord="first_name ASC" no-huddelete>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td heading="First Name" style="min-width: 120px;">
+                                        <gs-combo mini column="first_name" src="(SELECT DISTINCT first_name FROM test.tpeople)%20ema">
+                                            <template for="table">
+                                                <table>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>{{! row.first_name }}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </template>
+                                        </gs-combo>
+                                    </td>
+                                    <td heading="Last Name"  style="min-width: 120px;"><gs-text mini column="last_name"></gs-text></td>
+                                    <td heading="Birth Date" style="min-width: 122px;"><gs-date mini column="birth_date"></gs-date></td>
+                                    <td heading="Age"        style="min-width: 37px;">{{! row.age }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-envelope>
+                <br />
+                view, order by, limit="1", update, delete
+                <gs-envelope limit="1" src="test.tpeople" ord="first_name ASC">
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td heading="First Name" style="min-width: 120px;"><gs-text mini column="first_name"></gs-text></td>
+                                    <td heading="Last Name"  style="min-width: 120px;"><gs-text mini column="last_name"></gs-text></td>
+                                    <td heading="Birth Date" style="min-width: 122px;"><gs-date mini column="birth_date"></gs-date></td>
+                                    <td heading="Age"        style="min-width: 37px;">{{! row.age }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-envelope>
+                <br />
+                view, order by, insert, update, delete, events, reflow-at="1000" (px)
+                <gs-envelope id="test_events" src="test.tpeople" reflow-at="1000" ord="first_name ASC">
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td heading="First Name" style="min-width: 120px;"><gs-text mini column="first_name"></gs-text></td>
+                                    <td heading="Last Name"  style="min-width: 120px;"><gs-text mini column="last_name"></gs-text></td>
+                                    <td heading="Birth Date" style="min-width: 122px;"><gs-date mini column="birth_date"></gs-date></td>
+                                    <td heading="Age"        style="min-width: 37px;">{{! row.age }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template for="insert">
+                        First Name:
+                        <gs-text column="first_name"></gs-text><br />
+                        
+                        Last Name:
+                        <gs-text column="last_name"></gs-text><br />
+                        
+                        Birth Date:
+                        <gs-date column="birth_date"></gs-date><br />
+                    </template>
+                </gs-envelope>
+                <br />
+                Select, insert, update, delete, order_by, custom hud buttons
+                <gs-envelope src="test.tpeople" ord="first_name ASC">
+                    <template for="hud">
+                        <gs-button class="hud" onclick="alert('custom hud button 1');" inline id="custom-hud-button1">Stop</gs-button>
+                        <gs-button class="hud" onclick="alert('custom hud button 2');" inline id="custom-hud-button2">Resume</gs-button>
+                    </template>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td heading="First Name" style="min-width: 120px;"><gs-text mini column="first_name"></gs-text></td>
+                                    <td heading="Last Name"  style="min-width: 120px;"><gs-text mini column="last_name"></gs-text></td>
+                                    <td heading="Birth Date" style="min-width: 122px;"><gs-date mini column="birth_date"></gs-date></td>
+                                    <td heading="Age"        style="min-width: 37px;">{{! row.age }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template for="insert">
+                        First Name:
+                        <gs-text column="first_name"></gs-text><br />
+                        
+                        Last Name:
+                        <gs-text column="last_name"></gs-text><br />
+                        
+                        Birth Date:
+                        <gs-date column="birth_date"></gs-date><br />
+                    </template>
+                </gs-envelope>
+                <br />
+                Select, unbound columns, order_by, no-huddelete, no-hudorderby, no-hudlimit, no-hudrefresh
+                <gs-envelope src="test.tpeople" no-huddelete no-hudorderby no-hudlimit no-hudrefresh ord="first_name ASC">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th style="min-width: 120px;">First</th>
+                                    <th style="min-width: 120px;">Last</th>
+                                    <th style="min-width: 122px;">B-Date</th>
+                                    <th style="min-width: 37px;"># Years Old</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td><gs-text mini value="{{! row.first_name }}"></gs-text></td>
+                                    <td><gs-text mini value="{{! row.last_name }}"></gs-text></td>
+                                    <td><gs-date mini value="{{! row.birth_date }}"></gs-date></td>
+                                    <td>{{! row.age }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-envelope>
+                <br />
+                Select, bound columns, unbound values (should be defaulting using column), order_by, no-huddelete, no-hudorderby, no-hudlimit, no-hudrefresh
+                <gs-envelope src="test.tpeople" no-huddelete no-hudorderby no-hudlimit no-hudrefresh ord="first_name ASC">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th style="min-width: 120px;">First</th>
+                                    <th style="min-width: 120px;">Last</th>
+                                    <th style="min-width: 122px;">B-Date</th>
+                                    <th style="min-width: 37px;"># Years Old</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th><gs-static column="row_number"></gs-static></th>
+                                    <td><gs-text mini column="first_name"></gs-text></td>
+                                    <td><gs-text mini column="last_name"></gs-text></td>
+                                    <td><gs-date mini column="birth_date"></gs-date></td>
+                                    <td>{{! row.age }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-envelope>
+                <br />
+                Select, order_by, custom select-action, custom update-action
+                <gs-envelope src="test.tpeople" action-select="cluster/test.action_select_tpeople" action-update="cluster/test.action_update_tpeople" ord="first_name ASC">
+                    <template for="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th style="min-width: 120px;">First</th>
+                                    <th style="min-width: 120px;">Last</th>
+                                    <th style="min-width: 122px;">B-Date</th>
+                                    <th style="min-width: 37px;"># Years Old</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th><gs-static column="row_number"></gs-static></th>
+                                    <td><gs-text mini column="first_name"></gs-text></td>
+                                    <td><gs-text mini column="last_name"></gs-text></td>
+                                    <td><gs-date mini column="birth_date"></gs-date></td>
+                                    <td>{{! row.age }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-envelope>-->
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

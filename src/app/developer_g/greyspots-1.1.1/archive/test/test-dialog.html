@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+            function testDialog_1() {
+                'use strict';
+                GS.openDialog('test-dialog-1', '', function (event, strAnswer) {
+                    console.log(document.getElementById('control-dialog-1-test1').value);
+                    console.log(document.getElementById('control-dialog-1-test2').value);
+                    console.log(document.getElementById('control-dialog-1-test3').value);
+                    console.log(document.getElementById('control-dialog-1-test4').value);
+                    console.log(document.getElementById('control-dialog-1-test5').value);
+                    console.log(document.getElementById('control-dialog-1-test6').value);
+                    console.log('Answer:', strAnswer);
+                });
+            }
+            function testDialog_2() {
+                'use strict';
+                GS.openDialog('test-dialog-2', function () {
+                    document.getElementById('focus-me').focus();
+                    console.log(document.getElementById('focus-me').inserted);
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <template id="test-dialog-1">
+            <gs-header><h3>Dialog From Template:</h3></gs-header>
+            <gs-body padded>
+                <gs-text id="control-dialog-1-test1" value="test"></gs-text>
+                <gs-text id="control-dialog-1-test2" value="test"></gs-text>
+                <gs-text id="control-dialog-1-test3" value="test"></gs-text>
+                <gs-text id="control-dialog-1-test4" value="test"></gs-text>
+                <gs-text id="control-dialog-1-test5" value="test"></gs-text>
+                <gs-text id="control-dialog-1-test6" value="test"></gs-text>
+            </gs-body>
+            <gs-footer>
+                <gs-button dialogclose key="escape" no-modifier-key>Done</gs-button>
+                <gs-button dialogclose listen-for-return>Test</gs-button>
+            </gs-footer>
+        </template>
+        
+        <template id="test-dialog-2">
+            <gs-header><h3>Dialog From Template:</h3></gs-header>
+            <gs-body padded>
+                <gs-grid widths="1,1">
+                    <gs-block><gs-button>test</gs-button></gs-block>
+                    <gs-block><gs-button>test</gs-button></gs-block>
+                    
+                    <gs-block><gs-button id="focus-me">test (focus should be here)</gs-button></gs-block>
+                    <gs-block><gs-button>test</gs-button></gs-block>
+                    
+                    <gs-block><gs-button>test</gs-button></gs-block>
+                    <gs-block><gs-button>test</gs-button></gs-block>
+                </gs-grid>
+            </gs-body>
+            <gs-footer>
+                <gs-button dialogclose>Done</gs-button>
+            </gs-footer>
+        </template>
+        
+        <gs-page>
+            <gs-header><h3>Dialog</h3></gs-header>
+            <gs-body padded>
+                <gs-button onclick="testDialog_1()">Test 1</gs-button>
+                <gs-button onclick="testDialog_2()">Test 2</gs-button>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

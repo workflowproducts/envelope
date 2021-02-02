@@ -1,0 +1,12 @@
+gs-ui-test > .root {
+    display: inline;
+    padding: 0.5em;
+    box-sizing: border-box;
+}
+
+gs-ui-test > .root > gs-grid > gs-block > div {
+    border: 0.2em inset #FFFFFF;
+    padding: 0.5em;
+    box-sizing: border-box;
+    overflow: scroll;
+}

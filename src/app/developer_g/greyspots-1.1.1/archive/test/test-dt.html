@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        <!-- Make this page use standard caching procedure when used as an iframe -->
+        <meta http-equiv="Cache-control" content="no-store, must-revalidate" />
+        
+        <title>&lt;gs-dt&gt; test</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body style="max-width: 30em;">
+        <gs-dt value="2017-12-20" onchange="console.log('change');"></gs-dt>
+        <gs-dt value="2017-12-20" format="shortdate"></gs-dt>
+        <gs-dt value="2017-12-20" format="mediumdate"></gs-dt>
+        <gs-dt value="2017-12-20" format="longdate"></gs-dt>
+        <gs-dt value="2017-12-20" format="fulldate"></gs-dt>
+        
+        <gs-dt value="15:45:00" format="shorttime"></gs-dt>
+        <gs-dt value="15:45:00" format="mediumtime"></gs-dt>
+        
+        <gs-dt value="2017-12-20" format="normaldate mediumtime"></gs-dt>
+        <gs-dt format="normaldate"></gs-dt>
+        <gs-dt format="mediumtime"></gs-dt>
+        
+        <br />
+        <br />
+        <br />
+        <br />
+        
+        <label>Day => Month:</label>
+        <gs-dt value="2018-01-01" format="yyyy-dd-MMM"></gs-dt>
+        <label>Month => Year:</label>
+        <gs-dt value="2018-01-01" format="MMM-dd-yyyy"></gs-dt>
+        <label>Both:</label>
+        <gs-dt value="2018-01-01" format="dd-MMM-yyyy"></gs-dt>
+        <label>Neither:</label>
+        <gs-dt value="2018-01-01" format="yyyy-MMM-dd"></gs-dt>
+        
+    </body>
+</html>

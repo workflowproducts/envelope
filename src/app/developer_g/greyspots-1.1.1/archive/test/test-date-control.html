@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+            function testDialog() {
+                GS.openDialog('dialogtest', function () {
+                    document.getElementById('test19').value = '2015-02-06';
+                    //document.getElementById('test19').setAttribute('value', '2015-02-06');
+                    
+                    //document.getElementById('test19').value = 'test';
+                    //document.getElementById('test19').setAttribute('value', '500066');
+                    
+                    //alert('after_open "' + document.getElementById('test19').value + '"');
+                    //console.log('after_open: ' + document.getElementById('test19').value);
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <template id="dialogtest">
+            <gs-page>
+                <gs-header><center><h3>Test</h3></center></gs-header>
+                <gs-body padded>
+                    <gs-date id="test19"></gs-date>
+                    <gs-button onclick="console.log('log: ' + document.getElementById('test19').value)">log</gs-button>
+                </gs-body>
+                <gs-footer>
+                    <gs-button dialogclose>Ok</gs-button>
+                </gs-footer>
+            </gs-page>
+        </template>
+        <gs-page>
+            <gs-header><h3>Date:</h3></gs-header>
+            <gs-body padded>
+                <label>suspended:</label>
+                <gs-date id="date-suspended" suspend-inserted format="longdate"></gs-date>
+                <br />
+                
+                <label>disabled, value and placeholder combinations:</label>
+                <gs-date column="test" disabled></gs-date>
+                <gs-date column="test" disabled value="test"></gs-date>
+                <gs-date column="test" disabled placeholder="test"></gs-date>
+                <br />
+                
+                <label>Normal:</label>
+                <gs-date id="date0"></gs-date>
+                <br />
+                
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                <gs-date value="true" qs="visibility"></gs-date>
+                <br />
+                
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                <gs-date value="true" qs="visibility=,limit=,test=" visibility="true"></gs-date>
+                <br />
+                
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                <gs-date value="true" qs="visibility=hidden,limit=asdf,test=qwer"></gs-date>
+                <br />
+                
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                <gs-date value="1-1-2011" qs="visibility!=hidden"></gs-date>
+                <br />
+                
+                <label>readonly, no value</label>
+                <gs-date readonly></gs-date>
+                <br />
+                
+                <label>readonly, value</label>
+                <gs-date readonly value="1-1-2011"></gs-date>
+                <br />
+                
+                
+                
+                <label>shortdate:</label>
+                <gs-date id="date1" value="02/1/16" format="shortdate"></gs-date>
+                <label>mediumdate:</label>
+                <gs-date id="date2" value="Jan 6, 2015" format="mediumdate"></gs-date>
+                <label>longdate:</label>
+                <gs-date id="date3" value="January 6, 2015" format="longdate"></gs-date>
+                <label>fulldate:</label>
+                <gs-date id="date4" value="Thursday, January 8, 2015" format="fulldate"></gs-date>
+                <label>shorttime:</label>
+                <gs-date id="date5" value="5:30 AM" format="shorttime" no-picker></gs-date>
+                <label>mediumtime:</label>
+                <gs-date id="date6" value="5:30:45 PM" format="mediumtime" no-picker></gs-date>
+                <label>isodate:</label>
+                <gs-date id="date7" value="2015-05-09" format="isodate"></gs-date>
+                <label>isotime:</label>
+                <gs-date id="date8" value="15:35:15" format="isotime"></gs-date>
+                <label>isodatetime:</label>
+                <gs-date id="date9" value="2015-05-09'T'15:35:15" format="isodatetime"></gs-date>
+                <br />
+                
+                <label>small control:</label>
+                <gs-date id="date10" value="3-05-15" style="width: 10em;"></gs-date>
+                <br />
+                
+                <label>text value:</label>
+                <gs-date id="date10" value="asdf"></gs-date>
+                <br />
+                
+                <label>Pre value:</label>
+                <gs-date id="date10" value="3-05-15"></gs-date>
+                <br />
+                
+                <label>Pre value, Disabled:</label>
+                <gs-date id="date11" disabled value="01-05-16"></gs-date>
+                <br />
+                
+                <label>Onchange attribute:</label>
+                <gs-date id="date12" onchange="alert(this.value);"></gs-date>
+                <br />
+                
+                <label>Format "yyyy-MM-dd"</label>
+                <gs-date id="date13" format="yyyy-MM-dd"></gs-date>
+                <br />
+                
+                <label>Pre value "01-05-16", format "shortdate"</label>
+                <gs-date id="date14" value="01-05-16" format="shortdate"></gs-date>
+                <br />
+                
+                <label>Format "shortdate"</label>
+                <gs-date id="date15" format="shortdate"></gs-date>
+                <br />
+                
+                <label>no-picker</label>
+                <gs-date id="date16" no-picker></gs-date>
+                <br />
+                
+                <label>placeholder</label>
+                <gs-date id="date17" placeholder="A Date"></gs-date>
+                <br />
+                
+                <label>disabled, placeholder</label>
+                <gs-date id="date18" placeholder="A Date" disabled></gs-date>
+                <br />
+                
+                <label>date in a dialog:</label>
+                <gs-button onclick="testDialog();">Click Here</gs-button>
+                <br />
+                
+                <label>Format "yyyy-MM-dd EEEE", pre-value</label>
+                <gs-date id="date20" format="yyyy-MM-dd EEEE" value="01-05-16"></gs-date>
+                <br />
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

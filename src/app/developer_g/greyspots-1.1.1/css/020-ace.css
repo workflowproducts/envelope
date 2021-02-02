@@ -1,0 +1,58 @@
+
+
+gs-ace {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+gs-ace > .root {
+    width: 100%;
+    /*height: 100%; handled by JS */
+}
+
+/*to make it respond to theme differences*/
+.gs-ace-marker {
+    position: absolute;
+    z-index: 4;
+    background-color: #FBFFBE;
+}
+
+gs-ace[disabled]:after,
+gs-ace[readonly]:after {
+    display: block;
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0.4;
+}
+gs-ace[disabled]:after {
+    background-color: #000;
+}
+gs-ace[readonly]:after {
+    background-color: #AAA;
+}
+
+
+/*
+.ace-selected-element {
+    background-color: #FBFFBE;
+}
+.ace-selected-element-close {
+    background-color: #FBFFBE;
+    opacity: 0.5;
+}
+*/

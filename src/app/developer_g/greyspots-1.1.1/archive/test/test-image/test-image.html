@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>gs-image</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-img alt="test alternative text" src="images/becket.jpg" min-width="all {150px}; lrg {75px};"></gs-img>
+        <gs-img alt="test alternative text" src="images/becket.jpg" min-width="all {150px, 75px}; lrg {75px, 150px};"></gs-img>
+        <gs-img alt="test alternative text" src="images/becket.jpg" media="print {200px}; all and (max-width: 500px) {500px}; (min-width: 500px) {600px};"></gs-img>
+        <gs-img alt="test alternative text" src="images/becket.jpg"></gs-img>
+    </body>
+</html>

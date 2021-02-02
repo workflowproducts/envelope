@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+            window.addEventListener('load', function(event) {
+                document.getElementById('test-message1').addEventListener('click', function (event) {
+                    GS.pushMessage('This is a test!', 1000);
+                });
+                document.getElementById('test-message2').addEventListener('click', function (event) {
+                    GS.pushMessage('This is a test with some <i><strong>HTML</strong></i> in it!', 1000);
+                });
+                document.getElementById('test-message3').addEventListener('change', function (event) {
+                    GS.pushMessage(this.value, 1000, function () {
+                        alert('The pushMessage has closed!');
+                    });
+                });
+            });
+        </script>
+        
+        <style>
+            gs-body {
+                padding: 1em;
+            }
+        </style>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>PushMessage</h3></gs-header>
+            <gs-body>
+                <gs-button id="test-message1">Push Message 1</gs-button>
+                <gs-button id="test-message2">Push Message 2</gs-button><br />
+                
+                Custom Push Message: (an alert will run after the pushmessage is closed)
+                <gs-memo id="test-message3" value="Make a change in here! (then focus out)"></gs-memo>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

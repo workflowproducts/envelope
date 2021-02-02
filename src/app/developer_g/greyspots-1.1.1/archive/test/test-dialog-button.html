@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Dialog Button</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script>
+            function testBeforeOpenFunction(element) {
+                console.log(element);
+            }
+            
+            function testAfterOpenFunction(element) {
+                console.log(element);
+            }
+            
+        </script>
+    </head>
+    <body>
+        <template id="dialog-test" data-overlay-close="true" data-max-width="200px">
+            <gs-page>
+                <gs-body>
+                    <center><h4>Test Dialog</h4></center>
+                </gs-body>
+                <gs-footer>
+                    <gs-button dialogclose><span>Done</span> dun, dun!</gs-button>
+                </gs-footer>
+            </gs-page>
+        </template>
+        
+        <gs-jumbo>
+            <center><h1>Dialog Button</h1></center>
+        </gs-jumbo>
+        
+        <gs-container min-width="sml;med;lrg;" padded>
+            <!-- inner template -->
+            <gs-dialog-button>
+                <template>
+                    <gs-page>
+                        <gs-body>
+                            <center><h4>Test Dialog From Inner Template</h4></center>
+                        </gs-body>
+                        <gs-footer>
+                            <gs-button dialogclose>Done</gs-button>
+                        </gs-footer>
+                    </gs-page>
+                </template>
+                
+                Template inside the button
+            </gs-dialog-button>
+            
+            <gs-dialog-button template="dialog-test">Template referenced by id</gs-dialog-button>
+            <br />
+            <hr />
+            <br />
+            <!-- events -->
+            <gs-dialog-button template="dialog-test"
+                              before-open="testBeforeOpenFunction(this); alert('before-open');"
+                              after-open="testAfterOpenFunction(this); alert('after-open');"
+                              before-close="alert('before-close ' + this + ' ' + strAnswer);"
+                              after-close="alert('after-close ' + this + ' ' + strAnswer);">Events</gs-dialog-button>
+            <br />
+            <hr />
+            <br />
+            <!-- openDialogToElement -->
+            <gs-dialog-button template="dialog-test" target="#test-target">Dialog to target (default)</gs-dialog-button>
+            <gs-dialog-button template="dialog-test" target="#test-target" direction="up">Dialog to target (up)</gs-dialog-button>
+            <gs-dialog-button template="dialog-test" target="#test-target" direction="down">Dialog to target (down)</gs-dialog-button>
+            <gs-dialog-button template="dialog-test" target="#test-target" direction="left">Dialog to target (left)</gs-dialog-button>
+            <gs-dialog-button template="dialog-test" target="#test-target" direction="right">Dialog to target (right)</gs-dialog-button>
+            <gs-dialog-button template="dialog-test" target="this">Dialog to target (attached to self)</gs-dialog-button>
+            <gs-dialog-button template="dialog-test" target>Dialog to target (attached to self)</gs-dialog-button>
+            <br />
+            <center>
+                <span style="display: inline-block; background-color: #00DD00; padding: 2px;" id="test-target">Target</span>
+            </center>
+            <br />
+            <hr />
+            <br />
+            <!-- icons and stuff -->
+            <gs-dialog-button template="dialog-test" icononly icon="glass"></gs-dialog-button>
+            
+        </gs-container>
+    </body>
+</html>

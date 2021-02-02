@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><center><h3>Detail</h3></center></gs-header>
+            <gs-body>
+                <gs-form src="test.tpeople" where="id={{! qs.id }}" flex-vertical flex-fill style="height: 100%;">
+                    First Name:
+                    <gs-text column="first_name"></gs-text><br />
+                    
+                    Last Name:
+                    <gs-text column="last_name"></gs-text><br />
+                    
+                    Birth Date:
+                    <gs-date column="birth_date"></gs-date><br />
+                    
+                    Age:
+                    <gs-text column="age" disabled></gs-text><br />
+                    
+                    Pets:
+                    <gs-envelope id="envelope_pets" column="id" child-column="people_id" src="test.tpeople_line" ord="pet_name ASC" flex>
+                        <template for="table">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <th heading="#">{{! row_number }}</th>
+                                        <td heading="Name"       style="min-width: 120px;"><gs-text mini column="pet_name" value="{{! row.pet_name }}"></gs-text></td>
+                                        <td heading="Birth Date" style="min-width: 122px;"><gs-date mini column="birth_date" value="{{! row.birth_date }}"></gs-date></td>
+                                        <th heading="Age"        style="min-width: 37px;">{{! row.age }}</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </template>
+                        <template for="insert">
+                            Name:
+                            <gs-text column="pet_name"></gs-text><br />
+                            
+                            Date:
+                            <gs-date column="birth_date" value="1/1/2001"></gs-date>
+                        </template>
+                    </gs-envelope>
+                </gs-form>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

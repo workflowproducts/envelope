@@ -1,0 +1,81 @@
+/*begintooltipcss*/
+gs-tooltip {
+    display: block;
+}
+
+gs-tooltip, gs-tooltip > div.tooltipcont {
+    height: 0;
+    width: auto;
+    position: relative;
+    visibility: collapse;
+    display: block;
+}
+
+gs-tooltip > :not(span) {
+    visibility: visible;
+}
+
+.tooltiptext {
+    display: none;
+    visibility: collapse;
+    width: auto;
+    max-width: 250px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    padding: 0.75em;
+    border-radius: 6px;
+    box-sizing: border-box;
+
+    /* Position the tooltip text - see examples below! */
+    position: relative;
+    z-index: 1;
+}
+
+/*.tooltiptext[right] {  }*/
+/*.tooltiptext[left] {  }*/
+
+.tooltiptext::after {
+    content: " ";
+    position: absolute;
+    border-width: 6px;
+    border-style: solid;
+}
+
+.tooltiptext[styleas="right"]::after {
+    top: 10px;
+    right: 100%; /* To the left of the tooltip */
+    margin-top: -5px;
+    border-color: transparent black transparent transparent;
+}
+
+.tooltiptext[styleas="left"]::after {content: " ";
+    top: 10px;
+    left: 100%; /* To the right of the tooltip */
+    margin-top: -5px;
+    border-color: transparent transparent transparent black;
+}
+
+.tooltiptext[styleas="bottom"]::after {
+    bottom: 100%;  /* At the top of the tooltip */
+    left: 50%;
+    margin-left: -5px;
+    border-color: transparent transparent black transparent;
+}
+
+.tooltiptext[styleas="top"]::after {
+    top: 100%; /* At the bottom of the tooltip */
+    left: 50%;
+    margin-left: -5px;
+    border-color: black transparent transparent transparent;
+}
+
+.tooltiptext.firsthover {
+    display: inline-block !important;
+}
+
+.tooltiptext.hover {
+    visibility: visible;
+    display: inline-block !important;
+}
+/*endtooltipcss*/

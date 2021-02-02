@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Time Face</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <style>
+            .gs-time-clock-container {
+                font-family: menlo, monospace;
+                
+                font-size: 16px;
+                width: 15em;
+                height: 15em;
+                margin: 0 auto;
+                padding: 0.7em;
+                border-radius: 50%;
+                box-shadow: 0 0 0.01em 0.09em #999999;
+                
+                /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#f5f6f6+60,9ad392+61,366d36+66,9ad392+70,f5f6f6+71&1+0,1+71,0+72,0+72 */
+background: -moz-radial-gradient(center, ellipse cover, rgba(245,246,246,1) 0%, rgba(245,246,246,1) 60%, rgba(154,211,146,1) 61%, rgba(54,109,54,1) 66%, rgba(154,211,146,1) 70%, rgba(245,246,246,1) 71%, rgba(245,246,246,0) 72%); /* FF3.6+ */
+background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,rgba(245,246,246,1)), color-stop(60%,rgba(245,246,246,1)), color-stop(61%,rgba(154,211,146,1)), color-stop(66%,rgba(54,109,54,1)), color-stop(70%,rgba(154,211,146,1)), color-stop(71%,rgba(245,246,246,1)), color-stop(72%,rgba(245,246,246,0))); /* Chrome,Safari4+ */
+background: -webkit-radial-gradient(center, ellipse cover, rgba(245,246,246,1) 0%,rgba(245,246,246,1) 60%,rgba(154,211,146,1) 61%,rgba(54,109,54,1) 66%,rgba(154,211,146,1) 70%,rgba(245,246,246,1) 71%,rgba(245,246,246,0) 72%); /* Chrome10+,Safari5.1+ */
+background: -o-radial-gradient(center, ellipse cover, rgba(245,246,246,1) 0%,rgba(245,246,246,1) 60%,rgba(154,211,146,1) 61%,rgba(54,109,54,1) 66%,rgba(154,211,146,1) 70%,rgba(245,246,246,1) 71%,rgba(245,246,246,0) 72%); /* Opera 12+ */
+background: -ms-radial-gradient(center, ellipse cover, rgba(245,246,246,1) 0%,rgba(245,246,246,1) 60%,rgba(154,211,146,1) 61%,rgba(54,109,54,1) 66%,rgba(154,211,146,1) 70%,rgba(245,246,246,1) 71%,rgba(245,246,246,0) 72%); /* IE10+ */
+background: radial-gradient(ellipse at center, rgba(245,246,246,1) 0%,rgba(245,246,246,1) 60%,rgba(154,211,146,1) 61%,rgba(54,109,54,1) 66%,rgba(154,211,146,1) 70%,rgba(245,246,246,1) 71%,rgba(245,246,246,0) 72%); /* W3C */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f5f6f6', endColorstr='#00f5f6f6',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+            }
+            
+            .gs-time-bezel {
+                position: relative;
+                
+                width: 100%;
+                height: 100%;
+                
+                box-shadow: 0 0 0.09em 0.15em #CCCCCC inset;
+                border-radius: 50%;
+                
+                /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#f3f3f3+0,dadada+42,dadada+100 */
+background: rgb(243,243,243); /* Old browsers */
+background: -moz-radial-gradient(center, ellipse cover, rgba(243,243,243,1) 0%, rgba(218,218,218,1) 42%, rgba(218,218,218,1) 100%); /* FF3.6+ */
+background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,rgba(243,243,243,1)), color-stop(42%,rgba(218,218,218,1)), color-stop(100%,rgba(218,218,218,1))); /* Chrome,Safari4+ */
+background: -webkit-radial-gradient(center, ellipse cover, rgba(243,243,243,1) 0%,rgba(218,218,218,1) 42%,rgba(218,218,218,1) 100%); /* Chrome10+,Safari5.1+ */
+background: -o-radial-gradient(center, ellipse cover, rgba(243,243,243,1) 0%,rgba(218,218,218,1) 42%,rgba(218,218,218,1) 100%); /* Opera 12+ */
+background: -ms-radial-gradient(center, ellipse cover, rgba(243,243,243,1) 0%,rgba(218,218,218,1) 42%,rgba(218,218,218,1) 100%); /* IE10+ */
+background: radial-gradient(ellipse at center, rgba(243,243,243,1) 0%,rgba(218,218,218,1) 42%,rgba(218,218,218,1) 100%); /* W3C */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f3f3f3', endColorstr='#dadada',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+                
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                -ms-box-sizing: border-box;
+                -o-box-sizing: border-box;
+                box-sizing: border-box;
+            }
+            
+            .clock-face-layer {
+                position: absolute;
+                border-radius: 50%;
+                color: #006E00;
+            }
+            
+            .clock-face-layer.layer-1 {
+                line-height: 1.5em;
+                top: 4%;
+                left: 4%;
+                width: 92%;
+                height: 92%;
+            }
+            
+            .clock-face-layer.layer-2 {
+                line-height: 1.2em;
+                top: 18%;
+                left: 18%;
+                width: 64%;
+                height: 64%;
+            }
+            
+            .clock-line {
+                position: absolute;
+                height: 1em;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .clock-split {
+                display: inline-block;
+                text-align: center;
+            }
+            
+            .clock-center {
+                position: absolute;
+                font-size: 1.8em;
+                left: 50%;
+                top: 50%;
+                height: 1em;
+                width: 4em;
+                margin-left: -2em;
+                margin-top: -0.5em;
+                text-align: center;
+            }
+            
+            .clock-button {
+                display: inline-block;
+            }
+            
+            .clock-button.selected,
+            .clock-period-switch.selected {
+                background-color: #FFDD66;
+                color: #000000;
+                border-radius: 19%;
+                height: 100%;
+            }
+            
+            .clock-period-switch {
+                display: inline-block;
+                padding: 0 0.25em;
+                font-size: 0.8em;
+                line-height: 1.4em;
+            }
+            
+            .clock-face-layer.layer-1 .clock-button {
+                font-size: 1.6em;
+            }
+            
+            .clock-face-layer.layer-2 .clock-button {
+                font-size: 1.2em;
+            }
+        </style>
+    </head>
+    <body>
+        <div style="padding: 1em;">
+            <div class="gs-time-clock-container">
+                <div class="gs-time-bezel">
+                    <div class="clock-face-layer layer-1">
+                        <div class="clock-line" style="top: 0%;"><div class="clock-button">12</div></div>
+                        <div class="clock-line" style="top: 5.9%;"><div class="clock-split" style="width: 4.5%;"></div><div class="clock-split" style="width: 45.25%;"><div class="clock-button">11</div></div><div class="clock-split" style="width: 45.25%;"><div class="clock-button">&nbsp;1</div></div><div class="clock-split" style="width: 4.5%;"></div></div>
+                        <div class="clock-line" style="top: 22.5%;"><div class="clock-split" style="width: 22%;"><div class="clock-button">10</div></div><div class="clock-split" style="width: 56%;"></div><div class="clock-split" style="width: 22%;"><div class="clock-button">&nbsp;2</div></div></div>
+                        <div class="clock-line" style="top: 45.3%;"><div class="clock-split" style="width: 14%;"><div class="clock-button">9&nbsp;</div></div><div class="clock-split" style="width: 72%;"></div><div class="clock-split" style="width: 14%;"><div class="clock-button">&nbsp;3</div></div></div>
+                        <div class="clock-line" style="top: 67.8%;"><div class="clock-split" style="width: 22%;"><div class="clock-button">8&nbsp;</div></div><div class="clock-split" style="width: 56%;"></div><div class="clock-split" style="width: 22%;"><div class="clock-button">&nbsp;4</div></div></div>
+                        <div class="clock-line" style="top: 83.5%;"><div class="clock-split" style="width: 4.5%;"></div><div class="clock-split" style="width: 45.25%;"><div class="clock-button">7&nbsp;</div></div><div class="clock-split" style="width: 45.25%;"><div class="clock-button">&nbsp;5</div></div><div class="clock-split" style="width: 4.5%;"></div></div>
+                        <div class="clock-line" style="top: 90%;"><div class="clock-button">6</div></div>
+                    </div>
+                    <div class="clock-face-layer layer-2">
+                        <div class="clock-line" style="top: 0%;"><div class="clock-button">00</div></div>
+                        <div class="clock-line" style="top: 5.9%;"><div class="clock-split" style="width: 4.5%;"></div><div class="clock-split" style="width: 45.25%;"><div class="clock-button">55</div></div><div class="clock-split" style="width: 45.25%;"><div class="clock-button">05</div></div><div class="clock-split" style="width: 4.5%;"></div></div>
+                        <div class="clock-line" style="top: 22.5%;"><div class="clock-split" style="width: 17%;"><div class="clock-button">50</div></div><div class="clock-split" style="width: 56%;"></div><div class="clock-split" style="width: 17%;"><div class="clock-button">10</div></div></div>
+                        <div class="clock-line" style="top: 45.3%;"><div class="clock-split" style="width: 16%;"><div class="clock-button">45</div></div><div class="clock-split" style="width: 68%;"></div><div class="clock-split" style="width: 16%;"><div class="clock-button">15</div></div></div>
+                        <div class="clock-line" style="top: 67.8%;"><div class="clock-split" style="width: 17%;"><div class="clock-button">40</div></div><div class="clock-split" style="width: 56%;"></div><div class="clock-split" style="width: 17%;"><div class="clock-button">20</div></div></div>
+                        <div class="clock-line" style="top: 83.5%;"><div class="clock-split" style="width: 4.5%;"></div><div class="clock-split" style="width: 45.25%;"><div class="clock-button">35</div></div><div class="clock-split" style="width: 45.25%;"><div class="clock-button">25</div></div><div class="clock-split" style="width: 4.5%;"></div></div>
+                        <div class="clock-line" style="top: 90%;"><div class="clock-button">30</div></div>
+                        <div class="clock-center"><div class="clock-period-switch am">AM</div><div class="clock-period-switch pm">PM</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,128 @@
+// Polyfill so that we don't have to update each element's code
+
+var oldRegister = xtag.register;
+
+xtag.tags = {};
+
+xtag.register = function (name, options) {
+    'use strict';
+    function ElementConstructor() {
+        // inherit from HTMLElement part 1 of 2
+        var _ = Reflect.construct(HTMLElement, [], new.target);
+        
+        // lifecycle part 1 of 2
+        if (options.lifecycle) {
+            if (options.lifecycle.created) {
+                //console.log(_ instanceof HTMLDivElement);
+                //console.log('hasAttribute:', _.hasAttribute);
+                options.lifecycle.created.apply(_, arguments);
+            }
+        }
+
+        // accessors
+        if (options.accessors) {
+            //console.log(options.accessors);
+            var arrAccessor = Object.keys(options.accessors);
+            var i = 0;
+            var len = arrAccessor.length;
+            while (i < len) {
+                Object.defineProperty(_, arrAccessor[i], options.accessors[arrAccessor[i]]);
+                //console.log(_, arrAccessor[i], options.accessors[arrAccessor[i]]);
+                i += 1;
+            }
+        }
+
+        // events
+        if (options.events) {
+            var arrEvent = Object.keys(options.events);
+            var i = 0;
+            var len = arrEvent.length;
+            while (i < len) {
+                _.addEventListener(arrEvent[i], options.events[arrEvent[i]]);
+                i += 1;
+            }
+        }
+
+        return _;
+    };
+    // inherit from HTMLElement part 2 of 2
+    ElementConstructor.prototype = Object.create(HTMLElement.prototype);
+    
+    // lifecycle part 2 of 2
+    //console.log(name, ElementConstructor.prototype, Object.create(HTMLElement.prototype));
+    // ElementConstructor.prototype = ElementConstructor.prototype || {};
+    if (options.lifecycle) {
+        if (options.lifecycle.inserted) {
+            ElementConstructor.prototype.connectedCallback = function () {
+                this.xtagInserted = true;
+                options.lifecycle.inserted.apply(this, arguments);
+            };
+        }
+        if (options.lifecycle.removed) {
+            ElementConstructor.prototype.disconnectedCallback = options.lifecycle.removed;
+        }
+        //console.log(name, 'options.lifecycle.attributeChanged', options.lifecycle.attributeChanged);
+        if (options.lifecycle.attributeChanged) {
+            ElementConstructor.prototype.attributeChangedCallback = function () {
+                // only run the changed callback if we are inserted
+                if (this.xtagInserted) {
+                    options.lifecycle.attributeChanged.apply(this, arguments);
+                }
+            };
+            Object.defineProperty(ElementConstructor, 'observedAttributes', { get: function () { return ['disabled','for','format','href','media','min-width','no-focus','no-huddelete','no-hudlimit','no-hudorderby','no-hudrefresh','no-picker','path','placeholder','qs','reflow','reflow-at','src','suspend-created','suspend-inserted','tabindex','template','value','widths']; } });
+        }
+    }
+
+    // methods
+    var arrMethod = Object.keys(options.methods || {});
+    var i = 0;
+    var len = arrMethod.length;
+    while (i < len) {
+        ElementConstructor.prototype[arrMethod[i]] = options.methods[arrMethod[i]];
+        i += 1;
+    }
+
+    // register
+    //console.log('registering', name, ElementConstructor, ElementConstructor.prototype, options);
+    oldRegister.call(xtag, name, ElementConstructor, { extends: options.extends || 'div' });
+    xtag.tags[name] = options;
+};
+
+xtag.matchSelector = function (e, s) {
+    return e.matches(s);
+};
+
+xtag.toArray = function (nodeList) {
+    return Array.prototype.slice.call(nodeList, 0);
+};
+
+xtag.query = function (element, selector) {
+    return !element ? null : xtag.toArray(element.querySelectorAll(selector));
+};
+
+// :scope polyfill for queryChildren
+(function(doc, proto) {
+  try { // check if browser supports :scope natively
+    doc.querySelector(':scope body');
+  } catch (err) { // polyfill native methods if it doesn't
+    ['querySelector', 'querySelectorAll'].forEach(function(method) {
+      var nativ = proto[method];
+      proto[method] = function(selectors) {
+        if (/(^|,)\s*:scope/.test(selectors)) { // only if selectors contains :scope
+          var id = this.id; // remember current element id
+          this.id = 'ID_' + Date.now(); // assign new unique id
+          selectors = selectors.replace(/((^|,)\s*):scope/g, '$1#' + this.id); // replace :scope with #ID
+          var result = doc[method](selectors);
+          this.id = id; // restore previous id
+          return result;
+        } else {
+          return nativ.call(this, selectors); // use native code for other selectors
+        }
+      }
+    });
+  }
+})(window.document, Element.prototype);
+
+xtag.queryChildren = function (element, selector) {
+    return !element ? null : xtag.toArray(element.querySelectorAll(':scope > ' + selector));
+};

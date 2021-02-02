@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        <!-- Make this page use standard caching procedure when used as an iframe -->
+        <meta http-equiv="Cache-control" content="no-store, must-revalidate" />
+        
+        <title>Safari Flexbox Issue</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <style>
+            .demo1 {
+                background-color: #006E00;
+                color: #FFFFFF;
+            }
+            
+            .demo2 {
+                background-color: #D0D000;
+                color: #000000;
+            }
+            
+            .demo3 {
+                background-color: #AD0000;
+                color: #FFFFFF;
+            }
+            
+            .demo4 {
+                background-color: #0000AE;
+                color: #FFFFFF;
+            }
+        </style>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header>
+                <h3>Safari Flexbox Issue</h3>
+            </gs-header>
+            <gs-body padded>
+                <label>Expand vertically to content while flex</label>
+                <div flex-vertical flex-fill>
+                    <div class="demo1" flex>test</div>
+                    <div class="demo2" flex>test</div>
+                </div>
+                <br />
+                <div style="height: 5em;" flex-vertical flex-fill>
+                    <div class="demo1" flex>test</div>
+                    <div class="demo2" flex>test</div>
+                </div>
+                <br />
+                <label>horizontally flexed content</label>
+                <div flex-horizontal flex-fill flex>
+                    <div class="demo1" flex>test</div>
+                    <div class="demo2" flex>test</div>
+                </div>
+                <br />
+                <label>Expand vertically to flexed content while flex</label>
+                <div flex-vertical flex-fill>
+                    <div flex-horizontal flex-fill flex>
+                        <div class="demo1" flex>test</div>
+                        <div class="demo2" flex>test</div>
+                    </div>
+                    <div flex-horizontal flex-fill flex>
+                        <div class="demo3" flex>test</div>
+                        <div class="demo4" flex>test</div>
+                    </div>
+                </div>
+                <br />
+                <div style="height: 5em;" flex-vertical flex-fill>
+                    <div flex-horizontal flex-fill flex>
+                        <div class="demo1" flex>test</div>
+                        <div class="demo2" flex>test</div>
+                    </div>
+                    <div flex-horizontal flex-fill flex>
+                        <div class="demo3" flex>test</div>
+                        <div class="demo4" flex>test</div>
+                    </div>
+                </div>
+                
+                
+                <br />
+                <br />
+                <div style="border: 1px solid #000" flex-vertical flex-fill gs-dynamic>
+                    <span class="path-title"></span>
+                    <div class="list-container" flex-fill>
+                        <div class="folder-list-container" flex-vertical flex-fill flex>
+                            <div class="folder-list-header" flex-horizontal>
+                                <b flex prevent-text-selection>Folders:</b>
+                                <gs-button class="button-back-folder" icon="long-arrow-left" icononly remove-bottom disabled no-focus></gs-button>
+                                <gs-button class="button-new-folder" icon="plus" icononly remove-bottom no-focus></gs-button>
+                            </div>
+                            <div class="folder-list" flex>
+                                <div flex-horizontal flex-fill>
+                                    <gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>
+                                    <gs-button class="open-folder" flex remove-left>63594</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill>
+                                    <gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>
+                                    <gs-button class="open-folder" flex remove-left>63593</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill>
+                                    <gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>
+                                    <gs-button class="open-folder" flex remove-left>63281</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill>
+                                    <gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>
+                                    <gs-button class="open-folder" flex remove-left>412</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill>
+                                    <gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>
+                                    <gs-button class="open-folder" flex remove-left>63575</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill>
+                                    <gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>
+                                    <gs-button class="open-folder" flex remove-left>63490</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill>
+                                    <gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>
+                                    <gs-button class="open-folder" flex remove-left>63472</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill>
+                                    <gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>
+                                    <gs-button class="open-folder" flex remove-left>63463</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill>
+                                    <gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>
+                                    <gs-button class="open-folder" flex remove-left>63428</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill>
+                                    <gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>
+                                    <gs-button class="open-folder" flex remove-left>63356</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill>
+                                    <gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>
+                                    <gs-button class="open-folder" flex remove-left>63218</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill>
+                                    <gs-button class="more-folder" icononly icon="bars" remove-right></gs-button>
+                                    <gs-button class="open-folder" flex remove-left>350</gs-button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="file-list-container" flex-vertical flex-fill flex>
+                            <div class="file-list-header" flex-horizontal>
+                                <b flex prevent-text-selection>Files:</b>
+                                <gs-button icon="plus" icononly remove-bottom></gs-button>
+                            </div>
+                            <div class="file-list" flex>
+                                <div flex-horizontal flex-fill class="file-line" data-name="test.txt">
+                                    <gs-button class="more-file" icononly icon="bars" remove-right tabindex="0"></gs-button>
+                                    <gs-button class="open-file" flex remove-left tabindex="0">test.txt</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill class="file-line" data-name="test1.txt">
+                                    <gs-button class="more-file" icononly icon="bars" remove-right tabindex="0"></gs-button>
+                                    <gs-button class="open-file" flex remove-left tabindex="0">test1.txt</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill class="file-line" data-name="recur.png">
+                                    <gs-button class="more-file" icononly icon="bars" remove-right tabindex="0"></gs-button>
+                                    <gs-button class="open-file" flex remove-left tabindex="0">recur.png</gs-button>
+                                </div>
+                                <div flex-horizontal flex-fill class="file-line" data-name="flower.jpg">
+                                    <gs-button class="more-file" icononly icon="bars" remove-right tabindex="0"></gs-button>
+                                    <gs-button class="open-file" flex remove-left tabindex="0">flower.jpg</gs-button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

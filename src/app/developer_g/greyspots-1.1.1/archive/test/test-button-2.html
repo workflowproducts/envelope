@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script src="/js/ace/ace.js" data-ace-base="/js/ace/" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/ace/ext-language_tools.js" type="text/javascript"></script>
+        <script src="/js/ace/ext-searchbox.js" type="text/javascript"></script>
+        
+        <script src="/js/beautify.js" type="text/javascript"></script>
+        <script src="./ui-test.js"></script>
+        <link href="./ui-test.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h1>Buttons:</h1></gs-header>
+            <gs-body padded>
+                <gs-button iconleft icon="square-o">Icon test</gs-button>
+                <gs-button iconright icon="square-o">Icon test</gs-button>
+                <gs-button icontop icon="square-o">Icon test</gs-button>
+                <gs-button iconbottom icon="square-o">Icon test</gs-button>
+                <br />
+                <gs-button mini iconleft icon="square-o">Icon test</gs-button>
+                <gs-button mini iconright icon="square-o">Icon test</gs-button>
+                <gs-button mini icontop icon="square-o">Icon test</gs-button>
+                <gs-button mini iconbottom icon="square-o">Icon test</gs-button>
+                <br />
+                <gs-button icononly icon="lock" style="font-size: 50px;"></gs-button>
+                <br />
+                <gs-button href="test-date-control.html">Test date control</gs-button>
+                <gs-button href="http://www.apple.com" target="_blank">apple.com</gs-button>
+                <gs-button href="test-date-control.html" target="_self">Test date control</gs-button>
+                <gs-button href="test-date-control.html" target="_self" icononly icon="arrow-right"></gs-button>
+                <gs-button href="test-date-control.html" target="_self" icononly icon="arrow-right" inline></gs-button>
+                <gs-button href="test-date-control.html" target="_self" icononly icon="arrow-right" style="width: 1.2em;"></gs-button>
+                <br />
+                <gs-button>DEFAULT</gs-button>
+                <gs-button txt-primary>PRIMARY</gs-button>
+                <gs-button txt-success>SUCCESS</gs-button>
+                <gs-button txt-info>INFO</gs-button>
+                <gs-button txt-warning>WARNING</gs-button>
+                <gs-button txt-danger>DANGER</gs-button>
+                <gs-button bg-primary>PRIMARY</gs-button>
+                <gs-button bg-success>SUCCESS</gs-button>
+                <gs-button bg-info>INFO</gs-button>
+                <gs-button bg-warning>WARNING</gs-button>
+                <gs-button bg-danger>DANGER</gs-button>
+                <br />
+                Email:
+                <gs-email-button value="michael@tocci.org">test</gs-email-button>
+                
+                test:
+                <gs-delete-button>test</gs-delete-button>
+                <gs-email-button>test</gs-email-button>
+                <gs-facetime-button>test</gs-facetime-button>
+                <gs-map-button>test</gs-map-button>
+                <gs-phone-button>test</gs-phone-button>
+                <gs-skype-button>test</gs-skype-button>
+                <gs-tracking-button>test</gs-tracking-button>
+                <br />
+                Tracking:
+                <gs-tracking-button value="1234">Test</gs-tracking-button>
+                
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

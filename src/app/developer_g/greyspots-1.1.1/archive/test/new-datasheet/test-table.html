@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        <style>
+            label {
+                padding: 0.268em;
+            }
+            gs-cell > label > input {
+                width: 100%;
+                border: 0 none;
+                margin: 0;
+                padding: 0;
+                font-size: 1em;
+                font-family: inherit;
+                
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                
+                -webkit-border-radius: inherit;
+                /*-moz-border-radius: none;*/
+            }
+            
+            gs-current-record[inline] {
+                display: inline-block;
+            }
+        </style>
+        <script>
+       function handlepaste (elem, e) {
+            var savedcontent = elem.innerHTML;
+            if (e && e.clipboardData && e.clipboardData.getData) {// Webkit - get data from clipboard, put into editdiv, cleanup, then cancel event
+                if (/text\/html/.test(e.clipboardData.types)) {
+                    elem.innerHTML = e.clipboardData.getData('text/html');
+                }
+                else if (/text\/plain/.test(e.clipboardData.types)) {
+                    elem.innerHTML = e.clipboardData.getData('text/plain');
+                }
+                else {
+                    elem.innerHTML = "";
+                }
+                console.log(e.clipboardData);
+                console.log(e.clipboardData.types);
+                console.log(e.clipboardData.getData('text/html'));
+                console.log(e.clipboardData.getData('text/plain'));
+                waitforpastedata(elem, savedcontent);
+                if (e.preventDefault) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                }
+                return false;
+            }
+            else {// Everything else - empty editdiv and allow browser to paste content into it, then cleanup
+                elem.innerHTML = "";
+                waitforpastedata(elem, savedcontent);
+                return true;
+            }
+        }
+        
+        function waitforpastedata (elem, savedcontent) {
+            if (elem.childNodes && elem.childNodes.length > 0) {
+                processpaste(elem, savedcontent);
+            }
+            else {
+                that = {
+                    e: elem,
+                    s: savedcontent
+                }
+                that.callself = function () {
+                    waitforpastedata(that.e, that.s)
+                }
+                setTimeout(that.callself,20);
+            }
+        }
+        
+        function processpaste (elem, savedcontent) {
+            pasteddata = elem.innerHTML;
+            //^^Alternatively loop through dom (elem.childNodes or elem.getElementsByTagName) here
+        
+            elem.innerHTML = savedcontent;
+        
+            // Do whatever with gathered data;
+            document.body.innerHTML = pasteddata;
+        }
+        </script>
+    </head>
+    <body>
+    <div id='div' contenteditable='true' onpaste='handlepaste(this, event)'>Paste here</div>
+
+        <!--<gs-slide id="test-slide" refresh-on-querystring-change qs="template">-->
+        <!--    <template for="left">-->
+        <!--        <div>-->
+        <!--            <center><h3>TEST LEFT</h3></center>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('right', 'right')">Right</gs-button>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('left', 'left')">Left</gs-button>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('bottom', 'bottom')">Bottom</gs-button>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('top', 'top')">Top</gs-button>-->
+        <!--        </div>-->
+        <!--    </template>-->
+        <!--    <template for="right">-->
+        <!--        <div>-->
+        <!--            <center><h3>TEST RIGHT</h3></center>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('right', 'right')">Right</gs-button>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('left', 'left')">Left</gs-button>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('bottom', 'bottom')">Bottom</gs-button>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('top', 'top')">Top</gs-button>-->
+        <!--        </div>-->
+        <!--    </template>-->
+        <!--    <template for="top">-->
+        <!--        <div>-->
+        <!--            <center><h3>TEST TOP</h3></center>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('right', 'right')">Right</gs-button>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('left', 'left')">Left</gs-button>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('bottom', 'bottom')">Bottom</gs-button>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('top', 'top')">Top</gs-button>-->
+        <!--        </div>-->
+        <!--    </template>-->
+        <!--    <template for="bottom">-->
+        <!--        <div>-->
+        <!--            <center><h3>TEST BOTTOM</h3></center>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('right', 'right')">Right</gs-button>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('left', 'left')">Left</gs-button>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('bottom', 'bottom')">Bottom</gs-button>-->
+        <!--            <gs-button onclick="document.getElementById('test-slide').slide('top', 'top')">Top</gs-button>-->
+        <!--        </div>-->
+        <!--    </template>-->
+        <!--</gs-slide>-->
+
+        <gs-page>
+            <gs-header><h1>Buttons:</h1></gs-header>
+            <gs-body>
+                <gs-table
+                    id="test-table"
+                    pk="id"
+                    src="test.asdf3"
+                    ord="id ASC"
+                    limit="100000"
+                    focus-on-load
+                    style="width: 100%; height: 100%;"
+                    copy-quote-when="strings" copy-quote-char="'" copy-escape-char="\" copy-delimiter-cell="	" copy-delimiter-record="
+" copy-null-cell="NULL" copy-header="true" copy-selectors="true" copy-types="text"
+                 >
+                    <template for="header-record">
+                        <gs-cell>id</gs-cell>
+                        <gs-cell>asdf_1</gs-cell>
+                        <gs-cell>asdf_2</gs-cell>
+                        <gs-cell>asdf_3</gs-cell>
+                    </template>
+                    <template for="data-record">
+                        <gs-cell header="id"><gs-text mini column="id"></gs-text></gs-cell>
+                        <gs-cell header="asdf_1"><gs-text mini column="asdf_1"></gs-text></gs-cell>
+                        <gs-cell header="asdf_2"><gs-text mini column="asdf_2"></gs-text></gs-cell>
+                        <gs-cell header="asdf_3"><gs-text mini column="asdf_3"></gs-text></gs-cell>
+                    </template>
+                    <template for="insert-record">
+                        <gs-cell header="id"><label><input column="id" /></label></gs-cell>
+                        <gs-cell header="asdf_1"><label><input column="asdf_1" /></label></gs-cell>
+                        <gs-cell header="asdf_2"><label><input column="asdf_2" /></label></gs-cell>
+                        <gs-cell header="asdf_3"><label><input column="asdf_3" /></label></gs-cell>
+                    </template>
+                    <template for="copy">
+                        <gs-cell header="id">{{! row.id }}</gs-cell>
+                        <gs-cell header="asdf_1">{{! row.asdf_1 }}</gs-cell>
+                        <gs-cell header="asdf_2">{{! row.asdf_2 }}</gs-cell>
+                        <gs-cell header="asdf_3">{{! row.asdf_3 }}</gs-cell>
+                    </template>
+                </gs-table>
+            </gs-body>
+        </gs-page>
+        
+            <!--<gs-datetime id="dt-insert-start_date" value="2018-05-05"></gs-datetime>-->
+    
+        <!--<gs-text tabindex="1" max-length="10"></gs-text><gs-text max-length="10"></gs-text><a href="#">test</a>-->
+        
+        <!--<gs-wheel values="3-10">-->
+        <!--</gs-wheel>-->
+        <!--<gs-wheel>-->
+        <!--    <option value="mon">Monday</option>-->
+        <!--    <option value="tue">Tuesday</option>-->
+        <!--    <option value="wed">Wednesday</option>-->
+        <!--    <option value="thu">Thursday</option>-->
+        <!--    <option value="fri">Friday</option>-->
+        <!--    <option value="sat">Saturday</option>-->
+        <!--    <option value="sun">Sunday</option>-->
+        <!--</gs-wheel>-->
+        <!--<gs-wheel min="1" max="3">-->
+    </body>
+</html>

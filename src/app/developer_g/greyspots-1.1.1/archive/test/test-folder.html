@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Folder</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><center><h3>Test Folder</h3></center></gs-header>
+            <gs-body padded>
+                <label>path="/role/wiki_g/"</label>
+                <gs-folder path="/role/wiki_g/"></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+                <label>path="/role/wiki_g/" upload-choose-file-name</label>
+                <gs-folder path="/role/wiki_g/" upload-choose-file-name></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+                <label>path="/role/wiki_g/" mini</label>
+                <gs-folder path="/role/wiki_g/" mini></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+                <label>path="/role/wiki_g/" qs="id"</label>
+                <gs-folder path="/role/wiki_g/" qs="id"></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+                <label>path="/role/wiki_g/" no-folders</label>
+                <gs-folder path="/role/wiki_g/" no-folders></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+                <label>path="/role/wiki_g/" no-files</label>
+                <gs-folder path="/role/wiki_g/" no-files></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+                <label>path="/role/wiki_g/" horizontal</label>
+                <gs-folder path="/role/wiki_g/" horizontal></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+                <label>path="/role/wiki_g/" disabled</label>
+                <gs-folder path="/role/wiki_g/" disabled></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+                <label>path="/role/wiki_g/" readonly</label>
+                <gs-folder path="/role/wiki_g/" readonly></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+                <label>qs "visibility" <small>should set "value" attribute with qs "visibility" key (defaults to initial state of the "value" attribute)</small></label>
+                <gs-folder path="/role/wiki_g/" qs="visibility"></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+                <label>qs "visibility=,limit=,test=" <small>should set "visibility" attribute with qs "visibility" key (defaults to initial state of the "visibility" attribute)</small></label>
+                <gs-folder path="/role/wiki_g/" qs="visibility=,limit=,test=" visibility="true"></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+                <label>qs "visibility=hidden,limit=asdf,test=qwer" <small>should set "hidden" attribute with qs "visibility" key (defaults to initial state of the "hidden" attribute)</small></label>
+                <gs-folder path="/role/wiki_g/" qs="visibility=hidden,limit=asdf,test=qwer"></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+                <label>qs "visibility!=hidden" <small>should set "hidden" attribute unless "visibility" key is in the qs</small></label>
+                <gs-folder path="/role/wiki_g/" qs="visibility!=hidden"></gs-folder>
+                <br />
+                <br />
+                <br />
+                <hr />
+                <br />
+                <br />
+                <br />
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

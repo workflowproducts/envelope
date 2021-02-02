@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Tooltips Documentation</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <script src="/js/ace/ace.js" data-ace-base="/js/ace/" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/ace/ext-language_tools.js" type="text/javascript"></script>
+        <script src="/js/ace/ext-searchbox.js" type="text/javascript"></script>
+        
+        <script src="doc-library/doc.js" type="text/javascript"></script>
+        <link href="doc-library/doc.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-jumbo>
+            <h1 class="text-center">Tooltip</h1>
+        </gs-jumbo>
+        <gs-container min-width="sml;med;lrg">
+            <h3 class="doc-header">Tags:</h3>
+            <p>
+                &lt;gs-tooltip&gt;&lt;/gs-tooltip&gt;<br />
+            </p>
+            
+            <h3 class="doc-header">Description:</h3>
+            <p>
+                The <code>gs-tooltip</code> is used to display a tooltip instantly when its target is hovered over or clicked. The target is set using the <code>for</code> attribute, or by wrapping the target in the <code>gs-tooltip</code> element. If no target is found the <code>gs-tooltip</code> will automatically set the target to the element directly after itself in the DOM at the time of its initialization.<br /><br /> The message displayed can be set using the <code>tip</code> attribute or in the case of using the the <code>for</code> attribute rather than wrapping the target, you can place the message text inside the <code>gs-tooltip</code>.<br /><br />
+            </p>
+            
+            <h1 class="doc-header">Examples:</h1>
+            <div class="doc-section">
+                <div class="doc-example-description">
+                    <span class="h3">Skeleton Example:</span><br />
+                    <p>A basic gs-tooltip element. The tooltip has the following behavior: </p>
+                    <ol>
+                        <li><p>) When the target of the <code>gs-tooltip</code> fires the <code>mouseover</code> or <code>click</code> event the <code>gs-tooltip</code> will become visible next to the target.</p></li>
+                        <li><p>) When the target of the <code>gs-tooltip</code> fires the <code>mouseout</code> or the <code>document.body</code> fires the <code>click</code> event the <code>gs-tooltip</code> will become invisible.</p></li>
+                    </ol>
+                </div>
+                <gs-doc-example>
+                    <template for="html" height="6">
+                        <gs-tooltip for="test">Test tooltip</gs-tooltip>
+                        <a href="#" id="test">Test</a>
+                    </template>
+                </gs-doc-example>
+                
+                <div class="doc-example-description">
+                    <span class="h3">Attribute "tip":</span><br />
+                    <p>The onclick attribute allows you to run Javascript as a result of clicking on the tooltip.</p>
+                </div>
+                <gs-doc-example>
+                    <template for="html" height="6">
+                        <gs-tooltip onclick="alert('test')">Test</gs-tooltip>
+                    </template>
+                </gs-doc-example>
+                
+                
+                <br />
+                <div class="doc-example-description">
+                    <span class="h3">Directions:</span><br />
+                    <p>The default direction of the <code>gs-tooltip</code> message can be set using the <code>left</code>, <code>right</code>, <code>top</code>, and <code>bottom</code> attributes. The default direction is <code>right</code>. If there is not room for the message the message will be displayed in a different direction</p>
+                </div>
+                <gs-doc-example>
+                    <template for="html" height="25">
+                        <gs-tooltip icon="glass">Test</gs-tooltip>
+                        <br />
+                        <gs-tooltip for="test_left" left>Test</gs-tooltip>
+                        <gs-tooltip for="test_right" right>Test</gs-tooltip>
+                        <gs-tooltip for="test_top" top>Test</gs-tooltip>
+                        <gs-tooltip for="test_bottom" bottom>Test</gs-tooltip>
+                        <br />
+                        <center><a href="#" id="test_left">Test (Left)</a></center>
+                        <center><a href="#" id="test_right">Test (Right)</a></center>
+                        <center><a href="#" id="test_top">Test (Top)</a></center>
+                        <center><a href="#" id="test_bottom">Test (Bottom)</a></center>
+                    </template>
+                </gs-doc-example>
+                <!-- ##################################################################################### -->
+                <!-- ########### NOTE TO DEV: this is the special-use tooltip example section   ########### -->
+                <!-- ########### if you are creating a new example make sure you put it in the ########### -->
+                <!-- ########### right section.                                                ########### -->
+                <!-- ##################################################################################### -->
+            </div>
+        </gs-container>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+    </body>
+</html>

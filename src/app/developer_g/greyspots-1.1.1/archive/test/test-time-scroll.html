@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <title>Time Scroll</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <style> 
+            .gs-time-scroll-container .gs-time-scroll-hour,
+            .gs-time-scroll-container .gs-time-scroll-minute {
+                display: inline-block;
+                box-sizing: border-box;
+                width: 35%;
+                height: 120px;
+                overflow: auto;
+            }
+            
+            .gs-time-scroll-container .gs-time-scroll-period {
+                display: inline-block;
+                box-sizing: border-box;
+                width: 30%;
+                height: 120px;
+                overflow: auto;
+            }
+            
+            .gs-time-scroll-container .gs-time-scroll-hour td,
+            .gs-time-scroll-container .gs-time-scroll-minute td,
+            .gs-time-scroll-container .gs-time-scroll-period td {
+                text-align: right;
+            }
+            
+            .element, .outer-container {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .outer-container {
+                border: 5px solid purple;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .inner-container {
+                position: absolute;
+                left: 0;
+                overflow-x: hidden;
+                overflow-y: scroll;
+            }
+            
+            .inner-container::-webkit-scrollbar {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div style="padding: 1em;">
+            <div class="gs-time-scroll-container" style="width: 150px;">
+                <div class="gs-time-scroll-hour">
+                    <table>
+                        <tr><td>1</td></tr>
+                        <tr><td>2</td></tr>
+                        <tr><td>3</td></tr>
+                        <tr><td>4</td></tr>
+                        <tr><td>5</td></tr>
+                        <tr><td>6</td></tr>
+                        <tr><td>7</td></tr>
+                        <tr><td>8</td></tr>
+                        <tr><td>9</td></tr>
+                        <tr><td>10</td></tr>
+                        <tr><td>11</td></tr>
+                        <tr><td>12</td></tr>
+                    </table>
+                </div><div class="gs-time-scroll-minute">
+                    <table>
+                        <tr><td>0</td></tr>
+                        <tr><td>1</td></tr>
+                        <tr><td>2</td></tr>
+                        <tr><td>3</td></tr>
+                        <tr><td>4</td></tr>
+                        <tr><td>5</td></tr>
+                        <tr><td>6</td></tr>
+                        <tr><td>7</td></tr>
+                        <tr><td>8</td></tr>
+                        <tr><td>9</td></tr>
+
+                        <tr><td>10</td></tr>
+                        <tr><td>11</td></tr>
+                        <tr><td>12</td></tr>
+                        <tr><td>13</td></tr>
+                        <tr><td>14</td></tr>
+                        <tr><td>15</td></tr>
+                        <tr><td>16</td></tr>
+                        <tr><td>17</td></tr>
+                        <tr><td>18</td></tr>
+                        <tr><td>19</td></tr>
+
+                        <tr><td>20</td></tr>
+                        <tr><td>21</td></tr>
+                        <tr><td>22</td></tr>
+                        <tr><td>23</td></tr>
+                        <tr><td>24</td></tr>
+                        <tr><td>25</td></tr>
+                        <tr><td>26</td></tr>
+                        <tr><td>27</td></tr>
+                        <tr><td>28</td></tr>
+                        <tr><td>29</td></tr>
+
+                        <tr><td>30</td></tr>
+                        <tr><td>31</td></tr>
+                        <tr><td>32</td></tr>
+                        <tr><td>33</td></tr>
+                        <tr><td>34</td></tr>
+                        <tr><td>35</td></tr>
+                        <tr><td>36</td></tr>
+                        <tr><td>37</td></tr>
+                        <tr><td>38</td></tr>
+                        <tr><td>39</td></tr>
+
+                        <tr><td>40</td></tr>
+                        <tr><td>41</td></tr>
+                        <tr><td>42</td></tr>
+                        <tr><td>43</td></tr>
+                        <tr><td>44</td></tr>
+                        <tr><td>45</td></tr>
+                        <tr><td>46</td></tr>
+                        <tr><td>47</td></tr>
+                        <tr><td>48</td></tr>
+                        <tr><td>49</td></tr>
+
+                        <tr><td>50</td></tr>
+                        <tr><td>51</td></tr>
+                        <tr><td>52</td></tr>
+                        <tr><td>53</td></tr>
+                        <tr><td>54</td></tr>
+                        <tr><td>55</td></tr>
+                        <tr><td>56</td></tr>
+                        <tr><td>57</td></tr>
+                        <tr><td>58</td></tr>
+                        <tr><td>59</td></tr>
+                    </table>
+                </div><div class="gs-time-scroll-period">
+                    <table>
+                        <tr><td>AM</td></tr>
+                        <tr><td>PM</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

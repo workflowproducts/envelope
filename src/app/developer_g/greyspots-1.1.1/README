@@ -1,0 +1,15 @@
+
+
+To make changes to the platform library/elements:
+    you edit files in:
+        /developer_g/greyspots-<VERSIONNUMBER>/js/
+        /developer_g/greyspots-<VERSIONNUMBER>/css/
+
+Whenever you want to compile the library:
+    go to the main menu and click the "Compile GS Library" button and click either "Compile" or "Minify". "Compile" will concatinate all of the .js files into one file and all the .css files into one file. "Minify" will concatinate all of the .js files into one file and then minify it and then in will concatinate all the .css files into one file.
+
+The resulting files will be in the public folder as:
+    /js/greyspots.js
+    /css/greyspots.css
+
+Once you are done: release.

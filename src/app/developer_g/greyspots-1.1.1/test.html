@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        <!-- Make this page use standard caching procedure when used as an iframe -->
+        <meta http-equiv="Cache-control" content="no-store, must-revalidate" />
+        
+        <title>Test Page </title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-page>
+            <gs-header onkeydown="console.log('test');">
+                <h3>Test Page</h3>
+                <input>
+                <gs-date format="Default (01/01/2015)" id="test"></gs-date>
+                <gs-button href="test.html">BADA BING</gs-button>
+            </gs-header>
+            <gs-body padded>
+                <gs-envelope src="test.tpeople" limit="10" ord="first_name">
+                    <template for="hud"></template>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td heading="First Name"><gs-text column="first_name" mini></gs-text></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template for="insert">
+                        <label>First Name:</label>
+                        <gs-text column="first_name"></gs-text>
+                    </template>
+                </gs-envelope>
+                
+                <!--<gs-table
+                    id="test-table"
+                    src="test.tpeople"
+                    pk="id"
+                    lock="change_stamp"
+                    ord="id ASC"
+                    style="width: 100%; height: 100%;"
+                    no-x-overscroll
+                    no-y-overscroll
+                    no-resize-record
+                    no-resize-column
+                    no-column-reorder
+                    no-context-menu
+                    column-auto-resize
+                    no-column-dropdown
+                    selection-mode="single-row"
+                    no-force-select
+                    no-copy
+                >
+                    <template for="header-record">
+                        <gs-cell style="min-width: 50px;">First Name</gs-cell>
+                        <gs-cell style="min-width: 100px;">Last Name</gs-cell>
+                        <gs-cell style="width: 50px;">Test</gs-cell>
+                    </template>
+                    <template for="data-record">
+                        <gs-cell header="First Name"><gs-text column="first_name" mini></gs-text></gs-cell>
+                        <gs-cell style="width: 40px;" header="Last Name"><label>{{! row.last_name }}</label></gs-cell>
+                        <gs-cell header="Test"><label><gs-checkbox mini column="test_checkbox" class="text-center"></gs-checkbox></label></gs-cell>
+                    </template>
+                    <template for="copy">
+                        <gs-cell header="First Name">{{! row.first_name }}</gs-cell>
+                        <gs-cell header="Last Name">{{! row.last_name }}</gs-cell>
+                        <gs-cell header="Test">{{! row.test_checkbox }}</gs-cell>
+                    </template>
+                </gs-table>-->
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><center><h3>People</h3></center></gs-header>
+            <gs-body>
+                <gs-envelope id="envelope_people" src="test.tpeople" ord="last_name ASC, first_name ASC">
+                    <template for="hud">
+                        <gs-toggle id="button-show-gt50" onchange="setEnvelopeWhere('button-show-gt50')" inline>Age &gt;= 50</gs-toggle>
+                        <gs-toggle id="button-show-lt50" onchange="setEnvelopeWhere('button-show-lt50')" inline>Age &lt;= 50</gs-toggle>
+                        <gs-toggle id="button-show-all" onchange="setEnvelopeWhere('button-show-all')"  inline value="true">All</gs-toggle>
+                    </template>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#">{{! row_number }}</th>
+                                    <td heading="First Name" style="min-width: 120px;"><gs-text mini value="{{! row.first_name }}" column="first_name"></gs-text></td>
+                                    <td heading="Last Name"  style="min-width: 120px;"><gs-text mini value="{{! row.last_name }}"  column="last_name"></gs-text></td>
+                                    <td heading="Birth Date" style="min-width: 122px;"><gs-date mini value="{{! row.birth_date }}" column="birth_date"></gs-date></td>
+                                    <td heading="Age"        style="min-width: 37px;" >{{! row.age }}</td>
+                                    <td heading=""           style="min-width: 65px;" ><gs-button href="test_detail.html?id={{! row.id }}">Detail</gs-button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template for="insert">
+                        First Name:
+                        <gs-text column="first_name"></gs-text><br />
+                        
+                        Last Name:
+                        <gs-text column="last_name"></gs-text><br />
+                        
+                        Date:
+                        <gs-date column="birth_date" value="1/1/2001"></gs-date>
+                    </template>
+                </gs-envelope>
+            </gs-body>
+        </gs-page>
+        
+        <script>
+            function setEnvelopeWhere(strId) {//console.log('hello');
+                document.getElementById('button-show-gt50').value = false;
+                document.getElementById('button-show-lt50').value = false;
+                document.getElementById('button-show-all').value = false;
+                
+                //console.log(this);
+                
+                if (strId === 'button-show-gt50') {
+                    document.getElementById('envelope_people').setAttribute('where', encodeURIComponent('age >= 50'));
+                    
+                } else if (strId === 'button-show-lt50') {
+                    document.getElementById('envelope_people').setAttribute('where', encodeURIComponent('age <= 50'));
+                    
+                } else if (strId === 'button-show-all') {
+                    document.getElementById('envelope_people').removeAttribute('where');
+                }
+                
+                document.getElementById(strId).value = true;
+                document.getElementById('envelope_people').refresh();
+            }
+            /*
+            document.getElementById('button-show-gt50').addEventListener('change', function () {
+                if (this.value === true) {
+                    document.getElementById('button-show-lt50').value = false;
+                    document.getElementById('button-show-all').value = false;
+                    document.getElementById('envelope_people').setAttribute('where', encodeURIComponent('age >= 50'));
+                    document.getElementById('envelope_people').refresh();
+                }
+            });
+            
+            document.getElementById('button-show-lt50').addEventListener('click', function () {
+                if (this.value === true) {
+                    document.getElementById('button-show-gt50').value = false;
+                    document.getElementById('button-show-all').value = false;
+                    document.getElementById('envelope_people').setAttribute('where', encodeURIComponent('age <= 50'));
+                    document.getElementById('envelope_people').refresh();
+                }
+            });
+            
+            document.getElementById('button-show-all').addEventListener('click', function () {
+                if (this.value === true) {
+                    document.getElementById('button-show-lt50').value = false;
+                    document.getElementById('button-show-gt50').value = false;
+                    document.getElementById('envelope_people').removeAttribute('where');
+                    document.getElementById('envelope_people').refresh();
+                }
+            });*/
+        </script>
+    </body>
+</html>

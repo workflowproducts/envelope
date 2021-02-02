@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+    <script>var testNum = 0, testNum2 = 0;</script>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>Inputs:</h3></gs-header>
+            <gs-body padded>
+                <gs-button onclick="document.getElementsByTagName('gs-number')[testNum].focus(); testNum += 1;">Focus</gs-button>
+                <gs-form src="gsdoc.tpeople" where="id=2341">
+                    <template>
+                        <b>ID:</b>
+                        <gs-number column="id" id="2"></gs-number>
+                    </template>
+                </gs-form>
+                
+                <gs-datasheet src="gsdoc.tpeople" limit= "1" style="height: 5em;">
+                    <template for="hud"></template>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td heading="ID"><gs-number column="id"></gs-number></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-datasheet>
+                
+                <gs-envelope src="gsdoc.tpeople" limit= "1" style="height: 10em;">
+                    <template for="hud"></template>
+                    <template for="table">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th heading="#"><gs-static column="row_number"></gs-static></th>
+                                    <td heading="ID:"><gs-number column="id"></gs-number></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                </gs-envelope>
+                <gs-table
+                    id="test-table-2"
+                    src="test.rtime_copy_datasheet"
+                    pk="id"
+                    ord="id ASC"
+                    focus-on-load
+                    style="width: 100%; height: 8em;"
+                    limit= "1"
+                >
+                    <template for="header-record">
+                        <gs-cell>id</gs-cell>
+                        <gs-cell>cust_id</gs-cell>
+                    </template>
+                    <template for="data-record">
+                        <gs-cell><gs-number>{{! row.id }}</gs-number></gs-cell>
+                        <gs-cell><gs-number>{{! row.cust_id }}</gs-number></gs-cell>
+                    </template>
+                </gs-table>
+                
+                <label>Normal:</label>
+                <gs-number id="1" tabindex="1"></gs-number>
+                <br />
+                <label>Pre value:</label>
+                <gs-number value="1234"></gs-number>
+                <br />
+                <label>Disabled:</label>
+                <gs-number value="1234" disabled></gs-number>
+                <br />
+                <label>Onchange attribute:</label>
+                <gs-number onchange="alert(this.value);"></gs-number>
+                <br />
+                <label>placeholder:</label>
+                <gs-number placeholder="A number"></gs-number>
+                <gs-number placeholder="A number"></gs-number>
+                <br />
+                <label>disabled, placeholder:</label>
+                <gs-number placeholder="A number" disabled></gs-number>
+                <br />
+                <label>readonly, no value</label>
+                <gs-number readonly></gs-number>
+                <br />
+                
+                <label>readonly, value</label>
+                <gs-number readonly value="1-1-2011"></gs-number>
+                <br />
+            </gs-body>
+        </gs-page>
+    </body>
+</html>

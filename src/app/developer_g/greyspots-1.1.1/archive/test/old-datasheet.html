@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        <!-- Make this page use standard caching procedure when used as an iframe -->
+        <meta http-equiv="Cache-control" content="no-store, must-revalidate" />
+        
+        <title>New Page</title>
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <gs-envelope src="test.tpeople" lock="change_stamp" ord="id ASC" pk="id" style="height: 50%;" limit="{{! row.ad_copy.trim() ? &#39;&#39; : &#39;red-button&#39; }}">
+            <template for="hud"></template>
+            <template for="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 100px">First Name</th>
+                            <th style="width: 100px">Last Name</th>
+                            <th style="width: 100px">Birth Day</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td header="First Name"><label><gs-text column="first_name" mini></gs-text></label></td>
+                            <td header="Last Name"><label><gs-memo column="last_name" mini allow-tab-char></gs-memo></label></td>
+                            <td header="Birth Day"><label><gs-date column="birth_date" mini></gs-date></label></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </template>
+        </gs-envelope>
+    </body>
+</html>

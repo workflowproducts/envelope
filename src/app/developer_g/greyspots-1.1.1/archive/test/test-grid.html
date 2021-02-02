@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, minimal-ui" />
+        
+        <script src="/js/greyspots.js" type="text/javascript"></script>
+        <link href="/css/greyspots.css" type="text/css" rel="stylesheet" />
+        
+        <style>
+            /* these styles are for clarity of the grid functionality */
+            gs-grid.demo > gs-block {
+                border-top: 2px solid #D8D8D8;
+                border-bottom: 2px solid #D8D8D8;
+                border-left: 2px solid #D8D8D8;
+                box-sizing: border-box;
+                text-align: center;
+                background-color: #FFFFFF;
+            }
+            gs-grid.demo > gs-block:last-child {
+                border-right: 2px solid #D8D8D8;
+            }
+        </style>
+    </head>
+    <body>
+        <gs-page>
+            <gs-header><h3>Grids:</h3></gs-header>
+            <gs-body padded>
+                <gs-grid widths="1,1,1" reflow-at="600px" gutter>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                </gs-grid><br />
+                <gs-grid widths="1,1,1" reflow-at="600px" gutter>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                </gs-grid><br />
+                <gs-grid min-width="all {reflow}; 600px {1,1,1};" gutter>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                </gs-grid><br />
+                <gs-grid media="all {reflow}; (min-width: 600px) {1,1,1};" gutter>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                    <gs-block><center style="background-color: #AAAAAA;">test</center></gs-block>
+                </gs-grid><br />
+                <gs-grid gutter>
+                    <gs-block><div style="background-color: #000000;">test</div></gs-block>
+                    <gs-block><div style="background-color: #000000;">test</div></gs-block>
+                </gs-grid><br />
+                <gs-grid gutter min-width="all {1}">
+                    <gs-block><div style="background-color: #000000;">test</div></gs-block>
+                    <gs-block><div style="background-color: #000000;">test</div></gs-block>
+                </gs-grid><br />
+                <gs-grid gutter min-width="all {reflow}">
+                    <gs-block><div style="background-color: #000000;">test</div></gs-block>
+                    <gs-block><div style="background-color: #000000;">test</div></gs-block>
+                </gs-grid><br />
+                
+                
+                <gs-grid media="all {reflow}; (min-width: sml) and (max-width: med) {1,1}; (min-width: med) and (max-width: lrg) {1,1,1};">
+                    <gs-block>
+                        <center><h2>Lorem Ipsum 1</h2></center>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut magna aliqua.</p>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <center><h2>Lorem Ipsum 2</h2></center>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut magna aliqua.</p>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <center><h2>Lorem Ipsum 3</h2></center>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut magna aliqua.</p>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <center><h2>Lorem Ipsum 4</h2></center>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut magna aliqua.</p>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <center><h2>Lorem Ipsum 5</h2></center>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut magna aliqua.</p>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <center><h2>Lorem Ipsum 6</h2></center>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut magna aliqua.</p>
+                    </gs-block>
+                </gs-grid><br />
+                
+                <hr />
+                <br />
+                
+                <gs-grid min-width="all {reflow}; sml {1,1}; med {1,1,1}; lrg {reflow};">
+                    <gs-block>
+                        <center><h2>Lorem Ipsum 1</h2></center>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut magna aliqua.</p>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <center><h2>Lorem Ipsum 2</h2></center>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut magna aliqua.</p>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <center><h2>Lorem Ipsum 3</h2></center>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut magna aliqua.</p>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <center><h2>Lorem Ipsum 4</h2></center>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut magna aliqua.</p>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <center><h2>Lorem Ipsum 5</h2></center>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut magna aliqua.</p>
+                    </gs-block>
+                    
+                    <gs-block>
+                        <center><h2>Lorem Ipsum 6</h2></center>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut magna aliqua.</p>
+                    </gs-block>
+                </gs-grid><br />
+                
+                
+                <gs-grid class="demo">
+                    <gs-block>1</gs-block>
+                    <gs-block>2</gs-block>
+                </gs-grid><br />
+                
+                <gs-grid class="demo">
+                    <gs-block>1</gs-block>
+                    <gs-block>1</gs-block>
+                    <gs-block>1</gs-block>
+                </gs-grid><br/>
+                
+                <gs-grid class="demo" widths="1, 2, 3">
+                    <gs-block>1</gs-block>
+                    <gs-block>2</gs-block>
+                    <gs-block>3</gs-block>
+                </gs-grid><br/>
+                
+                <gs-grid class="demo" widths="1, 2, 3">
+                    <gs-block>1</gs-block>
+                    <gs-block>2</gs-block>
+                    <gs-block>3</gs-block>
+                    
+                    <gs-block>1</gs-block>
+                    <gs-block>2</gs-block>
+                    <gs-block>3</gs-block>
+                    
+                    <gs-block>1</gs-block>
+                    <gs-block>2</gs-block>
+                    <gs-block>3</gs-block>
+                </gs-grid><br/>
+                
+                <gs-grid widths="2, 4, 6, 8">
+                    <gs-block><gs-button remove-right>2</gs-button></gs-block>
+                    <gs-block><gs-button remove-all>4</gs-button></gs-block>
+                    <gs-block><gs-button remove-all>6</gs-button></gs-block>
+                    <gs-block><gs-button remove-left>8</gs-button></gs-block>
+                </gs-grid><br />
+                
+                <gs-grid widths="2, 4, 6, 8">
+                    <gs-block><gs-button remove-right>2</gs-button></gs-block>
+                    <gs-block><gs-button remove-all>4</gs-button></gs-block>
+                    <gs-block><gs-button remove-all>6</gs-button></gs-block>
+                    <gs-block><gs-button remove-left>8</gs-button></gs-block>
+                </gs-grid><br />
+                
+                <gs-grid class="demo" widths="1,2,3" padded>
+                    <gs-block>1 padded</gs-block>
+                    <gs-block>2 padded</gs-block>
+                    <gs-block>3 padded</gs-block>
+                    
+                    <gs-block width="6">6 padded</gs-block>
+                    
+                    <gs-block>1 padded</gs-block>
+                    <gs-block>2 padded</gs-block>
+                    <gs-block>3 padded</gs-block>
+                </gs-grid><br/>
+                
+                <gs-grid class="demo" widths="10, 5, 5">
+                    <gs-block>10</gs-block>
+                    <gs-block>5</gs-block>
+                    <gs-block>5</gs-block>
+                    <gs-block width="20">20</gs-block>
+                    <gs-block width="10">10</gs-block>
+                    <gs-block width="10">10</gs-block>
+                    <gs-block>10</gs-block>
+                    <gs-block>5</gs-block>
+                    <gs-block>5</gs-block>
+                    <gs-block width="10">10</gs-block>
+                    <gs-block width="8">8</gs-block>
+                    <gs-block>10</gs-block>
+                    <gs-block>5</gs-block>
+                    <gs-block>5</gs-block>
+                </gs-grid><br />
+                
+                <gs-grid class="demo" widths="20">
+                    <gs-block width="10">10</gs-block>
+                    <gs-block width="10">10</gs-block>
+                    <gs-block>20</gs-block>
+                    <gs-block width="15">15</gs-block>
+                    <gs-block width="5">5</gs-block>
+                    <gs-block>20</gs-block>
+                </gs-grid><br />
+                
+                <gs-grid class="demo" reflow-at="700px">
+                    <gs-block>1</gs-block>
+                    <gs-block>2</gs-block>
+                </gs-grid><br />
+                
+                <gs-grid class="demo" reflow-at="40em">
+                    <gs-block>1</gs-block>
+                    <gs-block>2</gs-block>
+                </gs-grid><br />
+                
+                <gs-grid class="demo" reflow-at="600px">
+                    <gs-block>1</gs-block>
+                    <gs-block>2</gs-block>
+                </gs-grid><br />
+                
+                <gs-grid class="demo" reflow-at="60em">
+                    <gs-block>1</gs-block>
+                    <gs-block>2</gs-block>
+                </gs-grid>
+            </gs-body>
+        </gs-page>
+    </body>
+</html>
