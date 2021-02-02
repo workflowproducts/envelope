@@ -258,3 +258,18 @@ $BODY$
 
 ALTER FUNCTION public.raise_exception(str_args text) OWNER TO postgres;
 REVOKE ALL ON FUNCTION public.raise_exception(str_args text) FROM public;
+
+
+
+CREATE OR REPLACE FUNCTION public.token_2fa(str_user text)
+  RETURNS text AS
+$BODY$
+BEGIN
+RETURN str_user || '1234';
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+ALTER FUNCTION public.token_2fa(str_args text) OWNER TO postgres;
+GRANT EXECUTE ON FUNCTION public.token_2fa(str_args text) FROM public;

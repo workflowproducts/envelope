@@ -49,6 +49,8 @@ extern char *str_global_role_path;
 
 extern char *str_global_api_referer_list;
 extern char *str_global_public_api_referer_list;
+extern char *str_global_2fa_function;
+extern size_t int_global_2fa_timeout;
 
 extern char cwd[1024];
 #ifdef _WIN32

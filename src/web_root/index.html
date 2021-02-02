@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <link rel="manifest" href="manifest.json">
@@ -67,7 +67,7 @@ if ('serviceWorker' in navigator) {
 
 }
 
-
+var strUname, strPword;
 function login() {
     'use strict';
     var strQueryString = GS.getQueryString();
@@ -76,51 +76,22 @@ function login() {
     //document.getElementById('normal-uname').value = document.getElementById('normal-uname').value.toLowerCase();
 
     GS.addLoader('login', 'Logging In...');
-    GS.ajaxJSON((location.pathname.indexOf('/v1/') === 0 ? '/v1/' : '/') + 'env/auth'
+    GS.ajaxJSON('/env/auth'
                 , 'action=login' +
-                   '&username=' + encodeURIComponent(document.getElementById('normal-uname').value) +
-                   '&password=' + encodeURIComponent(document.getElementById('normal-pword').value)
+                   '&username=' + encodeURIComponent(strUname) +
+                   '&password=' + encodeURIComponent(strPword)
                 , function (data, error) {
         GS.removeLoader('login');
 
         if (!error) {
             GS.setCookie('greyspots_uname', document.getElementById('normal-uname').value, 1000000);
 
-            if (GS.qryGetVal(strQueryString, 'redirect')) {
+            if (data.dat === '2fa required') {
+                document.getElementById('switch-page').template = '2fa';
+            } else if (GS.qryGetVal(strQueryString, 'redirect')) {
                 window.location = GS.qryGetVal(strQueryString, 'redirect');
             } else {
-                if (document.getElementById('normal-uname').value === 'abbey.fowler@traviscountytx.gov') {
-                    window.location = 'https://www.sunnyserve.com/env/role/ftp_g/Discovery%20for%2017-1989.zip';
-                    
-                    document.body.innerHTML = 'Your file should begin to download immediately. Please keep this page open until your download is complete. If you need support, please contact Hector Saenz 817-735-2453.';
-                } else if (document.getElementById('normal-uname').value === 'lauren.marshall@dentoncounty.com' ||
-                    document.getElementById('normal-uname').value === 'lindsey.sheguit@dentoncounty.com') {
-                    window.location = 'https://www.sunnyserve.com/env/role/ftp_denton_g/18-2608.pdf.zip';
-                    
-                    document.body.innerHTML = 'Your file should begin to download immediately. Please keep this page open until your download is complete. If you need support, please contact Hector Saenz 817-735-2453.';
-                } else if (document.getElementById('normal-uname').value === 'eadixon@tarrantcountytx.gov') {
-                    window.location = 'https://www.sunnyserve.com/env/role/ftp_tarrant_g/18-0720%20Scanned%20Case%20Folder.pdf.zip';
-                    
-                    document.body.innerHTML = 'Your file should begin to download immediately. Please keep this page open until your download is complete. If you need support, please contact Hector Saenz 817-735-2453.';
-                } else if (document.getElementById('normal-uname').value === 'ewcofer@tarrantcountytx.gov') {
-                    window.location = 'https://www.sunnyserve.com/env/role/ftp_tarrant_g/UNT%2016-3310%20Scanned%20Case%20Folder.pdf.zip';
-                    
-                    document.body.innerHTML = 'Your file should begin to download immediately. Please keep this page open until your download is complete. If you need support, please contact Hector Saenz 817-735-2453.';
-                } else if (document.getElementById('normal-uname').value === 'ksfickes@tarrantcountytx.gov') {
-                    window.location = 'https://www.sunnyserve.com/env/role/ftp_tarrant_g/UNTCHI%2014-0403%20Discovery.zip';
-                    
-                    document.body.innerHTML = 'Your file should begin to download immediately. Please keep this page open until your download is complete. If you need support, please contact Hector Saenz 817-735-2453.';
-                } else if (document.getElementById('normal-uname').value === 'andrea.austin@traviscountytx.gov') {
-                    window.location = 'https://www.sunnyserve.com/env/role/ftp_g/UNTCHI%2018-2518%20Discovery.zip';
-                    
-                    document.body.innerHTML = 'Your file should begin to download immediately. Please keep this page open until your download is complete. If you need support, please contact Hector Saenz 817-735-2453.';
-                    
-                } else if (document.getElementById('normal-uname').value === 'mbagby') {
-                    window.location = 'https://www.sunnyserve.com/env/app/sav_g/index.html';
-                    
-                } else { 
-                    window.location = data.dat + '?cache=no';
-                }
+                window.location = data.dat + '?cache=no';
             }
 
         } else {
@@ -133,67 +104,90 @@ function login() {
     });
 }
 
-window.addEventListener('load', function () {
+
+function verify() {
+    'use strict';
+    var strQueryString = GS.getQueryString();
+
+    GS.addLoader('login', 'Verifying...');
+    GS.ajaxJSON('/env/auth'
+                , 'action=2fa' +
+                   '&token=' + encodeURIComponent(document.getElementById('normal-token').value)
+                , function (data, error) {
+        GS.removeLoader('login');
+
+        if (!error) {
+            if (GS.qryGetVal(strQueryString, 'redirect')) {
+                window.location = GS.qryGetVal(strQueryString, 'redirect');
+            } else {
+                window.location = data.dat + '?cache=no';
+            }
+
+        } else {
+            document.getElementById('error').innerHTML =
+                encodeHTML(GS.trim(data.error_text.trim(), '"'))
+                .replace(/\\n/gi, '<br />')
+                .replace(/\\/gi, '');
+            document.getElementById('normal-token').value = '';
+        }
+    });
+}
+
+window.addEventListener('template_change', function (event) {
     "use strict";
     var strQueryString = GS.getQueryString();
     var strUnameCookie = GS.getCookie('greyspots_uname');
 
-    // if there is a username cookie: set the username input value
-    if (strUnameCookie) {
-       document.getElementById('normal-uname').value = decodeURIComponent(strUnameCookie);
-    }
-
-    // if we are not on a touch device: put the focus into the first empty control out of "normal-uname" and "normal-pword"
-    if (!evt.touchDevice) {
+    if (event.templateName === 'login') {
+        // if there is a username cookie: set the username input value
         if (strUnameCookie) {
-            document.getElementById('normal-pword').focus();
-        } else {
-            document.getElementById('normal-uname').focus();
+            document.getElementById('normal-uname').value = decodeURIComponent(strUnameCookie);
         }
-    }
 
-    // fill the error element with any error text from the query string (coalesce to empty string)
-    document.getElementById('error').textContent = GS.qryGetVal(strQueryString, 'error') || '';
+        // if we are not on a touch device: put the focus into the first empty control out of "normal-uname" and "normal-pword"
+        if (!evt.touchDevice) {
+            if (strUnameCookie) {
+                document.getElementById('normal-pword').focus();
+            } else {
+                document.getElementById('normal-uname').focus();
+            }
+        }
 
-    //// if there is error text in the query string: alert
-    //if (GS.qryGetVal(strQueryString, 'error')) {
-    //    alert(GS.qryGetVal(strQueryString, 'error'));
-    //    window.location.search = '';
-    //}
+        // fill the error element with any error text from the query string (coalesce to empty string)
+        document.getElementById('error').textContent = GS.qryGetVal(strQueryString, 'error') || '';
 
-    // bind keydown for the "normal-pword" field
-    document.getElementById('normal-pword').addEventListener('keydown', function (event) {
-        if (event.keyCode === 13) {
+        // bind keydown for the "normal-pword" field
+        document.getElementById('normal-pword').addEventListener('keydown', function (event) {
+            if (event.keyCode === 13) {
+                strUname = document.getElementById('normal-uname').value;
+                strPword = document.getElementById('normal-pword').value;
+                login();
+            }
+        });
+
+        // bind click for the "button-login" button
+        document.getElementById('button-login').addEventListener('click', function () {
+            strUname = document.getElementById('normal-uname').value;
+            strPword = document.getElementById('normal-pword').value;
             login();
-        }
-    });
-
-    // bind click for the "button-login" button
-    document.getElementById('button-login').addEventListener('click', function () {
-       login();
-    });
-
-    // GS.ajaxJSON((location.pathname.indexOf('/v1/') === 0 ? '/v1/cluster' : '/env') + '/postage.actionnc_roles', '', function (data, error) {
-    //     var i, len, strHTML = '', selectElement = document.createElement('gs-select');
-
-    //     if (!error) {
-    //         for (i = 0, len = data.dat.length; i < len; i += 1) {
-    //             strHTML +=  '<option>' + encodeHTML(data.dat[i]) + '</option>';
-    //         }
-
-    //         selectElement.setAttribute('id', 'normal-uname');
-    //         selectElement.innerHTML = strHTML;
-    //         selectElement.value = strUnameCookie || '';
-
-    //         document.getElementById('container').replaceChild(selectElement, document.getElementById('normal-uname'));
-    //     }
-    // });
+        });
+    } else {
+        document.getElementById('normal-token').focus();
+        document.getElementById('normal-token').addEventListener('keydown', function (event) {
+            if (event.keyCode === 13) {
+                verify();
+            }
+        });
+        document.getElementById('button-verify').addEventListener('click', function () {
+            verify();
+        });
+    }
 });
         </script>
         <style>
             #container {
                 padding: 1em;
-                max-width: 768px;
+                max-width: 50em;
                 margin: 0 auto;
             }
             
@@ -204,24 +198,47 @@ window.addEventListener('load', function () {
         </style>
     </head>
     <body>
-        <gs-page>
-            <gs-header flex-horizontal>
-                <gs-button icon="cog" icononly style="visibility: hidden;"></gs-button>
-                <center flex><h3>Login</h3></center>
-                <gs-button href="/certificate/index.html" icon="cog" icononly></gs-button>
-            </gs-header>
-            <gs-body>
-                <div id="container">
-                    <gs-text id="normal-uname" placeholder="Username" autocapitalize="off" type="email"></gs-text>
-                    <br />
-                    <gs-text id="normal-pword" placeholder="Password" show-caps type="password"></gs-text>
-                    <br />
-                    <gs-button id="button-login">Sign In</gs-button>
-                    <br />
-                    <br />
-                    <div id="error"></div>
-                </div>
-            </gs-body>
-        </gs-page>
+        <gs-switch template="login" id="switch-page">
+            <template for="login">
+                <gs-page>
+                    <gs-header flex-horizontal>
+                        <gs-button icon="cog" icononly style="visibility: hidden;"></gs-button>
+                        <center flex><h3>Login</h3></center>
+                        <gs-button href="/certificate/index.html" icon="cog" icononly></gs-button>
+                    </gs-header>
+                    <gs-body>
+                        <div id="container">
+                            <gs-text id="normal-uname" placeholder="Username" autocapitalize="off" type="email"></gs-text>
+                            <br />
+                            <gs-text id="normal-pword" placeholder="Password" show-caps type="password"></gs-text>
+                            <br />
+                            <gs-button id="button-login">Sign In</gs-button>
+                            <br />
+                            <br />
+                            <div id="error"></div>
+                        </div>
+                    </gs-body>
+                </gs-page>
+            </template>
+            <template for="2fa">
+                <gs-page>
+                    <gs-header flex-horizontal>
+                        <center flex><h3>Two Factor Authentication</h3></center>
+                    </gs-header>
+                    <gs-body>
+                        <div id="container">
+                            <p>You should receive a verification token. If not, <a href="#" onclick="login();">click here</a> to get a new token.</p>
+                            <br />
+                            <gs-text id="normal-token" placeholder="Token" show-caps type="password"></gs-text>
+                            <br />
+                            <gs-button id="button-verify">Verify</gs-button>
+                            <br />
+                            <br />
+                            <div id="error"></div>
+                        </div>
+                    </gs-body>
+                </gs-page>
+            </template>
+        </gs-switch>
     </body>
 </html>

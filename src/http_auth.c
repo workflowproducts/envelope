@@ -15,7 +15,7 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 	SDEFINE_VAR_MORE(str_uri_new_password, str_uri_expiration);
 	SDEFINE_VAR_MORE(str_new_cookie, str_user_quote, str_new_password_literal);
 	SDEFINE_VAR_MORE(str_uri_timeout, str_one_day_expire, str_cookie_name, str_session_id);
-	SDEFINE_VAR_MORE(str_error, str_error_uri, str_uri);
+	SDEFINE_VAR_MORE(str_error, str_error_uri, str_uri, str_token_real, str_token_user);
     DArray *darr_headers = NULL;
 	size_t int_error_len = 0;
 	size_t int_error_uri_len = 0;
@@ -32,6 +32,8 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 	size_t int_uri_new_password_len = 0;
 	size_t int_uri_expiration_len = 0;
 	size_t int_conn_length = 0;
+	size_t int_token_real_len = 0;
+	size_t int_token_user_len = 0;
 
 	// get path
 	str_uri = str_uri_path(client_auth->parent->str_request, client_auth->parent->int_request_len, &int_uri_len);
@@ -292,6 +294,52 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 			SDEBUG("client_auth->parent: %p", client_auth->parent);
 		}
 
+	} else if (strncmp(client_auth->str_action, "2fa", 10) == 0) {
+		client_auth->str_cookie_encrypted = get_cookie(client_auth->parent->str_all_cookie, client_auth->parent->int_all_cookie_len, "envelope_2fa_pending", &client_auth->int_cookie_encrypted_len);
+		SFINISH_CHECK(client_auth->str_cookie_encrypted != NULL, "str_cookie failed");
+		int_cookie_len = client_auth->int_cookie_encrypted_len;
+		str_cookie_decrypted = aes_decrypt(client_auth->str_cookie_encrypted, &int_cookie_len);
+		SFREE(client_auth->str_cookie_encrypted);
+
+		client_auth->str_cookie_encrypted = getpar(str_cookie_decrypted, "cookie", int_cookie_len, &client_auth->int_cookie_encrypted_len);
+		SFINISH_CHECK(client_auth->str_cookie_encrypted != NULL, "getpar failed");
+
+		str_token_real = getpar(str_cookie_decrypted, "token", int_cookie_len, &int_token_real_len);
+		SFINISH_CHECK(str_token_real != NULL, "getpar failed");
+
+		str_token_user = getpar(str_form_data, "token", int_query_length, &int_token_user_len);
+		SFINISH_CHECK(str_token_user != NULL, "getpar failed");
+		SFREE(str_global_error);
+
+		SFINISH_CHECK(strncmp(str_token_real, str_token_user, int_token_user_len) == 0, "Token does not match");
+		
+        char *str_temp1 = "envelope=";
+        char *str_temp2 = "; HttpOnly;";
+        char *str_temp3 = "{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}";
+        SFREE(str_expires);
+        str_expires = str_expire_one_day();
+        SFINISH_SNCAT(
+            str_temp, &int_temp_len,
+            str_temp1, strlen(str_temp1),
+            client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
+            "; path=/; expires=", (size_t)18,
+            str_expires, strlen(str_expires),
+            str_temp2, strlen(str_temp2)
+        );
+        darr_headers = DArray_from_strings(
+            "Set-Cookie", str_temp
+            , "Set-Cookie", "envelope_2fa_pending=; HttpOnly; path=/; expires=0;"
+        );
+		SFREE(str_temp);
+        SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
+        SFINISH_CHECK(build_http_response(
+                "200 OK"
+                , str_temp3, strlen(str_temp3)
+                , "application/json"
+                , darr_headers
+                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+            ), "build_http_response failed");
+
 		//////
 		// CHANGE PW, RESET COOKIE
 	} else if (strncmp(client_auth->str_action, "change_pw", 10) == 0) {
@@ -304,11 +352,9 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 		SFINISH_CHECK(client_auth->str_old_check_password != NULL, "getpar failed");
 
 		SDEBUG("client_auth->parent->str_request: %s", client_auth->parent->str_request);
-		size_t int_temp = 0;
-		SFINISH_SNCAT(str_cookie_name, &int_temp, "envelope", (size_t)8);
 
 		SFREE_PWORD(str_form_data);
-		client_auth->str_cookie_encrypted = get_cookie(client_auth->parent->str_all_cookie, client_auth->parent->int_all_cookie_len, str_cookie_name, &client_auth->int_cookie_encrypted_len);
+		client_auth->str_cookie_encrypted = get_cookie(client_auth->parent->str_all_cookie, client_auth->parent->int_all_cookie_len, "envelope", &client_auth->int_cookie_encrypted_len);
 		SFINISH_CHECK(client_auth->str_cookie_encrypted != NULL, "str_cookie failed");
 		int_cookie_len = client_auth->int_cookie_encrypted_len;
 		str_cookie_decrypted = aes_decrypt(client_auth->str_cookie_encrypted, &int_cookie_len);
@@ -358,7 +404,7 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 		SINFO("REQUEST USERNAME: %s", client_auth->str_user);
 
 		char *str_temp = get_connection_info("", &client_auth->int_connection_index);
-		int_temp = strlen(str_temp);
+		size_t int_temp = strlen(str_temp);
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 		if (client_auth->str_database != NULL) {
 			SFINISH_SNCAT(str_conn, &int_conn_length, str_temp, int_temp, " dbname=", (size_t)8, client_auth->str_database, strlen(client_auth->str_database));
@@ -775,25 +821,46 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 	if (DB_connection_driver(client_auth->parent->conn) == DB_DRIVER_POSTGRES) {
 		size_t int_temp = 0;
 		char *str_temp1 =
-			"SELECT CASE WHEN rolsuper THEN 'TRUE' ELSE 'FALSE' END AS result "
-			"FROM pg_catalog.pg_roles WHERE rolname = ";
+			"SELECT CASE WHEN rolsuper THEN 'TRUE' ELSE 'FALSE' END AS result ";
 		char *str_temp2 =
+			"FROM pg_catalog.pg_roles WHERE rolname = ";
+		char *str_temp3 =
 			" UNION ALL "
 			"SELECT CASE WHEN count(pg_roles.rolname) > 0 THEN 'TRUE' ELSE 'FALSE' "
-			"END "
+			"END, '' "
 			"FROM pg_user "
 			"LEFT JOIN pg_auth_members on pg_user.usesysid = pg_auth_members.member "
 			"LEFT JOIN pg_roles on pg_roles.oid = pg_auth_members.roleid "
 			"WHERE pg_user.usename = ";
-		SFINISH_SNCAT(
-			str_sql, &int_temp,
-			str_temp1, strlen(str_temp1),
-			str_user_literal, int_user_literal_len,
-			str_temp2, strlen(str_temp2),
-			str_user_literal, int_user_literal_len,
-			" AND pg_roles.rolname = ", (size_t)24,
-			str_group_literal, int_group_literal_len
-		);
+		if (str_global_2fa_function != NULL) {
+			SFINISH_SNCAT(
+				str_sql, &int_temp,
+				str_temp1, strlen(str_temp1),
+				", ", (size_t)2,
+				str_global_2fa_function, strlen(str_global_2fa_function),
+				"(", (size_t)1,
+				str_user_literal, int_user_literal_len,
+				") ", (size_t)2,
+				str_temp2, strlen(str_temp2),
+				str_user_literal, int_user_literal_len,
+				str_temp3, strlen(str_temp3),
+				str_user_literal, int_user_literal_len,
+				" AND pg_roles.rolname = ", (size_t)24,
+				str_group_literal, int_group_literal_len
+			);
+		} else {
+			SFINISH_SNCAT(
+				str_sql, &int_temp,
+				str_temp1, strlen(str_temp1),
+				", '' ", (size_t)5,
+				str_temp2, strlen(str_temp2),
+				str_user_literal, int_user_literal_len,
+				str_temp3, strlen(str_temp3),
+				str_user_literal, int_user_literal_len,
+				" AND pg_roles.rolname = ", (size_t)24,
+				str_group_literal, int_group_literal_len
+			);
+		}
 	} else if (DB_connection_driver(client_auth->parent->conn) == DB_DRIVER_SQL_SERVER) {
 		size_t int_temp = 0;
 		char *str_temp1 =
@@ -907,15 +974,17 @@ finish:
 bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_auth *client_auth = (struct sock_ev_client_auth *)(client_request->client_request_data);
-	SDEFINE_VAR_ALL(str_user_literal, str_temp1, str_expires, str_int_len);
-	SDEFINE_VAR_MORE(str_content_length, str_connstring, str_user, str_open);
-	SDEFINE_VAR_MORE(str_closed, str_temp_connstring, str_rolsuper, str_rolgroup, str_temp);
+	SDEFINE_VAR_ALL(str_user_literal, str_temp1, str_expires, str_int_len, str_real_cookie);
+	SDEFINE_VAR_MORE(str_content_length, str_connstring, str_user, str_open, str_cookie_encrypted_temp);
+	SDEFINE_VAR_MORE(str_closed, str_temp_connstring, str_rolsuper, str_rolgroup, str_temp, str_2fa_token);
 	char *str_response = NULL;
 	DArray *arr_row_values = NULL;
 	DArray *arr_row_lengths = NULL;
+	size_t int_real_cookie_len = 0;
 	size_t int_temp = 0;
 	size_t int_temp_len = 0;
 	size_t int_response_len = 0;
+	size_t int_cookie_temp_len = 0;
 	DB_fetch_status status = 0;
     DArray *darr_headers = NULL;
 	SDEBUG("http_auth_login_step3");
@@ -928,6 +997,26 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 	arr_row_lengths = DB_get_row_lengths(res);
 
 	SFINISH_SNCAT(str_rolsuper, &int_temp, DArray_get(arr_row_values, 0), *(size_t *)DArray_get(arr_row_lengths, 0));
+	SFINISH_SNCAT(str_2fa_token, &int_temp, DArray_get(arr_row_values, 1), *(size_t *)DArray_get(arr_row_lengths, 1));
+	SFINISH_SNCAT(str_real_cookie, &int_real_cookie_len, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
+	if (str_2fa_token != NULL && strncmp(str_2fa_token, "", 1) != 0) {
+		// int_cookie_temp_len = client_auth->int_cookie_encrypted_len;
+		str_cookie_encrypted_temp = cstr_to_uri(client_auth->str_cookie_encrypted, &client_auth->int_cookie_encrypted_len);
+		SFINISH_SNCAT(
+			str_temp, &int_cookie_temp_len
+			, "cookie=", (size_t)7
+			, str_cookie_encrypted_temp, client_auth->int_cookie_encrypted_len
+			, "&token=", (size_t)7
+			, str_2fa_token, int_temp
+		);
+		SFREE(str_cookie_encrypted_temp);
+		str_cookie_encrypted_temp = aes_encrypt(str_temp, &int_cookie_temp_len);
+		SFINISH_CHECK(client_auth->str_cookie_encrypted, "failed to encrypt cookie");
+		SFREE_PWORD(client_auth->str_cookie_encrypted);
+		client_auth->str_cookie_encrypted = str_cookie_encrypted_temp;
+		client_auth->int_cookie_encrypted_len = int_cookie_temp_len;
+		SFREE(str_temp);
+	}
 
 	DArray_clear_destroy(arr_row_values);
 	arr_row_values = NULL;
@@ -984,9 +1073,11 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 		SFREE(str_content_length);
 	} else {
         char *str_temp1 =
-            "envelope=";
+            str_2fa_token != NULL && strncmp(str_2fa_token, "", 1) != 0 ? "envelope_2fa_pending=" : "envelope=";
         char *str_temp2 =
             "; HttpOnly;";
+        char *str_temp3 =
+            str_2fa_token != NULL && strncmp(str_2fa_token, "", 1) != 0 ? "{\"stat\": true, \"dat\": \"2fa required\"}" : "{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}";
         SFREE(str_expires);
         str_expires = str_expire_one_day();
         SFINISH_SNCAT(
@@ -1005,7 +1096,7 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
         SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
         SFINISH_CHECK(build_http_response(
                 "200 OK"
-                , "{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}", strlen("{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}")
+                , str_temp3, strlen(str_temp3)
                 , "application/json"
                 , darr_headers
                 , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
@@ -1015,13 +1106,14 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 		size_t int_i, int_len;
 		client->int_last_activity_i = -1;
 		struct sock_ev_client_last_activity *client_last_activity;
+
 		for (int_i = 0, int_len = DArray_end(client->server->arr_client_last_activity); int_i < int_len; int_i += 1) {
 			client_last_activity =
 				(struct sock_ev_client_last_activity *)DArray_get(client->server->arr_client_last_activity, int_i);
 			if (client_last_activity != NULL &&
 				strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0 &&
-				strncmp(client_last_activity->str_cookie, client_auth->str_cookie_encrypted,
-					client_auth->int_cookie_encrypted_len) == 0) {
+				strncmp(client_last_activity->str_cookie, str_real_cookie,
+					int_real_cookie_len) == 0) {
 				client->int_last_activity_i = (ssize_t)int_i;
 				break;
 			}
@@ -1030,11 +1122,12 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 			SFINISH_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
 		    SFINISH_SALLOC(client_last_activity->str_client_ip, strlen(client_auth->parent->str_client_ip));
 			memcpy(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip));
-			SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
+			SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, str_real_cookie, int_real_cookie_len);
 			client_last_activity->last_activity_time = ev_now(EV_A);
 			client_auth->parent->int_last_activity_i =
 				(ssize_t)DArray_push(client_auth->parent->server->arr_client_last_activity, client_last_activity);
 		}
+		SINFO("client->int_last_activity_i: %d", client->int_last_activity_i);
 		SDEBUG("envelope COOKIE SET");
 	}
 
@@ -1046,7 +1139,6 @@ finish:
 	if (darr_headers != NULL) {
 		DArray_clear_destroy(darr_headers);
 	}
-	DB_free_result(res);
 	if (arr_row_values != NULL) {
 		DArray_clear_destroy(arr_row_values);
 	}
@@ -1069,6 +1161,18 @@ finish:
         SERROR_NORESPONSE("Login failed from ip: %s", client_auth->parent->str_client_ip);
         SFREE(str_global_error);
 
+		char *_str_response1 = str_response;
+		char *_str_response2 = DB_get_diagnostic(client_auth->parent->conn, res);
+		SFINISH_SNCAT(
+			str_response, &int_response_len,
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
+			":\n", (size_t)2,
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+		);
+		SFREE(_str_response1);
+		SFREE(_str_response2);
+
+
         SFINISH_CHECK(build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
@@ -1077,6 +1181,7 @@ finish:
                 , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
             ), "build_http_response failed");
 	}
+	DB_free_result(res);
     SFREE(str_response);
 	if (client_auth->parent->str_http_response != NULL) {
 		ev_io_stop(EV_A, &client_auth->parent->io);

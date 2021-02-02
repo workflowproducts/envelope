@@ -130,10 +130,19 @@ finish:
 		// we copy the length into the struct, so we can free it in the array
 		DArray_clear_destroy(arr_row_lengths);
 	}
-	SFREE(_str_response);
-	DB_free_result(res);
 	if (bol_error_state) {
 		bol_error_state = false;
+
+		char *_str_response1 = str_response;
+		char *_str_response2 = DB_get_diagnostic(client->conn, res);
+		SFINISH_SNCAT(
+			str_response, &int_response_len,
+			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
+			":\n", (size_t)2,
+			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+		);
+		SFREE(_str_response1);
+		SFREE(_str_response2);
 
         SFREE(client->str_http_header);
         SFINISH_CHECK(build_http_response(
@@ -144,6 +153,8 @@ finish:
                 , &client->str_http_response, &client->int_http_response_len
             ), "build_http_response failed");
 	}
+	SFREE(_str_response);
+	DB_free_result(res);
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
 	if (client->str_http_response != NULL && client->str_http_header == NULL) {

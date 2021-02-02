@@ -25,6 +25,7 @@ envelope
        [-a <log-queries-over-action-name> | --log-queries-over-action-name=<log-queries-over-action-name>]
        [-f <api-referer-list> | --api-referer-list=<api-referer-list>]
        [-j <public-api-referer-list> | --public-api-referer-list=<public-api-referer-list>]
+       [-2 <2fa-function> | --2fa-function=<2fa-function>]
 ```
 
 ## DESCRIPTION
@@ -111,7 +112,14 @@ The following options can be specified on the command line or in the configurati
        `String;` no defaults, required
 `-j` or `--public-api-referer-list=` or `public_api_referer_list=`  
        `String;` defaults to `api-referer-list`
-       `api_referer_list` controls the Referers allowed to run API calls when logged in. `public_api_referer_list` is the same, but only applies to no-cookie API calls. Note: Referer is spelled as such because that is the way it is spelled in RFC 1945. 
+       `api_referer_list` controls the Referers allowed to run API calls when logged in. `public_api_referer_list` is the same, but only applies to no-cookie API calls. Note: Referer is spelled as such because that is the way it is spelled in RFC 1945.
+
+`-2` or `--2fa-function=` or `2fa_function=`  
+       `String;` no defaults, optional
+`-m` or `--2fa-timeout=` or `2fa_timeout=`  
+       `Integer;` defaults to 300 seconds (5 minutes)
+       Setting this parameter gives you an extra layer of login security. The value of the parameter should be a function named that takes a single `text` parameter (the user's login name) and returns `text` (the token itself) like so: `CREATE OR REPLACE FUNCTION public.token_2fa(str_user text) RETURNS text`. The function should generate a token and then transmit it to the user via some second channel (i.e. an email, SMS, or other IM). `envelope` will direct users to a second screen for them to enter the token and allow them to continue only if they enter the correct token. The user will also have an option to send a new token. `2fa_timeout` determines how long a token remains valid. If the token function returns an empty string, then the 2fa is skipped. Note that 2fa does not apply to No Cookie authentication.
+
 
 ## SETTING UP A CONNECTION TO A POSTGRESQL SERVER
 
