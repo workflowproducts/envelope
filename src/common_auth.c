@@ -484,21 +484,29 @@ void connect_cb_env_step1(EV_P, void *cb_data, DB_conn *conn) {
 	SFINISH_CHECK(conn->int_status == 1, "%s", conn->str_response);
 
 #ifdef ENVELOPE_INTERFACE_LIBPQ
-	str_password_hash_literal = DB_escape_literal(client->conn, client->str_password_hash, strlen(client->str_password_hash));
-	SFINISH_CHECK(str_password_hash_literal != NULL, "DB_escape_literal failed");
+	if (client->bol_public == false) {
+		SFINISH_CHECK(client->str_password_hash != NULL, "password hash missing");
+		str_password_hash_literal = DB_escape_literal(client->conn, client->str_password_hash, strlen(client->str_password_hash));
+		SFINISH_CHECK(str_password_hash_literal != NULL, "DB_escape_literal failed");
 
-	str_user_literal = DB_escape_literal(client->conn, client->str_username, client->int_username_len);
-	SFINISH_CHECK(str_user_literal != NULL, "DB_escape_literal failed");
-	char *str_temp1 = "SELECT CASE WHEN rolpassword = ";
-	char *str_temp2 = " THEN 'TRUE' ELSE 'FALSE' END FROM pg_authid WHERE rolname = ";
-	SFINISH_SNCAT(
-		str_sql, &int_temp,
-		str_temp1, strlen(str_temp1),
-		str_password_hash_literal, strlen(str_password_hash_literal),
-		str_temp2, strlen(str_temp2),
-		str_user_literal, strlen(str_user_literal),
-		";", (size_t)1
-	);
+		str_user_literal = DB_escape_literal(client->conn, client->str_username, client->int_username_len);
+		SFINISH_CHECK(str_user_literal != NULL, "DB_escape_literal failed");
+		char *str_temp1 = "SELECT CASE WHEN rolpassword = ";
+		char *str_temp2 = " THEN 'TRUE' ELSE 'FALSE' END FROM pg_authid WHERE rolname = ";
+		SFINISH_SNCAT(
+			str_sql, &int_temp,
+			str_temp1, strlen(str_temp1),
+			str_password_hash_literal, strlen(str_password_hash_literal),
+			str_temp2, strlen(str_temp2),
+			str_user_literal, strlen(str_user_literal),
+			";", (size_t)1
+		);
+	} else {
+		SFINISH_SNCAT(
+			str_sql, &int_temp,
+			"SELECT 'TRUE';", (size_t)14
+		);
+	}
 #else
 	SFINISH_SNCAT(
 		str_sql, &int_temp,
