@@ -192,10 +192,10 @@ finish:
 				"Set-Cookie", "envelope=; path=/; expires=Tue, 01 Jan 1990 00:00:00 GMT; HttpOnly"
 				, "Refresh", str_temp
 			);
+        	SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
 			SFREE(str_response);
 			SFINISH_SNCAT(str_response, &int_response_len, "FATAL\015\012Session expired", strlen("FATAL\015\012Session expired"));
         }
-        SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
         SFINISH_CHECK(build_http_response(
                 darr_headers != NULL ? "440 Login Timeout" : "500 Internal Server Error"
                 , str_response, int_response_len

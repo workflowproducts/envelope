@@ -372,7 +372,7 @@ client_http_file->int_content_len = (size_t)client_http_file->int_read_len;
 
 	SFINISH_SALLOC(tm_change_stamp, sizeof(struct tm));
 #ifdef _WIN32
-	SFINISH_CHECK(gmtime_s(tm_change_stamp, &(statdata->st_mtime)) != NULL, "gmtime() failed");
+	SFINISH_CHECK((errno = gmtime_s(tm_change_stamp, &(statdata->st_mtime))) == 0, "gmtime() failed");
 #else
 	SFINISH_CHECK(gmtime_r(&(statdata->st_mtime), tm_change_stamp) != NULL, "gmtime() failed");
 #endif
@@ -489,12 +489,14 @@ void http_file_step3(EV_P, ev_check *w, int revents) {
                 , "Last-Modified", client_http_file->str_last_modified
                 , "Content-Length", str_content_len
                 , "Content-Disposition", "attachment"
+                , "Cache-Control", "max-age=0, must-revalidate"
             );
         } else {
             darr_headers = DArray_from_strings(
                 "Etag", client_http_file->str_etag
                 , "Content-Length", str_content_len
                 , "Last-Modified", client_http_file->str_last_modified
+				, "Cache-Control", "max-age=0, must-revalidate"
             );
         }
         SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");

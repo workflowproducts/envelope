@@ -403,7 +403,7 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 			SFINISH_SNCAT(str_conn, &int_conn_length, str_temp, int_temp);
 		}
 #else
-		SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp);
+		SFINISH_SNCAT(str_conn, &int_conn_length, str_temp, int_temp);
 #endif
 		SFINISH_SALLOC(client_auth->str_int_connection_index, 20);
 		snprintf(client_auth->str_int_connection_index, 20, "%zu", client_auth->int_connection_index);
@@ -858,16 +858,49 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 	} else if (DB_connection_driver(client_auth->parent->conn) == DB_DRIVER_SQL_SERVER) {
 		size_t int_temp = 0;
 		char *str_temp1 =
-			"SELECT CASE WHEN IS_SRVROLEMEMBER('sysadmin') = 1 THEN 'TRUE' ELSE 'FALSE' END"
-			" UNION ALL SELECT CASE WHEN IS_MEMBER(";
+			"SELECT CASE WHEN IS_SRVROLEMEMBER('sysadmin') = 1 THEN 'TRUE' ELSE 'FALSE' END";
 		char *str_temp2 =
-			") = 1 THEN 'TRUE' ELSE 'FALSE' END;";
-		SFINISH_SNCAT(
-			str_sql, &int_temp,
-			str_temp1, strlen(str_temp1),
-			str_group_literal, int_group_literal_len,
-			str_temp2, strlen(str_temp2)
-		);
+			" UNION ALL SELECT CASE WHEN IS_MEMBER(";
+		char *str_temp3 =
+			") = 1 THEN 'TRUE' ELSE 'FALSE' END, '';";
+		if (str_global_2fa_function != NULL) {
+			SFINISH_SNCAT(
+				str_sql, &int_temp,
+				str_temp1, strlen(str_temp1),
+				", ", (size_t)2,
+				str_global_2fa_function, strlen(str_global_2fa_function),
+				"(", (size_t)1,
+				str_user_literal, int_user_literal_len,
+				") ", (size_t)2,
+				str_temp2, strlen(str_temp2),
+				str_user_literal, int_user_literal_len,
+				str_temp3, strlen(str_temp3),
+				str_user_literal, int_user_literal_len,
+				" AND pg_roles.rolname = ", (size_t)24,
+				str_group_literal, int_group_literal_len
+			);
+			SFINISH_SNCAT(
+				str_sql, &int_temp,
+				str_temp1, strlen(str_temp1),
+				", ", (size_t)2,
+				str_global_2fa_function, strlen(str_global_2fa_function),
+				"(", (size_t)1,
+				str_user_literal, int_user_literal_len,
+				") ", (size_t)2,
+				str_temp2, strlen(str_temp2),
+				str_group_literal, int_group_literal_len,
+				str_temp3, strlen(str_temp3)
+			);
+		} else {
+			SFINISH_SNCAT(
+				str_sql, &int_temp,
+				str_temp1, strlen(str_temp1),
+				", '' ", (size_t)5,
+				str_temp2, strlen(str_temp2),
+				str_group_literal, int_group_literal_len,
+				str_temp3, strlen(str_temp3)
+			);
+		}
 	} else {
 		char *str_temp1 =
 			"envelope=";

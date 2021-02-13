@@ -50,7 +50,8 @@ no username*/ })],
 			ml(function () {/*FATAL
 no username*/ })],
  			['Login Fail 8', 'ajax', 500, '/env/auth', '',
- 				ml(function () {/*Not a valid action.*/ })],
+					ml(function () {/*FATAL
+Not a valid action.*/})],
  			['Login Fail 9', 'ajax', 500, '/env/auth', 'action=login',
 			ml(function () {/*FATAL
 no username*/ })],
@@ -67,11 +68,14 @@ no username*/ })],
 [28000] [Microsoft][SQL Server Native Client 11.0][SQL Server]Login failed for user 'test!@#$%^&*()|<>?,./:+-/*=ƒ©˙∆test'.(18456)
 */ })],
  			['Login Fail 13', 'ajax', 500, '/env/auth', 'action=' + encodeURIComponent('loginπ'),
-				ml(function () {/*Not a valid action.*/ })],
+					ml(function () {/*FATAL
+Not a valid action.*/})],
  			['Login Fail 14', 'ajax', 500, '/env/auth', 'action=loginbasdf',
-				ml(function () {/*Not a valid action.*/ })],
+					ml(function () {/*FATAL
+Not a valid action.*/})],
  			['Login Fail 15', 'ajax', 500, '/env/auth', 'test=test&a@&#=te=st',
-				ml(function () {/*Not a valid action.*/ })],
+					ml(function () {/*FATAL
+Not a valid action.*/})],
  			['Logout before login *', 'ajax spam', 200, '/env/auth', 'action=logout', ''],
  			['Login Fail 16', 'ajax', 440, '/env/authasdf', '',
  				'You need to login.\n'],
@@ -163,7 +167,7 @@ Bad file path*/
 		        })],
 		    ['File Read 3', 'ajax', 200, '/env/app/all/index.html', '',
 		        ''],
-		    ['File Read Fail 4', 'ajax', 500, '/env/app/alla/index.html', '',
+		    ['File Read Fail 4', 'ajax', 403, '/env/app/alla/index.html', '',
 		        ml(function () {/*FATAL
 You don't have the necessary permissions for this folder.*/
 		        })],
@@ -373,7 +377,12 @@ ORDER BY	LIMIT
 1 ASC	10
 */
             }),
-			["common_util_sql.c:query_is_safe: SQL Injection detected!\nSQL Injection detected"]],
+				[ml(function () {/*../visualstudio/envelope_ss/db_framework_odbc/db_framework.c:db_column_types_query_cb: SQLPrepare Failed!
+Query failed:
+[42000] [Microsoft][SQL Server Native Client 11.0][SQL Server]An object or column name is missing or empty. For SELECT INTO statements, verify each column has a name. For other statements, look for empty alias names. Aliases defined as "" or [] are not allowed. Change the alias to a valid name.(1038)
+[42000] [Microsoft][SQL Server Native Client 11.0][SQL Server]Incorrect syntax near the keyword 'TO'.(156)
+[42000] [Microsoft][SQL Server Native Client 11.0][SQL Server]Statement(s) could not be prepared.(8180)
+*/})]],
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
 			['INSERT RECORDS', 'websocket', '', ml(function () {/*INSERT	rtesting_table_for_select
 RETURN	id	test_name	test_name2
@@ -1318,7 +1327,7 @@ id
                 new Uint8Array([84, 104, 101, 32, 102, 105, 108, 101, 32, 121, 111, 117, 32, 97, 114, 101, 32, 114, 101, 113, 117, 101, 115, 116, 105, 110, 103, 32, 105, 115, 32, 110, 111, 116, 32, 104, 101, 114, 101, 46])],
 			['APP UPLOAD FAIL 1', 'ajax', 500, '/env/upload', '',
 				ml(function () {/*FATAL
-util_request.c:get_sun_upload: Cannot find boundary for request
+util_request.c:get_sun_upload: boundary is null
 get_sun_upload failed*/})],
 			['APP UPLOAD', 'upload', 200, '/env/upload', '/app/all/test{{test_random1}}.sql',
 				ml(function () {/*Upload Succeeded

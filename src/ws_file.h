@@ -2,7 +2,6 @@
 
 #include "common_client.h"
 #include "common_websocket.h"
-#include "util_exec.h"
 #include "util_file.h"
 #include <dirent.h>
 #include "tre/tre.h"
