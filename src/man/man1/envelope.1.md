@@ -24,6 +24,7 @@ envelope
        [-q <log-queries-over> | --log-queries-over=<log-queries-over>]
        [-a <log-queries-over-action-name> | --log-queries-over-action-name=<log-queries-over-action-name>]
        [-f <api-referer-list> | --api-referer-list=<api-referer-list>]
+       [-i <allow-public-login> | --allow-public-login=<allow-public-login>]
        [-j <public-api-referer-list> | --public-api-referer-list=<public-api-referer-list>]
        [-2 <2fa-function> | --2fa-function=<2fa-function>]
 ```
@@ -113,6 +114,10 @@ The following options can be specified on the command line or in the configurati
 `-j` or `--public-api-referer-list=` or `public_api_referer_list=`  
        `String;` defaults to `api-referer-list`
        `api_referer_list` controls the Referers allowed to run API calls when logged in. `public_api_referer_list` is the same, but only applies to no-cookie API calls. Note: Referer is spelled as such because that is the way it is spelled in RFC 1945.
+
+`-i` or `--allow-public-login=` or `allow_public_login=`  
+       `Boolean;` defaults to false  
+       If enabled, you can use /env/authnc to set a cookie with the public user credentials.
 
 `-2` or `--2fa-function=` or `2fa_function=`  
        `String;` no defaults, optional

@@ -296,6 +296,10 @@ error_position	13
 			, ['action_info', 'ajax', 200, '/env/action_info', '', '']
 
             // ws_action.c
+			, ['SOCKET OPEN', 'websocket startnc']
+			, ['ACTION', 'websocket', '', ml(function () {/*ACTION	public	action_testing	testingnitset
+*/}), ["\"testingnitset\"\n", "TRANSACTION COMPLETED"]] // ws_copy_check_cb
+			, ['SOCKET CLOSE', 'websocket end']
 			, ['SOCKET OPEN', 'websocket start']
 			, ['ACTION FAIL 1', 'websocket', '', ml(function () {/*ACTION	public	actiont_testing1	testingnitset
 */}), ["Invalid action name, action function names must begin with \"action_\" or \"actionnc_\""]] // ws_action_step1

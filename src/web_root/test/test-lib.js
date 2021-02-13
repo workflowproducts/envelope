@@ -171,6 +171,7 @@ var $ = {
                     data = data.replace(/\\(?![rnt])/gi, '/');
 					data = data.replace(' (0x0000274D/10061)', '');
                     data = data.replace(/\.\.\/src\//gi, '');
+					data = data.replace('FATAL\nUser "doesntexist" does not exist.', 'FATAL\nConnect failed: FATAL:  password authentication failed for user "doesntexist"\n');
                 }
                 var bolEqual = true;
                 for (var i = 0, len = data.length; i < len; i += 1) {
@@ -261,6 +262,27 @@ var $ = {
 				WS.closeSocket($.tests[key].socket);
 			}
             $.tests[key].socket = WS.openSocket(key, key);
+            var i = 0;
+            WS.requestFromSocket($.tests[key].socket, key, 'INFO', function (data, error, errorData) {
+                if (i === -1) {
+                    return;
+                }
+                i = -1;
+                if (!error) {
+                    $.tests[key].socket.stayClosed = true;
+                    $.changeStatus(key, intCurrent, 'running', 'pass', 0, JSON.stringify(data));
+                    $.runTest(key, intCurrent + 1);
+                } else {
+                    $.changeStatus(key, intCurrent, 'running', 'fail', 0, JSON.stringify(errorData));
+                    document.getElementById('actual-output-' + key).value = JSON.stringify(errorData);
+                }
+            });
+        } else if (strType === 'websocket start nc') {
+            $.changeStatus(key, intCurrent, 'waiting', 'running');
+			if ($.tests[key].socket) {
+				WS.closeSocket($.tests[key].socket);
+			}
+            $.tests[key].socket = WS.openSocket('envnc', key);
             var i = 0;
             WS.requestFromSocket($.tests[key].socket, key, 'INFO', function (data, error, errorData) {
                 if (i === -1) {

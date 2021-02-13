@@ -26,6 +26,7 @@ envelope
        [\-q <log\-queries\-over> | \-\-log\-queries\-over=<log\-queries\-over>]
        [\-a <log\-queries\-over\-action\-name> | \-\-log\-queries\-over\-action\-name=<log\-queries\-over\-action\-name>]
        [\-f <api\-referer\-list> | \-\-api\-referer\-list=<api\-referer\-list>]
+       [\-i <allow\-public\-login> | \-\-allow\-public\-login=<allow\-public\-login>]
        [\-j <public\-api\-referer\-list> | \-\-public\-api\-referer\-list=<public\-api\-referer\-list>]
        [\-2 <2fa\-function> | \-\-2fa\-function=<2fa\-function>]
 .fi
@@ -151,6 +152,12 @@ The following options can be specified on the command line or in the configurati
 .br
        \fBString;\fP defaults to \fBapi\-referer\-list\fP
        \fBapi_referer_list\fP controls the Referers allowed to run API calls when logged in\. \fBpublic_api_referer_list\fP is the same, but only applies to no\-cookie API calls\. Note: Referer is spelled as such because that is the way it is spelled in RFC 1945\.
+.P
+\fB\-i\fP or \fB\-\-allow\-public\-login=\fP or \fBallow_public_login=\fP
+.br
+       \fBBoolean;\fP defaults to false
+.br
+       If enabled, you can use /env/authnc to set a cookie with the public user credentials\.
 .P
 \fB\-2\fP or \fB\-\-2fa\-function=\fP or \fB2fa_function=\fP
 .br
