@@ -1,4 +1,4 @@
-.TH "ENVELOPE" "1" "May 2019" "" ""
+.TH "ENVELOPE" "1" "February 2021" "" ""
 .SH "NAME"
 \fBenvelope\fR \- PostgreSQL Interface for the web
 .SH FULL PATH
@@ -27,6 +27,7 @@ envelope
        [\-a <log\-queries\-over\-action\-name> | \-\-log\-queries\-over\-action\-name=<log\-queries\-over\-action\-name>]
        [\-f <api\-referer\-list> | \-\-api\-referer\-list=<api\-referer\-list>]
        [\-j <public\-api\-referer\-list> | \-\-public\-api\-referer\-list=<public\-api\-referer\-list>]
+       [\-2 <2fa\-function> | \-\-2fa\-function=<2fa\-function>]
 .fi
 .RE
 .SH DESCRIPTION
@@ -149,7 +150,15 @@ The following options can be specified on the command line or in the configurati
 \fB\-j\fP or \fB\-\-public\-api\-referer\-list=\fP or \fBpublic_api_referer_list=\fP
 .br
        \fBString;\fP defaults to \fBapi\-referer\-list\fP
-       \fBapi_referer_list\fP controls the Referers allowed to run API calls when logged in\. \fBpublic_api_referer_list\fP is the same, but only applies to no\-cookie API calls\. Note: Referer is spelled as such because that is the way it is spelled in RFC 1945\. 
+       \fBapi_referer_list\fP controls the Referers allowed to run API calls when logged in\. \fBpublic_api_referer_list\fP is the same, but only applies to no\-cookie API calls\. Note: Referer is spelled as such because that is the way it is spelled in RFC 1945\.
+.P
+\fB\-2\fP or \fB\-\-2fa\-function=\fP or \fB2fa_function=\fP
+.br
+       \fBString;\fP no defaults, optional
+\fB\-m\fP or \fB\-\-2fa\-timeout=\fP or \fB2fa_timeout=\fP
+.br
+       \fBInteger;\fP defaults to 300 seconds (5 minutes)
+       Setting this parameter gives you an extra layer of login security\. The value of the parameter should be a function named that takes a single \fBtext\fP parameter (the user's login name) and returns \fBtext\fP (the token itself) like so: \fBCREATE OR REPLACE FUNCTION public\.token_2fa(str_user text) RETURNS text\fP\|\. The function should generate a token and then transmit it to the user via some second channel (i\.e\. an email, SMS, or other IM)\. \fBenvelope\fP will direct users to a second screen for them to enter the token and allow them to continue only if they enter the correct token\. The user will also have an option to send a new token\. \fB2fa_timeout\fP determines how long a token remains valid\. If the token function returns an empty string, then the 2fa is skipped\. Note that 2fa does not apply to No Cookie authentication\. If 2fa is enabled, Cookies will not expire for 100 years and they are no longer restricted by ip address\.
 .SH SETTING UP A CONNECTION TO A POSTGRESQL SERVER
 .P
 Envelope requires at least one PostgreSQL server be listed in the envelope\-connections\.conf file\. This version of Envelope doesn't allow you to specify a server from the command line\. Enter only one PostgreSQL server per line\. For envelope, only the first server is used\.
@@ -207,7 +216,7 @@ Run \fBenvelope\fP (long argument):
 Try accessing your database through psql\. If you can, double check your connection string parameters\. If you can't connect, you may have a firewall problem\.
 .SH AUTHOR
 .P
-Copyright (c) 2019 Workflow Products, LLC
+Copyright (c) 2021 Workflow Products, LLC
 .P
 Created by Annunziato Tocci
 .P

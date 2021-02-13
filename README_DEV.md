@@ -67,4 +67,4 @@ Using GDB and Valgrind at the same time (Yikes!), I found some related informati
 #### LIBEV
 Different versions of libev may not work with every version of Envelope. To avoid problems, the Envelope compile process is set up to statically compile libev. This way we control what version you use.
 
-Copyright 2016 Workflow Products LLC
+Copyright 2021 Workflow Products LLC

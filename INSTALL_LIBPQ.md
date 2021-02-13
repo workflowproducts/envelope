@@ -89,4 +89,4 @@ The easiest way to do this on Mac is (usually) to install PostgreSQL from source
 
 
 
-Copyright 2016 Workflow Products LLC
+Copyright 2021 Workflow Products LLC
