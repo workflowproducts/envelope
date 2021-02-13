@@ -205,7 +205,10 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 				client_last_activity =
 					(struct sock_ev_client_last_activity *)DArray_get(client->server->arr_client_last_activity, int_i);
 				if (client_last_activity != NULL &&
-					strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0 &&
+					(
+						str_global_2fa_function != NULL
+						|| strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0
+					) &&
 					strncmp(client_last_activity->str_cookie, client_auth->str_cookie_encrypted,
 						client_auth->int_cookie_encrypted_len) == 0) {
 					client->int_last_activity_i = (ssize_t)int_i;
@@ -443,7 +446,10 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 					SDEBUG("client_auth->parent->str_client_ip: %s", client_auth->parent->str_client_ip);
 					if (other_client->str_cookie != NULL &&
 						strncmp(other_client->str_cookie, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len) == 0 &&
-						strcmp(other_client->str_client_ip, client_auth->parent->str_client_ip) == 0) {
+						(
+							str_global_2fa_function != NULL
+							|| strncmp(other_client->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip)) == 0
+						)) {
 						client_timeout_prepare_free(other_client->client_timeout_prepare);
 						SDEBUG("node->next: %p", node->next);
 						node = node->next;
@@ -899,7 +905,10 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 			client_last_activity =
 				(struct sock_ev_client_last_activity *)DArray_get(client->server->arr_client_last_activity, int_i);
 			if (client_last_activity != NULL &&
-				strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0 &&
+				(
+					str_global_2fa_function != NULL
+					|| strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0
+				) &&
 				strncmp(client_last_activity->str_cookie, client_auth->str_cookie_encrypted,
 					client_auth->int_cookie_encrypted_len) == 0) {
 				client->int_last_activity_i = (ssize_t)int_i;
@@ -1100,7 +1109,10 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 			client_last_activity =
 				(struct sock_ev_client_last_activity *)DArray_get(client->server->arr_client_last_activity, int_i);
 			if (client_last_activity != NULL &&
-				strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0 &&
+				(
+					str_global_2fa_function != NULL
+					|| strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0
+				) &&
 				strncmp(client_last_activity->str_cookie, str_real_cookie,
 					int_real_cookie_len) == 0) {
 				client->int_last_activity_i = (ssize_t)int_i;
@@ -1337,7 +1349,10 @@ bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res) {
 		struct sock_ev_client_last_activity *client_last_activity =
 			(struct sock_ev_client_last_activity *)DArray_get(client_auth->parent->server->arr_client_last_activity, int_i);
 		if (client_last_activity &&
-			strncmp(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip)) == 0 &&
+			(
+				str_global_2fa_function != NULL
+				|| strncmp(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip)) == 0
+			) &&
 			strncmp(client_last_activity->str_cookie, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len) == 0) {
 			client_auth->parent->int_last_activity_i = (ssize_t)int_i;
 			break;
