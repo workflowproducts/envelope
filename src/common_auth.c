@@ -1,8 +1,9 @@
 #include "common_auth.h"
 
-void connect_cb_env(EV_P, void *cb_data, DB_conn *conn);
+void connect_cb_env_step1(EV_P, void *cb_data, DB_conn *conn);
 bool connect_cb_env_step2(EV_P, void *cb_data, DB_result *res);
 bool connect_cb_env_step3(EV_P, void *cb_data, DB_result *res);
+bool connect_cb_env_step4(EV_P, void *cb_data, DB_result *res);
 
 // get connection string from cookie
 DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) {
@@ -10,11 +11,12 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 	size_t int_response_len = 0;
 	SDEFINE_VAR_ALL(str_cookie_encrypted, str_cookie_decrypted, str_password, str_uri, str_temp, str_conn_index);
 	SDEFINE_VAR_MORE(str_conn_debug, str_username, str_connname, str_database, str_uri_temp, str_context_data);
-	SDEFINE_VAR_MORE(str_uri_ip_address, str_uri_host, str_uri_user_agent);
+	SDEFINE_VAR_MORE(str_password_temp, str_password_hash, str_password_hash_temp, str_uri_ip_address, str_uri_host, str_uri_user_agent);
 	char *str_conn = NULL;
 	ssize_t int_i = 0;
 	ssize_t int_len = 0;
 	client->bol_public = false;
+	size_t int_temp = 0;
 	size_t int_uri_length = 0;
 	size_t int_user_length = 0;
 	size_t int_password_length = 0;
@@ -298,6 +300,26 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 	if (client->bol_public == false) {
 		str_password = getpar(str_cookie_decrypted, "password", int_cookie_len, &int_password_length);
 		SFINISH_CHECK(str_password != NULL, "getpar failed");
+		#ifdef ENVELOPE_INTERFACE_LIBPQ
+		SFINISH_SNCAT(
+			str_password_temp, &int_temp,
+			str_password, int_password_length,
+			client->str_username, client->int_username_len
+		);
+		SFINISH_SALLOC(str_password_hash_temp, 16);
+		MD5((unsigned char *)str_password_temp, int_temp, (unsigned char *)str_password_hash_temp);
+		SFREE_PWORD(str_password_temp);
+		unsigned char *str_password_hash_temp2 = (unsigned char *)str_password_hash_temp;
+		size_t int_len = 16;
+		str_password_hash_temp = hexencode(str_password_hash_temp2, &int_len);
+		SFREE(str_password_hash_temp2);
+		SFINISH_CHECK(str_password_hash_temp != NULL, "hexencode failed");
+		SFINISH_SNCAT(
+			client->str_password_hash, &int_temp,
+			"md5", (size_t)3,
+			str_password_hash_temp, 32
+		);
+		#endif
 
 	} else {
 		SFINISH_SNCAT(str_password, &int_password_length,
@@ -371,7 +393,7 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 			client->connect_cb = connect_cb;
 			client->conn = DB_connect(EV_A, client, str_conn,
 				NULL, 0, NULL, 0,
-				str_context_data, connect_cb_env);
+				str_context_data, connect_cb_env_step1);
 		} else {
 			SDEBUG("NORMAL CONN");
 			SDEBUG("str_username: >%s<", str_username);
@@ -448,15 +470,69 @@ finish://|/usr/libexec/abrt-hook-ccpp %s %c %p %u %g %t e
 	return client ? client->conn : NULL;
 }
 
-void connect_cb_env(EV_P, void *cb_data, DB_conn *conn) {
+void connect_cb_env_step1(EV_P, void *cb_data, DB_conn *conn) {
+	SDEBUG("connect_cb_env_step1");
+	struct sock_ev_client *client = cb_data;
+	char *str_response = NULL;
+	size_t int_response_len = 0;
+	size_t int_temp = 0;
+	SDEFINE_VAR_ALL(str_password_temp, str_password_hash, str_password_hash_temp, str_password_hash_literal, str_user_literal, str_diag, str_temp, str_sql);
+
+	SFINISH_CHECK(conn->int_status == 1, "%s", conn->str_response);
+
+#ifdef ENVELOPE_INTERFACE_LIBPQ
+	str_password_hash_literal = DB_escape_literal(client->conn, client->str_password_hash, strlen(client->str_password_hash));
+	SFINISH_CHECK(str_password_hash_literal != NULL, "DB_escape_literal failed");
+
+	str_user_literal = DB_escape_literal(client->conn, client->str_username, client->int_username_len);
+	SFINISH_CHECK(str_user_literal != NULL, "DB_escape_literal failed");
+	char *str_temp1 = "SELECT CASE WHEN rolpassword = ";
+	char *str_temp2 = " THEN 'TRUE' ELSE 'FALSE' END FROM pg_authid WHERE rolname = ";
+	SFINISH_SNCAT(
+		str_sql, &int_temp,
+		str_temp1, strlen(str_temp1),
+		str_password_hash_literal, strlen(str_password_hash_literal),
+		str_temp2, strlen(str_temp2),
+		str_user_literal, strlen(str_user_literal),
+		";", (size_t)1
+	);
+#else
+	SFINISH_SNCAT(
+		str_sql, &int_temp,
+		"SELECT 'TRUE';", (size_t)14
+	);
+#endif
+
+	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
+	SFINISH_CHECK(DB_exec(EV_A, conn, client, str_sql, connect_cb_env_step2), "DB_exec failed");
+
+	bol_error_state = false;
+finish:
+	SFREE(conn->str_response);
+
+	if (bol_error_state == true) {
+		SFREE(conn->str_response);
+		conn->str_response = str_response;
+		conn->int_response_len = int_response_len;
+		conn->int_status = -1;
+		client->connect_cb(EV_A, client, conn);
+	}
+	SFREE_ALL();
+}
+
+bool connect_cb_env_step2(EV_P, void *cb_data, DB_result *res) {
 	SDEBUG("connect_cb_env");
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
 	size_t int_temp = 0;
 	size_t int_response_len = 0;
+	DArray *arr_row_values = NULL;
+	DArray *arr_row_lengths = NULL;
+	DB_fetch_status status = 0;
 	SDEFINE_VAR_ALL(str_user_ident, str_diag, str_sql);
 
-	SFINISH_CHECK(conn->int_status == 1, "%s", conn->str_response);
+	SFINISH_CHECK(res != NULL, "DB_exec failed");
+	SFINISH_CHECK(res->status == DB_RES_TUPLES_OK, "DB_exec failed: %s", str_diag);
 
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 	str_user_ident = DB_escape_identifier(client->conn, client->str_username, client->int_username_len);
@@ -484,6 +560,20 @@ void connect_cb_env(EV_P, void *cb_data, DB_conn *conn) {
 	SINFO("str_user_ident: %s", str_user_ident);
 #endif
 
+	status = DB_fetch_row(res);
+	if (status == DB_FETCH_END) {
+		SFINISH("User %s does not exist.", str_user_ident);
+	} else {
+		SFINISH_CHECK(status == DB_FETCH_OK, "DB_fetch_row failed");
+		arr_row_values = DB_get_row_values(res);
+		arr_row_lengths = DB_get_row_lengths(res);
+
+		SFINISH_CHECK(strncmp(DArray_get(arr_row_values, 0), "TRUE", *(size_t *)DArray_get(arr_row_lengths, 0)) == 0, "You need to login.", str_user_ident);
+		SFINISH_CHECK((status = DB_fetch_row(res)) == DB_FETCH_END, "DB_fetch_row failed");
+
+		bol_error_state = false;
+	}
+
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 	char *str_temp1 = "SET SESSION AUTHORIZATION ";
 #else
@@ -499,26 +589,35 @@ void connect_cb_env(EV_P, void *cb_data, DB_conn *conn) {
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 #ifdef ENVELOPE_INTERFACE_LIBPQ
-	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, connect_cb_env_step2), "DB_exec failed");
-#else
 	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, connect_cb_env_step3), "DB_exec failed");
+#else
+	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, connect_cb_env_step4), "DB_exec failed");
 #endif
 
 	bol_error_state = false;
 finish:
+	DB_free_result(res);
+	if (arr_row_values != NULL) {
+		DArray_clear_destroy(arr_row_values);
+	}
+	if (arr_row_lengths != NULL) {
+		DArray_clear_destroy(arr_row_lengths);
+	}
+
 	if (bol_error_state == true) {
-		SFREE(conn->str_response);
-		conn->str_response = str_response;
-		conn->int_response_len = int_response_len;
-		conn->int_status = -1;
-		client->connect_cb(EV_A, client, conn);
+		SFREE(client->conn->str_response);
+		client->conn->str_response = str_response;
+		client->conn->int_response_len = int_response_len;
+		client->conn->int_status = -1;
+		client->connect_cb(EV_A, client, client->conn);
 	}
 	bol_error_state = false;
 	SFREE_ALL();
+	return true;
 }
 
-bool connect_cb_env_step2(EV_P, void *cb_data, DB_result *res) {
-	SDEBUG("connect_cb_env_step2");
+bool connect_cb_env_step3(EV_P, void *cb_data, DB_result *res) {
+	SDEBUG("connect_cb_env_step3");
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
 	size_t int_temp = 0;
@@ -548,7 +647,7 @@ bool connect_cb_env_step2(EV_P, void *cb_data, DB_result *res) {
 	);
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
-	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, connect_cb_env_step3), "DB_exec failed");
+	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, connect_cb_env_step4), "DB_exec failed");
 
 	bol_error_state = false;
 finish:
@@ -565,8 +664,8 @@ finish:
 	return true;
 }
 
-bool connect_cb_env_step3(EV_P, void *cb_data, DB_result *res) {
-	SDEBUG("connect_cb_env_step3");
+bool connect_cb_env_step4(EV_P, void *cb_data, DB_result *res) {
+	SDEBUG("connect_cb_env_step4");
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
     size_t int_response_len = 0;

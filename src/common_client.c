@@ -2192,6 +2192,7 @@ void client_close_immediate(struct sock_ev_client *client) {
 	SFREE(client->str_response);
 	SFREE(client->str_conn);
 	SFREE(client->str_connname);
+	SFREE(client->str_password_hash);
 	SFREE(client->str_username);
 	SFREE(client->str_database);
 	SFREE(client->str_notice);

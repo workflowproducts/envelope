@@ -92,3 +92,50 @@ error:
 	SFREE(str_return);
 	return NULL;
 }
+
+// return date formatted for cookie, midnight
+// must be free'd
+char *str_expire_100_year() {
+	// malloc return string
+	char *str_return = NULL;
+
+	SERROR_SALLOC(str_return, 50);
+
+	// get time zone
+	time_t time_next_day;
+	time(&time_next_day);
+
+	// advance 48 hours
+	time_next_day = time_next_day + (2 * 24 * 60 * 60 * 365 * 100);
+
+	// convert to localtime
+	struct tm tm_next_day_result;
+	struct tm *tm_next_day = &tm_next_day_result;
+#ifdef _WIN32
+	localtime_s(tm_next_day, &time_next_day);
+#else
+	localtime_r(&time_next_day, tm_next_day);
+#endif
+
+	// back to time_t type
+	time_t return_time_t = mktime(tm_next_day);
+
+	// convert to gmt time
+	struct tm tm_return_time_result;
+	struct tm *tm_return_time = &tm_return_time_result;
+#ifdef _WIN32
+	gmtime_s(tm_return_time, &return_time_t);
+#else
+	gmtime_r(&return_time_t, tm_return_time);
+#endif
+	// convert to string
+	strftime(str_return, 50, "%a, %d %b %Y %H:%M:%S %Z", tm_return_time);
+
+	// HARK YE ONLOOKER: GOOGLE CHROME DOES NOT UNDERSTAND ANYTHING BUT GMT TIME
+	// ZONES! DO NOT
+	// USE OTHER TIME ZONES!
+	return str_return;
+error:
+	SFREE(str_return);
+	return NULL;
+}

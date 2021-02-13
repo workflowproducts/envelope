@@ -9,26 +9,26 @@ test-common:
 test:
 	@$(MAKE) --no-print-directory -C src test
 
-test-ssl:
-	@$(MAKE) --no-print-directory -C src test-ssl
+test-set-user:
+	@$(MAKE) --no-print-directory -C src test-set-user
 
 lldb:
 	@$(MAKE) --no-print-directory -C src lldb
 
-lldb-ssl:
-	@$(MAKE) --no-print-directory -C src lldb-ssl
+lldb-set-user:
+	@$(MAKE) --no-print-directory -C src lldb-set-user
 
 gdb:
 	@$(MAKE) --no-print-directory -C src gdb
 
-gdb-ssl:
-	@$(MAKE) --no-print-directory -C src gdb-ssl
+gdb-set-user:
+	@$(MAKE) --no-print-directory -C src gdb-set-user
 
 valgrind:
 	@$(MAKE) --no-print-directory -C src valgrind
 
-valgrind-ssl:
-	@$(MAKE) --no-print-directory -C src valgrind-ssl
+valgrind-set-user:
+	@$(MAKE) --no-print-directory -C src valgrind-set-user
 
 install:
 	@$(MAKE) --no-print-directory -C src install

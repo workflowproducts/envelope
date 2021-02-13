@@ -132,10 +132,7 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 		}
 
 		// cookie expiration
-		str_expires = str_expire_two_day();
-		SFINISH_CHECK(str_expires != NULL, "str_expire_two_day failed");
-
-		str_one_day_expire = str_expire_one_day();
+		str_one_day_expire = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
 		SFINISH_CHECK(str_one_day_expire != NULL, "str_expire_one_day failed");
 		size_t int_uri_expires_len = 0;
 		str_uri_expires = snuri(str_one_day_expire, strlen(str_one_day_expire), &int_uri_expires_len);
@@ -150,8 +147,6 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 			str_cookie_decrypted, &int_cookie_len,
 			"valid=true&", (size_t)11,
 			str_form_data, int_query_length,
-			"&expiration=", (size_t)12,
-			str_uri_expires, int_uri_expires_len,
 			"&sessionid=", (size_t)11,
 			str_session_id, strlen(str_session_id)
 		);
@@ -181,7 +176,7 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 			char *str_temp2 =
 				"; HttpOnly;";
 			SFREE(str_expires);
-			str_expires = str_expire_one_day();
+			str_expires = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
 			SFINISH_SNCAT(
 				str_temp, &int_temp_len,
 				str_temp1, strlen(str_temp1),
@@ -232,15 +227,8 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 		} else {
 			char *str_temp = get_connection_info("", &client_auth->int_connection_index);
 			size_t int_temp = strlen(str_temp);
-#ifdef ENVELOPE_INTERFACE_LIBPQ
-			if (client_auth->str_database != NULL) {
-				SFINISH_SNCAT(str_conn, &int_conn_length, str_temp, int_temp, " dbname=", (size_t)8, client_auth->str_database, strlen(client_auth->str_database));
-		} else {
-				SFINISH_SNCAT(str_conn, &int_conn_length, str_temp, int_temp);
-			}
-#else
-			SFINISH_SNCAT(str_conn, &client_auth->int_conn_length, str_temp, int_temp);
-#endif
+			SFINISH_SNCAT(str_conn, &int_conn_length, str_temp, int_temp);
+
 			SFINISH_SALLOC(client_auth->str_int_connection_index, 20);
 			snprintf(client_auth->str_int_connection_index, 20, "%zu", client_auth->int_connection_index);
 
@@ -317,7 +305,7 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
         char *str_temp2 = "; HttpOnly;";
         char *str_temp3 = "{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}";
         SFREE(str_expires);
-        str_expires = str_expire_one_day();
+        str_expires = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
         SFINISH_SNCAT(
             str_temp, &int_temp_len,
             str_temp1, strlen(str_temp1),
@@ -880,7 +868,7 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 		char *str_temp2 =
 			"; HttpOnly;\015\012Set-Cookie: DB=SS; path=/;\015\012Content-Length: 48\015\012\015\012"
 			"{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}";
-		str_expires = str_expire_one_day();
+		str_expires = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
 		SFINISH_SNCAT(
 			str_temp, &int_temp_len,
 			str_temp1, strlen(str_temp1),
@@ -1080,7 +1068,7 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
         char *str_temp3 =
             str_2fa_token != NULL && strncmp(str_2fa_token, "", 1) != 0 ? "{\"stat\": true, \"dat\": \"2fa required\"}" : "{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}";
         SFREE(str_expires);
-        str_expires = str_expire_one_day();
+        str_expires = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
         SFINISH_SNCAT(
             str_temp, &int_temp_len,
             str_temp1, strlen(str_temp1),
@@ -1317,7 +1305,7 @@ bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res) {
 	size_t int_len = 0, int_i = 0;
 
 	SDEBUG("PASSWORD CHANGE");
-	str_expires = str_expire_one_day();
+	str_expires = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
 
 	char *str_temp2 =
 		"envelope=";

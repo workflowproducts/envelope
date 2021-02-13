@@ -9,14 +9,17 @@ void http_main_cnxn_cb(EV_P, void *cb_data, DB_conn *conn) {
 	SDEBUG("http_main_cnxn_cb");
 	struct sock_ev_client *client = cb_data;
 	char *str_response = NULL;
+	char *str_temp = NULL;
 	char *str_uri = NULL;
 	char *str_uri_temp = NULL;
 	char *str_sql = NULL;
 	char *ptr_end_uri = NULL;
+	size_t int_temp_len = 0;
 	size_t int_uri_len = 0;
 	size_t int_sql_len = 0;
 	size_t int_response_len = 0;
     bool bol_handoff = false;
+    DArray *darr_headers = NULL;
 
 	SDEBUG("conn->str_response: >%s<", conn->str_response);
 	SFINISH_CHECK(conn->int_status == 1, "%s", conn->str_response);
@@ -181,14 +184,31 @@ finish:
 		bol_error_state = false;
 
         SFREE(client->str_http_header);
+        if (strstr(str_response, "You need to login") != NULL) {
+			SFINISH_SNFCAT(str_temp, &int_temp_len,
+				"0; url=/index.html?error=Connection%20timed%20out&redirect=", (size_t)68,
+				str_uri, int_uri_len);
+			darr_headers = DArray_from_strings(
+				"Set-Cookie", "envelope=; path=/; expires=Tue, 01 Jan 1990 00:00:00 GMT; HttpOnly"
+				, "Refresh", str_temp
+			);
+			SFREE(str_response);
+			SFINISH_SNCAT(str_response, &int_response_len, "FATAL\015\012Session expired", strlen("FATAL\015\012Session expired"));
+        }
+        SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
         SFINISH_CHECK(build_http_response(
-                "500 Internal Server Error"
+                darr_headers != NULL ? "440 Login Timeout" : "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
-                , NULL
+                , darr_headers
                 , &client->str_http_response, &client->int_http_response_len
             ), "build_http_response failed");
 	}
+    if (darr_headers != NULL) {
+        DArray_clear_destroy(darr_headers);
+        darr_headers = NULL;
+    }
+	SFREE(str_temp);
 	SFREE(str_uri_temp);
 	SFREE(str_uri);
 	SFREE(str_sql);

@@ -119,6 +119,7 @@ struct sock_ev_client {
 	bool bol_ssl_handshake;
 
 	char *str_username;
+	char *str_password_hash;
 	char *str_database;
 	char *str_connname;
 	char *str_connname_folder;
@@ -134,6 +135,7 @@ struct sock_ev_client {
 	char *str_websocket_key;
 
 	size_t int_username_len;
+	size_t int_password_hash_len;
 	size_t int_database_len;
 	size_t int_connname_len;
 	size_t int_connname_folder_len;
