@@ -302,7 +302,7 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 		SFINISH_CHECK(str_token_user != NULL, "getpar failed");
 		SFREE(str_global_error);
 
-		SFINISH_CHECK(strncmp(str_token_real, str_token_user, int_token_user_len) == 0, "Token does not match");
+		SFINISH_CHECK(strncmp(str_token_real, str_token_user, int_token_real_len) == 0, "Token does not match");
 		
         char *str_temp1 = "envelope=";
         char *str_temp2 = "; HttpOnly;";
