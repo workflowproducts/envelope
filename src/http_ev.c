@@ -56,11 +56,15 @@ void http_ev_step1(EV_P, struct sock_ev_client *client) {
     ListNode *client_node = _server.list_client->first;
     while (client_node) {
         struct sock_ev_client *client = client_node->value;
+		snprintf(str_current_address, 255, "%p", client);
         SFINISH_SNFCAT(
             str_response, &int_response_len,
             "        ", (size_t)8,
             client->str_client_ip, client->int_client_ip_len,
+			": ", (size_t)2,
             client->str_username, client->int_username_len,
+			" at ", (size_t)4,
+			str_current_address, strlen(str_current_address),
             client->str_websocket_key ? " (WS)" : " (HTTP)", (size_t)(client->str_websocket_key ? 5 : 7),
             client->str_websocket_key && client->bol_connected ? " (CLOSING)" : "", (size_t)(client->str_websocket_key && client->bol_connected ? 10 : 0),
             "\015\012", (size_t)2

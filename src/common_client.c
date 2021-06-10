@@ -359,8 +359,8 @@ void client_cb(EV_P, ev_io *w, int revents) {
     } else if (!client->bol_full_request) {
 		errno = 0;
 		int_len = read(client->int_sock, str_buffer, MAX_BUFFER);
-		SDEBUG("client->int_request_len: %zu", client->int_request_len);
-		SDEBUG("int_len: %zd", int_len);
+		SINFO("client->int_request_len: %zu", client->int_request_len);
+		SINFO("int_len: %zd", int_len);
 		SWARN_CHECK(
 			client->int_request_len > 0 || int_len != 0, "Libev said EV_READ, but there is nothing to read. Closing socket");
 
@@ -490,7 +490,6 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				}
 				if (strncasecmp(str_header_name, "Content-Length", 14) == 0) {
 					client->int_form_data_length = (size_t)strtol(str_header_value, NULL, 10);
-					client->bol_full_request = client->int_request_len == (client->int_form_data_start + client->int_form_data_length);
 				}
 				if (strncasecmp(str_header_name, "X-Forwarded-For", 15) == 0) {
                     SFREE(client->str_client_ip);
@@ -549,6 +548,10 @@ void client_cb(EV_P, ev_io *w, int revents) {
 			client->bol_headers_evaluated = true;
 		}
 
+		if (client->int_form_data_length > 0) {
+			client->bol_full_request = client->int_request_len == (client->int_form_data_start + client->int_form_data_length);
+		}
+
 		if (client->bol_upload == true && client->str_boundary != NULL) {
 			SDEBUG("client->int_request_len: %zu", client->int_request_len);
 			SDEBUG("client->int_request_full_len: %zu", client->int_request_full_len);
@@ -564,6 +567,13 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				}
 			}
 		}
+
+		SINFO("client->int_request_len: %zu", client->int_request_len);
+		SINFO("client->int_form_data_start: %zu", client->int_form_data_start);
+		SINFO("client->int_form_data_length: %zu", client->int_form_data_length);
+
+		SINFO("client->bol_full_request: %s", client->bol_full_request ? "true" : "false");
+		SINFO("client->bol_headers_evaluated: %s", client->bol_headers_evaluated ? "true" : "false");
 
 		if (client->bol_full_request && client->bol_headers_evaluated == true) {
 			if (client->str_websocket_key != NULL) {
@@ -1456,8 +1466,8 @@ void client_write_http_cb(EV_P, ev_io *w, int revents) {
 
 	int_http_response_len = write(client->int_sock, client->str_http_response + client->int_http_written, (size_t)int_http_response_len);
 
-	SDEBUG("write(%i, %p, %i): %i", client->int_sock, client->str_http_response + client->int_http_written,
-		client->int_http_response_len - client->int_http_written, int_response_len);
+	SINFO("write(%i, %p, %i): %i", client->int_sock, client->str_http_response + client->int_http_written,
+		client->int_http_response_len - client->int_http_written, int_http_response_len);
 
 	if (int_http_response_len < 0 && errno != EAGAIN) {
 		SERROR("write(%i, %p, %i) failed: %i", client->int_sock, client->str_http_response + client->int_http_written,
@@ -1466,10 +1476,12 @@ void client_write_http_cb(EV_P, ev_io *w, int revents) {
 		client->int_http_written += (size_t)int_http_response_len;
 	}
 
+	SINFO("client->int_http_written: %i", client->int_http_written);
+	SINFO("client->int_http_response_len: %i", client->int_http_response_len);
 	if (client->int_http_written == client->int_http_response_len) {
 		SFREE(client->str_http_response);
 		ev_io_stop(EV_A, w);
-		SERROR_CLIENT_CLOSE(client);
+		client_close_immediate(client);
 		client = NULL;
 	}
 	bol_error_state = false;
@@ -1477,7 +1489,8 @@ void client_write_http_cb(EV_P, ev_io *w, int revents) {
 	return;
 error:
 	SFREE(client->str_http_response);
-	SERROR_CLIENT_CLOSE_NORESPONSE(client);
+	ev_io_stop(EV_A, w);
+	client_close_immediate(client);
 	bol_error_state = false;
 	errno = 0;
 }
@@ -1519,7 +1532,8 @@ void client_write_http_headers_cb(EV_P, ev_io *w, int revents) {
 	return;
 error:
 	SFREE(client->str_http_header);
-	SERROR_CLIENT_CLOSE_NORESPONSE(client);
+	ev_io_stop(EV_A, w);
+	client_close_immediate(client);
 	bol_error_state = false;
 	errno = 0;
 }
@@ -2096,7 +2110,7 @@ bool client_close_close_cnxn_cb(EV_P, void *cb_data, DB_result *res) {
 
 void client_close_immediate(struct sock_ev_client *client) {
 	EV_P = global_loop;
-	SDEBUG("Client %p closing", client);
+	SINFO("Client %p closing", client);
 	struct WSFrame *frame = NULL;
 	ev_io_stop(EV_A, &client->io);
 
