@@ -80,6 +80,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\..\dependencies\libev;..\include\compat;..\include;..\..\db_framework_pq;..\..\common;..\..;..\..\dependencies\tre\include;$(IncludePath)</IncludePath>
+    <ExternalIncludePath>..\include;..\include\compat;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
