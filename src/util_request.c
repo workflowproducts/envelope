@@ -345,10 +345,9 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		);
 		SERROR_CHECK(ptr_file_content_end != NULL, "malformed upload request");
 
-		ptr_file_content_end = ptr_file_content_end - 1;
-		while (*ptr_file_content_end == '\015' || *ptr_file_content_end == '\012') {
+		do {
 			ptr_file_content_end = ptr_file_content_end - 1;
-		}
+		} while (*(ptr_file_content_end - 1) == '\015' || *(ptr_file_content_end - 1) == '\012');
 
 		sun_return->int_file_content_len = (size_t)(ptr_file_content_end - ptr_file_content);
 		SDEBUG("ptr_file_content_end: %s", ptr_file_content_end);
@@ -380,10 +379,9 @@ sun_upload *get_sun_upload(struct sock_ev_client *client) {
 		);
 		SERROR_CHECK(ptr_file_content_end != NULL, "malformed upload request");
 
-		ptr_file_content_end = ptr_file_content_end - 1;
-		while (*ptr_file_content_end == '\015' || *ptr_file_content_end == '\012') {
+		do {
 			ptr_file_content_end = ptr_file_content_end - 1;
-		}
+		} while (*(ptr_file_content_end - 1) == '\015' || *(ptr_file_content_end - 1) == '\012');
 
 		sun_return->int_file_content_len = (size_t)(ptr_file_content_end - ptr_file_content);
 		SDEBUG("ptr_file_content_end: %s", ptr_file_content_end);

@@ -90,9 +90,6 @@
     <ClCompile Include="..\..\src\util_error.c">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\util_exec.c">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\util_file.c">
       <Filter>Source Files\util</Filter>
     </ClCompile>
@@ -174,9 +171,6 @@
     <ClCompile Include="..\..\src\http_ev.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\http_export.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\http_file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -200,6 +194,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\http_cgi.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\util_response.c">
+      <Filter>Source Files\util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -261,9 +258,6 @@
       <Filter>Source Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\util_error.h">
-      <Filter>Source Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\util_exec.h">
       <Filter>Source Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\util_file.h">
@@ -350,9 +344,6 @@
     <ClInclude Include="..\..\src\http_ev.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\http_export.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\http_file.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -376,6 +367,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\http_cgi.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util_response.h">
+      <Filter>Source Files\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

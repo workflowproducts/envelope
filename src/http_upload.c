@@ -86,6 +86,7 @@ finish:
 		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
         ev_io_start(EV_A, &client->io);
+		http_upload_free(client_upload);
 	}
 }
 
@@ -158,6 +159,7 @@ finish:
 		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
         ev_io_start(EV_A, &client->io);
+		http_upload_free(client_upload);
 	}
 	return true;
 }
@@ -227,6 +229,7 @@ finish:
 		ev_io_stop(EV_A, &client->io);
 		ev_io_init(&client->io, client_write_http_cb, client->io.fd, EV_WRITE);
         ev_io_start(EV_A, &client->io);
+		http_upload_free(client_upload);
 	}
 }
 

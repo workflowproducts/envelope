@@ -185,7 +185,6 @@
     <ClCompile Include="..\..\src\http_cgi.c" />
     <ClCompile Include="..\..\src\http_delete.c" />
     <ClCompile Include="..\..\src\http_ev.c" />
-    <ClCompile Include="..\..\src\http_export.c" />
     <ClCompile Include="..\..\src\http_file.c" />
     <ClCompile Include="..\..\src\http_insert.c" />
     <ClCompile Include="..\..\src\http_main.c" />
@@ -198,13 +197,13 @@
     <ClCompile Include="..\..\src\util_cookie.c" />
     <ClCompile Include="..\..\src\util_darray.c" />
     <ClCompile Include="..\..\src\util_error.c" />
-    <ClCompile Include="..\..\src\util_exec.c" />
     <ClCompile Include="..\..\src\util_file.c" />
     <ClCompile Include="..\..\src\util_getopt.c" />
     <ClCompile Include="..\..\src\util_idle.c" />
     <ClCompile Include="..\..\src\util_ini.c" />
     <ClCompile Include="..\..\src\util_list.c" />
     <ClCompile Include="..\..\src\util_request.c" />
+    <ClCompile Include="..\..\src\util_response.c" />
     <ClCompile Include="..\..\src\util_salloc.c" />
     <ClCompile Include="..\..\src\util_sql_split.c" />
     <ClCompile Include="..\..\src\util_string.c" />
@@ -246,7 +245,6 @@
     <ClInclude Include="..\..\src\http_cgi.h" />
     <ClInclude Include="..\..\src\http_delete.h" />
     <ClInclude Include="..\..\src\http_ev.h" />
-    <ClInclude Include="..\..\src\http_export.h" />
     <ClInclude Include="..\..\src\http_file.h" />
     <ClInclude Include="..\..\src\http_insert.h" />
     <ClInclude Include="..\..\src\http_main.h" />
@@ -259,7 +257,6 @@
     <ClInclude Include="..\..\src\util_cookie.h" />
     <ClInclude Include="..\..\src\util_darray.h" />
     <ClInclude Include="..\..\src\util_error.h" />
-    <ClInclude Include="..\..\src\util_exec.h" />
     <ClInclude Include="..\..\src\util_file.h" />
     <ClInclude Include="..\..\src\util_getopt.h" />
     <ClInclude Include="..\..\src\util_idle.h" />
@@ -267,6 +264,7 @@
     <ClInclude Include="..\..\src\util_list.h" />
     <ClInclude Include="..\..\src\util_list_queue.h" />
     <ClInclude Include="..\..\src\util_request.h" />
+    <ClInclude Include="..\..\src\util_response.h" />
     <ClInclude Include="..\..\src\util_salloc.h" />
     <ClInclude Include="..\..\src\util_sql_split.h" />
     <ClInclude Include="..\..\src\util_string.h" />
