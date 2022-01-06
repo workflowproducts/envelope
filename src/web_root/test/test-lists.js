@@ -312,6 +312,7 @@ SQL Injection detected*/})],
 			['ACCEPT 2', 'ajax', 200, '/env/public.accept_testing', 'company_name=AA-TULSA&company_name_exact=0&type=Passenger&type_anywhere=-1&engine_mfg=Pratt %26 Whitney&engine_mfg_exact=0&engine_model=J57-P&engine_model_exact=0&country=&country_exact=0&continent=&continent_exact=0&overhaul_center=&overhaul_center_exact=0&on_order=undefined&stored=undefined', 'company_name=AA-TULSA&company_name_exact=0&type=Passenger&type_anywhere=-1&engine_mfg=Pratt %26 Whitney&engine_mfg_exact=0&engine_model=J57-P&engine_model_exact=0&country=&country_exact=0&continent=&continent_exact=0&overhaul_center=&overhaul_center_exact=0&on_order=undefined&stored=undefined'],
 			['ACCEPT 3', 'ajax', 200, '/env/public.accept_testing/test', 'testingnitset', 'testingnitset&path=/test'],
 			['ACCEPT 4', 'ajax', 500, '/env/public.accept_testing_return_null', '', "FATAL\nFunction returned null:\nFATAL\nerror_text\t\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t\n"],
+			['ACCEPT 5', 'ajax', 200, '/env/public.accept_testing_bytea', 'testingnitset', 'testingnitset'],
 			['ACCEPTNC FAIL 1', 'ajax', 500, '/env/public.acceptnc_testing1', 'testingnitset', ml(function () {/*FATAL
 DB_exec failed:
 FATAL
@@ -368,7 +369,8 @@ error_position	8
 			['CGI FAIL 2', 'ajax', 500, '/env/public.cgi_testing;', 'testingnitset', ml(function () {/*FATAL
 common_util_sql.c:query_is_safe: SQL Injection detected!
 SQL Injection detected*/})],
-			['CGI', 'ajax', 200, '/env/public.cgi_testing', 'testingnitset', 'testingnitset'],
+			['CGI 1', 'ajax', 200, '/env/public.cgi_testing', 'testingnitset', 'testingnitset'],
+			['CGI 2', 'ajax', 200, '/env/public.cgi_testing_bytea', 'testingnitset', 'testingnitset'],
 			['CGINC FAIL 1', 'ajax', 500, '/env/public.cginc_testing1', 'testingnitset', ml(function () {/*FATAL
 DB_exec failed:
 FATAL

@@ -1,5 +1,47 @@
 #include "util_string.h"
 
+bool decode_bytea_in_place(char *str_bytea, size_t *int_bytea_len) {
+	size_t int_i = 0;
+	char int_char = 0;
+	char int_char_a = 0;
+	char int_char_b = 0;
+	SERROR_CHECK(strncmp(str_bytea, "\\x", 2) == 0, "Invalid bytea: %s", str_bytea);
+	SERROR_CHECK((*int_bytea_len % 2) == 0, "Invalid bytea: %s", str_bytea);
+	*int_bytea_len = (*int_bytea_len - 2) / 2;
+	int_i = 0;
+	while (int_i < *int_bytea_len) {
+		int_char = 0;
+		int_char_a = str_bytea[2 + (int_i * 2) + 0];
+		int_char_b = str_bytea[2 + (int_i * 2) + 1];
+		if (int_char_a >= '0' && int_char_a <= '9') {
+			int_char = (int_char_a - '0') * 16;
+		} else if (int_char_a >= 'A' && int_char_a <= 'F') {
+			int_char = ((int_char_a - 'A') + 10) * 16;
+		} else if (int_char_a >= 'a' && int_char_a <= 'f') {
+			int_char += ((int_char_a - 'a') + 10);
+		} else {
+			SERROR("Invalid bytea: %c%c at position: %d", int_char_a, int_char_b, int_i);
+		}
+
+		if (int_char_b >= '0' && int_char_b <= '9') {
+			int_char += (int_char_b - '0');
+		} else if (int_char_b >= 'A' && int_char_b <= 'F') {
+			int_char += ((int_char_b - 'A') + 10);
+		} else if (int_char_b >= 'a' && int_char_b <= 'f') {
+			int_char += ((int_char_b - 'a') + 10);
+		} else {
+			SERROR("Invalid bytea: %c%c at position: %d", int_char_a, int_char_b, int_i);
+		}
+
+		str_bytea[int_i] = int_char;
+		int_i += 1;
+	}
+	str_bytea[*int_bytea_len] = 0;
+	return true;
+error:
+	return false;
+}
+
 // source: https://stackoverflow.com/a/1031773/4548445
 bool is_utf8(const char *string) {
     if(!string)

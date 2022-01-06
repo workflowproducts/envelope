@@ -107,6 +107,15 @@ RETURN '"' || str_args || '"';
 END
 $BODY$ LANGUAGE plpgsql VOLATILE;
 
+
+CREATE OR REPLACE FUNCTION public.accept_testing_bytea(str_args text)
+RETURNS bytea AS
+$BODY$
+BEGIN
+RETURN (E'HTTP/1.1 200 OK\r\n\r\n' || str_args)::bytea;
+END
+$BODY$ LANGUAGE plpgsql VOLATILE;
+
 CREATE OR REPLACE FUNCTION public.acceptnc_testing(str_args text)
 RETURNS text AS
 $BODY$
@@ -245,6 +254,16 @@ $BODY$ LANGUAGE plpgsql VOLATILE;
 GRANT EXECUTE ON FUNCTION public.cginc_testing(str_args text) TO public_g;
 
 
+CREATE OR REPLACE FUNCTION public.cgi_testing_bytea(str_args text)
+RETURNS bytea AS
+$BODY$
+BEGIN
+RETURN (E'HTTP/1.1 200 OK\r\n\r\n' || 'testingnitset')::bytea;
+END
+$BODY$ LANGUAGE plpgsql VOLATILE;
+GRANT EXECUTE ON FUNCTION public.cgi_testing_bytea(str_args text) TO public_g;
+
+
 
 CREATE OR REPLACE FUNCTION public.raise_exception(str_args text)
   RETURNS text AS
@@ -272,4 +291,4 @@ $BODY$
   COST 100;
 
 ALTER FUNCTION public.token_2fa(str_args text) OWNER TO postgres;
-GRANT EXECUTE ON FUNCTION public.token_2fa(str_args text) FROM public;
+REVOKE EXECUTE ON FUNCTION public.token_2fa(str_args text) FROM public;

@@ -117,8 +117,14 @@ bool http_accept_step2(EV_P, void *cb_data, DB_result *res) {
 	client->str_http_response = DArray_get(arr_row_values, 0);
 	SFINISH_CHECK(client->str_http_response != NULL, "Function returned null");
 	SDEBUG("client->str_http_response: %s", client->str_http_response);
-	SFINISH_CHECK(strncmp(client->str_http_response, "HTTP", 4) == 0, "Bad accept_ output: %s", client->str_http_response);
     client->int_http_response_len = (size_t)(*(ssize_t *)DArray_get(arr_row_lengths, 0));
+
+	// Decode bytea return value
+	if (strncmp(client->str_http_response, "\\x", 2) == 0) {
+		SFINISH_CHECK(decode_bytea_in_place(client->str_http_response, &client->int_http_response_len), "Bytea decode failed!");
+	}
+
+	SFINISH_CHECK(strncmp(client->str_http_response, "HTTP", 4) == 0, "Bad accept_ output: %s", client->str_http_response);
 
 	bol_error_state = false;
 finish:
