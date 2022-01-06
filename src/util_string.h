@@ -35,9 +35,13 @@
 #include "util_error.h"
 #include "util_salloc.h"
 
+
+bool decode_bytea_in_place(char *str_bytea, size_t *int_bytea_len);
+
 bool is_utf8(const char *string);
 
 size_t find_next_line(char *str, size_t int_len);
+size_t find_line_len(char *str, size_t int_len);
 
 /*
 Check str_search for characters from str_chars
