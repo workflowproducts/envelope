@@ -419,7 +419,7 @@ finish://|/usr/libexec/abrt-hook-ccpp %s %c %p %u %g %t e
 		SFREE(str_temp);
 
         SFINISH_SNFCAT(str_temp, &int_temp_len,
-            "0; url=/index.html?error=Connection%20timed%20out&redirect=", (size_t)68,
+            "0; url=/index.html?error=Connection%20timed%20out&redirect=", (size_t)59,
             str_uri, int_uri_length);
 		darr_headers = DArray_from_strings(
             "Set-Cookie", "envelope=; path=/; expires=Tue, 01 Jan 1990 00:00:00 GMT; HttpOnly"
