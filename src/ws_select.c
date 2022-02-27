@@ -63,9 +63,9 @@ void ws_select_step1(EV_P, struct sock_ev_client_request *client_request) {
 	SFINISH_SNCAT(client_select->str_sql, &client_select->int_sql_len,
 		"SELECT ", (size_t)7,
 		client_select->str_return_columns, client_select->int_return_columns_len,
-		"\012   FROM (SELECT * FROM ", (size_t)24,
+		"\012   FROM ", (size_t)9,
 		client_select->str_real_table_name, client_select->int_real_table_name_len,
-		") ", (size_t)2,
+		" ", (size_t)1,
 		client_select->str_statement_name, client_select->int_statement_name_len,
 		"\012", (size_t)1);
 
