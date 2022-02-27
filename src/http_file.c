@@ -237,7 +237,7 @@ finish:
             ), "build_http_response failed");
 	}
     SFREE(str_response);
-	if (client->str_http_response != NULL) {
+	if (client->str_http_response != NULL && client->io.events != EV_WRITE) {
 		http_file_free(client_http_file);
 		client_http_file = NULL;
 		ev_io_stop(EV_A, &client->io);
