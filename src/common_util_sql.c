@@ -80,7 +80,7 @@ char *get_table_name(char *_str_query, size_t int_query_len, size_t *ptr_int_tab
 		SFREE(str_temp);
 		str_temp = str_temp1;
 		str_temp1 = NULL;
-		while (str_temp[int_temp_len] != ')') {
+		while (str_temp[int_temp_len - 1] != ')') {
 			str_temp[int_temp_len] = 0;
 			int_temp_len -= 1;
 		}
