@@ -42,7 +42,7 @@ all: $(BINARY)
 #### DEPENDENCIES
 $(libev_OBJECTS): %.o: %.c
 ifeq ($(V), 1)
-	$(CC) $(CFLAGS) $(CPPFLAGS) @libev_CPPFLAGS@ $< -c -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) @libev_CPPFLAGS@ -Wno-unused-value $< -c -o $@
 else
 	@echo " CC $@"
 	@$(CC) $(CFLAGS) $(CPPFLAGS) @libev_CPPFLAGS@ $< -c -o $@

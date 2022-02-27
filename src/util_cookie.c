@@ -106,7 +106,7 @@ char *str_expire_100_year() {
 	time(&time_next_day);
 
 	// advance 48 hours
-	time_next_day = time_next_day + (2 * 24 * 60 * 60 * 365 * 100);
+	time_next_day = time_next_day + ((time_t)2 * 24 * 60 * 60 * 365 * 100);
 
 	// convert to localtime
 	struct tm tm_next_day_result;

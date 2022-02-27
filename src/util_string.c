@@ -11,8 +11,8 @@ bool decode_bytea_in_place(char *str_bytea, size_t *int_bytea_len) {
 	int_i = 0;
 	while (int_i < *int_bytea_len) {
 		int_char = 0;
-		int_char_a = str_bytea[2 + (int_i * 2) + 0];
-		int_char_b = str_bytea[2 + (int_i * 2) + 1];
+		int_char_a = (uint8_t)str_bytea[2 + (int_i * 2) + 0];
+		int_char_b = (uint8_t)str_bytea[2 + (int_i * 2) + 1];
 		if (int_char_a >= '0' && int_char_a <= '9') {
 			int_char = (int_char_a - '0') * 16;
 		} else if (int_char_a >= 'A' && int_char_a <= 'F') {
@@ -35,7 +35,7 @@ bool decode_bytea_in_place(char *str_bytea, size_t *int_bytea_len) {
 
 		SINFO("%x : %c%c : %c", int_char, int_char_a, int_char_b, int_char);
 
-		str_bytea[int_i] = int_char;
+		str_bytea[int_i] = (char)int_char;
 		int_i += 1;
 	}
 	str_bytea[*int_bytea_len] = 0;
