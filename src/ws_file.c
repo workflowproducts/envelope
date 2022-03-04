@@ -8,7 +8,7 @@ struct custom_check_callback {
 };
 
 void ws_file_step1(EV_P, struct sock_ev_client_request *client_request) {
-	SDEFINE_VAR_ALL(str_path_temp, str_path, str_connstring, str_local_path_root, str_temp_connstring, str_change_stamp,
+	SDEFINE_VAR_ALL(str_path_temp, str_path, str_local_path_root, str_temp_connstring, str_change_stamp,
 		str_query, str_search_temp);
 	struct sock_ev_client_file *client_file = (struct sock_ev_client_file *)(client_request->client_request_data);
 	char *str_response = NULL;

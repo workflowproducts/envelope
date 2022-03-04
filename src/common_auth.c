@@ -9,10 +9,9 @@ bool connect_cb_env_step4(EV_P, void *cb_data, DB_result *res);
 DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) {
 	char *str_response = NULL;
 	size_t int_response_len = 0;
-	SDEFINE_VAR_ALL(str_cookie_encrypted, str_cookie_decrypted, str_password, str_uri, str_temp, str_conn_index);
-	SDEFINE_VAR_MORE(str_conn_debug, str_username, str_connname, str_database, str_uri_temp, str_context_data);
+	SDEFINE_VAR_ALL(str_cookie_encrypted, str_cookie_decrypted, str_password, str_uri, str_temp);
+	SDEFINE_VAR_MORE(str_username, str_uri_temp, str_context_data);
 	SDEFINE_VAR_MORE(str_password_temp, str_password_hash, str_password_hash_temp, str_uri_ip_address, str_uri_host, str_uri_user_agent);
-	char *str_conn = NULL;
 	ssize_t int_i = 0;
 	ssize_t int_len = 0;
 	client->bol_public = false;
@@ -214,17 +213,6 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 	SFINISH_CHECK(str_username != NULL, "getpar failed");
 	//str_username = bstr_tolower(str_username, int_user_length);
 
-	str_database = getpar(str_cookie_decrypted, "dbname", int_cookie_len, &client->int_database_len);
-	SFINISH_CHECK(str_database != NULL, "getpar failed");
-	//str_database = bstr_tolower(str_database, client->int_database_len);
-	SINFO("REQUEST USERNAME: %s", str_username);
-	if (str_database[0] == 0) {
-		SFREE(str_database);
-	}
-	if (str_database != NULL) {
-		SINFO("REQUEST DATABASE: %s", str_database);
-	}
-
 	// check Referer for sockets
 	if (client->client_request_watcher) {
 		SFINISH_CHECK((client->bol_public ? str_global_public_api_referer_list : str_global_api_referer_list)[0] == '*' || client->str_referer != NULL, "Referer header required for websockets");
@@ -239,56 +227,10 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 		SINFO("str_username: %s", str_username);
 	}
 
-	SFINISH_SNCAT(str_connname, &client->int_connname_len,
-		"", (size_t)0);
-
-	if (client->str_connname == NULL) {
-		SFINISH_SNCAT(
-			client->str_connname, &client->int_connname_len,
-			str_connname, client->int_connname_len
-		);
-
-		SFINISH_SNCAT(
-			client->str_connname_folder, &client->int_connname_folder_len,
-			client->str_connname, client->int_connname_len
-		);
-
-		if (str_database != NULL) {
-			SFINISH_SNFCAT(
-				client->str_connname_folder, &client->int_connname_folder_len,
-				"_", (size_t)1,
-				str_database, client->int_database_len
-			);
-		}
-		if (str_conn != NULL) {
-			SFINISH_SNFCAT(
-				client->str_connname_folder, &client->int_connname_folder_len,
-				"_", (size_t)1,
-				str_conn, client->int_conn_len
-			);
-		}
-		size_t int_i = 0, int_len = strlen(client->str_connname_folder);
-		while (int_i < int_len) {
-			if (!isalnum(client->str_connname_folder[int_i])) {
-				client->str_connname_folder[int_i] = '_';
-			}
-
-			int_i++;
-		}
-	}
 	if (client->str_username == NULL) {
 		SFINISH_SNCAT(client->str_username, &client->int_username_len,
 			str_username, strlen(str_username));
 	}
-	if (client->str_database == NULL) {
-		SFINISH_SNCAT(client->str_database, &client->int_database_len,
-			str_database, client->int_database_len);
-	}
-	if (str_conn != NULL && client->str_conn == NULL) {
-		SFINISH_SNCAT(client->str_conn, &client->int_conn_len,
-			str_conn, strlen(str_conn));
-	}
-	SFREE(str_conn);
 	if (client->str_cookie == NULL && str_cookie_encrypted != NULL) {
 		size_t int_temp = 0;
 		SFINISH_SNCAT(client->str_cookie, &int_temp,
@@ -329,43 +271,6 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 			str_global_public_password, strlen(str_global_public_password));
 	}
 
-
-	SFINISH_CHECK(
-		client->str_conn != NULL || exists_connection_info(str_connname), "There is no connection info with that name.");
-
-	////ASSEMBLE CONNECTION STRING
-	if (client->str_conn != NULL) {
-#ifdef ENVELOPE_INTERFACE_LIBPQ
-		if (str_database != NULL) {
-			SFINISH_SNCAT(str_conn, &client->int_conn_len,
-				client->str_conn, strlen(client->str_conn),
-				" dbname=", (size_t)8,
-				str_database, client->int_database_len);
-		} else {
-			SFINISH_SNCAT(str_conn, &client->int_conn_len,
-				client->str_conn, strlen(client->str_conn));
-		}
-#else
-		SFINISH_SNCAT(str_conn, &client->int_conn_len,
-			client->str_conn, strlen(client->str_conn));
-#endif
-	} else {
-#ifdef ENVELOPE_INTERFACE_LIBPQ
-		if (str_database != NULL) {
-			SFINISH_SNCAT(str_conn, &client->int_conn_len,
-				get_connection_info(str_connname, NULL), strlen(get_connection_info(str_connname, NULL)),
-				" dbname=", (size_t)8,
-				str_database, client->int_database_len);
-		} else {
-			SFINISH_SNCAT(str_conn, &client->int_conn_len,
-				get_connection_info(str_connname, NULL), strlen(get_connection_info(str_connname, NULL)));
-		}
-#else
-		SFINISH_SNCAT(str_conn, &client->int_conn_len,
-			get_connection_info(str_connname, NULL), strlen(get_connection_info(str_connname, NULL)));
-#endif
-	}
-
 	SFREE_PWORD(str_cookie_decrypted);
 
 	// client_cb sometimes calls this function and doesn't need us to
@@ -394,13 +299,13 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 			// The only difference here is the callback and no user/pw
 			SDEBUG("SET SESSION CONN");
 			client->connect_cb = connect_cb;
-			client->conn = DB_connect(EV_A, client, str_conn,
+			client->conn = DB_connect(EV_A, client, get_connection_info(),
 				NULL, 0, NULL, 0,
 				str_context_data, connect_cb_env_step1);
 		} else {
 			SDEBUG("NORMAL CONN");
 			SDEBUG("str_username: >%s<", str_username);
-			client->conn = DB_connect(EV_A, client, str_conn,
+			client->conn = DB_connect(EV_A, client, get_connection_info(),
 				str_username, int_user_length, str_password, int_password_length,
 				str_context_data, connect_cb);
 		}
@@ -451,16 +356,12 @@ finish://|/usr/libexec/abrt-hook-ccpp %s %c %p %u %g %t e
 	SFREE_PWORD(str_cookie_encrypted);
 	SFREE_PWORD(str_cookie_decrypted);
 	SFREE_PWORD(str_password);
-	SFREE_PWORD(str_conn);
-	SFREE(str_conn_debug);
 	SFREE(str_username);
-	SFREE(str_conn);
 
 	// For some reason SFREE_ALL segfaults without this
 	str_cookie_encrypted = NULL;
 	str_cookie_decrypted = NULL;
 	str_password = NULL;
-	str_conn = NULL;
 
 	SFREE_ALL();
 

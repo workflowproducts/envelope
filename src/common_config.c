@@ -209,34 +209,10 @@ error:
 	return 0;
 }
 
-bool exists_connection_info(char *str_connection_name) {
+char *get_connection_info() {
 	struct struct_connection *temp_connection = NULL;
-	if (str_connection_name != NULL) {
-	} // get rid of unused parameter warning
-
 	temp_connection = DArray_get(darr_global_connection, 0);
-	return temp_connection != NULL;
-}
-
-char *get_connection_info(char *str_connection_name, size_t *int_connection_index) {
-	struct struct_connection *temp_connection = NULL;
-	if (str_connection_name != NULL) {
-	} // get rid of unused parameter warning
-
-	if (int_connection_index != NULL) {
-	} // get rid of unused parameter warning
-
-	temp_connection = DArray_get(darr_global_connection, 0);
-	return temp_connection != NULL ? temp_connection->str_connection_info : NULL;
-}
-
-char *get_connection_database(char *str_connection_name) {
-	struct struct_connection *temp_connection = NULL;
-	if (str_connection_name != NULL) {
-	} // get rid of unused parameter warning
-
-	temp_connection = DArray_get(darr_global_connection, 0);
-	return temp_connection != NULL ? temp_connection->str_connection_database : NULL;
+	return temp_connection->str_connection_info;
 }
 
 bool parse_connection_file() {

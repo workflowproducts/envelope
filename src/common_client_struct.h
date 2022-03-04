@@ -6,18 +6,6 @@
 #include <arpa/inet.h>
 #include <ev.h>
 
-#ifdef ENVELOPE_INTERFACE_LIBPQ
-typedef bool (*sock_ev_client_query_callback_function)(EV_P, PGresult *, ExecStatusType, struct sock_ev_client_request *);
-#else
-typedef bool (*sock_ev_client_query_callback_function)(EV_P, void *, int, struct sock_ev_client_request *);
-#endif
-
-struct sock_ev_client_query_callback_watcher {
-	ev_io io;
-	struct sock_ev_client_request *client_request;
-	sock_ev_client_query_callback_function callback;
-};
-
 #define cnxn conn->conn
 
 #ifndef _WIN32
@@ -120,10 +108,6 @@ struct sock_ev_client {
 
 	char *str_username;
 	char *str_password_hash;
-	char *str_database;
-	char *str_connname;
-	char *str_connname_folder;
-	char *str_conn;
 	char *str_cookie;
 	char *str_all_cookie;
 	size_t int_all_cookie_len;
@@ -137,9 +121,6 @@ struct sock_ev_client {
 	size_t int_username_len;
 	size_t int_password_hash_len;
 	size_t int_database_len;
-	size_t int_connname_len;
-	size_t int_connname_folder_len;
-	size_t int_conn_len;
 	size_t int_referer_len;
 
 	ListNode *node;
@@ -253,7 +234,6 @@ struct sock_ev_client_request {
 	ev_check check;
 	ev_idle idle;
 	struct sock_ev_client *parent;
-	struct sock_ev_client_query_callback_watcher *cb_data;
 
 	WSFrame *frame;
 	char *str_message_id;

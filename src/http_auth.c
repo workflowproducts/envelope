@@ -9,7 +9,7 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 	char *str_session_id_temp = NULL;
 	SDEFINE_VAR_ALL(str_form_data, str_expires);
 	SDEFINE_VAR_MORE(str_uri_expires, str_cookie_decrypted);
-	SDEFINE_VAR_MORE(str_escape_password, str_conn, str_conn_debug, str_body);
+	SDEFINE_VAR_MORE(str_escape_password, str_body);
 	SDEFINE_VAR_MORE(str_email_error, str_user_literal, str_sql);
 	SDEFINE_VAR_MORE(str_expiration, str_referer, str_temp);
 	SDEFINE_VAR_MORE(str_uri_new_password, str_uri_expiration);
@@ -31,7 +31,6 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 	size_t int_cookie_len = 0;
 	size_t int_uri_new_password_len = 0;
 	size_t int_uri_expiration_len = 0;
-	size_t int_conn_length = 0;
 	size_t int_token_real_len = 0;
 	size_t int_token_user_len = 0;
 
@@ -228,28 +227,16 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 			SDEBUG("envelope COOKIE SET");
 
 		} else {
-			char *str_temp = get_connection_info("", &client_auth->int_connection_index);
-			size_t int_temp = strlen(str_temp);
-			SFINISH_SNCAT(str_conn, &int_conn_length, str_temp, int_temp);
-
-			SFINISH_SALLOC(client_auth->str_int_connection_index, 20);
-			snprintf(client_auth->str_int_connection_index, 20, "%zu", client_auth->int_connection_index);
-
-			SDEBUG("client_auth: %p", client_auth);
-			SDEBUG("client_auth->parent: %p", client_auth->parent);
-			SDEBUG("str_conn: %s", str_conn);
-
-
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 			SDEBUG("bol_global_set_user: %s", bol_global_set_user ? "true" : "false");
 			if (bol_global_set_user) {
 				// The only difference here is the callback and no user/pw
-				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, str_conn, NULL,
+				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, get_connection_info(), NULL,
 					0, NULL, 0, "",
 					http_auth_login_step15)) != NULL,
 					"DB_connect failed");
 			} else {
-				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, str_conn, client_auth->str_user,
+				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, get_connection_info(), client_auth->str_user,
 					client_auth->int_user_length, client_auth->str_password, client_auth->int_password_length, "",
 					http_auth_login_step2)) != NULL,
 					"DB_connect failed");
@@ -268,13 +255,13 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 				}
 				CloseHandle(hToken);
 
-				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, str_conn, NULL,
+				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, get_connection_info(), NULL,
 					0, NULL, 0, "",
 					http_auth_login_step15)) != NULL,
 					"DB_connect failed");
 
 			} else {
-				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, str_conn, client_auth->str_user,
+				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, get_connection_info(), client_auth->str_user,
 					client_auth->int_user_length, client_auth->str_password, client_auth->int_password_length, "",
 					http_auth_login_step2)) != NULL,
 					"DB_connect failed");
@@ -369,8 +356,6 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 			str_uri_new_password, int_uri_new_password_len,
 			"&expiration=", (size_t)12,
 			str_uri_expiration, int_uri_expiration_len,
-			"&dbname=", (size_t)8,
-			client_auth->str_database, client_auth->int_dbname_length,
 			"&sessionid=", (size_t)11,
 			str_session_id, strlen(str_session_id)
 		);
@@ -394,33 +379,19 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 
 		SINFO("REQUEST USERNAME: %s", client_auth->str_user);
 
-		char *str_temp = get_connection_info("", &client_auth->int_connection_index);
-		size_t int_temp = strlen(str_temp);
-#ifdef ENVELOPE_INTERFACE_LIBPQ
-		if (client_auth->str_database != NULL) {
-			SFINISH_SNCAT(str_conn, &int_conn_length, str_temp, int_temp, " dbname=", (size_t)8, client_auth->str_database, strlen(client_auth->str_database));
-		} else {
-			SFINISH_SNCAT(str_conn, &int_conn_length, str_temp, int_temp);
-		}
-#else
-		SFINISH_SNCAT(str_conn, &int_conn_length, str_temp, int_temp);
-#endif
-		SFINISH_SALLOC(client_auth->str_int_connection_index, 20);
-		snprintf(client_auth->str_int_connection_index, 20, "%zu", client_auth->int_connection_index);
-
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 		if (bol_global_set_user) {
 			// The only difference here is the callback and no user/pw
-			SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, str_conn, NULL,
+			SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, get_connection_info(), NULL,
 				0, NULL, 0, "",
 				http_auth_login_step15)) != NULL,
 				"DB_connect failed");
 		} else {
 #endif
-		SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, str_conn, client_auth->str_user,
-			client_auth->int_user_length, client_auth->str_password, client_auth->int_password_length, "",
-			http_auth_change_pw_step2)) != NULL,
-			"DB_connect failed");
+			SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, get_connection_info(), client_auth->str_user,
+				client_auth->int_user_length, client_auth->str_password, client_auth->int_password_length, "",
+				http_auth_change_pw_step2)) != NULL,
+				"DB_connect failed");
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 		}
 #endif
@@ -526,7 +497,6 @@ finish:
 	SFREE_PWORD(str_form_data);
 	SFREE_PWORD(str_cookie_decrypted);
 	SFREE_PWORD(str_escape_password);
-	SFREE_PWORD(str_conn);
 	SFREE_PWORD(str_sql);
 	SFREE_PWORD(str_uri_new_password);
 	SFREE_PWORD(str_new_cookie);
@@ -1005,7 +975,7 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 	struct sock_ev_client_request *client_request = cb_data;
 	struct sock_ev_client_auth *client_auth = (struct sock_ev_client_auth *)(client_request->client_request_data);
 	SDEFINE_VAR_ALL(str_user_literal, str_temp1, str_expires, str_int_len, str_real_cookie);
-	SDEFINE_VAR_MORE(str_content_length, str_connstring, str_user, str_open, str_cookie_encrypted_temp);
+	SDEFINE_VAR_MORE(str_content_length, str_user, str_open, str_cookie_encrypted_temp);
 	SDEFINE_VAR_MORE(str_closed, str_temp_connstring, str_rolsuper, str_rolgroup, str_temp, str_2fa_token);
 	char *str_response = NULL;
 	DArray *arr_row_values = NULL;
@@ -1454,10 +1424,8 @@ void http_auth_free(struct sock_ev_client_request_data *client_request_data) {
 		SFREE(client_auth->str_action);
 		SFREE_PWORD(client_auth->str_cookie_encrypted);
 		SFREE(client_auth->str_user);
-		SFREE(client_auth->str_database);
 		SFREE_PWORD(client_auth->str_old_check_password);
 		SFREE_PWORD(client_auth->str_password);
 		SFREE_PWORD(client_auth->str_new_password);
-		SFREE_PWORD(client_auth->str_int_connection_index);
 	}
 }

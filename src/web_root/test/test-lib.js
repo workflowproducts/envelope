@@ -1114,8 +1114,8 @@ function ml(func) {
         if (socket.readyState === socket.OPEN && socket.WSSessionID) {
 
             if (!forceMessageID) {
-                sequence += 1;
-                messageID = socket.WSSessionID + '_' + sequence;
+                socket.sequence = (socket.sequence || 0) + 1;
+                messageID = socket.WSSessionID + '_' + socket.sequence;
                 jsnMessages[messageID] = {
                     'id': messageID,
                     'session': socket.WSSessionID,
@@ -1135,7 +1135,7 @@ function ml(func) {
                 jsnMessages[messageID].parameters = 'messageid = ' + messageID + '\n' + strMessage;
             }
             socket.send(jsnMessages[messageID].parameters);
-            //console.log('SOCKET MESSAGE SENT                   ', 'messageid = ' + sequence);// + '\n' + strMessage);
+            //console.log('SOCKET MESSAGE SENT                   ', 'messageid = ' + socket.sequence);// + '\n' + strMessage);
 
             return messageID;
 

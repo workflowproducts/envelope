@@ -33,6 +33,8 @@ small {
 	padding: 0.5em;
     box-sizing: border-box;
     display: block;
+    width: 25%;
+    float: left;
 }
 
 .disabled {

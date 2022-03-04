@@ -144,7 +144,7 @@ static void cnxn_reset_cb(EV_P, ev_io *w, int revents) {
 	} // get rid of unused parameter warning
 	struct sock_ev_client_cnxn *client_cnxn = (struct sock_ev_client_cnxn *)w;
 	char *str_response = NULL;
-    size_t int_response_len = 0;
+	size_t int_response_len = 0;
 
 	PostgresPollingStatusType status = PQresetPoll(client_cnxn->parent->conn->conn);
 
@@ -260,10 +260,8 @@ void client_notify_cb(EV_P, ev_io *w, int revents) {
 	struct sock_ev_client *client = notify_watcher->parent;
 	struct sock_ev_client_cnxn *client_cnxn = NULL;
 	int int_status = 1;
-	SDEFINE_VAR_ALL(str_conninfo);
 	if (client->conn == NULL) {
 		ev_io_stop(EV_A, w);
-		SFREE_ALL();
 		return;
 	}
 	if (socket_is_open(PQsocket(client->conn->conn)) == false) {
@@ -305,7 +303,6 @@ void client_notify_cb(EV_P, ev_io *w, int revents) {
 		ev_io_init(&client_cnxn->io, cnxn_reset_cb, GET_CLIENT_PQ_SOCKET(client), EV_WRITE);
 		ev_io_start(EV_A, &client_cnxn->io);
 
-		SFREE_ALL();
 		return;
 	}
 	bol_error_state = false;
@@ -314,7 +311,6 @@ error:
 		client_close(client);
 	}
 	bol_error_state = false;
-	SFREE_ALL();
 	SFREE(client_cnxn);
 }
 #endif
@@ -340,7 +336,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 	size_t int_temp_len = 0;
 	size_t int_current_header = 0;
 
-	SDEFINE_VAR_ALL(str_response, str_conninfo, str_query);
+	SDEFINE_VAR_ALL(str_response, str_query);
 	SDEFINE_VAR_MORE(str_session_id, str_client_cookie, str_session_client_cookie);
 	SDEFINE_VAR_MORE(str_header_name, str_header_value, str_boundary_temp);
 
@@ -1235,7 +1231,6 @@ struct sock_ev_client_request *create_request(struct sock_ev_client *client, WSF
 	client_request->str_transaction_id = str_transaction_id;
 	client_request->int_transaction_id_len = str_transaction_id	!= NULL ? strlen(str_transaction_id) : 0;
 	client_request->ptr_query = ptr_query;
-	client_request->cb_data = NULL;
 
 	if (siz_data > 0) {
 		SERROR_SALLOC(client_request->client_request_data, siz_data);
@@ -1277,10 +1272,6 @@ void _client_request_free(struct sock_ev_client_request *client_request) {
 	// http doesn't use this, so don't free it if it isn't there
 	if (client_request->frame != NULL) {
 		WS_freeFrame(client_request->frame);
-	}
-	if (client_request->cb_data != NULL) {
-		ev_io_stop(EV_A, &client_request->cb_data->io);
-		SFREE(client_request->cb_data);
 	}
     ev_idle_stop(EV_A, &client_request->idle);
 	SFREE(client_request->str_current_response);
@@ -1609,14 +1600,7 @@ bool ws_client_info_cb(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(res->status == DB_RES_TUPLES_OK, "DB_exec failed");
 
 	SFINISH_SNCAT(str_conn_desc, &int_conn_desc_len,
-		client_request->parent->str_connname, strlen(client_request->parent->str_connname),
-		"\t", (size_t)1,
-		client_request->parent->str_conn != NULL ? client_request->parent->str_conn :
-		get_connection_info(client_request->parent->str_connname, NULL),
-		strlen(
-			client_request->parent->str_conn != NULL ? client_request->parent->str_conn :
-			get_connection_info(client_request->parent->str_connname, NULL)
-		));
+		get_connection_info(), strlen(get_connection_info()));
 
 	str_conn_desc_enc = bescape_value(str_conn_desc, &int_conn_desc_len);
 	SFINISH_CHECK(str_conn_desc_enc != NULL, "bescape_value failed!");
@@ -2207,15 +2191,11 @@ void client_close_immediate(struct sock_ev_client *client) {
 	SFREE(client->reconnect_watcher);
 	SFREE(client->str_request);
 	SFREE(client->str_response);
-	SFREE(client->str_conn);
-	SFREE(client->str_connname);
 	SFREE(client->str_password_hash);
 	SFREE(client->str_username);
-	SFREE(client->str_database);
 	SFREE(client->str_notice);
 	SFREE(client->str_boundary);
 	SFREE(client->str_client_ip);
-	SFREE(client->str_connname_folder);
 	SFREE(client->str_referer);
 	SFREE(client->str_http_header);
 	SFREE(client->str_http_response);

@@ -132,7 +132,7 @@ line,
 use SDEFINE_VAR_MORE as many times as necessary. Here is a real use case:
 SDEFINE_VAR_ALL(str_form_data, str_expires);
 SDEFINE_VAR_MORE(str_uri_expires, str_cookie_decrypted);
-SDEFINE_VAR_MORE(str_escape_password, str_conn, str_conn_debug, str_body);
+SDEFINE_VAR_MORE(str_escape_password, str_body);
 SDEFINE_VAR_MORE(str_email_error, str_user_literal, str_sql);
 SDEFINE_VAR_MORE(str_expiration);
 SDEFINE_VAR_MORE(str_uri_new_password, str_uri_expiration);

@@ -70,8 +70,6 @@ void server_cb(EV_P, ev_io *w, int revents) {
 		client->str_response = NULL;
 		client->str_message = NULL;
 		client->str_cookie = NULL;
-		client->str_conn = NULL;
-		client->str_connname = NULL;
 		client->que_message = NULL;
 		client->client_paused_request = NULL;
 		client->client_timeout_prepare = NULL;

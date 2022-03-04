@@ -28,10 +28,6 @@ struct sock_ev_client_auth {
 	size_t int_password_length;
 	char *str_new_password;
 	size_t int_new_password_length;
-	char *str_database;
-	size_t int_dbname_length;
-	size_t int_connection_index;
-	char *str_int_connection_index;
 
 	void (*connect_callback)(struct sock_ev_client_auth *client_auth);
 

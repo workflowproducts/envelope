@@ -72,23 +72,7 @@ This function free()s a struct_connection and it's members
 */
 void connection_free(struct struct_connection *connection);
 
-/*
-This function checks to see if a connection name is linked to a connection
-string
-*/
-bool exists_connection_info(char *str_connection_name);
-
-/*
-This function gets the connection string and index a connection name is linked
-to
-int_connection_index can be NULL
-*/
-char *get_connection_info(char *str_connection_name, size_t *int_connection_index);
-
-/*
-This function gets the database name a connection name is linked to
-*/
-char *get_connection_database(char *str_connection_name);
+char *get_connection_info();
 
 /*
 This function parses the connection file the user supplied
