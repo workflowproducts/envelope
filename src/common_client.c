@@ -1448,7 +1448,7 @@ finish:
 void client_write_http_cb(EV_P, ev_io *w, int revents) {
 	if (revents != 0) {
 	} // get rid of unused parameter warning
-	SINFO("client_write_http_cb");
+	SDEBUG("client_write_http_cb");
 	struct sock_ev_client *client = (struct sock_ev_client *)w;
 	ssize_t int_http_response_len = (ssize_t)client->int_http_response_len - (ssize_t)client->int_http_written;
 	if (int_http_response_len > MB) {
@@ -1457,7 +1457,7 @@ void client_write_http_cb(EV_P, ev_io *w, int revents) {
 
 	int_http_response_len = write(client->int_sock, client->str_http_response + client->int_http_written, (size_t)int_http_response_len);
 
-	SINFO("write(%i, %p, %i): %i", client->int_sock, client->str_http_response + client->int_http_written,
+	SDEBUG("write(%i, %p, %i): %i", client->int_sock, client->str_http_response + client->int_http_written,
 		client->int_http_response_len - client->int_http_written, int_http_response_len);
 
 	if (int_http_response_len < 0 && errno != EAGAIN) {
@@ -1467,8 +1467,8 @@ void client_write_http_cb(EV_P, ev_io *w, int revents) {
 		client->int_http_written += (size_t)int_http_response_len;
 	}
 
-	SINFO("client->int_http_written: %i", client->int_http_written);
-	SINFO("client->int_http_response_len: %i", client->int_http_response_len);
+	SDEBUG("client->int_http_written: %i", client->int_http_written);
+	SDEBUG("client->int_http_response_len: %i", client->int_http_response_len);
 	if (client->int_http_written == client->int_http_response_len) {
 		SFREE(client->str_http_response);
 		ev_io_stop(EV_A, w);
@@ -1841,13 +1841,9 @@ error:
 
 bool client_close(struct sock_ev_client *client) {
 	EV_P = global_loop;
-	size_t int_cookie_len = 0;
-	size_t int_i = 0;
-	size_t int_len = 0;
 	struct sock_ev_client *other_client = NULL;
 	struct sock_ev_client_message *client_message = NULL;
 	ListNode *client_node = NULL;
-	struct sock_ev_client_last_activity *client_last_activity = NULL;
 	bool bol_authorized = false;
 
 	SDEBUG("Client %p closing", client);
@@ -1918,45 +1914,18 @@ bool client_close(struct sock_ev_client *client) {
 	}
 	SDEBUG("bol_authorized: %s", bol_authorized ? "true" : "false");
 
-	if (bol_authorized && client->int_last_activity_i == -1 && client->str_cookie != NULL) {
-		int_cookie_len = strlen(client->str_cookie);
-		for (int_i = 0, int_len = DArray_end(_server.arr_client_last_activity); int_i < int_len; int_i += 1) {
-			client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(_server.arr_client_last_activity, int_i);
-			if (client_last_activity &&
-				(
-					str_global_2fa_function != NULL
-					|| strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0
-				) &&
-				strncmp(client_last_activity->str_cookie, client->str_cookie, int_cookie_len) == 0) {
-				client->int_last_activity_i = (ssize_t)int_i;
-				break;
-			}
-
-			if (client_last_activity) {
-				SDEBUG("client_last_activity->str_client_ip: %s", client_last_activity->str_client_ip);
-				SDEBUG("client_last_activity->str_cookie   : %s", client_last_activity->str_cookie);
-			}
-		}
-		if (client->int_last_activity_i == -1) {
-			client_last_activity = NULL;
-			SERROR_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
-			SERROR_SALLOC(client_last_activity->str_client_ip, strlen(client->str_client_ip) + 1);
-			memcpy(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip));
-			SERROR_SNCAT(client_last_activity->str_cookie, &int_cookie_len,
-				client->str_cookie, int_cookie_len);
-			client->int_last_activity_i = (ssize_t)DArray_push(_server.arr_client_last_activity, client_last_activity);
+	if (bol_authorized && client->client_last_activity == NULL && client->str_cookie != NULL) {
+		find_last_activity(client);
+		if (client->client_last_activity == NULL) {
+			SERROR_CHECK(add_last_activity(client), "add_last_activity failed");
 		}
 	}
-	if (bol_authorized && client->int_last_activity_i != -1) {
-		client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(
-			_server.arr_client_last_activity, (size_t)client->int_last_activity_i);
-		if (client_last_activity != NULL) {
-			SDEBUG("client->int_last_activity_i          : %d", client->int_last_activity_i);
-			SDEBUG("ev_now(EV_A)               : %f", ev_now(EV_A));
-			SDEBUG("client_last_activity                 : %p", client_last_activity);
-			SDEBUG("client_last_activity->last_activity_time: %f", client_last_activity->last_activity_time);
-			client_last_activity->last_activity_time = ev_now(EV_A);
-		}
+	if (bol_authorized && client->client_last_activity != NULL) {
+		SDEBUG("client->client_last_activity          : %p", client->client_last_activity);
+		SDEBUG("ev_now(EV_A)               : %f", ev_now(EV_A));
+		SDEBUG("client_last_activity                 : %p", client->client_last_activity);
+		SDEBUG("client_last_activity->last_activity_time: %f", client->client_last_activity->last_activity_time);
+		client->client_last_activity->last_activity_time = ev_now(EV_A);
 	}
 
 	if (client_node != NULL && (client->bol_handshake == true || client->bol_is_open == true)) {
@@ -2130,6 +2099,16 @@ void client_close_immediate(struct sock_ev_client *client) {
 	SFREE(client->str_user_agent);
 	SFREE(client->str_if_modified_since);
 	SFREE(client->str_websocket_key);
+
+	if (client->client_last_activity) {
+		LIST_FOREACH(client->client_last_activity->list_client, first, next, node) {
+			if (node->value == client) {
+				List_remove(client->client_last_activity->list_client, node);
+				node = NULL;
+				break;
+			}
+		}
+	}
 
 	if (client->bol_socket_is_open == true) {
 		if (client->que_message != NULL) {

@@ -197,32 +197,11 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
                 ), "build_http_response failed");
 
 			struct sock_ev_client *client = client_auth->parent;
-			size_t int_i, int_len;
-			client->int_last_activity_i = -1;
-			struct sock_ev_client_last_activity *client_last_activity;
-			for (int_i = 0, int_len = DArray_end(client->server->arr_client_last_activity); int_i < int_len; int_i += 1) {
-				client_last_activity =
-					(struct sock_ev_client_last_activity *)DArray_get(client->server->arr_client_last_activity, int_i);
-				if (client_last_activity != NULL &&
-					(
-						str_global_2fa_function != NULL
-						|| strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0
-					) &&
-					strncmp(client_last_activity->str_cookie, client_auth->str_cookie_encrypted,
-						client_auth->int_cookie_encrypted_len) == 0) {
-					client->int_last_activity_i = (ssize_t)int_i;
-					break;
-				}
-			}
-			if (client->int_last_activity_i == -1) {
-				size_t int_temp;
-				SFINISH_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
-				SFINISH_SALLOC(client_last_activity->str_client_ip, strlen(client_auth->parent->str_client_ip));
-				memcpy(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip));
-				SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
-				client_last_activity->last_activity_time = ev_now(EV_A);
-				client_auth->parent->int_last_activity_i =
-					(ssize_t)DArray_push(client_auth->parent->server->arr_client_last_activity, client_last_activity);
+			size_t int_cookie_len;
+			SFINISH_SNCAT(client->str_cookie, &int_cookie_len, client_auth->str_cookie_encrypted, strlen(client_auth->str_cookie_encrypted));
+			find_last_activity(client);
+			if (client->client_last_activity == NULL) {
+				SFINISH_CHECK(add_last_activity(client), "add_last_activity failed");
 			}
 			SDEBUG("envelope COOKIE SET");
 
@@ -901,32 +880,11 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
             ), "build_http_response failed");
 
 		struct sock_ev_client *client = client_auth->parent;
-		size_t int_i, int_len;
-		client->int_last_activity_i = -1;
-		struct sock_ev_client_last_activity *client_last_activity;
-		for (int_i = 0, int_len = DArray_end(client->server->arr_client_last_activity); int_i < int_len; int_i += 1) {
-			client_last_activity =
-				(struct sock_ev_client_last_activity *)DArray_get(client->server->arr_client_last_activity, int_i);
-			if (client_last_activity != NULL &&
-				(
-					str_global_2fa_function != NULL
-					|| strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0
-				) &&
-				strncmp(client_last_activity->str_cookie, client_auth->str_cookie_encrypted,
-					client_auth->int_cookie_encrypted_len) == 0) {
-				client->int_last_activity_i = (ssize_t)int_i;
-				break;
-			}
-		}
-		if (client->int_last_activity_i == -1) {
-			SFINISH_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
-		    SFINISH_SALLOC(client_last_activity->str_client_ip, strlen(client_auth->parent->str_client_ip));
-			memcpy(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip));
-			size_t int_temp = 0;
-			SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
-			client_last_activity->last_activity_time = ev_now(EV_A);
-			client_auth->parent->int_last_activity_i =
-				(ssize_t)DArray_push(client_auth->parent->server->arr_client_last_activity, client_last_activity);
+		size_t int_cookie_len;
+		SFINISH_SNCAT(client->str_cookie, &int_cookie_len, client_auth->str_cookie_encrypted, strlen(client_auth->str_cookie_encrypted));
+		find_last_activity(client);
+		if (client->client_last_activity == NULL) {
+			SFINISH_CHECK(add_last_activity(client), "add_last_activity failed");
 		}
 
 		SFREE(str_user_literal);
@@ -1104,34 +1062,12 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
             ), "build_http_response failed");
 
 		struct sock_ev_client *client = client_auth->parent;
-		size_t int_i, int_len;
-		client->int_last_activity_i = -1;
-		struct sock_ev_client_last_activity *client_last_activity;
-
-		for (int_i = 0, int_len = DArray_end(client->server->arr_client_last_activity); int_i < int_len; int_i += 1) {
-			client_last_activity =
-				(struct sock_ev_client_last_activity *)DArray_get(client->server->arr_client_last_activity, int_i);
-			if (client_last_activity != NULL &&
-				(
-					str_global_2fa_function != NULL
-					|| strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0
-				) &&
-				strncmp(client_last_activity->str_cookie, str_real_cookie,
-					int_real_cookie_len) == 0) {
-				client->int_last_activity_i = (ssize_t)int_i;
-				break;
-			}
+		size_t int_cookie_len;
+		SFINISH_SNCAT(client->str_cookie, &int_cookie_len, client_auth->str_cookie_encrypted, strlen(client_auth->str_cookie_encrypted));
+		find_last_activity(client);
+		if (client->client_last_activity == NULL) {
+			SFINISH_CHECK(add_last_activity(client), "add_last_activity failed");
 		}
-		if (client->int_last_activity_i == -1) {
-			SFINISH_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
-		    SFINISH_SALLOC(client_last_activity->str_client_ip, strlen(client_auth->parent->str_client_ip));
-			memcpy(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip));
-			SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, str_real_cookie, int_real_cookie_len);
-			client_last_activity->last_activity_time = ev_now(EV_A);
-			client_auth->parent->int_last_activity_i =
-				(ssize_t)DArray_push(client_auth->parent->server->arr_client_last_activity, client_last_activity);
-		}
-		SINFO("client->int_last_activity_i: %d", client->int_last_activity_i);
 		SDEBUG("envelope COOKIE SET");
 	}
 
@@ -1317,8 +1253,6 @@ bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res) {
 
 	DB_free_result(res);
 
-	size_t int_len = 0, int_i = 0;
-
 	SDEBUG("PASSWORD CHANGE");
 	str_expires = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
 
@@ -1347,37 +1281,15 @@ bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res) {
         ), "build_http_response failed");
     SINFO("client_auth->parent->str_http_response: %s", client_auth->parent->str_http_response);
 
-	client_auth->parent->int_last_activity_i = -1;
-	for (int_i = 0, int_len = DArray_end(client_auth->parent->server->arr_client_last_activity); int_i < int_len; int_i += 1) {
-		struct sock_ev_client_last_activity *client_last_activity =
-			(struct sock_ev_client_last_activity *)DArray_get(client_auth->parent->server->arr_client_last_activity, int_i);
-		if (client_last_activity &&
-			(
-				str_global_2fa_function != NULL
-				|| strncmp(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip)) == 0
-			) &&
-			strncmp(client_last_activity->str_cookie, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len) == 0) {
-			client_auth->parent->int_last_activity_i = (ssize_t)int_i;
-			break;
-		}
-	}
-	SDEBUG("client_auth->parent->int_last_activity_i: %d", client_auth->parent->int_last_activity_i);
-	if (client_auth->parent->int_last_activity_i != -1) {
-		struct sock_ev_client_last_activity *client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(
-			client_auth->parent->server->arr_client_last_activity, (size_t)client_auth->parent->int_last_activity_i);
-		SFREE(client_last_activity->str_cookie);
-		SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
-		SDEBUG("New cookie is %s", client_last_activity->str_cookie);
+	size_t int_cookie_len;
+	SFINISH_SNCAT(client_auth->parent->str_cookie, &int_cookie_len, client_auth->str_cookie_encrypted, strlen(client_auth->str_cookie_encrypted));
+	find_last_activity(client_auth->parent);
+	if (client_auth->parent->client_last_activity != NULL) {
+		SFREE(client_auth->parent->client_last_activity->str_cookie);
+		SFINISH_SNCAT(client_auth->parent->client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
+		SDEBUG("New cookie is %s", client_auth->parent->client_last_activity->str_cookie);
 	} else {
-		struct sock_ev_client_last_activity *client_last_activity;
-		SFINISH_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
-        SFINISH_SALLOC(client_last_activity->str_client_ip, strlen(client_auth->parent->str_client_ip));
-		memcpy(client_last_activity->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip));
-		SFINISH_SNCAT(client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
-		client_last_activity->last_activity_time = ev_now(EV_A);
-		client_auth->parent->int_last_activity_i =
-			(ssize_t)DArray_push(client_auth->parent->server->arr_client_last_activity, client_last_activity);
-		SDEBUG("New cookie is %s", client_last_activity->str_cookie);
+		SFINISH_CHECK(add_last_activity(client_auth->parent), "add_last_activity failed");
 	}
 
 	bol_error_state = false;

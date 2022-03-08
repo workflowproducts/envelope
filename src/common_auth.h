@@ -12,6 +12,9 @@
 
 #include "common_client.h"
 
+struct sock_ev_client_last_activity *find_last_activity(struct sock_ev_client *client);
+bool add_last_activity(struct sock_ev_client *client);
+
 /*
 This is function will:
 1. take the cookie out of a request

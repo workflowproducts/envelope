@@ -55,7 +55,6 @@ void server_cb(EV_P, ev_io *w, int revents) {
 		SDEBUG("Client %p opened", client);
 		client->int_sock = int_client_sock;
 		client->server = server;
-		client->int_last_activity_i = -1;
 		client->node = server->list_client->last;
 		client->bol_handshake = false;
 		client->bol_connected = false;
@@ -117,6 +116,15 @@ void client_last_activity_free(struct sock_ev_client_last_activity *client_last_
 	if (client_last_activity != NULL) {
 		SFREE(client_last_activity->str_cookie);
 		SFREE(client_last_activity->str_client_ip);
+		LIST_FOREACH(client_last_activity->list_client, first, next, node) {
+			struct sock_ev_client *client = node->value;
+			client->client_last_activity = NULL;
+			List_remove(client_last_activity->list_client, node);
+			node = NULL;
+			client_close_immediate(client);
+			client = NULL;
+		}
+		List_destroy(client_last_activity->list_client);
 	}
 	SFREE(client_last_activity);
 }

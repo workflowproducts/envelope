@@ -119,12 +119,10 @@ struct sock_ev_client {
 	char *str_websocket_key;
 
 	size_t int_username_len;
-	size_t int_password_hash_len;
-	size_t int_database_len;
 	size_t int_referer_len;
 
 	ListNode *node;
-	ssize_t int_last_activity_i;
+	struct sock_ev_client_last_activity *client_last_activity;
 	char *str_client_ip;
     size_t int_client_ip_len;
 	bool bol_handshake;

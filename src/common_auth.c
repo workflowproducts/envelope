@@ -5,6 +5,50 @@ bool connect_cb_env_step2(EV_P, void *cb_data, DB_result *res);
 bool connect_cb_env_step3(EV_P, void *cb_data, DB_result *res);
 bool connect_cb_env_step4(EV_P, void *cb_data, DB_result *res);
 
+struct sock_ev_client_last_activity *find_last_activity(struct sock_ev_client *client) {
+	LIST_FOREACH(_server.list_client_last_activity, first, next, node) {
+		struct sock_ev_client_last_activity *client_last_activity = node->value;
+		// The two things that need to be the same, are the ip and the cookie
+		// (these are stored by the auth?action=login
+		// request handler)
+		if (client_last_activity != NULL) {
+			SDEBUG("client_last_activity->str_client_ip = %s", client_last_activity->str_client_ip);
+			SDEBUG("client_last_activity->str_cookie    = %s", client_last_activity->str_cookie);
+		}
+		if (client_last_activity != NULL &&
+			(
+				str_global_2fa_function != NULL
+				|| strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0
+			) &&
+			strncmp(client_last_activity->str_cookie, client->str_cookie, strlen(client->str_cookie)) == 0) {
+			client->client_last_activity = client_last_activity;
+			List_push(client_last_activity->list_client, client);
+			return client_last_activity;
+		}
+	}
+
+	return NULL;
+}
+
+bool add_last_activity(struct sock_ev_client *client) {
+	struct sock_ev_client_last_activity *client_last_activity = NULL;
+	size_t int_cookie_len = 0;
+	SERROR_SALLOC(client_last_activity, sizeof(struct sock_ev_client_last_activity));
+	SERROR_SALLOC(client_last_activity->str_client_ip, strlen(client->str_client_ip) + 1);
+	client_last_activity->list_client = List_create();
+	SERROR_CHECK(client_last_activity->list_client != NULL, "List_create failed!");
+	memcpy(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip));
+	SERROR_SNCAT(client_last_activity->str_cookie, &int_cookie_len,
+		client->str_cookie, strlen(client->str_cookie));
+	List_push(_server.list_client_last_activity, client_last_activity);
+	client->client_last_activity = client_last_activity;
+	List_push(client_last_activity->list_client, client);\
+	client_last_activity->last_activity_time = ev_now(global_loop);
+	return true;
+error:
+	return false;
+}
+
 // get connection string from cookie
 DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) {
 	char *str_response = NULL;
@@ -12,8 +56,6 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 	SDEFINE_VAR_ALL(str_cookie_encrypted, str_cookie_decrypted, str_password, str_uri, str_temp);
 	SDEFINE_VAR_MORE(str_username, str_uri_temp, str_context_data);
 	SDEFINE_VAR_MORE(str_password_temp, str_password_hash, str_password_hash_temp, str_uri_ip_address, str_uri_host, str_uri_user_agent);
-	ssize_t int_i = 0;
-	ssize_t int_len = 0;
 	client->bol_public = false;
 	size_t int_temp = 0;
 	size_t int_uri_length = 0;
@@ -80,32 +122,14 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 		}
 	}
 	if (client->bol_public == false) {
-		// Make sure we have the last close time
-		if (client->int_last_activity_i == -1) {
-			// If we don't, then find it
-			SDEBUG("client->str_client_ip = %s", client->str_client_ip);
-			SDEBUG("str_cookie_encrypted  = %s", str_cookie_encrypted);
-			for (int_i = 0, int_len = (ssize_t)DArray_end(client->server->arr_client_last_activity); int_i < int_len; int_i += 1) {
-				struct sock_ev_client_last_activity *client_last_activity =
-					(struct sock_ev_client_last_activity *)DArray_get(client->server->arr_client_last_activity, (size_t)int_i);
-				// The two things that need to be the same, are the ip and the cookie
-				// (these are stored by the auth?action=login
-				// request handler)
-				if (client_last_activity != NULL) {
-					SDEBUG("client_last_activity->str_client_ip = %s", client_last_activity->str_client_ip);
-					SDEBUG("client_last_activity->str_cookie    = %s", client_last_activity->str_cookie);
-				}
-				if (client_last_activity != NULL &&
-					(
-						str_global_2fa_function != NULL
-						|| strncmp(client_last_activity->str_client_ip, client->str_client_ip, strlen(client->str_client_ip)) == 0
-					) &&
-					strncmp(client_last_activity->str_cookie, str_cookie_encrypted, int_cookie_len) == 0) {
-					client->int_last_activity_i = int_i;
-					break;
-				}
-			}
-			SINFO("client->int_last_activity_i: %d", client->int_last_activity_i);
+		if (client->str_cookie == NULL && str_cookie_encrypted != NULL) {
+			size_t int_temp = 0;
+			SFINISH_SNCAT(client->str_cookie, &int_temp,
+				str_cookie_encrypted, strlen(str_cookie_encrypted));
+			SDEBUG("%p->str_cookie: %p", client, client->str_cookie);
+		}
+		if (client->client_last_activity == NULL) {
+			find_last_activity(client);
 			// If we don't have it, we don't need it
 		}
 
@@ -115,29 +139,24 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 			SDEBUG("other_client                        = %p", other_client);
 			SDEBUG("other_client->node                  = %p", other_client->node);
 			SDEBUG("client->node                        = %p", client->node);
-			SDEBUG("other_client->int_last_activity_i   = %d", other_client->int_last_activity_i);
-			SDEBUG("client->int_last_activity_i         = %d", client->int_last_activity_i);
+			SDEBUG("other_client->client_last_activity  = %p", other_client->client_last_activity);
+			SDEBUG("client->client_last_activity        = %p", client->client_last_activity);
 			if (other_client != NULL && client->node != other_client->node &&
-				client->int_last_activity_i == other_client->int_last_activity_i) {
+				client->client_last_activity == other_client->client_last_activity) {
 				other_client_node = node;
 				break;
 			}
 		}
 
 		SDEBUG("List_count(client->server->list_client)   = %d", List_count(client->server->list_client));
-		SDEBUG("client->server->arr_client_last_activity  = %p", client->server->arr_client_last_activity);
-		SDEBUG("client->int_last_activity_i               = %d", client->int_last_activity_i);
+		SDEBUG("client->client_last_activity              = %p", client->client_last_activity);
 		SDEBUG("other_client_node                         = %p", other_client_node);
 
 		// Grab the last close time if we have it
-		struct sock_ev_client_last_activity *client_last_activity = NULL;
-		if (client->int_last_activity_i != -1) {
-			client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(
-				client->server->arr_client_last_activity, (size_t)client->int_last_activity_i);
-
+		if (client->client_last_activity != NULL) {
 			SINFO(" ev_now(EV_A)                                            : %f", ev_now(EV_A));
-			SINFO("                client_last_activity->last_activity_time : %f", client_last_activity->last_activity_time);
-			SINFO("(ev_now(EV_A) - client_last_activity->last_activity_time): %f", (ev_now(EV_A) - client_last_activity->last_activity_time));
+			SINFO("                client_last_activity->last_activity_time : %f", client->client_last_activity->last_activity_time);
+			SINFO("(ev_now(EV_A) - client_last_activity->last_activity_time): %f", (ev_now(EV_A) - client->client_last_activity->last_activity_time));
 		}
 		// Grab the other client if we have it
 		struct sock_ev_client *other_client = NULL;
@@ -155,11 +174,11 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 					other_client->conn != NULL
 				) ||
 				(
-					client->int_last_activity_i != -1 &&
+					client->client_last_activity != NULL &&
 					(
 						int_global_login_timeout == 0 ||
 						(
-							ev_now(EV_A) - client_last_activity->last_activity_time
+							ev_now(EV_A) - client->client_last_activity->last_activity_time
 						) < (double)int_global_login_timeout
 					)
 				)
@@ -230,12 +249,6 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 	if (client->str_username == NULL) {
 		SFINISH_SNCAT(client->str_username, &client->int_username_len,
 			str_username, strlen(str_username));
-	}
-	if (client->str_cookie == NULL && str_cookie_encrypted != NULL) {
-		size_t int_temp = 0;
-		SFINISH_SNCAT(client->str_cookie, &int_temp,
-			str_cookie_encrypted, strlen(str_cookie_encrypted));
-		SDEBUG("%p->str_cookie: %p", client, client->str_cookie);
 	}
 
 	SFREE_PWORD(str_cookie_encrypted);

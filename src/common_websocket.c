@@ -237,15 +237,12 @@ void WS_readFrame_step2(EV_P, ev_io *w, int revents) {
 
 		WS_client_message_free(client_message);
 
-		if (frame->parent->int_last_activity_i != -1) {
-			struct sock_ev_client_last_activity *client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(
-				_server.arr_client_last_activity, (size_t)frame->parent->int_last_activity_i);
-			if (client_last_activity != NULL) {
-				SDEBUG("client->int_last_activity_i          : %d", frame->parent->int_last_activity_i);
-				SDEBUG("ev_now(EV_A)               : %f", ev_now(EV_A));
-				SDEBUG("client_last_activity                 : %p", client_last_activity);
-				SDEBUG("client_last_activity->last_activity_time: %f", client_last_activity->last_activity_time);
-				client_last_activity->last_activity_time = ev_now(EV_A);
+		if (frame->parent->client_last_activity != NULL) {
+			if (frame->parent->client_last_activity != NULL) {
+				SDEBUG("ev_now(EV_A)                            : %f", ev_now(EV_A));
+				SDEBUG("client_last_activity                    : %p", frame->parent->client_last_activity);
+				SDEBUG("client_last_activity->last_activity_time: %f", frame->parent->client_last_activity->last_activity_time);
+				frame->parent->client_last_activity->last_activity_time = ev_now(EV_A);
 			}
 		}
 
@@ -418,15 +415,12 @@ void WS_sendFrame_step2(EV_P, ev_io *w, int revents) {
 		bol_error_state = false;
 		return;
 	} else {
-		if (frame->parent->int_last_activity_i != -1) {
-			struct sock_ev_client_last_activity *client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(
-				_server.arr_client_last_activity, (size_t)frame->parent->int_last_activity_i);
-			if (client_last_activity != NULL) {
-				SDEBUG("client->int_last_activity_i          : %d", frame->parent->int_last_activity_i);
-				SDEBUG("ev_now(EV_A)               : %f", ev_now(EV_A));
-				SDEBUG("client_last_activity                 : %p", client_last_activity);
-				SDEBUG("client_last_activity->last_activity_time: %f", client_last_activity->last_activity_time);
-				client_last_activity->last_activity_time = ev_now(EV_A);
+		if (frame->parent->client_last_activity != NULL) {
+			if (frame->parent->client_last_activity != NULL) {
+				SDEBUG("ev_now(EV_A)                            : %f", ev_now(EV_A));
+				SDEBUG("client_last_activity                    : %p", frame->parent->client_last_activity);
+				SDEBUG("client_last_activity->last_activity_time: %f", frame->parent->client_last_activity->last_activity_time);
+				frame->parent->client_last_activity->last_activity_time = ev_now(EV_A);
 			}
 		}
 

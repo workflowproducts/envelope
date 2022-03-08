@@ -50,6 +50,7 @@ struct sock_ev_client_last_activity {
 	char *str_client_ip;
 	char *str_cookie;
 	ev_tstamp last_activity_time;
+	List *list_client;
 };
 /*
 This function free()s everything inside a client_last_activity struct
@@ -60,7 +61,7 @@ struct sock_ev_serv {
 	ev_io io;
 	SOCKET int_sock;
 	List *list_client;
-	DArray *arr_client_last_activity;
+	List *list_client_last_activity;
 };
 
 //#define _close(A) SDEBUG("_close(%s (%d))", #A, A); _close(A);

@@ -64,13 +64,12 @@ void program_exit() {
         List_destroy(list_global_running_queries);
         list_global_running_queries = NULL;
 
-		if (_server.arr_client_last_activity != NULL) {
-			for (int_i = 0, int_len = DArray_end(_server.arr_client_last_activity); int_i < int_len; int_i += 1) {
-				struct sock_ev_client_last_activity *client_last_activity =
-					(struct sock_ev_client_last_activity *)DArray_get(_server.arr_client_last_activity, int_i);
+		if (_server.list_client_last_activity != NULL) {
+			LIST_FOREACH(_server.list_client_last_activity, first, next, node)  {
+				struct sock_ev_client_last_activity *client_last_activity = node->value;
 				client_last_activity_free(client_last_activity);
 			}
-			DArray_destroy(_server.arr_client_last_activity);
+			List_destroy(_server.list_client_last_activity);
 		}
 
 		SFREE(str_global_log_queries_over_action_name);
@@ -131,85 +130,67 @@ void free_last_activity(EV_P, ev_periodic *w, int revents) {
 	} // get rid of unused parameter warning
 	if (revents != 0) {
 	} // get rid of unused parameter warning
-	size_t int_i, int_len;
 	struct sock_ev_client_last_activity *client_last_activity = NULL;
 	struct sock_ev_client *client = NULL;
 	bool bol_no_clients, bol_skip = false;
-	if (_server.arr_client_last_activity != NULL) {
-		for (int_i = 0, int_len = DArray_end(_server.arr_client_last_activity); int_i < int_len; int_i += 1) {
-			client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(_server.arr_client_last_activity, int_i);
+	if (_server.list_client_last_activity != NULL) {
+		ListNode *node = _server.list_client_last_activity->first;
+		while (node != NULL) {
+			SDEBUG("node: %p", node);
+			client_last_activity = node->value;
+			SDEBUG("client_last_activity: %p", client_last_activity);
 			if (client_last_activity != NULL &&
 				(ev_now(EV_A) - client_last_activity->last_activity_time) >= (double)int_global_login_timeout) {
+				SDEBUG("node: %p", node);
 				bol_no_clients = true;
-				LIST_FOREACH(_server.list_client, first, next, node) {
-					client = node->value;
+				LIST_FOREACH(client_last_activity->list_client, first, next, node_sub) {
+					client = node_sub->value;
 					SDEBUG("client: %p", client);
 					SDEBUG("client->bol_request_in_progress: %s",
 						client != NULL ? (client->bol_request_in_progress ? "true" : "false") : "(null)");
-					if (client != NULL && (ssize_t)int_i == client->int_last_activity_i &&
-						client->bol_request_in_progress == false) {
+					if (client != NULL && client->bol_request_in_progress == false) {
 						bol_no_clients = false;
-					} else if (client != NULL && (ssize_t)int_i == client->int_last_activity_i &&
-								client->bol_request_in_progress == true) {
+					} else if (client != NULL && client->bol_request_in_progress == true) {
 						bol_skip = true;
 						break;
 					}
 				}
 
-				if (bol_skip == false) {
-					LIST_FOREACH(_server.list_client, first, next, node) {
-						client = node->value;
-						if (client != NULL && client->int_last_activity_i > (ssize_t)int_i) {
-							client->int_last_activity_i -= 1;
-						}
-					}
-				} else {
+				if (bol_skip == true) {
 					bol_skip = false;
+					node = node->next;
 					continue;
 				}
 
+				SDEBUG("node: %p", node);
+
 				if (bol_no_clients == false) {
-					ListNode *node = _server.list_client->first;
-					for (; node != NULL;) {
-						client = node->value;
+					ListNode *node_sub2 = client_last_activity->list_client->first;
+					for (; node_sub2 != NULL;) {
+						client = node_sub2->value;
 						SDEBUG("client: %p", client);
 						SDEBUG("client->bol_request_in_progress: %s",
 							client != NULL ? (client->bol_request_in_progress ? "true" : "false") : "(null)");
-						if (client != NULL && (ssize_t)int_i == client->int_last_activity_i &&
-							client->bol_request_in_progress == false) {
-							node = node->next;
+						if (client != NULL && client->bol_request_in_progress == false) {
+							node_sub2 = node_sub2->next;
 							client_close_immediate(client);
 						} else {
-							node = node->next;
+							node_sub2 = node_sub2->next;
 						}
-						SDEBUG("node: %p", node);
+						SDEBUG("node_sub2: %p", node_sub2);
 					}
-				}
-
-				if (bol_no_clients == true) {
-					SDEBUG("client_last_activity: %p", client_last_activity);
+					node = node->next;
+				} else {
+					SDEBUG("node: %p", node);
+					ListNode *node_temp = node;
+					node = node->next;
+					List_remove(_server.list_client_last_activity, node_temp);
 					client_last_activity_free(client_last_activity);
-
-					DArray_set(_server.arr_client_last_activity, int_i, NULL);
 				}
+			} else {
+				node = node->next;
 			}
 		}
-
-		DArray *new_arr_client_last_activity = DArray_create(sizeof(struct sock_ev_client_last_activity *), 1);
-		if (new_arr_client_last_activity == NULL) {
-			SERROR_NORESPONSE("DArray_create failed");
-			return;
-		}
-
-		for (int_i = 0, int_len = DArray_end(_server.arr_client_last_activity); int_i < int_len; int_i += 1) {
-			client_last_activity = (struct sock_ev_client_last_activity *)DArray_get(_server.arr_client_last_activity, int_i);
-			if (client_last_activity != NULL) {
-				DArray_push(new_arr_client_last_activity, client_last_activity);
-			}
-		}
-
-		DArray_destroy(_server.arr_client_last_activity);
-		_server.arr_client_last_activity = new_arr_client_last_activity;
 	}
 }
 
@@ -370,7 +351,7 @@ int main(int argc, char *const *argv) {
 
 	if (int_global_login_timeout > 0) {
 		memset(&last_activity_free_timer, 0, sizeof(ev_periodic));
-		ev_periodic_init(&last_activity_free_timer, free_last_activity, 0, (ev_tstamp)(int_global_login_timeout) / 10, NULL);
+		ev_periodic_init(&last_activity_free_timer, free_last_activity, 0, 10, NULL);
 		ev_periodic_start(EV_A, &last_activity_free_timer);
 	}
 
@@ -435,7 +416,9 @@ int main(int argc, char *const *argv) {
 
 	// Create Client List
 	_server.list_client = List_create();
-	_server.arr_client_last_activity = DArray_create(sizeof(struct sock_ev_client_last_activity), 128);
+	SERROR_CHECK(_server.list_client, "List_create failed");
+	_server.list_client_last_activity = List_create();
+	SERROR_CHECK(_server.list_client_last_activity, "List_create failed");
 	_server.int_sock = int_sock;
 
 // Add callback for readable data
