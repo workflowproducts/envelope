@@ -282,7 +282,7 @@ enum {
 #define EV_WATCHER(type)			\
   int active; /* private */			\
   int pending; /* private */			\
-  char initiator[32]; /* ro */		\
+  char initiator[64]; /* ro */		\
   EV_DECL_PRIORITY /* private */		\
   EV_COMMON /* rw */				\
   EV_CB_DECLARE (type) /* private */
@@ -693,8 +693,8 @@ EV_API_DECL void ev_resume  (EV_P) EV_THROW;
   ((ev_watcher *)(void *)(ev))->pending = 0;	\
   ev_set_priority ((ev), 0);			\
   ev_set_cb ((ev), cb_);			\
-  memset((ev)->initiator, 0, 32);			\
-  strncpy((ev)->initiator, (strrchr(__FILE__ ":" S__LINE__, '\\') ? strrchr(__FILE__ ":" S__LINE__, '\\') + 1 : __FILE__ ":" S__LINE__), 31);			\
+  memset((ev)->initiator, 0, 64);			\
+  strncpy((ev)->initiator, (strrchr(__FILE__ ":" S__LINE__, '\\') ? strrchr(__FILE__ ":" S__LINE__, '\\') + 1 : __FILE__ ":" S__LINE__), 63);			\
 } while (0)
 #else
 #define ev_init(ev,cb_) do {			\
@@ -702,8 +702,8 @@ EV_API_DECL void ev_resume  (EV_P) EV_THROW;
   ((ev_watcher *)(void *)(ev))->pending = 0;	\
   ev_set_priority ((ev), 0);			\
   ev_set_cb ((ev), cb_);			\
-  memset((ev)->initiator, 0, 32);			\
-  strncpy((ev)->initiator, __FILE__ ":" S__LINE__, 31);			\
+  memset((ev)->initiator, 0, 64);			\
+  strncpy((ev)->initiator, __FILE__ ":" S__LINE__, 63);			\
 } while (0)
 #endif
 
