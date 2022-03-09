@@ -575,6 +575,8 @@ bool ws_copy_check_cb(EV_P, bool bol_success, bool bol_last, void *cb_data, char
 			}
 
 			// If copy_check is null, that means we are on the last message of the request
+			// close_client_if_needed checks the state of the underlying socket
+			// if it is closed, then it pauses the request, and we need to clean up a bit
 			if (client_request->parent->conn->copy_check != NULL && close_client_if_needed(client_request->parent, (ev_watcher *)&client_request->parent->conn->copy_check->check, EV_CHECK)) {
 				SDEBUG("client_request->parent->conn->copy_check: %p", client_request->parent->conn->copy_check);
 				SDEBUG("client_request->parent->conn: %p", client_request->parent->conn);

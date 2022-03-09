@@ -6,7 +6,7 @@
                 "${workspaceFolder}/**"
             ],
             "defines": [
-                "ENVELOPE_INTERFACE_LIBPQ"
+                "ENVELOPE_INTERFACE_LIBPQ", "VERSION=\"blah\""
             ],
             "compilerPath": "/mnt/disk3/usr/local/bin//clang",
             "cStandard": "c17",

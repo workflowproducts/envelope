@@ -1,6 +1,7 @@
 {
 	"C_Cpp.dimInactiveRegions": false,
 	"files.associations": {
-		"windows.h": "c"
+		"windows.h": "c",
+		"type_traits": "c"
 	}
 }
