@@ -570,6 +570,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 
 		SINFO("client->bol_full_request: %s", client->bol_full_request ? "true" : "false");
 		SINFO("client->bol_headers_evaluated: %s", client->bol_headers_evaluated ? "true" : "false");
+		SINFO("client->str_websocket_key: %s", client->str_websocket_key);
 
 		if (client->bol_full_request && client->bol_headers_evaluated == true) {
 			if (client->str_websocket_key != NULL) {
@@ -587,41 +588,50 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				// BEGIN REQUEST RESUME
 				// ***************************************************
 				struct sock_ev_client *session_client = NULL;
-				ListNode *other_client_node = NULL;
 				if (str_session_id != NULL) {
-					LIST_FOREACH(client->server->list_client, first, next, node) {
-						struct sock_ev_client *other_client = node->value;
-						SDEBUG("other_client->str_session_id: %s", other_client->str_session_id);
-						if (other_client != client && other_client->str_session_id != NULL && strncmp(str_session_id, other_client->str_session_id, 11) == 0) {
-							other_client_node = node;
-							session_client = other_client;
-							break;
+					if (client->str_cookie == NULL) {
+						size_t int_cookie_len = 0;
+						client->str_cookie = get_cookie(client->str_all_cookie, client->int_all_cookie_len, "envelope", &int_cookie_len);
+						SERROR_CHECK(client->str_cookie != NULL, "get_cookie failed");
+					}
+					find_last_activity(client);
+					if (client->client_last_activity != NULL) {
+						LIST_FOREACH(client->client_last_activity->list_client, first, next, node) {
+							struct sock_ev_client *other_client = node->value;
+							SDEBUG("other_client->str_session_id: %s", other_client->str_session_id);
+							if (other_client != client && other_client->str_session_id != NULL && strncmp(str_session_id, other_client->str_session_id, 11) == 0) {
+								session_client = other_client;
+								break;
+							}
 						}
 					}
 				}
-				SDEBUG("other_client_node: %p", other_client_node);
+				SDEBUG("session_client: %p", session_client);
 				SDEBUG("str_session_id: %s", str_session_id);
-				if (other_client_node != NULL) {
-					size_t int_current_cookie_len = 0;
-					size_t int_session_cookie_len = 0;
-					str_client_cookie = get_cookie(client->str_all_cookie, client->int_all_cookie_len, "envelope", &int_current_cookie_len);
-					str_session_client_cookie = get_cookie(client->str_all_cookie, client->int_all_cookie_len, "envelope", &int_session_cookie_len);
+				if (session_client != NULL) {
+					// previously, we were comparing the cookies
+					// this was necessary because we were looping through
+					// all clients, now we are only looping through the
+					// clients with the same cookie (using the client_last_activity)
+					// size_t int_current_cookie_len = 0;
+					// size_t int_session_cookie_len = 0;
+					// str_client_cookie = get_cookie(client->str_all_cookie, client->int_all_cookie_len, "envelope", &int_current_cookie_len);
+					// str_session_client_cookie = get_cookie(client->str_all_cookie, client->int_all_cookie_len, "envelope", &int_session_cookie_len);
 
 					// clang-format off
                     if (
-							str_client_cookie != NULL
-						&&	str_session_client_cookie != NULL
-						&&	strcmp(str_client_cookie, str_session_client_cookie) == 0
-						&&	(
-									(
-										session_client->client_timeout_prepare != NULL
-										&&	(
-												(session_client->client_timeout_prepare->close_time + 10) > ev_now(EV_A)
-											||	session_client->client_timeout_prepare->close_time == 0
-										)
-									)
-								||	session_client->client_timeout_prepare == NULL
+						// 	str_client_cookie != NULL
+						// &&	str_session_client_cookie != NULL
+						// &&	strcmp(str_client_cookie, str_session_client_cookie) == 0
+						// &&	
+							(
+								session_client->client_timeout_prepare != NULL
+								&& (
+									(session_client->client_timeout_prepare->close_time + 10) > ev_now(EV_A)
+									||	session_client->client_timeout_prepare->close_time == 0
+								)
 							)
+							||	session_client->client_timeout_prepare == NULL
 						) {
 						// clang-format on
 						client_timeout_prepare_free(session_client->client_timeout_prepare);
@@ -636,6 +646,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 						SDEBUG("client: %p", client);
 						client->que_request = session_client->que_request;
 						session_client->que_request = NULL;
+						#ifdef UTIL_DEBUG
 						if (client->que_request != NULL) {
 							QUEUE_FOREACH(client->que_request, node) {
 								struct sock_ev_client_request *client_request = (struct sock_ev_client_request *)node->value;
@@ -644,6 +655,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 								SDEBUG("client_request->parent: %p", client_request->parent);
 							}
 						}
+						#endif
 
 						client->bol_request_in_progress = session_client->bol_request_in_progress;
 
@@ -663,9 +675,11 @@ void client_cb(EV_P, ev_io *w, int revents) {
 
 				if (client->que_message == NULL) {
 					client->que_message = Queue_create();
+					SERROR_CHECK(client->que_message != NULL, "Queue_create failed");
 				}
 				if (client->que_request == NULL) {
 					client->que_request = Queue_create();
+					SERROR_CHECK(client->que_request != NULL, "Queue_create failed");
 				}
 				SERROR_SALLOC(client->client_request_watcher, sizeof(struct sock_ev_client_request_watcher));
 				client->client_request_watcher->parent = client;
@@ -685,7 +699,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				SDEBUG("str_response       : %s", str_response);
 				SDEBUG("client->str_request: %s", client->str_request);
 				// return handshake response
-				if (write(client->int_sock, str_response, int_response_len) < 0) {
+				if (write(client->int_sock, str_response, int_response_len) < int_response_len) {
 					SERROR_CLIENT_CLOSE(client);
 					SERROR("write() failed");
 				}
@@ -1901,14 +1915,6 @@ bool client_close(struct sock_ev_client *client) {
         client->client_upload = NULL;
 	}
 
-	LIST_FOREACH(client->server->list_client, first, next, node) {
-		other_client = node->value;
-		if (client == other_client) {
-			client_node = node;
-			break;
-		}
-	}
-
 	if (client->conn != NULL) {
 		bol_authorized = client->conn->int_status != -1;
 	}
@@ -1921,29 +1927,22 @@ bool client_close(struct sock_ev_client *client) {
 		}
 	}
 	if (bol_authorized && client->client_last_activity != NULL) {
-		SDEBUG("client->client_last_activity          : %p", client->client_last_activity);
-		SDEBUG("ev_now(EV_A)               : %f", ev_now(EV_A));
-		SDEBUG("client_last_activity                 : %p", client->client_last_activity);
-		SDEBUG("client_last_activity->last_activity_time: %f", client->client_last_activity->last_activity_time);
 		client->client_last_activity->last_activity_time = ev_now(EV_A);
 	}
 
-	if (client_node != NULL && (client->bol_handshake == true || client->bol_is_open == true)) {
-		client->bol_is_open = false;
-		if (client->bol_handshake == false || bol_authorized == false || client->cur_request == NULL) {
-			SDEBUG("client_close_immediate");
-			client_close_immediate(client);
-		} else {
-			if (client->client_timeout_prepare == NULL) {
-				SDEBUG("delay client_close_immediate");
-				SDEBUG("test1: %p", client);
-				SERROR_SALLOC(client->client_timeout_prepare, sizeof(struct sock_ev_client_timeout_prepare));
-				client->client_timeout_prepare->close_time = ev_now(EV_A);
-				client->client_timeout_prepare->parent = client;
+	if (client->bol_handshake == false || bol_authorized == false || client->cur_request == NULL) {
+		SDEBUG("client_close_immediate");
+		client_close_immediate(client);
+	} else {
+		if (client->client_timeout_prepare == NULL) {
+			SDEBUG("delay client_close_immediate");
+			SDEBUG("test1: %p", client);
+			SERROR_SALLOC(client->client_timeout_prepare, sizeof(struct sock_ev_client_timeout_prepare));
+			client->client_timeout_prepare->close_time = ev_now(EV_A);
+			client->client_timeout_prepare->parent = client;
 
-				ev_prepare_init(&client->client_timeout_prepare->prepare, client_close_timeout_prepare_cb);
-				ev_prepare_start(EV_A, &client->client_timeout_prepare->prepare);
-			}
+			ev_prepare_init(&client->client_timeout_prepare->prepare, client_close_timeout_prepare_cb);
+			ev_prepare_start(EV_A, &client->client_timeout_prepare->prepare);
 		}
 	}
 

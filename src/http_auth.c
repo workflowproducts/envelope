@@ -386,33 +386,15 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 
 		client_auth->str_cookie_encrypted = get_cookie(client_auth->parent->str_all_cookie, client_auth->parent->int_all_cookie_len, str_cookie_name, &client_auth->int_cookie_encrypted_len);
 		if (client_auth->str_cookie_encrypted != NULL) {
-			ListNode *node = client_auth->parent->server->list_client->first;
-			for (; node != NULL;) {
-				struct sock_ev_client *other_client = node->value;
-				if (other_client != NULL && other_client != client_auth->parent) {
-					SDEBUG("other_client->str_cookie          : %s", other_client->str_cookie);
-					SDEBUG("client_auth->str_cookie_encrypted : %s", client_auth->str_cookie_encrypted);
-					SDEBUG("other_client->str_client_ip       : %s", other_client->str_client_ip);
-					SDEBUG("client_auth->parent->str_client_ip: %s", client_auth->parent->str_client_ip);
-					if (other_client->str_cookie != NULL &&
-						strncmp(other_client->str_cookie, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len) == 0 &&
-						(
-							str_global_2fa_function != NULL
-							|| strncmp(other_client->str_client_ip, client_auth->parent->str_client_ip, strlen(client_auth->parent->str_client_ip)) == 0
-						)) {
-						client_timeout_prepare_free(other_client->client_timeout_prepare);
-						SDEBUG("node->next: %p", node->next);
-						node = node->next;
-						client_close_immediate(other_client);
-					} else {
-						SDEBUG("node->next: %p", node->next);
-						node = node->next;
-					}
-				} else {
-					SDEBUG("node->next: %p", node->next);
+			find_last_activity(client_auth->parent);
+			if (client_auth->parent->client_last_activity != NULL) {
+				struct sock_ev_client *other_client = NULL;
+				ListNode *node = client_auth->parent->client_last_activity->list_client->first;
+				while (node != NULL) {
+					other_client = node->value;
 					node = node->next;
+					client_close_immediate(other_client);
 				}
-				SDEBUG("node: %p", node);
 			}
 		}
 

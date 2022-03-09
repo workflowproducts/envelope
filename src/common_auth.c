@@ -6,6 +6,7 @@ bool connect_cb_env_step3(EV_P, void *cb_data, DB_result *res);
 bool connect_cb_env_step4(EV_P, void *cb_data, DB_result *res);
 
 struct sock_ev_client_last_activity *find_last_activity(struct sock_ev_client *client) {
+	SERROR_CHECK(client->str_cookie != NULL, "client->str_cookie is NULL!");
 	LIST_FOREACH(_server.list_client_last_activity, first, next, node) {
 		struct sock_ev_client_last_activity *client_last_activity = node->value;
 		// The two things that need to be the same, are the ip and the cookie
@@ -27,6 +28,7 @@ struct sock_ev_client_last_activity *find_last_activity(struct sock_ev_client *c
 		}
 	}
 
+error:
 	return NULL;
 }
 
@@ -70,7 +72,6 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 	size_t int_uri_user_agent_len = 0;
 	size_t int_temp_len = 0;
     DArray *darr_headers = NULL;
-	ListNode *other_client_node = NULL;
 
 	str_uri_temp = str_uri_path(client->str_request, client->int_request_len, &int_uri_length);
 	SFINISH_CHECK(str_uri_temp != NULL, "str_uri_path failed");
@@ -133,54 +134,16 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 			// If we don't have it, we don't need it
 		}
 
-		// Find another client from the same place/cookie
-		LIST_FOREACH(client->server->list_client, first, next, node) {
-			struct sock_ev_client *other_client = node->value;
-			SDEBUG("other_client                        = %p", other_client);
-			SDEBUG("other_client->node                  = %p", other_client->node);
-			SDEBUG("client->node                        = %p", client->node);
-			SDEBUG("other_client->client_last_activity  = %p", other_client->client_last_activity);
-			SDEBUG("client->client_last_activity        = %p", client->client_last_activity);
-			if (other_client != NULL && client->node != other_client->node &&
-				client->client_last_activity == other_client->client_last_activity) {
-				other_client_node = node;
-				break;
-			}
-		}
-
-		SDEBUG("List_count(client->server->list_client)   = %d", List_count(client->server->list_client));
-		SDEBUG("client->client_last_activity              = %p", client->client_last_activity);
-		SDEBUG("other_client_node                         = %p", other_client_node);
-
-		// Grab the last close time if we have it
-		if (client->client_last_activity != NULL) {
-			SINFO(" ev_now(EV_A)                                            : %f", ev_now(EV_A));
-			SINFO("                client_last_activity->last_activity_time : %f", client->client_last_activity->last_activity_time);
-			SINFO("(ev_now(EV_A) - client_last_activity->last_activity_time): %f", (ev_now(EV_A) - client->client_last_activity->last_activity_time));
-		}
-		// Grab the other client if we have it
-		struct sock_ev_client *other_client = NULL;
-		SDEBUG("other_client_node = %p", other_client_node);
-		if (other_client_node != NULL) {
-			other_client = other_client_node->value;
-		}
-		// Check to see if we have another client, if we don't check to see if the
-		// session has expired
+		// Check to see if the session has expired
 		SDEBUG("int_global_login_timeout: %d", int_global_login_timeout);
 		if (
 			!(
+				client->client_last_activity != NULL &&
 				(
-					other_client != NULL &&
-					other_client->conn != NULL
-				) ||
-				(
-					client->client_last_activity != NULL &&
+					int_global_login_timeout == 0 ||
 					(
-						int_global_login_timeout == 0 ||
-						(
-							ev_now(EV_A) - client->client_last_activity->last_activity_time
-						) < (double)int_global_login_timeout
-					)
+						ev_now(EV_A) - client->client_last_activity->last_activity_time
+					) < (double)int_global_login_timeout
 				)
 			)
 		) {
