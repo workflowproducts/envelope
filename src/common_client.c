@@ -1978,16 +1978,8 @@ void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 	if ((client_timeout_prepare->close_time + 10) <= ev_now(EV_A)) {
 		SDEBUG("test2: %p", client);
 		ev_prepare_stop(EV_A, w);
-		if (w == &client->client_timeout_prepare->prepare) {
-			client_timeout_prepare->parent->client_timeout_prepare = NULL;
-			SFREE(client_timeout_prepare);
-		} else {
-			// This is not supposed to happen
-			SERROR_NORESPONSE("What happened? How is it possible that `w` != "
-							  "`client->client_timeout_prepare`?");
-			SDEBUG("`w`                              == %p", w);
-			SDEBUG("`client->client_timeout_prepare` == %p", client->client_timeout_prepare);
-		}
+		client_timeout_prepare->parent->client_timeout_prepare = NULL;
+		SFREE(client_timeout_prepare);
 
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 		if (client->bol_public == false && bol_global_set_user == true) {
