@@ -33,7 +33,7 @@ small {
 	padding: 0.5em;
     box-sizing: border-box;
     display: block;
-    width: 25%;
+    width: 20%;
     float: left;
 }
 
@@ -43,9 +43,9 @@ small {
 
 .test-block {
     margin: 0;
-    display: inline-block;
     width: 0.75em;
     height: 1em;
+    float: left;
 }
 
 .test-list label,

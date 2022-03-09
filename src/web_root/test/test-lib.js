@@ -66,13 +66,13 @@ var $ = {
         objLabel.classList.remove(strOldClass);
         objLabel.classList.add(strNewClass);
         if (strNewClass === 'fail') {
-            document.getElementById('status-note-' + key).textContent = '(ERROR) ' + $.tests[key].tests[intCurrent][0];
+            document.getElementById('status-note-' + key).innerHTML = '(ERROR)<br />' + $.tests[key].tests[intCurrent][0];
 			$.tests[key].error = true;
 			// $.ajax('https://www.sunnyserve.com/env/tst.acceptnc_test', 'action=fail&id=' + $.intID + '&fail_name=' + encodeURIComponent(document.getElementById('test' + key + intCurrent + '_label').innerText), 'POST', function (data) {
 
 			// });
         } else {
-            document.getElementById('status-note-' + key).textContent = '(RUNNING) ' + $.tests[key].tests[intCurrent][0];
+            document.getElementById('status-note-' + key).innerHTML = '(RUNNING)<br />' + $.tests[key].tests[intCurrent][0];
         }
         objLabel.strStatus = strStatus;
         objLabel.strErrorText = strErrorText;
@@ -133,7 +133,7 @@ var $ = {
 						alert('Tests finished!');
 					// });
 				}
-                document.getElementById('status-note-' + key).textContent = ' (STOPPED)';
+                document.getElementById('status-note-' + key).innerHTML = '(STOPPED)<br />';
 				if (key[0] === '_') {
 		            for (var key2 in $.tests) {
 		                if ($.tests.hasOwnProperty(key2) && key2 !== key) {
@@ -1082,16 +1082,16 @@ function ml(func) {
             }
 
             if (!socket.stayClosed) {
-                setTimeout(function () {
-                    //console.log('ATTEMPTING SOCKET RE-OPEN', socket);
+                // setTimeout(function () {
+                    // console.log('ATTEMPTING SOCKET RE-OPEN', socket);
                     var key = socketKey;
                     $.tests[key].socket = WS.openSocket(key, key, $.tests[key].socket.WSSessionID, $.tests[key].socket.notifications);
-                }, 1000);
+                // }, 1000);
             } else {
                 if (socket.bolError) {
-                    //console.log('SOCKET NOT RE-OPENING DUE TO ERROR');
+                    // console.log('SOCKET NOT RE-OPENING DUE TO ERROR');
                 } else {
-                    //console.log('SOCKET NOT RE-OPENING DUE TO MANUAL CLOSE');
+                    // console.log('SOCKET NOT RE-OPENING DUE TO MANUAL CLOSE');
                 }
             }
         };

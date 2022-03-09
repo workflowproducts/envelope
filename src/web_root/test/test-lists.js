@@ -450,6 +450,21 @@ test1 DESC*/}),
 		    ['SOCKET CLOSE', 'websocket end']
 		]
 	},
+	ws_send_from: {
+		tests: [
+			['SOCKET OPEN', 'websocket start'],
+			['SEND FROM', 'websocket send from', '', ml(function () {/*SELECT	public	ttesting_large_view2
+RETURN	*
+
+ORDER BY
+id DESC
+*/
+			}),
+			["id\ttest1\ttest2\ninteger\ttext\ttext\n"].concat(createTestDataResponse('', 200, false))
+			],
+			['SOCKET CLOSE', 'websocket end']
+		]
+	},
 	ws_select: {
 		tests: [
 			['SOCKET OPEN', 'websocket start'],
