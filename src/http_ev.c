@@ -66,7 +66,7 @@ void http_ev_step1(EV_P, struct sock_ev_client *client) {
 			" at ", (size_t)4,
 			str_current_address, strlen(str_current_address),
             client->str_websocket_key ? " (WS)" : " (HTTP)", (size_t)(client->str_websocket_key ? 5 : 7),
-            client->str_websocket_key && !client->bol_is_open ? " (CLOSING)" : "", (size_t)(client->str_websocket_key && !client->bol_is_open ? 10 : 0),
+            client->str_websocket_key && !client->bol_socket_is_open ? " (CLOSING)" : "", (size_t)(client->str_websocket_key && !client->bol_is_open ? 10 : 0),
             "\015\012", (size_t)2
         );
         if (client->str_websocket_key) {
