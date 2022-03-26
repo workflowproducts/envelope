@@ -466,6 +466,75 @@ var $ = {
                     }
                 }
             });
+        } else if (strType === 'websocket close in middle') {
+            if (typeof arrCurrent[3] === 'string') {
+                arrCurrent[3] = arrCurrent[3].replace(/\r\n/gi, '\n').replace(/\{\{test_random\}\}/g, $.test_random);
+            }
+            var strArgs = (typeof arrCurrent[3] === 'string' ? arrCurrent[3].replace(/\{\{test_random1\}\}/g, $.tests[key].test_random).replace(/\{\{CHANGESTAMP\}\}/gi, WS.encodeForTabDelimited($.tests[key].lastModified)) : arrCurrent[3]);
+            var arrStrExpectedOutput = arrCurrent[4];
+            var arrStrActualOutput = [];
+            $.changeStatus(key, intCurrent, 'waiting', 'running');
+            var i = 0;
+            var bolIsRead = strArgs.substring ? strArgs.substring(0, 9) === 'FILE\tREAD' : false;
+            var bolIsWrite = strArgs.substring ? strArgs.substring(0, 10) === 'FILE\tWRITE' : false;
+            //// console.log('strArgs: ' + strArgs);
+            WS.requestFromSocket($.tests[key].socket, key, strArgs, function (data, error, errorData) {
+                if (i === 50) {
+                    $.tests[key].socket.stayClosed = true;
+                    $.tests[key].socket.close();
+                    $.changeStatus(key, intCurrent, 'running', 'pass', 0, JSON.stringify(arrStrActualOutput));
+                    $.runTest(key, intCurrent + 1);
+                }
+                if (i === -1) {
+                    return;
+                }
+                //console.log(i, data);
+                data = data.replace(/..\\..\\/gi, '../');
+                data = data.replace(/\\(?![rnt])/gi, '/');
+                arrStrActualOutput.push(data.replace(/transactionid = .*\n/gim, ''));
+                i += 1;
+                if (i === arrStrExpectedOutput.length || data === 'TRANSACTION COMPLETED' || error) {
+                    //console.log(i, data);
+                    var j, k, l, len, len1;
+                    for (j = 0, k = 0, len = i; j < len; j += 1, k += 1) {
+                        if (arrStrActualOutput[j] === arrStrExpectedOutput[k].replace(/\{\{test_random\}\}/g, $.test_random).replace(/\{\{test_random1\}\}/g, $.tests[key].test_random) ||
+                            arrStrExpectedOutput[k] === 'ANYTHING' ||
+                            arrStrExpectedOutput[k].substring(0, 8) === 'OPTIONAL' ||
+                            (
+                                (
+                                    arrStrExpectedOutput[k] === 'START' ||
+                                    arrStrExpectedOutput[k] === 'END' ||
+                                    arrStrExpectedOutput[k] === 'Failed to get canonical path' ||
+                                    arrStrExpectedOutput[k] === 'Failed to open file for writing'
+                                ) &&
+                                arrStrActualOutput[j].indexOf(arrStrExpectedOutput[k]) === 0
+                            )
+                        ) {
+                            if (arrStrExpectedOutput[k].substring(0, 8) === 'OPTIONAL' &&
+                                arrStrActualOutput[j] !== arrStrExpectedOutput[k].substring(8).replace(/\{\{test_random\}\}/g, $.test_random).replace(/\{\{test_random1\}\}/g, $.tests[key].test_random)
+                            ) {
+                                j -= 1;
+                            }
+                            error = false;
+                        } else {
+							console.log(arrStrActualOutput[j].length, arrStrActualOutput[j].replace(/\n/g, '\\n'));
+							console.log(arrStrExpectedOutput[k].length, arrStrExpectedOutput[k].replace(/\{\{test_random\}\}/g, $.test_random).replace(/\{\{test_random1\}\}/g, $.tests[key].test_random).replace(/\n/g, '\\n'));
+
+                            error = true;
+                            break;
+                        }
+                    }
+                    if (error === false) {
+                        $.changeStatus(key, intCurrent, 'running', 'pass', 0, JSON.stringify(arrStrActualOutput));
+                        $.runTest(key, intCurrent + 1);
+                        i = -1;
+                    } else {
+                        $.changeStatus(key, intCurrent, 'running', 'fail', 0, JSON.stringify(arrStrActualOutput));
+                        document.getElementById('actual-output-' + key).value = JSON.stringify(arrStrActualOutput);
+                        i = -1;
+                    }
+                }
+            });
         } else if (strType === 'websocket cancel') {
             arrCurrent[3] = arrCurrent[3].replace(/\r\n/gi, '\n');
             var strArgs = arrCurrent[3].replace(/\{\{test_random\}\}/g, $.test_random).replace(/\{\{test_random1\}\}/g, $.tests[key].test_random);

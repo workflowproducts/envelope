@@ -38,6 +38,8 @@ char *get_table_name(char *_str_query, size_t int_query_len, size_t *ptr_int_tab
 		ptr_table_name, ptr_end_table_name - ptr_table_name
 	);
 
+	SERROR_CHECK(!(bol_schema && str_temp[0] == '('), "Invalid request, do not split a subquery");
+
 	if (str_temp[0] != '(') {
 		SERROR_BREPLACE(str_temp, &int_temp_len, "\"", "\"\"", "g");
 
@@ -80,7 +82,7 @@ char *get_table_name(char *_str_query, size_t int_query_len, size_t *ptr_int_tab
 		SFREE(str_temp);
 		str_temp = str_temp1;
 		str_temp1 = NULL;
-		while (str_temp[int_temp_len - 1] != ')') {
+		while (int_temp_len > 1 && str_temp[int_temp_len - 1] != ')') {
 			str_temp[int_temp_len] = 0;
 			int_temp_len -= 1;
 		}

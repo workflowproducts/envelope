@@ -462,6 +462,16 @@ id DESC
 			}),
 			["id\ttest1\ttest2\ninteger\ttext\ttext\n"].concat(createTestDataResponse('', 200, false))
 			],
+			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
+			['CLOSE', 'websocket close in middle', '', ml(function () {/*SELECT	public	ttesting_large_view2
+RETURN	*
+
+ORDER BY
+id DESC
+*/
+			}),
+			["id\ttest1\ttest2\ninteger\ttext\ttext\n"].concat(createTestDataResponse('', 200, false))
+			],
 			['SOCKET CLOSE', 'websocket end']
 		]
 	},
@@ -535,6 +545,14 @@ ORDER BY	LIMIT
 */
             }),
 			["common_util_sql.c:query_is_safe: SQL Injection detected!\nSQL Injection detected"]],
+			['SELECT FAIL 9', 'websocket', '', ml(function () {/*SELECT	(SELECT * FROM	rtesting_table) em) TO STDOUT; --)
+RETURN	*
+
+ORDER BY	LIMIT
+1 ASC	10
+*/
+            }),
+			['common_util_sql.c:get_table_name: Invalid request, do not split a subquery\nQuery failed:\nFATAL\nerror_detail\tERROR: Failed to get table name from query.\n']],
 			['SELECT 1', 'websocket', '', ml(function () {/*SELECT	pg_database
 RETURN	datname	datistemplate
 
