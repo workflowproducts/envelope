@@ -595,7 +595,7 @@ RETURN	enumtypid	enumsortorder	enumlabel
 */
             }),
 			["enumtypid\tenumsortorder\tenumlabel\noid\treal\tname\n", "TRANSACTION COMPLETED"]],
-			['SELECT 7', 'websocket', '', ml(function () {/*SELECT	rtesting_table_with_capital_column_name
+			['SELECT 7', 'websocket', '', ml(function () {/*SELECT	rtesting_table_with_capital_column_name	*/}) + ml(function () {/*
 RETURN	id	test_name	TestName
 
 LIMIT

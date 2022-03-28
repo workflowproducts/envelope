@@ -30,7 +30,7 @@ char *get_table_name(char *_str_query, size_t int_query_len, size_t *ptr_int_tab
 	SERROR_CHECK(*ptr_table_name == '\t', "Invalid request");
 	ptr_table_name += 1;
 	ptr_end_table_name = ptr_table_name + strncspn(ptr_table_name, int_query_len - (size_t)(ptr_table_name - str_query), "\t\012", (size_t)2);
-	bool bol_schema = *ptr_end_table_name == '\t';
+	bool bol_schema = *ptr_end_table_name == '\t' && !(*(ptr_end_table_name + 1) == '\n');
 	*ptr_end_table_name = '\0';
 
 	SERROR_SNCAT(
