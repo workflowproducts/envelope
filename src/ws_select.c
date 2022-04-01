@@ -347,7 +347,7 @@ bool ws_select_step2(EV_P, void *cb_data, DB_result *res) {
 			client_select->str_statement_name, client_select->int_statement_name_len,
 			"_row, *\012			FROM ", (size_t)16,
 			client_select->str_real_table_name, client_select->int_real_table_name_len,
-			"\012", (size_t)1);
+			" em\012", (size_t)4);
 		if (client_select->str_where != NULL) {
 			SFINISH_SNFCAT(client_select->str_sql_escaped_return, &client_select->int_sql_escaped_return_len,
 				"			WHERE (", (size_t)10,

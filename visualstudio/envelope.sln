@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2026
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31402.337
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "envelope", "envelope\envelope.vcxproj", "{0AEC04E1-BC42-4313-87B0-9661E6B46ACC}"
 EndProject
@@ -11,9 +11,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EnvelopeService", "envelope
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EnvelopeServiceInstaller", "envelope_ss\EnvelopeServiceInstaller.vcxproj", "{147FF753-AC82-4939-BDC9-8DDAE5DD5BA8}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "EnvelopeSetupx86", "envelope_ss\EnvelopeSetupx86.vdproj", "{5FBA5123-6D48-4A8C-9765-E30631094C4B}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EnvelopeWebrootInstaller", "envelope_ss\EnvelopeWebrootInstaller.vcxproj", "{CAFEF682-BD4E-4FCB-AE4B-D926EAC2F7A9}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "EnvelopeSetup", "EnvelopeSetup\EnvelopeSetup.vdproj", "{4A41D313-B32B-4FCD-A747-0406CFE591BF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,14 +55,6 @@ Global
 		{147FF753-AC82-4939-BDC9-8DDAE5DD5BA8}.Release|x64.Build.0 = Release|x64
 		{147FF753-AC82-4939-BDC9-8DDAE5DD5BA8}.Release|x86.ActiveCfg = Release|Win32
 		{147FF753-AC82-4939-BDC9-8DDAE5DD5BA8}.Release|x86.Build.0 = Release|Win32
-		{5FBA5123-6D48-4A8C-9765-E30631094C4B}.Debug|x64.ActiveCfg = Debug
-		{5FBA5123-6D48-4A8C-9765-E30631094C4B}.Debug|x64.Build.0 = Debug
-		{5FBA5123-6D48-4A8C-9765-E30631094C4B}.Debug|x86.ActiveCfg = Debug
-		{5FBA5123-6D48-4A8C-9765-E30631094C4B}.Debug|x86.Build.0 = Debug
-		{5FBA5123-6D48-4A8C-9765-E30631094C4B}.Release|x64.ActiveCfg = Release
-		{5FBA5123-6D48-4A8C-9765-E30631094C4B}.Release|x64.Build.0 = Release
-		{5FBA5123-6D48-4A8C-9765-E30631094C4B}.Release|x86.ActiveCfg = Release
-		{5FBA5123-6D48-4A8C-9765-E30631094C4B}.Release|x86.Build.0 = Release
 		{CAFEF682-BD4E-4FCB-AE4B-D926EAC2F7A9}.Debug|x64.ActiveCfg = Debug|x64
 		{CAFEF682-BD4E-4FCB-AE4B-D926EAC2F7A9}.Debug|x64.Build.0 = Debug|x64
 		{CAFEF682-BD4E-4FCB-AE4B-D926EAC2F7A9}.Debug|x86.ActiveCfg = Debug|Win32
@@ -71,6 +63,10 @@ Global
 		{CAFEF682-BD4E-4FCB-AE4B-D926EAC2F7A9}.Release|x64.Build.0 = Release|x64
 		{CAFEF682-BD4E-4FCB-AE4B-D926EAC2F7A9}.Release|x86.ActiveCfg = Release|Win32
 		{CAFEF682-BD4E-4FCB-AE4B-D926EAC2F7A9}.Release|x86.Build.0 = Release|Win32
+		{4A41D313-B32B-4FCD-A747-0406CFE591BF}.Debug|x64.ActiveCfg = Debug
+		{4A41D313-B32B-4FCD-A747-0406CFE591BF}.Debug|x86.ActiveCfg = Debug
+		{4A41D313-B32B-4FCD-A747-0406CFE591BF}.Release|x64.ActiveCfg = Release
+		{4A41D313-B32B-4FCD-A747-0406CFE591BF}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
