@@ -270,32 +270,36 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 
 		SFINISH_CHECK(strncmp(str_token_real, str_token_user, int_token_real_len) == 0, "Token does not match");
 		
-        char *str_temp1 = "envelope=";
-        char *str_temp2 = "; HttpOnly;";
-        char *str_temp3 = "{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}";
-        SFREE(str_expires);
-        str_expires = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
-        SFINISH_SNCAT(
-            str_temp, &int_temp_len,
-            str_temp1, strlen(str_temp1),
-            client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
-            "; path=/; expires=", (size_t)18,
-            str_expires, strlen(str_expires),
-            str_temp2, strlen(str_temp2)
-        );
-        darr_headers = DArray_from_strings(
-            "Set-Cookie", str_temp
-            , "Set-Cookie", "envelope_2fa_pending=; HttpOnly; path=/; expires=0;"
-        );
+		char *str_temp1 = "envelope=";
+		char *str_temp2 = "; HttpOnly;";
+		char *str_temp3 = "{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}";
+		SFREE(str_expires);
+		str_expires = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
+		SFINISH_SNCAT(
+		    str_temp, &int_temp_len,
+		    str_temp1, strlen(str_temp1),
+		    client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
+		    "; path=/; expires=", (size_t)18,
+		    str_expires, strlen(str_expires),
+		    str_temp2, strlen(str_temp2)
+		);
+		darr_headers = DArray_from_strings(
+		    "Set-Cookie", str_temp
+		    , "Set-Cookie", "envelope_2fa_pending=; HttpOnly; path=/; expires=0;"
+		);
 		SFREE(str_temp);
-        SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
-        SFINISH_CHECK(build_http_response(
-                "200 OK"
-                , str_temp3, strlen(str_temp3)
-                , "application/json"
-                , darr_headers
-                , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
-            ), "build_http_response failed");
+		SFINISH_SNCAT(client_auth->parent->str_cookie, &int_temp_len, client_auth->str_cookie_encrypted, strlen(client_auth->str_cookie_encrypted));
+		if (client_auth->parent->client_last_activity == NULL) {
+			SFINISH_CHECK(add_last_activity(client_auth->parent), "add_last_activity failed");
+		}
+		SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
+		SFINISH_CHECK(build_http_response(
+			"200 OK"
+			, str_temp3, strlen(str_temp3)
+			, "application/json"
+			, darr_headers
+			, &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
+		), "build_http_response failed");
 
 		//////
 		// CHANGE PW, RESET COOKIE
