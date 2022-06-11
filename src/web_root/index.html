@@ -32,21 +32,6 @@
 /*jslint browser:true*/
 /*global GS,window*/
 var bolCurl = false;
-var request = new XMLHttpRequest();
-
-request.onreadystatechange = function () {
-    'use strict';
-    // if expired cookie: go to login page
-    if (request.readyState === 4) {
-        if (request.status === 200) {
-            window.location.replace(GS.qryGetVal(GS.getQueryString(), 'redirect') || '/env/app/all/index.html?cache=no');
-        }
-    }
-};
-
-request.open('POST', '/env/action_info' + '?anticache=' + ((new Date()).getMilliseconds() + Math.floor(Math.random() * 1e9)), true);
-request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
-request.send('');
 
 // for PWA
 if ('serviceWorker' in navigator) {
@@ -93,7 +78,11 @@ function login() {
         if (!error) {
             GS.setCookie('greyspots_uname', document.getElementById('normal-uname').value, 1000000);
 
-            if (data.dat === '2fa required') {
+            if (document.getElementById('normal-uname').value.indexOf('coutohomes') > -1) {
+                window.location = '/env/app/pm_g/index.html';
+            } else if (document.getElementById('normal-uname').value.indexOf('titanelectricdfw') > -1) {
+                window.location = '/env/app/tfw_g/cal.html';
+            } else if (data.dat === '2fa required') {
                 document.getElementById('switch-page').template = '2fa';
             } else if (GS.qryGetVal(strQueryString, 'redirect')) {
                 window.location = GS.qryGetVal(strQueryString, 'redirect');
@@ -112,14 +101,14 @@ function login() {
 }
 
 
-function verify() {
+function verify(strToken) {
     'use strict';
     var strQueryString = GS.getQueryString();
 
     GS.addLoader('login', 'Verifying...');
     GS.ajaxJSON('/env/auth'
                 , 'action=2fa' +
-                   '&token=' + encodeURIComponent(document.getElementById('normal-token').value)
+                   '&token=' + encodeURIComponent(strToken || document.getElementById('normal-token').value)
                 , function (data, error) {
         GS.removeLoader('login');
 
@@ -191,7 +180,31 @@ window.addEventListener('template_change', function (event) {
     }
 });
 
-
+var strQueryString = GS.getQueryString();
+if (GS.qryGetVal(strQueryString, 'token')) {
+    window.addEventListener('load', function () {
+        verify(GS.qryGetVal(strQueryString, 'token'));
+    });
+} else {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+        var strQueryString = GS.getQueryString();
+        var normalizedError;
+        // if expired cookie: go to login page
+        if (request.readyState === 4) {
+            if (request.status === 200) {
+                if (GS.qryGetVal(strQueryString, 'redirect')) {
+                    window.location.replace(GS.qryGetVal(strQueryString, 'redirect'));
+                } else {
+                    window.location.replace('/env/app/all/index.html?cache=no');
+                }
+            }
+        }
+    };
+    request.open('POST', '/env/action_info' + '?anticache=' + ((new Date()).getMilliseconds() + Math.floor(Math.random() * 1e9)), true);
+    request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+    request.send('');
+}
         </script>
         <style>
             #container {
