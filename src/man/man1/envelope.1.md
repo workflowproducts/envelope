@@ -77,7 +77,7 @@ The following options can be specified on the command line or in the configurati
 
 `-p` or `--envelope-port=` or `envelope_port=`  
        `Integer;` defaults to 8888  
-       This tells Envelope what port to listen on for browser requests.
+       This tells Envelope what port to listen on for browser requests. If the port starts with the string "unix:", then it is interpreted as a file path for a unix socket.
 
 `-j` or `--tls-cert=` or `tls_cert=`  
 `-k` or `--tls-key=` or `tls_key=`  

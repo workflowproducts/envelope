@@ -1,4 +1,4 @@
-.TH "ENVELOPE" "1" "February 2021" "" ""
+.TH "ENVELOPE" "1" "August 2022" "" ""
 .SH "NAME"
 \fBenvelope\fR \- PostgreSQL Interface for the web
 .SH FULL PATH
@@ -98,7 +98,7 @@ The following options can be specified on the command line or in the configurati
 .br
        \fBInteger;\fP defaults to 8888
 .br
-       This tells Envelope what port to listen on for browser requests\.
+       This tells Envelope what port to listen on for browser requests\. If the port starts with the string "unix:", then it is interpreted as a file path for a unix socket\.
 .P
 \fB\-j\fP or \fB\-\-tls\-cert=\fP or \fBtls_cert=\fP
 .br

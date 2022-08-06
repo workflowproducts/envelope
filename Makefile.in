@@ -8,6 +8,8 @@ test-common:
 
 test:
 	@$(MAKE) --no-print-directory -C src test
+test-unix:
+	@$(MAKE) --no-print-directory -C src test-unix
 
 test-set-user:
 	@$(MAKE) --no-print-directory -C src test-set-user
