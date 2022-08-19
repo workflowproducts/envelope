@@ -1,12 +1,5 @@
 #include "util_base64.h"
 
-#include "util_salloc.h"
-#include <string.h>
-
-#include <openssl/bio.h>
-#include <openssl/buffer.h>
-#include <openssl/evp.h>
-
 // INTERFACE FUNCTIONS
 
 char *b64encode(const char *str_input, size_t *ptr_int_input_len) {

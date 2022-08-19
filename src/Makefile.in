@@ -1,5 +1,5 @@
 BINARY = envelope
-CONFIGS = -c config/envelope.conf -t 300 -f envelope.test-wfprod.cleanup_format -i t -p unix:/opt/jails_ssl/envelope.socket
+CONFIGS = -c config/envelope.conf -t 300 -f envelope-test.wfprod.com -i t -p unix:/opt/jails_ssl/envelope.socket
 WEBROOTS = -r ./web_root/ -z ./role -y ./app
 INSTALL_DEPS = @prefix@/sbin/ @prefix@/etc/envelope/ \
 @prefix@/etc/envelope/envelope.conf @prefix@/etc/envelope/envelope-connections.conf \

@@ -175,8 +175,10 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 
 	}
 
-	str_cookie_decrypted = aes_decrypt(str_cookie_encrypted, &int_cookie_len);
-	SFINISH_CHECK(str_cookie_decrypted != NULL, "aes_decrypt failed");
+	if (str_cookie_encrypted != NULL && strlen(str_cookie_encrypted) > 0) {
+		str_cookie_decrypted = aes_decrypt(str_cookie_encrypted, &int_cookie_len);
+		SFINISH_CHECK(str_cookie_decrypted != NULL, "aes_decrypt failed, %s", str_cookie_encrypted);
+	}
 
 	if (client->bol_public == false && int_cookie_len > 0) {
 		// **** WARNING ****
@@ -188,12 +190,13 @@ DB_conn *set_cnxn(EV_P, struct sock_ev_client *client, connect_cb_t connect_cb) 
 		// sometimes the cookie decrypts without error but you get garbage back
 		// I think this has something to do with the midnight key change?
 		SFINISH_CHECK(strncmp(str_cookie_decrypted, "valid=true&", 11) == 0, "Session expired");
+		
+		////GET THINGS FOR CONNECTION STRING
+		str_username = getpar(str_cookie_decrypted, "username", int_cookie_len, &int_user_length);
+		SFINISH_CHECK(str_username != NULL, "getpar failed");
+		//str_username = bstr_tolower(str_username, int_user_length);
 	}
-
-	////GET THINGS FOR CONNECTION STRING
-	str_username = getpar(str_cookie_decrypted, "username", int_cookie_len, &int_user_length);
-	SFINISH_CHECK(str_username != NULL, "getpar failed");
-	//str_username = bstr_tolower(str_username, int_user_length);
+	SFINISH_CHECK(client->bol_public == true || int_cookie_len > 0, "must be a public request or have a cookie");
 
 	// check Referer for sockets
 	if (client->client_request_watcher) {

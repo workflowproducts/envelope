@@ -93,7 +93,9 @@ error:
 	return NULL;
 }
 
-// return date formatted for cookie, midnight
+// return date formatted for cookie, 100 years in the future
+// 100 years should be good enough to not expire
+// if it does end up expiring let me know
 // must be free'd
 char *str_expire_100_year() {
 	// malloc return string
@@ -105,7 +107,7 @@ char *str_expire_100_year() {
 	time_t time_next_day;
 	time(&time_next_day);
 
-	// advance 48 hours
+	// advance 100 years
 	time_next_day = time_next_day + ((time_t)2 * 24 * 60 * 60 * 365 * 100);
 
 	// convert to localtime

@@ -4,6 +4,12 @@ base64 encoding/decoding
 */
 
 #include <stdlib.h>
+#include "util_salloc.h"
+#include <string.h>
+
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
+#include <openssl/evp.h>
 
 /*
 encode function

@@ -324,7 +324,8 @@ bool http_client_info_cb(EV_P, void *cb_data, DB_result *res) {
 	size_t int_json_version_len = 0;
 	size_t int_json_user_len = 0;
 	size_t int_json_item_len = 0;
-	SDEFINE_VAR_ALL(str_json_item, str_user, str_json_user, str_version, str_json_version, str_groups);
+	size_t int_json_port_len = 0;
+	SDEFINE_VAR_ALL(str_json_item, str_user, str_json_user, str_version, str_json_version, str_groups, str_json_port);
 
 	SFINISH_CHECK(res != NULL, "DB_exec failed");
 	SFINISH_CHECK(res->status == DB_RES_TUPLES_OK, "DB_exec failed");
@@ -367,6 +368,9 @@ bool http_client_info_cb(EV_P, void *cb_data, DB_result *res) {
 	int_json_user_len = int_user_len;
 	SFINISH_CHECK((str_json_user = jsonify(str_user, &int_json_user_len)), "jsonify failed");
 
+	int_json_port_len = strlen(str_global_port);
+	SFINISH_CHECK((str_json_port = jsonify(str_global_port, &int_json_port_len)), "jsonify failed");
+
 	SFINISH_SNCAT(str_response, &int_response_len,
 		"{\"stat\": true, \"dat\": {\"username\": ", (size_t)35,
 		str_json_user, int_json_user_len,
@@ -377,7 +381,7 @@ bool http_client_info_cb(EV_P, void *cb_data, DB_result *res) {
 		", \"groups\": ", (size_t)12,
 		str_groups, int_groups_len,
 		", \"port\": ", (size_t)10,
-		str_global_port, strlen(str_global_port),
+		str_json_port, int_json_port_len,
 		", \"database_version\": ", (size_t)22,
 		str_json_version, int_json_version_len,
 		",\"envelope\": \"", (size_t)14,

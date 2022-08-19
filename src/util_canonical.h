@@ -70,4 +70,4 @@ No extra checks.
 
 A str_check_type of NULL will error. Use "valid_path" instead.
 */
-char *canonical(const char *str_file_base, char *_path, char *str_check_type);
+char *canonical(const char *str_file_base, char *str_path, char *str_check_type);
