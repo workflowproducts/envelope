@@ -1,4 +1,4 @@
-.PHONY: test test-ssl lldb lldb-ssl gdb gdb-ssl valgrind valgrind-ssl destroy check
+.PHONY: test test-ssl lldb lldb-ssl gdb gdb-ssl valgrind valgrind-ssl destroy check unit-test unit-test-valgrind
 
 all:
 	@$(MAKE) --no-print-directory -C src all
@@ -41,4 +41,10 @@ destroy:
 
 clean:
 	@$(MAKE) --no-print-directory -C src clean
+
+unit-test:
+	@$(MAKE) --no-print-directory -C src unit-test
+
+unit-test-valgrind:
+	@$(MAKE) --no-print-directory -C src unit-test-valgrind
 
