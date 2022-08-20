@@ -18,7 +18,7 @@ void unit_test_bstring(
 int main(int argc, char *argv[]) {
     if (argc && argv) {} //get rid of unused variable warning
 
-    // tests are locally scoped so I don't have to worry about variable names
+    // tests are locally scoped so I don't have to worry about duplicate variable names
 
     // BASE64 UNIT TESTS
 
@@ -361,6 +361,16 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_ciphertext);
     }
+
+
+    // JOSEPH TESTS ADDED BELOW
+    
+    // JOSEPH TESTS ADDED ABOVE
+
+    // JUSTIN TESTS ADDED BELOW
+
+    // JUSTIN TESTS ADDED ABOVE
+
 
 
     // Every time error is set, it gets free'd first. So we only need this once at the end
