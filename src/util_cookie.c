@@ -4,44 +4,6 @@
 // result must be free'd
 char *str_expire_one_day() {
 	time_t time_next_day;
-	struct tm *tm_next_day;
-	time_t return_time_t;
-	struct tm *tm_return_time;
-	
-	char *str_return;
-	SERROR_SALLOC(str_return, 50);
-	
-	// advance 24 hours
-	time(&time_next_day);
-	time_next_day = time_next_day + (24 * 60 * 60);
-	
-	// convert to localtime before setting to midnight, then back to gmt time
-	tm_next_day = localtime(&time_next_day);
-	
-	tm_next_day->tm_sec = 0;
-	tm_next_day->tm_min = 0;
-	tm_next_day->tm_hour = 0;
-	
-	return_time_t = mktime(tm_next_day);
-	
-	tm_return_time = gmtime(&return_time_t);
-	
-	// convert to string for return
-	strftime(str_return, 50, "%a, %d %b %Y %H:%M:%S GMT", tm_return_time);
-	
-	// HARK YE ONLOOKER: GOOGLE CHROME DOES NOT UNDERSTAND ANYTHING BUT GMT TIME
-	// ZONES! DO NOT USE OTHER TIME ZONES!
-	return str_return;
-	
-error:
-	SFREE(str_return);
-	return NULL;
-}
-
-// return date formatted for cookie, midnight
-// result must be free'd
-char *str_expire_two_day() {
-	time_t time_next_day;
 	struct tm tm_next_day_result;
 	struct tm *tm_next_day;
 	time_t return_time_t;
@@ -51,9 +13,9 @@ char *str_expire_two_day() {
 	char *str_return;
 	SERROR_SALLOC(str_return, 50);
 	
-	// advance 48 hours
+	// advance 24 hours
 	time(&time_next_day);
-	time_next_day = time_next_day + (2 * 24 * 60 * 60);
+	time_next_day = time_next_day + (24 * 60 * 60);
 	
 	// convert to localtime before setting to midnight, then back to gmt time
 	tm_next_day = &tm_next_day_result;
@@ -116,7 +78,6 @@ char *str_expire_100_year() {
 	
 	return_time_t = mktime(tm_next_day);
 	
-	// return to gmt time
 	tm_return_time = &tm_return_time_result;
 #ifdef _WIN32
 	gmtime_s(tm_return_time, &return_time_t);

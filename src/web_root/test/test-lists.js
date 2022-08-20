@@ -2604,6 +2604,15 @@ $.ajax('/env/auth', 'action=login&username=postgres&password=password', 'POST', 
         }
     });
     $.ajax('/env/action_info', '', 'GET', function (data) {
+		if (data.replace && data.indexOf('<!DOCTYPE html>') !== 0) {
+			data = data.replace('c:\\users\\nunzio\\repos\\envelope\\src\\', '');
+			data = data.replace(/c\:\\users\\nunzio\\repos\\envelope\\/gi, '../');
+			data = data.replace(/\.\.\\\.\.\\/gi, '../');
+			data = data.replace(/\\(?![rnt])/gi, '/');
+			data = data.replace(' (0x0000274D/10061)', '');
+			data = data.replace(/\.\.\/src\//gi, '');
+			data = data.replace('FATAL\nUser "doesntexist" does not exist.', 'FATAL\nConnect failed: FATAL:  password authentication failed for user "doesntexist"\n');
+		}
         for (var i = 0, len = $.tests.http_action.tests.length; i < len; i += 1) {
             if ($.tests.http_action.tests[i][0] === 'action_info') {
                 $.tests.http_action.tests[i][5] = data;

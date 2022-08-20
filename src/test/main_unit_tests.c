@@ -2,10 +2,13 @@
 #include <string.h>
 #include "../util_aes.h"
 #include "../util_base64.h"
+#include "../util_cookie.h"
 
 int int_global_success = 0;
 int int_global_fail = 0;
 
+
+void unit_test_length_greater(size_t int_provided, size_t int_expected, char *str_unit_test_name);
 void unit_test_string(char *str_result, char *str_expected, char *str_unit_test_name);
 void unit_test_bstring(
     char *str_result
@@ -17,11 +20,11 @@ void unit_test_bstring(
 
 int main(int argc, char *argv[]) {
     if (argc && argv) {} //get rid of unused variable warning
-
+    
     // tests are locally scoped so I don't have to worry about duplicate variable names
-
+    
     // BASE64 UNIT TESTS
-
+    
     // BASE64 TEST 1
     // encode then decode and check that it's the same
     // ascii text
@@ -30,16 +33,16 @@ int main(int argc, char *argv[]) {
         size_t int_ciphertext_len = strlen(str_plaintext);
         
         char *str_ciphertext = b64encode(str_plaintext, &int_ciphertext_len);
-
+        
         size_t int_result_plaintext_len = strlen(str_ciphertext);
         char *str_result_plaintext = b64decode(str_ciphertext, &int_result_plaintext_len);
-
+        
         unit_test_string(str_result_plaintext, str_plaintext, "BASE64 ENCODE AND DECODE ASCII");
-
+        
         SFREE(str_ciphertext);
         SFREE(str_result_plaintext);
     }
-
+    
     // BASE64 TEST 2
     // encrypt then decrypt and check that it's the same
     // null byte in string
@@ -47,10 +50,10 @@ int main(int argc, char *argv[]) {
         char *str_plaintext = "TE\0ST";
         size_t int_ciphertext_len = 6;
         char *str_ciphertext = b64encode(str_plaintext, &int_ciphertext_len);
-
+        
         size_t int_result_plaintext_len = strlen(str_ciphertext);
         char *str_result_plaintext = b64decode(str_ciphertext, &int_result_plaintext_len);
-
+        
         //don't test this, resulting plaintext is longer than original 5 characters
         /*
         unit_test_bstring(
@@ -69,11 +72,11 @@ int main(int argc, char *argv[]) {
             , 6
             , "BASE64 ENCODE AND DECODE BINARY STRING"
         );
-
+        
         SFREE(str_ciphertext);
         SFREE(str_result_plaintext);
     }
-
+    
     // BASE64 TEST 3
     // encrypt then decrypt and check that it's the same
     // utf8 text
@@ -81,16 +84,16 @@ int main(int argc, char *argv[]) {
         char *str_plaintext = "\xF0\x9F\xA6\x9E"; //unicode :lobster:
         size_t int_ciphertext_len = strlen(str_plaintext);
         char *str_ciphertext = b64encode(str_plaintext, &int_ciphertext_len);
-
+        
         size_t int_result_plaintext_len = strlen(str_ciphertext);
         char *str_result_plaintext = b64decode(str_ciphertext, &int_result_plaintext_len);
-
+        
         unit_test_string(str_result_plaintext, str_plaintext, "BASE64 ENCODE AND DECODE UNICODE LOBSTER");
-
+        
         SFREE(str_ciphertext);
         SFREE(str_result_plaintext);
     }
-
+    
     // BASE64 TEST 4
     // encrypt zero length string, return NULL
     {
@@ -107,7 +110,7 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_ciphertext);
     }
-
+    
     // BASE64 TEST 5
     // decrypt zero length string, return NULL
     {
@@ -124,7 +127,7 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_plaintext);
     }
-
+    
     // BASE64 TEST 6
     // encrypt null pointer, return NULL
     {
@@ -140,7 +143,7 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_plaintext);
     }
-
+    
     // BASE64 TEST 7
     // encrypt null length pointer, return NULL
     {
@@ -156,7 +159,7 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_ciphertext);
     }
-
+    
     // BASE64 TEST 8
     // encrypt null pointer, return NULL
     {
@@ -172,7 +175,7 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_plaintext);
     }
-
+    
     // BASE64 TEST 9
     // encrypt null length pointer, return NULL
     {
@@ -188,13 +191,13 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_ciphertext);
     }
-
-
+    
+    
     // AES UNIT TESTS
-
+    
     // set key and iv
     init_aes_key_iv();
-
+    
     // AES TEST 1
     // encrypt then decrypt and check that it's the same
     // ascii text
@@ -203,16 +206,16 @@ int main(int argc, char *argv[]) {
         size_t int_ciphertext_len = strlen(str_plaintext);
         
         char *str_ciphertext = aes_encrypt(str_plaintext, &int_ciphertext_len);
-
+        
         size_t int_result_plaintext_len = strlen(str_ciphertext);
         char *str_result_plaintext = aes_decrypt(str_ciphertext, &int_result_plaintext_len);
-
+        
         unit_test_string(str_result_plaintext, str_plaintext, "AES ENCRYPT AND DECRYPT ASCII");
-
+        
         SFREE(str_ciphertext);
         SFREE(str_result_plaintext);
     }
-
+    
     // AES TEST 2
     // encrypt then decrypt and check that it's the same
     // null byte in string
@@ -220,10 +223,10 @@ int main(int argc, char *argv[]) {
         char *str_plaintext = "TE\0ST";
         size_t int_ciphertext_len = 6;
         char *str_ciphertext = aes_encrypt(str_plaintext, &int_ciphertext_len);
-
+        
         size_t int_result_plaintext_len = strlen(str_ciphertext);
         char *str_result_plaintext = aes_decrypt(str_ciphertext, &int_result_plaintext_len);
-
+        
         //don't test this, resulting plaintext is longer than original 5 characters
         /*
         unit_test_bstring(
@@ -242,11 +245,11 @@ int main(int argc, char *argv[]) {
             , 6
             , "AES ENCRYPT AND DECRYPT BINARY STRING"
         );
-
+        
         SFREE(str_ciphertext);
         SFREE(str_result_plaintext);
     }
-
+    
     // AES TEST 3
     // encrypt then decrypt and check that it's the same
     // utf8 text
@@ -254,16 +257,16 @@ int main(int argc, char *argv[]) {
         char *str_plaintext = "\xF0\x9F\xA6\x9E"; //unicode :lobster:
         size_t int_ciphertext_len = strlen(str_plaintext);
         char *str_ciphertext = aes_encrypt(str_plaintext, &int_ciphertext_len);
-
+        
         size_t int_result_plaintext_len = strlen(str_ciphertext);
         char *str_result_plaintext = aes_decrypt(str_ciphertext, &int_result_plaintext_len);
-
+        
         unit_test_string(str_result_plaintext, str_plaintext, "AES ENCRYPT AND DECRYPT UNICODE LOBSTER");
-
+        
         SFREE(str_ciphertext);
         SFREE(str_result_plaintext);
     }
-
+    
     // AES TEST 4
     // encrypt zero length string, return NULL
     {
@@ -280,7 +283,7 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_ciphertext);
     }
-
+    
     // AES TEST 5
     // decrypt zero length string, return NULL
     {
@@ -297,7 +300,7 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_plaintext);
     }
-
+    
     // AES TEST 6
     // encrypt null pointer, return NULL
     {
@@ -313,7 +316,7 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_plaintext);
     }
-
+    
     // AES TEST 7
     // encrypt null length pointer, return NULL
     {
@@ -329,7 +332,7 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_ciphertext);
     }
-
+    
     // AES TEST 8
     // encrypt null pointer, return NULL
     {
@@ -345,7 +348,7 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_plaintext);
     }
-
+    
     // AES TEST 9
     // encrypt null length pointer, return NULL
     {
@@ -361,21 +364,44 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_ciphertext);
     }
-
-
+    
+    
     // JOSEPH TESTS ADDED BELOW
     
+    // COOKIE UNIT TESTS
+
+    // COOKIE TEST 1
+    // one day cookie
+    {
+        char *str_result = str_expire_one_day();
+        size_t int_result_length = strlen(str_result);
+        
+        unit_test_length_greater(int_result_length, 25, "COOKIE ONE DAY LENGTH");
+        
+        SFREE(str_result);
+    }
+    
+    // COOKIE TEST 2
+    // 100 year cookie
+    {
+        char *str_result = str_expire_100_year();
+        size_t int_result_length = strlen(str_result);
+        
+        unit_test_length_greater(int_result_length, 25, "COOKIE 100 YEAR LENGTH");
+        
+        SFREE(str_result);
+    }
     // JOSEPH TESTS ADDED ABOVE
-
+    
     // JUSTIN TESTS ADDED BELOW
-
+    
     // JUSTIN TESTS ADDED ABOVE
-
-
-
+    
+    
+    
     // Every time error is set, it gets free'd first. So we only need this once at the end
     SFREE(str_global_error);
-
+    
     // end of all tests
     printf(
         "\nSUCCEEDED: %d\nFAILED: %d\nTOTAL: %d\n"
@@ -387,8 +413,35 @@ int main(int argc, char *argv[]) {
     if (int_global_fail > 0) {
         return(1);
     }
-
+    
     return(0);
+}
+
+void unit_test_length_greater(size_t int_provided, size_t int_expected, char *str_unit_test_name) {
+    if (
+        (
+            int_provided > int_expected
+            && int_expected > 0
+        )
+    ) {
+        // then success
+        printf("SUCCEEDED: %s\n", str_unit_test_name);
+        
+        int_global_success++;
+    } else {
+        // else fail
+        printf("FAILED: %s\n", str_unit_test_name);
+        
+        if (int_expected <= 0) {
+            printf("    Expected must be greater than 0\n\n");
+        } else if (int_provided <= 0) {
+            printf("    Provided must be greater than 0\n\n");
+        } else {
+            printf("    Result: %d\n    Expected: %d\n\n", (int)int_provided, (int)int_expected);
+        }
+        
+        int_global_fail++;
+    }
 }
 
 void unit_test_string(char *str_result, char *str_expected, char *str_unit_test_name) {
@@ -406,10 +459,12 @@ void unit_test_string(char *str_result, char *str_expected, char *str_unit_test_
     ) {
         // then success
         printf("SUCCEEDED: %s\n", str_unit_test_name);
+        
         int_global_success++;
     } else {
         // else fail
         printf("FAILED: %s\n", str_unit_test_name);
+        
         if (str_expected == NULL) {
             printf("    Result: %s, Expected NULL pointer\n\n", str_result);
         } else if (str_result == NULL) {
@@ -417,6 +472,7 @@ void unit_test_string(char *str_result, char *str_expected, char *str_unit_test_
         } else {
             printf("    Result: %s\n    Expected: %s\n\n", str_result, str_expected);
         }
+        
         int_global_fail++;
     }
 }
@@ -443,10 +499,12 @@ void unit_test_bstring(
     ) {
         // then success
         printf("SUCCEEDED: %s\n", str_unit_test_name);
+        
         int_global_success++;
     } else {
         // else fail
         printf("FAILED: %s\n", str_unit_test_name);
+        
         if (str_expected == NULL) {
             printf("    Result: %s, Expected NULL pointer\n\n", str_result);
         } else if (str_result == NULL) {
@@ -460,6 +518,7 @@ void unit_test_bstring(
         } else {
             printf("    Result: %s\n    Expected: %s\n\n", str_result, str_expected);
         }
+        
         int_global_fail++;
     }
 }
