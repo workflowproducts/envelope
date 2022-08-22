@@ -167,6 +167,8 @@ char *hexencode(unsigned char *str_to_encode, size_t *ptr_int_len);
 // *bytes_out);
 
 char *_sncat(bool bol_free, size_t int_num_arg, size_t *ptr_int_len, ...);
+#define SNCAT(value, len_ptr, ...) value = _sncat(false, VA_NUM_ARGS(__VA_ARGS__), len_ptr, ##__VA_ARGS__)
+#define SNFCAT(value, len_ptr, ...) value = _sncat(true, VA_NUM_ARGS(__VA_ARGS__), len_ptr, ##__VA_ARGS__)
 #define SERROR_SNCAT(value, len_ptr, ...) SERROR_CHECK(value = _sncat(false, VA_NUM_ARGS(__VA_ARGS__), len_ptr, ##__VA_ARGS__), "sncat failed")
 #define SFINISH_SNCAT(value, len_ptr, ...) SFINISH_ERROR_CHECK(value = _sncat(false, VA_NUM_ARGS(__VA_ARGS__), len_ptr, ##__VA_ARGS__), "sncat failed")
 #define SERROR_SNFCAT(value, len_ptr, ...) SERROR_CHECK(value = _sncat(true, VA_NUM_ARGS(__VA_ARGS__) + 2, len_ptr, value, *len_ptr, ##__VA_ARGS__), "sncat failed")

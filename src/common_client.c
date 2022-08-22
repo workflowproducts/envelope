@@ -177,6 +177,21 @@ static void cnxn_reset_cb(EV_P, ev_io *w, int revents) {
 		case CONNECTION_NEEDED:
 			SDEBUG("CONNECTION_NEEDED");
 			break;
+		case CONNECTION_CHECK_WRITABLE:
+			SDEBUG("CONNECTION_CHECK_WRITABLE");
+			break;
+		case CONNECTION_CONSUME:
+			SDEBUG("CONNECTION_CONSUME");
+			break;
+		case CONNECTION_GSS_STARTUP:
+			SDEBUG("CONNECTION_GSS_STARTUP");
+			break;
+		case CONNECTION_CHECK_TARGET:
+			SDEBUG("CONNECTION_CHECK_TARGET");
+			break;
+		case CONNECTION_CHECK_STANDBY:
+			SDEBUG("CONNECTION_CHECK_STANDBY");
+			break;
 	}
 
 	if (status == PGRES_POLLING_OK) {
@@ -219,6 +234,7 @@ finish:
 		client_cnxn->parent->conn->int_status = -1;
 		SFREE(client_cnxn->parent->conn->str_response);
 		client_cnxn->parent->conn->str_response = strdup(str_response + 6);
+		client_cnxn->parent->conn->int_response_len = int_response_len - 6; //6 chars are the "FATAL\n"
 		SFREE(str_response);
 
 		struct sock_ev_client *client = client_cnxn->parent;
@@ -699,7 +715,7 @@ void client_cb(EV_P, ev_io *w, int revents) {
 				SDEBUG("str_response       : %s", str_response);
 				SDEBUG("client->str_request: %s", client->str_request);
 				// return handshake response
-				if (write(client->int_sock, str_response, int_response_len) < int_response_len) {
+				if (write(client->int_sock, str_response, int_response_len) < (ssize_t)int_response_len) {
 					SERROR_CLIENT_CLOSE(client);
 					SERROR("write() failed");
 				}
@@ -1855,9 +1871,9 @@ error:
 
 bool client_close(struct sock_ev_client *client) {
 	EV_P = global_loop;
-	struct sock_ev_client *other_client = NULL;
+	//struct sock_ev_client *other_client = NULL; //xld
 	struct sock_ev_client_message *client_message = NULL;
-	ListNode *client_node = NULL;
+	//ListNode *client_node = NULL; //xld
 	bool bol_authorized = false;
 
 	SDEBUG("Client %p closing", client);

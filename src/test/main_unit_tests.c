@@ -2,7 +2,10 @@
 #include <string.h>
 #include "../util_aes.h"
 #include "../util_base64.h"
+#include "../util_canonical.h"
 #include "../util_cookie.h"
+
+#include "../util_string.h"
 
 int int_global_success = 0;
 int int_global_fail = 0;
@@ -22,6 +25,10 @@ int main(int argc, char *argv[]) {
     if (argc && argv) {} //get rid of unused variable warning
     
     // tests are locally scoped so I don't have to worry about duplicate variable names
+    
+    // get current working directory for canonical tests later
+    char arr_char_cwd[1024];
+    getcwd(arr_char_cwd, sizeof(arr_char_cwd));
     
     // BASE64 UNIT TESTS
     
@@ -368,8 +375,340 @@ int main(int argc, char *argv[]) {
     
     // JOSEPH TESTS ADDED BELOW
     
+    // CANONICAL UNIT TESTS
+    
+    // CANONICAL TEST 1
+    // write_file
+    {
+        char *str_full_path;
+        size_t int_full_path_len;
+        
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test/test2/test.txt";
+        
+        // build str_full_path
+        SNCAT(
+            str_full_path, &int_full_path_len
+            , str_file_base, strlen(str_file_base)
+            , "/", (size_t)1
+            , str_path, strlen(str_path)
+        );
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "write_file");
+        
+        unit_test_string(str_valid_path, str_full_path, "CANONICAL TEST write_file AND mkdir -p");
+        
+        SFREE(str_valid_path);
+        SFREE(str_full_path);
+    }
+    
+    // CANONICAL TEST 2
+    // read_file
+    {
+        char *str_full_path;
+        size_t int_full_path_len;
+        
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test/test.txt";
+        
+        // build str_full_path
+        SNCAT(
+            str_full_path, &int_full_path_len
+            , str_file_base, strlen(str_file_base)
+            , "/", (size_t)1
+            , str_path, strlen(str_path)
+        );
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "read_file");
+        
+        unit_test_string(str_valid_path, str_full_path, "CANONICAL TEST read_file");
+        
+        SFREE(str_valid_path);
+        SFREE(str_full_path);
+    }
+    
+    // CANONICAL TEST 3
+    // read_file ERROR
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test/test_doesnt_exist.txt";
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "read_file");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST read_file ERROR");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 4
+    // read_file ERROR
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test";
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "read_file");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST read_file ERROR IS ACTUALLY DIRECTORY");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 5
+    // read_dir
+    {
+        char *str_full_path;
+        size_t int_full_path_len;
+        
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test";
+        
+        // build str_full_path
+        SNCAT(
+            str_full_path, &int_full_path_len
+            , str_file_base, strlen(str_file_base)
+            , "/", (size_t)1
+            , str_path, strlen(str_path)
+        );
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "read_dir");
+        
+        unit_test_string(str_valid_path, str_full_path, "CANONICAL TEST read_dir");
+        
+        SFREE(str_valid_path);
+        SFREE(str_full_path);
+    }
+    
+    // CANONICAL TEST 6
+    // read_dir ERROR
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test_doesnt_exist";
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "read_dir");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST read_dir ERROR");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 7
+    // read_dir ERROR
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test/test.txt";
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "read_dir");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST read_dir ERROR IS ACTUALLY FILE");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 8
+    // create_dir
+    {
+        char *str_full_path;
+        size_t int_full_path_len;
+        
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test/test";
+        
+        // build str_full_path
+        SNCAT(
+            str_full_path, &int_full_path_len
+            , str_file_base, strlen(str_file_base)
+            , "/", (size_t)1
+            , str_path, strlen(str_path)
+        );
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "create_dir");
+        
+        unit_test_string(str_valid_path, str_full_path, "CANONICAL TEST create_dir");
+        
+        SFREE(str_valid_path);
+        SFREE(str_full_path);
+    }
+    
+    // CANONICAL TEST 9
+    // create_dir
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test*";
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "create_dir");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST create_dir ERROR INVALID CHARS");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 10
+    // read_dir_or_file
+    {
+        char *str_full_path;
+        size_t int_full_path_len;
+        
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test/test.txt";
+        
+        // build str_full_path
+        SNCAT(
+            str_full_path, &int_full_path_len
+            , str_file_base, strlen(str_file_base)
+            , "/", (size_t)1
+            , str_path, strlen(str_path)
+        );
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "read_dir_or_file");
+        
+        unit_test_string(str_valid_path, str_full_path, "CANONICAL TEST read_dir_or_file");
+        
+        SFREE(str_valid_path);
+        SFREE(str_full_path);
+    }
+    
+    // CANONICAL TEST 11
+    // read_dir_or_file ERROR
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = ".git";
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "read_dir_or_file");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST read_dir_or_file ERROR .git NOT ALLOWED");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 12
+    // read_dir_or_file ERROR
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "--/test.txt";
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "read_dir_or_file");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST read_dir_or_file ERROR -- NOT ALLOWED");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 13
+    // read_dir_or_file ERROR
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test//test.txt";
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "read_dir_or_file");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST read_dir_or_file ERROR // NOT ALLOWED");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 14
+    // read_dir_or_file ERROR
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test\\\\test.txt";
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "read_dir_or_file");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST read_dir_or_file ERROR \\\\ NOT ALLOWED");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 15
+    // valid_path
+    {
+        char *str_full_path;
+        size_t int_full_path_len;
+        
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "";
+        
+        // build str_full_path
+        SNCAT(
+            str_full_path, &int_full_path_len
+            , str_file_base, strlen(str_file_base)
+            , "/", (size_t)1
+            , str_path, strlen(str_path)
+        );
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "valid_path");
+        
+        unit_test_string(str_valid_path, str_full_path, "CANONICAL TEST valid_path EMPTY STRING");
+        
+        SFREE(str_valid_path);
+        SFREE(str_full_path);
+    }
+    
+    // CANONICAL TEST 16
+    // no base path
+    {
+        char *str_path = "";
+        
+        char *str_valid_path = canonical(NULL, str_path, "valid_path");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST valid_path NO BASE PATH");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 17
+    // no path
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        
+        char *str_valid_path = canonical(str_file_base, NULL, "valid_path");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST valid_path NO PATH");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 18
+    // no type
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "";
+        
+        char *str_valid_path = canonical(str_file_base, str_path, NULL);
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST valid_path NO TYPE");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 19
+    // invalid type
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "";
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "test");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST INVALID TYPE NO PATH");
+        
+        SFREE(str_valid_path);
+    }
+    
+    // CANONICAL TEST 20
+    // invalid type
+    {
+        char *str_file_base = (char *)&arr_char_cwd;
+        char *str_path = "test/test.txt";
+        
+        char *str_valid_path = canonical(str_file_base, str_path, "test");
+        
+        unit_test_string(str_valid_path, NULL, "CANONICAL TEST INVALID TYPE");
+        
+        SFREE(str_valid_path);
+    }
+    
     // COOKIE UNIT TESTS
-
+    
     // COOKIE TEST 1
     // one day cookie
     {

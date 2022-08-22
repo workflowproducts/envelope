@@ -102,6 +102,7 @@ endif
 
 unit-test: $(unit_test_BINARY)
 	@echo
+	@rmdir test/test || echo
 	@echo "Running Tests"
 	@echo
 	@$(unit_test_BINARY)
@@ -109,6 +110,7 @@ unit-test: $(unit_test_BINARY)
 
 unit-test-valgrind: $(unit_test_BINARY)
 	@echo
+	@rmdir test/test || echo
 	@echo "Running Tests"
 	@echo
 	@valgrind --leak-check=full --track-fds=yes --track-origins=yes --show-reachable=yes --suppressions=../valgrind/mac_suppressions.txt --num-callers=100 $(unit_test_BINARY)
