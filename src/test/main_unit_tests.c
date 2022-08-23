@@ -4,6 +4,7 @@
 #include "../util_base64.h"
 #include "../util_canonical.h"
 #include "../util_cookie.h"
+#include "../util_darray.h"
 
 #include "../util_string.h"
 
@@ -11,6 +12,8 @@ int int_global_success = 0;
 int int_global_fail = 0;
 
 
+void unit_test_boolean(bool bol_provided, char *str_unit_test_name);
+void unit_test_length_exact(size_t int_provided, size_t int_expected, char *str_unit_test_name);
 void unit_test_length_greater(size_t int_provided, size_t int_expected, char *str_unit_test_name);
 void unit_test_string(char *str_result, char *str_expected, char *str_unit_test_name);
 void unit_test_bstring(
@@ -730,6 +733,102 @@ int main(int argc, char *argv[]) {
         
         SFREE(str_result);
     }
+    
+    // DARRAY UNIT TESTS
+    
+    // DARRAY TEST 1
+    // unallocated elements
+    {
+        size_t int_size;
+        char *str_test;
+        DArray *darr_result = DArray_create(sizeof(char *), 1);
+        unit_test_boolean(darr_result != NULL, "DARRAY CREATE");
+        
+        int_size = DArray_push(darr_result, "test1");
+        unit_test_length_exact(int_size, 1, "DARRAY PUSH 1");
+        unit_test_string(DArray_get(darr_result, 0), "test1", "DARRAY GET");
+        unit_test_length_exact(DArray_end(darr_result), 1, "DARRAY LENGTH 1");
+        unit_test_length_exact(DArray_count(darr_result), 1, "DARRAY LENGTH 2");
+        unit_test_length_exact(DArray_max(darr_result), DEFAULT_EXPAND_RATE + 1, "DARRAY LENGTH 3");
+        
+        int_size = DArray_push(darr_result, "test2");
+        unit_test_length_exact(int_size, 2, "DARRAY PUSH 2");
+        unit_test_string(DArray_get(darr_result, 1), "test2", "DARRAY GET");
+        unit_test_string(DArray_first(darr_result), "test1", "DARRAY FIRST");
+        unit_test_string(DArray_last(darr_result), "test2", "DARRAY LAST");
+        
+        str_test = DArray_pop(darr_result);
+        unit_test_string(str_test, "test2", "DARRAY POP");
+        
+        DArray_destroy(darr_result);
+        unit_test_boolean(darr_result == NULL, "DARRAY DESTROY");
+    }
+    
+    // DARRAY TEST 2
+    // allocated elements
+    {
+        size_t int_size;
+        char *str_test;
+        size_t int_test_length;
+        DArray *darr_result = DArray_create(sizeof(char *), 2);
+        unit_test_boolean(darr_result != NULL, "DARRAY CREATE");
+        
+        SNCAT(
+            str_test, &int_test_length
+            , "test1", 6
+        );
+        
+        int_size = DArray_push(darr_result, str_test);
+        str_test = NULL;
+        
+        unit_test_length_exact(int_size, 1, "DARRAY PUSH 1");
+        unit_test_string(DArray_get(darr_result, 0), "test1", "DARRAY GET");
+        
+        SNCAT(
+            str_test, &int_test_length
+            , "test2", 6
+        );
+        
+        int_size = DArray_push(darr_result, str_test);
+        str_test = NULL;
+        
+        unit_test_length_exact(int_size, 2, "DARRAY PUSH 2");
+        unit_test_string(DArray_get(darr_result, 1), "test2", "DARRAY GET");
+        
+        str_test = DArray_pop(darr_result);
+        unit_test_string(str_test, "test2", "DARRAY POP");
+        SFREE(str_test);
+        
+        DArray_clear_destroy(darr_result);
+        unit_test_boolean(darr_result == NULL, "DARRAY DESTROY");
+    }
+    
+    // DARRAY TEST 3
+    // invalid arguments
+    {
+        DArray *darr_result;
+        
+        darr_result = DArray_create(0, 2);
+        unit_test_boolean(darr_result == NULL, "DARRAY CREATE FAIL");
+        
+        darr_result = DArray_create(sizeof(char *), 0);
+        unit_test_boolean(darr_result == NULL, "DARRAY CREATE FAIL");
+        
+        darr_result = DArray_create(0, 0);
+        unit_test_boolean(darr_result == NULL, "DARRAY CREATE FAIL");
+        
+        darr_result = DArray_create(sizeof(char *), 2);
+        unit_test_boolean(darr_result != NULL, "DARRAY CREATE");
+        unit_test_boolean(DArray_clear(darr_result), "DARRAY CLEAR");
+        
+        unit_test_boolean(! DArray_clear(NULL), "DARRAY CLEAR FAIL");
+        
+        DArray_destroy(darr_result);
+        
+        //DArray_clear(NULL);
+        //unit_test_boolean(darr_result == NULL, "DARRAY CLEAR FAIL");
+    }
+    
     // JOSEPH TESTS ADDED ABOVE
     
     // JUSTIN TESTS ADDED BELOW
@@ -754,6 +853,48 @@ int main(int argc, char *argv[]) {
     }
     
     return(0);
+}
+
+void unit_test_boolean(bool bol_provided, char *str_unit_test_name) {
+    if (bol_provided) {
+        // then success
+        printf("SUCCEEDED: %s\n", str_unit_test_name);
+        
+        int_global_success++;
+    } else {
+        // else fail
+        printf("FAILED: %s\n", str_unit_test_name);
+        printf("    Boolean Test Failed\n\n");
+        
+        int_global_fail++;
+    }
+}
+
+void unit_test_length_exact(size_t int_provided, size_t int_expected, char *str_unit_test_name) {
+    if (
+        (
+            int_provided == int_expected
+            && int_expected > 0
+        )
+    ) {
+        // then success
+        printf("SUCCEEDED: %s\n", str_unit_test_name);
+        
+        int_global_success++;
+    } else {
+        // else fail
+        printf("FAILED: %s\n", str_unit_test_name);
+        
+        if (int_expected <= 0) {
+            printf("    Expected must be greater than 0\n\n");
+        } else if (int_provided <= 0) {
+            printf("    Provided must be greater than 0\n\n");
+        } else {
+            printf("    Result: %d\n    Expected: %d\n\n", (int)int_provided, (int)int_expected);
+        }
+        
+        int_global_fail++;
+    }
 }
 
 void unit_test_length_greater(size_t int_provided, size_t int_expected, char *str_unit_test_name) {
