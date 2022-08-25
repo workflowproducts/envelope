@@ -15,7 +15,7 @@ DArray *DArray_create(size_t int_element_size, size_t int_initial_max) {
 	arr_return->end = 0;
 	arr_return->max = int_initial_max;
 	arr_return->element_size = int_element_size;
-	arr_return->expand_rate = DEFAULT_EXPAND_RATE;
+	arr_return->expand_rate = DARRAY_DEFAULT_EXPAND_RATE;
 	
 	return arr_return;
 error:
@@ -23,10 +23,26 @@ error:
 	return NULL;
 }
 
-bool DArray_clear(DArray *darr_input) {
-	SDEBUG("DArray_clear(%p)", darr_input);
+void *DArray_new(DArray *darr_input) {
+	void *vod_ptr = NULL;
 	
-	SERROR_CHECK(darr_input, "darr_input must not be NULL");
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
+	
+	SERROR_CHECK(darr_input->element_size > 0, "Can't use DArray_new on 0 size darrays.");
+	
+	SERROR_SALLOC(vod_ptr, darr_input->element_size);
+	
+	return vod_ptr;
+error:
+	SFREE(vod_ptr);
+	
+	return NULL;
+}
+
+bool DArray_clear(DArray *darr_input) {
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
+	
+	SDEBUG("DArray_clear(%p)", darr_input);
 	
 	size_t i = 0;
 	if (darr_input->element_size > 0) {
@@ -42,6 +58,8 @@ error:
 }
 
 static inline bool DArray_resize(DArray *darr_input, size_t int_newsize) {
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
+	
 	SERROR_CHECK(int_newsize > 0, "The newsize must be > 0.");
 	
 	darr_input->max = int_newsize;
@@ -56,6 +74,8 @@ error:
 // When array is too small, instead of increasing by one we increase by DArray->expand_rate
 // that way we're not reallocating for every item
 static inline bool DArray_expand(DArray *darr_input) {
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
+	
 	size_t old_max = darr_input->max;
 	
 	SERROR_CHECK(DArray_resize(darr_input, darr_input->max + darr_input->expand_rate), "DArray_resize failed.");
@@ -70,6 +90,8 @@ error:
 
 // when array is too large, be resize to a multiple of DArray->expand_rate
 static inline bool DArray_contract(DArray *darr_input) {
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
+	
 	size_t new_size = darr_input->end < (size_t)darr_input->expand_rate ? (size_t)darr_input->expand_rate : darr_input->end;
 	
 	SERROR_CHECK(DArray_resize(darr_input, new_size + 1), "DArray_resize failed.");
@@ -79,7 +101,9 @@ error:
 	return false;
 }
 
-void _DArray_destroy(DArray *darr_input) {
+bool _DArray_destroy(DArray *darr_input) {
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
+	
 	SDEBUG("DArray_destroy(%p)", darr_input);
 	
 	if (darr_input) {
@@ -87,17 +111,32 @@ void _DArray_destroy(DArray *darr_input) {
 	}
 	
 	SFREE(darr_input);
+	
+	return true;
+error:
+	return false;
 }
 
-void _DArray_clear_destroy(DArray *darr_input) {
+bool _DArray_clear_destroy(DArray *darr_input) {
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
+	
 	SDEBUG("DArray_clear_destroy(%p)", darr_input);
 	
 	DArray_clear(darr_input);
 	
 	DArray_destroy(darr_input);
+	
+	return true;
+error:
+	return false;
 }
 
-size_t DArray_push(DArray *darr_input, void *el) {
+bool DArray_push(DArray *darr_input, void *el) {
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
+	
+	// do not uncomment, sometimes we want to add a NULL element to the array
+	// SERROR_CHECK(el != NULL, "el must not be NULL");
+	
 	darr_input->contents[darr_input->end] = el;
 	
 	darr_input->end++;
@@ -106,10 +145,14 @@ size_t DArray_push(DArray *darr_input, void *el) {
 		DArray_expand(darr_input);
 	}
 	
-	return darr_input->end;
+	return true;
+error:
+	return false;
 }
 
 void *DArray_pop(DArray *darr_input) {
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
+	
 	SERROR_CHECK((ssize_t)darr_input->end - 1 >= 0, "Attempt to pop from empty array.");
 	
 	void *el = DArray_remove(darr_input, darr_input->end - 1);
@@ -126,21 +169,32 @@ error:
 
 // used for sorting, not for equating
 // can be provided to the function below if your darray is a string array
-int darray_strcmp(char **a, char **b) {
-	return strncmp(*a, *b, strlen(*a));
+int darray_strcmp(char *a, char *b) {
+	return strncmp(a, b, strlen(a));
 }
 
 // if you provide a function, you can sort the darray
-void DArray_qsort(DArray *darr_input, DArray_compare func_cmp) {
+bool DArray_qsort(DArray *darr_input, DArray_compare func_cmp) {
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
+	SERROR_CHECK(func_cmp != NULL, "func_cmp must not be NULL");
+	
 	qsort(darr_input->contents, DArray_count(darr_input), sizeof(void *), func_cmp);
+	
+	return true;
+error:
+	return false;
 }
 
 // You must Darray_clear_destroy what this returns (unless it fails)
 DArray *split_cstr(char *str_input_to_split, const char *str_input_delimiter) {
+	char *str_to_split = NULL;
+	
+	SERROR_CHECK(str_input_to_split != NULL, "str_input_to_split must not be NULL");
+	SERROR_CHECK(str_input_delimiter != NULL, "str_input_delimiter must not be NULL");
+	
 	DArray *darr_ret = DArray_create(sizeof(char *), 1);
 	
-	char *str_to_split = NULL;
-	char *ptr_start = NULL;
+	char *ptr_current = NULL;
 	char *ptr_end = NULL;
 	char *ptr_delim_pos = NULL;
 	char *str_temp = NULL;
@@ -153,37 +207,49 @@ DArray *split_cstr(char *str_input_to_split, const char *str_input_delimiter) {
 		str_to_split, &int_len,
 		str_input_to_split, strlen(str_input_to_split)
 	);
-	ptr_start = str_to_split;
+	ptr_current = str_to_split;
 	
-	size_t int_length = strlen(str_to_split);
+	size_t int_length = strlen(ptr_current);
 	size_t int_delim_length = strlen(str_input_delimiter);
-	ptr_end = str_to_split + int_length;
+	ptr_end = ptr_current + int_length;
 	
-	while (str_to_split < ptr_end) {
-		ptr_delim_pos = strstr(str_to_split, str_input_delimiter);
+	while (ptr_current < ptr_end) {
+		//printf("test1>%s<\n", ptr_current);
+		
+		ptr_delim_pos = strstr(ptr_current, str_input_delimiter);
 		if (ptr_delim_pos == NULL) {
 			ptr_delim_pos = ptr_end;
 		}
 		*ptr_delim_pos = '\0';
+		//printf("test2>%s<\n", ptr_current);
 		
-		SERROR_SNCAT(str_temp, &int_temp_len,
-			str_to_split, int_len);
+		SERROR_SNCAT(
+			str_temp, &int_temp_len,
+			ptr_current, strlen(ptr_current)
+		);
+		//printf("test3>%s<\n", str_temp);
+		
 		DArray_push(darr_ret, str_temp);
 		str_temp = NULL;
 		
-		str_to_split = ptr_delim_pos + int_delim_length;
+		ptr_current = ptr_delim_pos + int_delim_length;
 	}
 	
-	SFREE(ptr_start);
+	SFREE(str_to_split);
 	
 	return darr_ret;
 error:
-	SFREE(ptr_start);
+	SFREE(str_to_split);
 	
 	return NULL;
 }
 
 bool DArray_set(DArray *darr_input, size_t i, void *el) {
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
+	
+	// do not uncomment, sometimes we want to add a NULL element to the array
+	// SERROR_CHECK(el != NULL, "el must not be NULL");
+	
 	SERROR_CHECK(i < darr_input->max, "darray attempt to set past max.");
 	
 	darr_input->contents[i] = el;
@@ -194,6 +260,7 @@ error:
 }
 
 void *DArray_get(DArray *darr_input, size_t i) {
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
 	// we're having a "darray attempt to get past max" error occasionally.
 	// all I know right now is it doesn't happen much under make test, but
 	// seems to happen more frequently when run from an install location.
@@ -203,29 +270,21 @@ void *DArray_get(DArray *darr_input, size_t i) {
 	
 	return darr_input->contents[i];
 error:
-	printf("i: %zu, darr_input->max %zu\n", i, darr_input->max);
+	//printf("i: %zu, darr_input->max %zu\n", i, darr_input->max);
 	
 	return NULL;
 }
 
 void *DArray_remove(DArray *darr_input, size_t i) {
+	SERROR_CHECK(darr_input != NULL, "darr_input must not be NULL");
+	SERROR_CHECK(i < darr_input->max, "darray attempt to get past max.");
+	
 	void *el = darr_input->contents[i];
 	
 	darr_input->contents[i] = NULL;
 	
 	return el;
-}
-
-void *DArray_new(DArray *darr_input) {
-	void *vod_ptr = NULL;
-	
-	SERROR_CHECK(darr_input->element_size > 0, "Can't use DArray_new on 0 size darrays.");
-	
-	SERROR_SALLOC(vod_ptr, darr_input->element_size);
-	
-	return vod_ptr;
 error:
-	SFREE(vod_ptr);
 	return NULL;
 }
 
