@@ -112,13 +112,16 @@ bool http_action_step2(EV_P, void *cb_data, DB_result *res) {
 	SFREE(_str_response);
 	SDEBUG("str_response: %s", str_response);
 
-    SFINISH_CHECK(build_http_response(
+    SFINISH_CHECK(
+		build_http_response(
             "200 OK"
             , str_response, int_response_len
             , "application/json"
             , NULL
             , &client->str_http_response, &client->int_http_response_len
-        ), "build_http_response failed");
+        )
+		, "build_http_response failed"
+	);
 
 	bol_error_state = false;
 finish:

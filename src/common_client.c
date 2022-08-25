@@ -2004,7 +2004,7 @@ void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 				ev_io_start(EV_A, &client->io);
 			} else {
 				SFREE(err);
-				SERROR_CHECK_NORESPONSE(DB_exec(EV_A, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
+				SERROR_NORESPONSE_CHECK(DB_exec(EV_A, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
 			}
 		} else {
 			SDEBUG("BEFORE client_close_immediate(%p)", client);
@@ -2013,7 +2013,7 @@ void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 		}
 #else
 		if (client->bol_public == false && bol_global_set_user == true) {
-			SERROR_CHECK_NORESPONSE(DB_exec(EV_A, client->conn, client, "REVERT;", client_close_close_cnxn_cb), "DB_exec failed to revert session authorization");
+			SERROR_NORESPONSE_CHECK(DB_exec(EV_A, client->conn, client, "REVERT;", client_close_close_cnxn_cb), "DB_exec failed to revert session authorization");
 		} else {
 			SDEBUG("BEFORE client_close_immediate(%p)", client);
 			client_close_immediate(client);
@@ -2034,7 +2034,7 @@ void client_close_cancel_query_cb(EV_P, ev_io *w, int revents) {
 	if (int_status != 1) {
 		SERROR_NORESPONSE("PQconsumeInput failed %s", PQerrorMessage(client->cnxn));
 		ev_io_stop(EV_A, w);
-		SERROR_CHECK_NORESPONSE(DB_exec(EV_A, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
+		SERROR_NORESPONSE_CHECK(DB_exec(EV_A, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
 		return;
 	}
 
@@ -2052,7 +2052,7 @@ void client_close_cancel_query_cb(EV_P, ev_io *w, int revents) {
 			res = PQgetResult(client->cnxn);
 		}
 		SFREE(buffer_ptr_ptr);
-		SERROR_CHECK_NORESPONSE(DB_exec(EV_A, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
+		SERROR_NORESPONSE_CHECK(DB_exec(EV_A, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
 	}
 }
 #endif

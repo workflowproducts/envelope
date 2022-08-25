@@ -8,6 +8,7 @@
 
 #include "../util_string.h"
 #include "../util_salloc.h"
+#include "unit_test_error.h"
 
 int int_global_success = 0;
 int int_global_fail = 0;
@@ -779,7 +780,6 @@ int main(int argc, char *argv[]) {
         
         DArray_clear_destroy(darr_result);
         unit_test_boolean(darr_result == NULL, "DARRAY CLEAR AND DESTROY");
-        
     }
     
     // DARRAY TEST 2
@@ -840,7 +840,7 @@ int main(int argc, char *argv[]) {
     }
     
     // DARRAY TEST 3
-    // invalid arguments
+    // invalid arguments and misc functions
     {
         DArray *darr_result;
         bool bol_result;
@@ -898,11 +898,184 @@ int main(int argc, char *argv[]) {
         unit_test_boolean(! split_cstr(NULL, "test1"), "DARRAY SPLIT_CSTR FAIL");
         unit_test_boolean(! split_cstr("test1", NULL), "DARRAY SPLIT_CSTR FAIL");
         unit_test_boolean(! split_cstr(NULL, NULL), "DARRAY SPLIT_CSTR FAIL");
-        
-        
-        //DArray_clear(NULL);
-        //unit_test_boolean(darr_result == NULL, "DARRAY CLEAR FAIL");
     }
+    
+    // TODO: error checks
+    
+    // ERROR UNIT TESTS
+    
+    // result of functions
+    bool bol_error;
+    char *str_response;
+    
+    // global error state functions
+    bol_error_state = false;
+    SFREE(str_global_error);
+    
+    // ERROR TEST 1
+    bol_error = unit_test_error_1();
+    unit_test_boolean(! bol_error, "ERROR SERROR RETURN");
+    unit_test_boolean(bol_error_state, "ERROR SERROR STATE");
+    unit_test_string(str_global_error, "test/unit_test_error.c:unit_test_error_1: test1\n", "ERROR SERROR MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    
+    // ERROR TEST 2
+    bol_error = unit_test_error_2();
+    unit_test_boolean(bol_error, "ERROR SERROR_CHECK TRUE CONDITION RETURN");
+    unit_test_boolean(! bol_error_state, "ERROR SERROR_CHECK TRUE CONDITION STATE");
+    unit_test_string(str_global_error, NULL, "ERROR SERROR_CHECK TRUE CONDITION MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    
+    // ERROR TEST 3
+    bol_error = unit_test_error_3();
+    unit_test_boolean(! bol_error, "ERROR SERROR_CHECK FALSE CONDITION RETURN");
+    unit_test_boolean(bol_error_state, "ERROR SERROR_CHECK FALSE CONDITION STATE");
+    unit_test_string(str_global_error, "test/unit_test_error.c:unit_test_error_3: test3\n", "ERROR SERROR_CHECK FALSE CONDITION MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    
+    // ERROR TEST 4
+    bol_error = unit_test_error_4();
+    unit_test_boolean(! bol_error, "ERROR SWARN RETURN");
+    unit_test_boolean(! bol_error_state, "ERROR SWARN STATE");
+    unit_test_string(str_global_error, "test/unit_test_error.c:unit_test_error_4: test4\n", "ERROR SWARN MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    
+    // ERROR TEST 5
+    bol_error = unit_test_error_5();
+    unit_test_boolean(bol_error, "ERROR SWARN_CHECK TRUE CONDITION RETURN");
+    unit_test_boolean(! bol_error_state, "ERROR SWARN_CHECK TRUE CONDITION STATE");
+    unit_test_string(str_global_error, NULL, "ERROR SWARN_CHECK TRUE CONDITION MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    
+    // ERROR TEST 6
+    bol_error = unit_test_error_6();
+    unit_test_boolean(! bol_error, "ERROR SWARN_CHECK FALSE CONDITION RETURN");
+    unit_test_boolean(! bol_error_state, "ERROR SWARN_CHECK FALSE CONDITION STATE");
+    unit_test_string(str_global_error, "test/unit_test_error.c:unit_test_error_6: test6\n", "ERROR SWARN_CHECK FALSE CONDITION MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    
+    // ERROR TEST 7
+    bol_error = unit_test_error_7();
+    unit_test_boolean(bol_error, "ERROR SERROR_NORESPONSE RETURN");
+    unit_test_boolean(! bol_error_state, "ERROR SERROR_NORESPONSE STATE");
+    unit_test_string(str_global_error, "test/unit_test_error.c:unit_test_error_7: test7\n", "ERROR SERROR_NORESPONSE MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    
+    // ERROR TEST 8
+    bol_error = unit_test_error_8();
+    unit_test_boolean(bol_error, "ERROR SERROR_NORESPONSE_CHECK TRUE CONDITION RETURN");
+    unit_test_boolean(! bol_error_state, "ERROR SERROR_NORESPONSE_CHECK TRUE CONDITION STATE");
+    unit_test_string(str_global_error, NULL, "ERROR SERROR_NORESPONSE TRUE CONDITION MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    
+    // ERROR TEST 9
+    bol_error = unit_test_error_9();
+    unit_test_boolean(bol_error, "ERROR SERROR_NORESPONSE_CHECK FALSE CONDITION RETURN");
+    unit_test_boolean(! bol_error_state, "ERROR SERROR_NORESPONSE_CHECK FALSE CONDITION STATE");
+    unit_test_string(str_global_error, "test/unit_test_error.c:unit_test_error_9: test9\n", "ERROR SERROR_NORESPONSE FALSE CONDITION MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    
+    // ERROR FINISH 1
+    str_response = unit_test_finish_1();
+    unit_test_string(str_response, "FATAL\ntest1", "ERROR SFINISH RETURN");
+    unit_test_boolean(bol_error_state, "ERROR SFINISH STATE");
+    unit_test_string(str_global_error, NULL, "ERROR SFINISH MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    SFREE(str_response);
+    
+    // ERROR FINISH 2
+    str_response = unit_test_finish_2();
+    unit_test_string(str_response, "test2_success", "ERROR SFINISH_CHECK TRUE CONDITION RETURN");
+    unit_test_boolean(! bol_error_state, "ERROR SFINISH_CHECK TRUE CONDITION STATE");
+    unit_test_string(str_global_error, NULL, "ERROR SFINISH_CHECK TRUE CONDITION MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    SFREE(str_response);
+    
+    // ERROR FINISH 3
+    str_response = unit_test_finish_3();
+    unit_test_string(str_response, "FATAL\ntest3", "ERROR SFINISH_CHECK FALSE CONDITION RETURN");
+    unit_test_boolean(bol_error_state, "ERROR SFINISH_CHECK FALSE CONDITION STATE");
+    unit_test_string(str_global_error, NULL, "ERROR SFINISH_CHECK FALSE CONDITION MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    SFREE(str_response);
+    
+    // ERROR FINISH 4
+    str_response = unit_test_finish_4();
+    unit_test_string(str_response, "FATAL\ntest4", "ERROR SFINISH_ERROR RETURN");
+    unit_test_boolean(bol_error_state, "ERROR SFINISH_ERROR STATE");
+    unit_test_string(str_global_error, NULL, "ERROR SFINISH_ERROR MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    SFREE(str_response);
+    
+    // ERROR FINISH 5
+    str_response = unit_test_finish_5();
+    unit_test_string(str_response, "test5_success", "ERROR SFINISH_ERROR_CHECK TRUE CONDITION RETURN");
+    unit_test_boolean(! bol_error_state, "ERROR SFINISH_ERROR_CHECK TRUE CONDITION STATE");
+    unit_test_string(str_global_error, NULL, "ERROR SFINISH_ERROR_CHECK TRUE CONDITION MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    SFREE(str_response);
+    
+    // ERROR FINISH 6
+    str_response = unit_test_finish_6();
+    unit_test_string(str_response, "FATAL\ntest6", "ERROR SFINISH_ERROR_CHECK FALSE CONDITION RETURN");
+    unit_test_boolean(bol_error_state, "ERROR SFINISH_ERROR_CHECK FALSE CONDITION STATE");
+    unit_test_string(str_global_error, NULL, "ERROR SFINISH_ERROR_CHECK FALSE CONDITION MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    SFREE(str_response);
+    
+    // ERROR DEBUG 1
+    unit_test_debug_1();
+    unit_test_boolean(! bol_error_state, "ERROR SNOTICE STATE");
+    unit_test_string(str_global_error, NULL, "ERROR SNOTICE MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    
+    // ERROR DEBUG 2
+    unit_test_debug_2();
+    unit_test_boolean(! bol_error_state, "ERROR SINFO STATE");
+    unit_test_string(str_global_error, NULL, "ERROR SINFO MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
+    
+    // ERROR DEBUG 3
+    unit_test_debug_3();
+    unit_test_boolean(! bol_error_state, "ERROR SDEBUG STATE");
+    unit_test_string(str_global_error, NULL, "ERROR SDEBUG MESSAGE");
+    
+    bol_error_state = false;
+    SFREE(str_global_error);
     
     // JOSEPH TESTS ADDED ABOVE
     

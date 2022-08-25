@@ -5,7 +5,8 @@ char *str_global_logfile = NULL;
 char *str_global_error = NULL;
 
 void sunlogf_root(
-	char *str_file, int int_line_no, char *str_function, int int_error_level, const char *str_format, va_list va_arg1);
+	char *str_file, int int_line_no, char *str_function, int int_error_level, const char *str_format, va_list va_arg1
+);
 
 void info_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...) {
 	va_list va_arg1;
@@ -171,7 +172,7 @@ char *error_response_root(char *str_file, int int_line_no, char *str_function, c
 		SFREE(str_global_error);
 	}
 	SFREE(str_temp);
-	SERROR_CHECK(str_response, "SNFCAT FAILED");
+	SERROR_CHECK(str_response, "SNCAT FAILED");
 
 	SDEBUG("str_file >%s<", str_file);
 	SDEBUG("int_line_no >%d<", int_line_no);
@@ -253,12 +254,12 @@ void sunlogf_root(
 
 	time(&tim_rawtime);
 #ifdef _WIN32
-	SERROR_CHECK_NORESPONSE(localtime_s(&tm_timeinfo, &tim_rawtime) == 0, "localtime_s %d (%s)", errno, strerror(errno));
+	SERROR_NORESPONSE_CHECK(localtime_s(&tm_timeinfo, &tim_rawtime) == 0, "localtime_s %d (%s)", errno, strerror(errno));
 #else
-	SERROR_CHECK_NORESPONSE(localtime_r(&tim_rawtime, &tm_timeinfo) != NULL, "localtime_r %d (%s)", errno, strerror(errno));
+	SERROR_NORESPONSE_CHECK(localtime_r(&tim_rawtime, &tm_timeinfo) != NULL, "localtime_r %d (%s)", errno, strerror(errno));
 #endif
 	char str_current_time[256] = {0};
-	SERROR_CHECK_NORESPONSE(strftime(str_current_time, 255, str_date_format, &tm_timeinfo) != 0, "strftime() failed");
+	SERROR_NORESPONSE_CHECK(strftime(str_current_time, 255, str_date_format, &tm_timeinfo) != 0, "strftime() failed");
 
 	// str_pid format
 	char str_pid[256] = { 0 };
