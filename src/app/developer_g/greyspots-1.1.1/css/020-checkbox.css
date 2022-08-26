@@ -9,11 +9,11 @@ gs-checkbox {
     /*min-height: 1.2em;*/
 }
 
-gs-checkbox[readonly] {
+/*gs-checkbox[readonly] {
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
-}
+}*/
 
 
 

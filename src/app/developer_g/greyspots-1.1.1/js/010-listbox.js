@@ -146,9 +146,16 @@ document.addEventListener('DOMContentLoaded', function () {
             // #######################################################################################################################
             // #######################################################################################################################
             // #######################################################################################################################
-            // if (arrTrs[0].children[0].nodeName.toUpperCase() === 'TH') {
-            //     arrTrs.splice(0,1);
-            // }
+            // uncommented on 2022-02-02 by Nunzio
+            // FTA was having an issue on a search screen that uses a Listbox
+            // allegedly this was made redundant by using a thead, but it seems to still be necessary
+            // looking at the page in question, there is a thead, but the first row of the tbody
+            // still has the headers
+            if (arrTrs[0]
+                && arrTrs[0].children[0]
+                && arrTrs[0].children[0].nodeName.toUpperCase() === 'TH') {
+                arrTrs.splice(0,1);
+            }
             // search exact text and search both the value attribute (if present) and the first td text
             i = 0;
             len = arrTrs.length;
@@ -528,6 +535,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 //highlightRecord(element, record);
                 element.triggerChange();
+            } else if (!record && handle === '\\N') {
+                element.setAttribute('value', '\\N');
+                
             }
 
             if (element.originTR) {
@@ -551,13 +561,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // handle behaviours on keydown
     function handleKeyDown(event) {
-        var element = event.target.parentNode;
+        var element = event.target;
         var intKeyCode = event.keyCode || event.which;
         var selectedTr;
         var trs;
         var i;
         var len;
         var selectedRecordIndex;
+
+        if (element.tagName.toUpperCase() !== 'GS-LISTBOX') {
+            element = GS.findParentTag(event.target, 'gs-listbox');
+        }
 
         if (!element.hasAttribute('disabled')) {
             if (!element.hasAttribute('no-select')) {
@@ -672,6 +686,12 @@ document.addEventListener('DOMContentLoaded', function () {
         var response_i = 0;
         var response_len = 0;
         var arrTotalRecords = [];
+
+        GS.triggerEvent(element, 'before_select');
+        GS.triggerEvent(element, 'onbefore_select');
+        if (element.hasAttribute('onbefore_select')) {
+            new Function(element.getAttribute('onbefore_select')).apply(element);
+        }
 
         GS.addLoader(element, 'Loading...');
         GS.requestSelectFromSocket(
@@ -1412,7 +1432,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (element.tableElement) {
                         var arrRecords = xtag.queryChildren(xtag.queryChildren(element.tableElement, 'tbody')[0], 'tr[selected]');//:not(.divider)
-
+                        if (element.getAttribute('value') === '\\N') {
+                            return '\\N';
+                        }
                         if (element.hasAttribute('multi-select')) {
                             if (element.internalData.records) {
                                 i = 0;

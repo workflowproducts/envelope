@@ -49,7 +49,7 @@ gs-optionbox[disabled] {
     cursor: default;
     pointer-events: none;
 }
-
+/*
 gs-optionbox[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
@@ -57,7 +57,7 @@ gs-optionbox[readonly] {
     cursor: default;
     pointer-events: none;
 }
-
+*/
 
 
 

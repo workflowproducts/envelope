@@ -33,11 +33,11 @@ gs-dt {
     display: inline-block;
 }
 
-gs-dt[readonly] {
+/*gs-dt[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
     padding: 0.2em;
-}
+}*/
 

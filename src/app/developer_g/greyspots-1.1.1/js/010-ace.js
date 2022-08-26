@@ -883,9 +883,10 @@ document.addEventListener('DOMContentLoaded', function () {
             'destroy': function () {
                 var element = this;
 
+                // sometimes, the element is destroyed before it's initialized
                 // sometimes, the element gets destroyed multiple times.
                 //      we don't want to cause any errors when this happens.
-                if (element.elems.root) {
+                if (element.elems && element.elems.root) {
                     // prevent the element from recieving any events
                     unbindElement(element);
 

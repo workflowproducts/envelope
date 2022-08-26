@@ -779,8 +779,8 @@ function test1() {
                     onkeyup="console.log('onkeyup');"
                     onkeypress="console.log('onkeypress');"
                 ></gs-ace>
-                -->
-                <!--<gs-table
+                --><!--
+                <gs-table
                     id="test-table"
                     src="test.tpeople"
                     pk="id"
@@ -815,7 +815,10 @@ function test1() {
                         <gs-current-record inline for="test-table"></gs-current-record>
                         <gs-button onclick="getElem('test-table').goToLine('next')" inline no-focus icononly icon="caret-right">&nbsp;</gs-button>
                         <gs-button onclick="getElem('test-table').goToLine('last')" inline no-focus icononly icon="step-forward">&nbsp;</gs-button>
-                        <gs-button onclick="getElem('test-table').goToLine('insert')" inline no-focus icononly icon="plus">&nbsp;</gs-button>
+                        <gs-button onclick="getElem('test-table').goToLine('insert');getElem('test-table').renderSelection();" inline no-focus icononly icon="plus">&nbsp;</gs-button>
+                        <gs-button onclick="getElem('test-table').clearSelection();getElem('test-table').addSelectionRange('insert',0,'insert',0,false);getElem('test-table').renderSelection();" inline no-focus icononly icon="plus-circle">&nbsp;</gs-button>
+                        
+                        
                     </template>
                     <template for="header-record">
                         <gs-cell>First Name</gs-cell>
@@ -850,7 +853,7 @@ function test1() {
                         <gs-cell header="# of Pets"><gs-text mini disabled></gs-text></gs-cell>
                     </template>
                 </gs-table>-->
-                <!--
+                
                 <gs-datasheet
                     id="test-datasheet"
                     src="test.tpeople"
@@ -888,7 +891,7 @@ function test1() {
                         <gs-text column="last_name"></gs-text>
                     </template>
                 </gs-datasheet>
-                -->
+                
                 <!--
                 <gs-folder
                     path="/"

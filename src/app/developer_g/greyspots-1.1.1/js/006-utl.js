@@ -11,6 +11,8 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('GS.pxToEm', 'GS.pxToEm', 'GS.pxToEm(${1:elementToTestIn}, ${0:pxToConvert});');
     
     registerDesignSnippet('GS.emToPx', 'GS.emToPx', 'GS.emToPx(${1:elementToTestIn}, ${0:emToConvert});');
+    
+    registerDesignSnippet('GS.sizeToPx', 'GS.sizeToPx', 'GS.sizeToPx(${1:elementToTestIn}, ${0:CSSSizeToConvert});');
 
     registerDesignSnippet('GS.keyCode', 'GS.keyCode', 'GS.keyCode(\'${0:characterToGetTheKeyCodeOf}\');');
     
@@ -61,11 +63,67 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('GS.hitLink', 'GS.hitLink', 'GS.hitLink(${1:strLink});');
 
     registerDesignSnippet('GS.log', 'GS.log', 'GS.log(\'${1:send}\', ${2:message});');
+
+    registerDesignSnippet('GS.sanitizeString', 'GS.sanitizeString', 'GS.sanitizeString(${1:strToSanitize}, ${2:arrAdditional});');
+
+    registerDesignSnippet('GS.sqlSafeString', 'GS.sqlSafeString', 'GS.sqlSafeString(${1:strToSanitize});');
+
+    registerDesignSnippet('GS.filenameSafeString', 'GS.filenameSafeString', 'GS.filenameSafeString(${1:strToSanitize});');
 });
+
+// note: these three functions are meant for shorter strings
+// they are not efficient enough for longer strings, which
+// usually don't need client-side sanitization anyway
+GS.sanitizeString = function (strToSanitize, arrAdditional) {
+    "use strict";
+    var strResult;
+    arrAdditional = arrAdditional || [];
+
+    // remove control characters (this does not include \r\n\t)
+    strResult = strToSanitize.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '');
+
+    // remove additional characters
+    if (arrAdditional.length > 0) {
+        strResult = strResult.split('').map(function (a) {
+            return arrAdditional.indexOf(a) > -1 ? '' : a;
+        }).join('');
+    }
+
+    return strResult;
+};
+
+GS.sqlSafeString = function (strToSanitize) {
+    "use strict";
+    return '\'' + GS.sanitizeString(strToSanitize.replace(/'/g, '\\\'')) + '\'';
+};
+
+GS.filenameSafeString = function (strToSanitize) {
+    "use strict";
+    return GS.sanitizeString(strToSanitize, [
+        '('
+        , ')'
+        , '#'
+        , '*'
+        , ':'
+        , '<'
+        , '>'
+        , '?'
+        , '|'
+        , '\\'
+        , '&'
+        , '/'
+        , '\''
+        , '"'
+        , '\t'
+        , '\r'
+        , '\n'
+    ]);
+};
+
 
 
 GS.positionHandlingFunction = function (element, elementTarget, intMargin, strDirectionRequest, defaultDirection, returnCallback) {
-    "usr strict";
+    "use strict";
     var intDialogTop = '', intDialogLeft = '', intDialogMarginTop = '', intDialogMarginLeft = '', strOldStyle
         , arrElements, arrScrollingElements, i, len, strOverflow, jsnPositionData, arrTests
         , strResolvedDirection, intDialogResolvedWidth, intDialogResolvedHeight
@@ -350,6 +408,73 @@ GS.numberSuffix = function(intNumber) {
     return strNumber + jsnSuffixes[strNumber[strNumber.length - 1]];
 }
 
+//convert number into check number. will round if given more than two decimals.
+GS.convertNumToWords = function (num) {
+    'use strict';
+    var intDollars = Math.trunc(num);
+    var intCents = num.toFixed(2).split('.')[1];
+    if ((num || 0) == 0) {
+        return 'zero';
+    }
+    var ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    var tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    var teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+
+    var bolInvert = false;
+
+    if (intDollars < 0) {
+        bolInvert = true;
+        intDollars = (intDollars * -1);
+    }
+
+    function convert_tens(dollars) {
+        if (dollars < 10) {
+            return ones[dollars];
+        } else if (dollars >= 10 && dollars < 20) {
+            return teens[dollars - 10];
+        } else {
+            return tens[Math.floor(dollars / 10)] + " " + ones[dollars % 10];
+        }
+    }
+
+    function convert_hundreds(dollars) {
+        if (dollars > 99) {
+            return ones[Math.floor(dollars / 100)] + ' Hundred ' + convert_tens(dollars % 100);
+        } else {
+            return convert_tens(dollars);
+        }
+    }
+
+    function convert_thousands(dollars) {
+        if (dollars >= 1000) {
+            return convert_hundreds(Math.floor(dollars / 1000)) + ' Thousand ' + convert_hundreds(dollars % 1000);
+        } else {
+            return convert_hundreds(dollars);
+        }
+    }
+
+    function convert_millions(dollars) {
+        if (dollars >= 1000000) {
+            return convert_millions(Math.floor(dollars / 1000000)) + ' Million ' + convert_thousands(dollars % 1000000);
+        } else {
+            return convert_thousands(dollars);
+        }
+    }
+
+    if (num == 0) {
+        return 'zero';
+    } else if (num > 0 && num < 1) {
+        return 'Zero and ' + intCents + '/100';
+    } else {
+        //num was negative
+        if (bolInvert) {
+            return ('Negative ' + convert_millions(intDollars) + ' and ' + intCents + '/100').replace(/(  )/g, ' ');
+        } else {
+            return (convert_millions(intDollars) + ' and ' + intCents + '/100').replace(/(  )/g, ' ');
+        }
+    }
+}
+
 // ###########################################################
 // #################### PADDING FUNCTIONS ####################
 // ###########################################################
@@ -444,7 +569,29 @@ GS.emToPx = function (elementScope, fromEM) {
 	                                             // so I will leave it here until there is a problem -michael
 };
 
-
+// convert arbitrary CSS expression to pixels
+GS.sizeToPx = function (elementScope, fromCSS) {
+    'use strict';
+	var heightTestElement = document.createElement('div'),
+	    intElementHeight;
+    
+    elementScope = elementScope || document.body;
+    
+    heightTestElement.style.fontSize = fromCSS;
+    heightTestElement.style.margin = '0';
+    heightTestElement.style.padding = '0';
+    heightTestElement.style.lineHeight = '1';
+    heightTestElement.style.border = '0';
+    
+    heightTestElement.innerHTML = 'a';
+    
+    elementScope.appendChild(heightTestElement);
+    intElementHeight = heightTestElement.offsetHeight;
+    elementScope.removeChild(heightTestElement);
+    
+	return Math.round(intElementHeight); // not sure if we want to round here but the old function did
+	                                             // so I will leave it here until there is a problem -michael
+};
 
 // ################################################################
 // #################### MISC UTILITY FUNCTIONS ####################

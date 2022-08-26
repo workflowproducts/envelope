@@ -1,3 +1,4 @@
+
 //global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
 //global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
 //global addControlProps, addFlexContainerProps, addProp
@@ -80,12 +81,12 @@ window.addEventListener('design-register-element', function () {
                                                                                 'function (strInputValue) {\n' +
                                                         '    // before dialog close\n' +
                                                         '    $0\n' +
-                                                        '});');
+                                                        '}${3:, \'default\'});');
     addSnippet('Input Box', 'Input Box', 'GS.inputbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, ' +
                                                                             'function (strInputValue) {\n' +
                                                     '    // before dialog close\n' +
                                                     '    $0\n' +
-                                                    '});');
+                                                    '}${3:, \'default\'});');
 
     addSnippet('GS.openDialogToElement', 'GS.openDialogToElement',
                                         'GS.openDialogToElement(${1:document.getElementById(\'target\')}, \'${2:templateID}\', ' +
@@ -112,38 +113,38 @@ window.addEventListener('design-register-element', function () {
 
 (function () {
     'use strict';
-    
+
     function buttonHTML(buttons) {
         var strHTML, i, len;
-        
+
         buttons = buttons || ['Ok'];
-        
+
         // change button parameter to array format if it is string format (and the string is recognized)
         if (typeof buttons === 'string') {
             if (buttons === 'okcancel' || buttons === 'cancelok') {
                 buttons = ['Cancel', 'Ok'];
-                
+
             } else if (buttons === 'ok' || buttons === 'okonly') {
                 buttons = ['Ok'];
-                
+
             } else if (buttons === 'cancel' || buttons === 'cancelonly') {
                 buttons = ['Cancel'];
-                
+
             } else if (buttons === 'yesno' || buttons === 'noyes') {
                 buttons = ['No', 'Yes'];
-                
+
             } else if (buttons === 'Yes' || buttons === 'yesonly') {
                 buttons = ['Yes'];
-                
+
             } else if (buttons === 'No' || buttons === 'noonly') {
                 buttons = ['No'];
             }
         }
-        
+
         if (typeof buttons === 'object') {
             if (buttons.length > 0) {
                 strHTML = '<gs-grid gs-dynamic>';
-                
+
                 for (i = 0, len = buttons.length; i < len; i += 1) {
                     strHTML +=
                         '<gs-block gs-dynamic>' +
@@ -185,14 +186,14 @@ window.addEventListener('design-register-element', function () {
     };
 
     // GS.inputbox('test1', 'test2', function (strAnswer) {console.log(strAnswer); });
-    GS.inputbox = function (strTitle, strMessage, callback) {
+    GS.inputbox = function (strTitle, strMessage, callback, defaultValue) {
         var templateElement = document.createElement('template');
 
         templateElement.innerHTML = '<gs-page>' +
                                     '    <gs-header><center><h3>' + strTitle + '</h3></center></gs-header>' +
                                     '    <gs-body padded>' +
                                     '        ' + strMessage +
-                                    '        <gs-text id="dialog-inputbox-control"></gs-text>' +
+                                    '        <gs-text id="dialog-inputbox-control" value="' + (defaultValue || '') + '"></gs-text>' +
                                     '    </gs-body>' +
                                     '    <gs-footer>' + buttonHTML(['Cancel', 'Ok']) + '</gs-footer>' +
                                     '</gs-page>';
@@ -593,16 +594,29 @@ GS.closeDialog = function (dialog, strAnswer) {
                     '</gs-dialog>';
 
         // get elements
-        dialogOverlay = GS.stringToElement(
-            '<gs-dialog-overlay gs-dynamic' +
-            (
-                template.hasAttribute('no-background')
-                    ? ' no-background '
-                    : ''
-            ) +
-            '></gs-dialog-overlay>'
-        );
         dialog = GS.stringToElement(strHTML);
+
+        if (template.hasAttribute('data-no-overlay')) {
+            dialogOverlay = GS.stringToElement(
+                '<gs-dialog-overlay style="display: none;" gs-dynamic' +
+                (
+                    template.hasAttribute('no-background')
+                        ? ' no-background '
+                        : ''
+                ) +
+                '></gs-dialog-overlay>'
+            );
+        } else {
+            dialogOverlay = GS.stringToElement(
+                '<gs-dialog-overlay gs-dynamic' +
+                (
+                    template.hasAttribute('no-background')
+                        ? ' no-background '
+                        : ''
+                ) +
+                '></gs-dialog-overlay>'
+            );
+        }
 
         // append overlay element
         document.body.appendChild(dialogOverlay);
@@ -624,6 +638,34 @@ GS.closeDialog = function (dialog, strAnswer) {
         dialogOverlay.addEventListener('mousewheel', function (event) {
             event.preventDefault();
         });
+    
+
+        // used by TFW, effective 2022-06-28
+        // If this note is still here in a few weeks it's probably stable (;
+        // only draggable by header
+        if (template.hasAttribute('data-draggable')) {
+            dialog.bolDraggable = true;
+            xtag.query(dialog, 'gs-header').forEach(function (curr) {
+                curr.style.userSelect = 'none';
+                curr.addEventListener('mousedown', function (event) {
+                    dialog.dragOriginX = event.screenX;
+                    dialog.dragOriginY = event.screenY;
+                    dialog.bolMouseDown = true;
+                });
+            });
+            window.addEventListener('mouseup', function (event) {
+                dialog.bolMouseDown = false;
+            });
+            dialog.addEventListener('mousemove', function (event) {
+                if (dialog.bolMouseDown) {
+                    dialog.style.left = Math.min(Math.max((GS.getElementOffset(dialog).left - (dialog.dragOriginX - event.screenX)), 0), (window.innerWidth - GS.getElementOffset(dialog).width)) + 'px';
+                    dialog.style.top = Math.min(Math.max((GS.getElementOffset(dialog).top - (dialog.dragOriginY - event.screenY)), 0), (window.innerHeight - GS.getElementOffset(dialog).height)) + 'px';
+                    dialog.dragOriginX = event.screenX;
+                    dialog.dragOriginY = event.screenY;
+                }
+            });
+            dialog.setAttribute('draggable-window-listen', '');
+        }
 
         // append dialog
         document.body.appendChild(dialog);
@@ -716,12 +758,14 @@ GS.closeDialog = function (dialog, strAnswer) {
             }
         };
 
-        if (evt.touchDevice) {
-            window.addEventListener('touchstart', scrollProtectorTouchStart);
-            window.addEventListener('touchmove', scrollProtectorTouchMove);
+        if (!template.hasAttribute('unprotected-scroll')) {
+            if (evt.touchDevice) {
+                window.addEventListener('touchstart', scrollProtectorTouchStart);
+                window.addEventListener('touchmove', scrollProtectorTouchMove);
+            }
+    
+            dialog.addEventListener('mousewheel', scrollProtectorMouseWheel);
         }
-
-        dialog.addEventListener('mousewheel', scrollProtectorMouseWheel);
 
         dialog.addEventListener('beforeclose', function (event) {
             if (typeof beforeCloseFunction === 'function') {
@@ -817,7 +861,7 @@ GS.closeDialog = function (dialog, strAnswer) {
         //      until after the elements are ready. to do this we'll get a list of
         //      the current elements that are xtag-defined and on a 30ms loop we'll
         //      check their __upgraded__ property until they are all true
-        if (shimmed.registerElement === true) {
+        if (shimmed.registerElement === true && shimmed.customElements === true) {
             // build selector to get all xtag elements
             xtagSelector = '';
             for (strTag in xtag.tags) {
@@ -893,7 +937,7 @@ GS.closeDialog = function (dialog, strAnswer) {
 
         // save and blur currently focused element
         refocusElement = document.activeElement;
-        
+
         if (!template.hasAttribute('no-focus-lock')) {
             refocusElement.blur();
         }
@@ -1071,22 +1115,22 @@ GS.closeDialog = function (dialog, strAnswer) {
 
         scrollProtectorMouseWheel = function (event) {
             var target = GS.scrollParent(event.target); //event.target;
-            
+
             if (dialogElement.parentNode !== document.body) {
                 dialogElement.removeEventListener('mousewheel', scrollProtectorMouseWheel);
                 return true;
             }
-            
+
             //console.log(event.deltaY, event.deltaX,
             //            target.scrollTop, target.scrollLeft,
             //            target.scrollHeight, target.scrollWidth,
             //            target.clientHeight, target.clientWidth);
-            
+
             // if event.deltaY < 0 AND we are already at the top
             // if event.deltaY > 0 AND we are already at the bottom
             // if event.deltaX < 0 AND we are already at the left
             // if event.deltaX > 0 AND we are already at the right
-            
+
             if ((event.deltaY < 0 && target.scrollTop <= 0) ||
                 (event.deltaY > 0 && (target.scrollTop + target.clientHeight) >= target.scrollHeight) ||
                 (event.deltaX < 0 && target.scrollLeft <= 0) ||
@@ -1095,14 +1139,14 @@ GS.closeDialog = function (dialog, strAnswer) {
                 event.stopPropagation();
             }
         };
-        
+
         if (evt.touchDevice) {
             window.addEventListener('touchstart', scrollProtectorTouchStart);
             window.addEventListener('touchmove', scrollProtectorTouchMove);
         }
-        
+
         dialogElement.addEventListener('mousewheel', scrollProtectorMouseWheel);
-        
+
         dialogElement.addEventListener('beforeclose', function (event) {
             if (typeof beforeCloseFunction === 'function') {
                 beforeCloseFunction.apply(dialogElement, [event.originalEvent, event.data]);
@@ -1148,13 +1192,13 @@ GS.closeDialog = function (dialog, strAnswer) {
                 console.warn('dialog Warning: Too many [listen-for-return] elements, defaulting to the first one. Please have only one [listen-for-return] element per dialog.');
             }
         }
-        
+
         // if no direction was sent: set direction to down
         strDirectionRequest = strDirectionRequest || 'down';
-        
+
         // make strDirectionRequest lowercase
         strDirectionRequest.toLowerCase();
-        
+
         // if the direction does not match any valid direction: set direction to down and warn
         if (!strDirectionRequest.match(/^up$|^down$|^left$|^right$|^full$/)) {
             console.warn('GS.openDialogToElement Error: ' +
@@ -1162,12 +1206,12 @@ GS.closeDialog = function (dialog, strAnswer) {
                                 'Please use \'up\', \'down\', \'left\', \'right\' or \'full\'.');
             strDirectionRequest = 'down';
         }
-        
+
         /*
         positionHandlingFunction = function () {
             var intDialogTop = '', intDialogLeft = '', intDialogMarginTop = '', intDialogMarginLeft = '', strOldStyle,
                 arrElements, arrScrollingElements, i, len, strOverflow;
-            
+
             // if the dialog is not in the DOM: unbind and skip the contents of the function using return
             if (dialogElement.parentNode !== document.body) {
                 window.removeEventListener('resize', positionHandlingFunction);
@@ -1175,28 +1219,28 @@ GS.closeDialog = function (dialog, strAnswer) {
                 observer.disconnect();
                 return;
             }
-            
+
             // save old style attribute
             strOldStyle = dialogElement.getAttribute('style');
-            
+
             // save scroll numbers
             arrElements = xtag.query(dialogElement, '*');
             arrScrollingElements = [];
-            
+
             for (i = 0, len = arrElements.length; i < len; i += 1) {
                 strOverflow = GS.getStyle(arrElements[i], 'overflow');
-                
+
                 if (strOverflow === 'scroll' ||
                     (strOverflow === 'auto' && arrElements[i].clientHeight < arrElements[i].scrollHeight)) {
                     arrScrollingElements.push(arrElements[i]);
                 }
             }
-            
+
             for (i = 0, len = arrScrollingElements.length; i < len; i += 1) {
                 arrScrollingElements[i].oldScrollTop = arrScrollingElements[i].scrollTop;
                 arrScrollingElements[i].oldScrollLeft = arrScrollingElements[i].scrollLeft;
             }
-            
+
             // clear dialog CSS
             dialogElement.style.top        = '';
             dialogElement.style.left       = '';
@@ -1205,57 +1249,57 @@ GS.closeDialog = function (dialog, strAnswer) {
             dialogElement.style.width      = '94%';
             dialogElement.style.height     = '';
             dialogElement.style.maxHeight  = '';
-            
+
             //console.log(dialogElement.oldHeight, dialogElement.offsetHeight);
-            
+
             // if height hasn't changed: restore style
             if (dialogElement.oldHeight === dialogElement.offsetHeight) {
                 dialogElement.setAttribute('style', strOldStyle);
-                
+
                 for (i = 0, len = arrScrollingElements.length; i < len; i += 1) {
                     arrScrollingElements[i].scrollTop = arrScrollingElements[i].oldScrollTop;
                     arrScrollingElements[i].scrollLeft = arrScrollingElements[i].oldScrollLeft;
                 }
-                
+
             // else: recalculate style
             } else {
                 dialogElement.oldHeight = dialogElement.offsetHeight;
-                
+
                 // resolve dialog width and height
-                
+
                 // if dialog is taller than: window height - (intMargin * 2): add max-height and height
                 if (dialogElement.clientHeight > ((window.innerHeight / 100) * 94)) {
                     dialogElement.style.height = '94%';
                     dialogElement.style.maxHeight = strMaxHeight;
                 }
-                
+
                 intDialogResolvedWidth  = dialogElement.offsetWidth;
                 intDialogResolvedHeight = dialogElement.offsetHeight + 1; // + 1 added to fix occasional scrollbar issue
-                
+
                 // set dialog width and height to resolved width and height
                 dialogElement.style.width  = intDialogResolvedWidth  + 'px';
                 dialogElement.style.height = intDialogResolvedHeight + 'px';
-                
+
                 // get target position data
                 jsnPositionData = GS.getElementPositionData(elementTarget);
-                
+
                 // order of tests depending on direction
                 if (strDirectionRequest === 'up') { // up: up, down, left, right, full
                     arrTests = ['up', 'down', 'left', 'right'];
-                    
+
                 } else if (strDirectionRequest === 'down') { // down: down, up, left, right, full
                     arrTests = ['down', 'up', 'left', 'right'];
-                    
+
                 } else if (strDirectionRequest === 'left') { // left: left, right, down, up, full
                     arrTests = ['left', 'right', 'down', 'up'];
-                    
+
                 } else if (strDirectionRequest === 'right') { // right: right, left, down, up, full
                     arrTests = ['right', 'left', 'down', 'up'];
-                    
+
                 } else { // full: no tests (just go to full)
                     arrTests = [];
                 }
-                
+
                 // up: compare room above to dialog resolved height
                 //      pass: display
                 //      fail: next test
@@ -1268,56 +1312,56 @@ GS.closeDialog = function (dialog, strAnswer) {
                         break;
                     }
                 }
-                
+
                 // if we could not resolve to a particular direction: set direction to full screen
                 strResolvedDirection = strResolvedDirection || 'full';
                 //console.log(strResolvedDirection);
-                
+
                 // if up or down: get as close to horizontally centered on the element as possible
                 if (strResolvedDirection === 'up' || strResolvedDirection === 'down') {
                     intElementMidPoint = (jsnPositionData.intElementLeft + (jsnPositionData.intElementWidth / 2));
                     intDialogMidPoint = (intDialogResolvedWidth / 2);
                     //console.log(intElementMidPoint, jsnPositionData.left, jsnPositionData.intElementWidth);
-                    
+
                     // if centered goes past intMargin of the left edge of the screen: go to intMargin from the bottom
                     if (intElementMidPoint - intDialogMidPoint < intMargin) {
                         intDialogLeft = intMargin;
                         //console.log('1***', intMargin);
-                        
+
                     // else if centered goes past intMargin of the right edge of the screen: go to intMargin less than the width of the viewport
                     } else if (intElementMidPoint + intDialogMidPoint > window.innerWidth - intMargin) {
                         intDialogLeft = ((window.innerWidth - intDialogResolvedWidth) - intMargin);
                         //console.log('2***', window.innerWidth, intDialogResolvedWidth, intMargin);
-                        
+
                     // else centered does not go past intMargin of either edge of the screen: center
                     } else {
                         intDialogLeft = (intElementMidPoint - intDialogMidPoint);
                         //console.log('3***', intElementMidPoint, intDialogMidPoint, (intElementMidPoint - intDialogMidPoint) + 'px');
                     }
-                    
+
                 // else if left or right: get as close to vertically centered next to the element as possible
                 } else if (strResolvedDirection === 'left' || strResolvedDirection === 'right') {
                     intElementMidPoint = (jsnPositionData.intElementTop + (jsnPositionData.intElementHeight / 2));
                     intDialogMidPoint = (intDialogResolvedHeight / 2);
-                    
+
                     //console.log('0***', intElementMidPoint, intDialogMidPoint, window.innerHeight, intMargin, intDialogResolvedHeight);
-                    
+
                     // if centered goes past intMargin of the top edge of the screen: go to intMargin from the bottom
                     if (intElementMidPoint - intDialogMidPoint < intMargin) {
                         intDialogTop = intMargin;
                         //console.log('1***', intMargin);
-                        
+
                     // else if centered goes past intMargin of the bottom edge of the screen: go to intMargin less than the height of the viewport
                     } else if (intElementMidPoint + intDialogMidPoint > window.innerHeight - intMargin) {
                         intDialogTop = ((window.innerHeight - intDialogResolvedHeight) - intMargin);
                         //console.log('2***', window.innerHeight, intDialogResolvedHeight, intMargin);
-                        
+
                     // else centered does not go past intMargin of either edge of the screen: center
                     } else {
                         intDialogTop = (intElementMidPoint - intDialogMidPoint);
                         //console.log('3***', intElementMidPoint, intDialogMidPoint, (intElementMidPoint - intDialogMidPoint) + 'px');
                     }
-                    
+
                 // else full: use dialog logic to get width and height and center both vertically and horizontally
                 } else {
                     intDialogTop        = '50%';
@@ -1325,19 +1369,19 @@ GS.closeDialog = function (dialog, strAnswer) {
                     intDialogMarginTop  = '-' + (intDialogResolvedHeight / 2) + 'px';
                     intDialogMarginLeft = '-' + (intDialogResolvedWidth / 2) + 'px';
                 }
-                
+
                 // if direction is up: connect the bottom of the dialog to the top of the element
                 if (strResolvedDirection === 'up') {
                     intDialogTop = (jsnPositionData.intElementTop - intDialogResolvedHeight);
-                    
+
                 // if direction is down: connect the top of the dialog to the bottom of the element
                 } else if (strResolvedDirection === 'down') {
                     intDialogTop = (jsnPositionData.intElementTop + jsnPositionData.intElementHeight);
-                    
+
                 // if direction is left: connect the right of the dialog to the left of the element
                 } else if (strResolvedDirection === 'left') {
                     intDialogLeft = (jsnPositionData.intElementLeft - intDialogResolvedWidth);
-                    
+
                 // if direction is right: connect the left of the dialog to the right of the element
                 } else if (strResolvedDirection === 'right') {
                     intDialogLeft = (jsnPositionData.intElementLeft + jsnPositionData.intElementWidth);
@@ -1346,7 +1390,7 @@ GS.closeDialog = function (dialog, strAnswer) {
                 // prevent the dialog from vertically going outside the viewport
                 if (intDialogTop + intDialogResolvedHeight > window.innerHeight) {
                     intDialogTop -= (intDialogTop + intDialogResolvedHeight) - window.innerHeight;
-                    
+
                 }
 
                 // prevent the dialog from horizontally going outside the viewport
@@ -1361,14 +1405,14 @@ GS.closeDialog = function (dialog, strAnswer) {
                 dialogElement.style.marginLeft = intDialogMarginLeft + 'px';
             }
         };
-        
+
         positionHandlingFunction();
         window.addEventListener('resize', positionHandlingFunction);
         window.addEventListener('orientationchange', positionHandlingFunction);
         */
-        
+
         var positionHandlingFunction;
-        
+
         positionHandlingFunction = function () {
             GS.positionHandlingFunction(dialogElement, elementTarget, intMargin, strDirectionRequest, 'full', function () {
                 window.removeEventListener('resize', positionHandlingFunction);
@@ -1376,7 +1420,7 @@ GS.closeDialog = function (dialog, strAnswer) {
                 observer.disconnect();
             })
         };
-        
+
         positionHandlingFunction();
         window.addEventListener('resize', positionHandlingFunction);
         window.addEventListener('orientationchange', positionHandlingFunction);
@@ -1434,7 +1478,7 @@ GS.closeDialog = function (dialog, strAnswer) {
         //      until after the elements are ready. to do this we'll get a list of
         //      the current elements that are xtag-defined and on a 30ms loop we'll
         //      check their __upgraded__ property until they are all true
-        if (shimmed.registerElement === true) {
+        if (shimmed.registerElement === true && shimmed.customElements === true) {
             // build selector to get all xtag elements
             xtagSelector = '';
             for (strTag in xtag.tags) {
@@ -1535,35 +1579,44 @@ GS.closeDialog = function (dialog, strAnswer) {
             bind: function () {
                 var element = this;
 
-                if (!element.hasAttribute('no-window-listen')) {
+                if (!element.hasAttribute('no-window-listen') && !element.hasAttribute('draggable-window-listen')) {
                     element.windowResizeHandler = function () {
                         element.style.left = (window.innerWidth / 2) - (element.offsetWidth / 2) + 'px';
                     };
-                    
+
+                    window.addEventListener('resize', element.windowResizeHandler);
+                    window.addEventListener('orientationchange', element.windowResizeHandler);
+
+                } else if (element.hasAttribute('draggable-window-listen')) {
+                    element.windowResizeHandler = function () {
+                        element.style.left = Math.max(Math.min((window.innerWidth - element.offsetWidth), GS.getElementOffset(element).left), 0) + 'px';
+                        element.style.top = Math.max(Math.min((window.innerHeight - element.offsetHeight), GS.getElementOffset(element).top), 0) + 'px';
+                    };
+
                     window.addEventListener('resize', element.windowResizeHandler);
                     window.addEventListener('orientationchange', element.windowResizeHandler);
                 }
             },
-            
+
             unbind: function () {
                 window.removeEventListener('resize', this.windowResizeHandler);
                 window.removeEventListener('orientationchange', this.windowResizeHandler);
-                
+
                 GS.triggerEvent(window, 'resize');
             },
-            
+
             destroy: function (strAnswer, originalEvent) {
                 var beforeCloseEvent;
-                
+
                 if (this.parentNode === document.body) {
                     beforeCloseEvent = GS.triggerEvent(this, 'beforeclose', {'data': strAnswer, 'originalEvent': originalEvent});
-                    
+
                     if (!beforeCloseEvent.defaultPrevented && (!originalEvent || !originalEvent.defaultPrevented)) {
                         document.body.removeChild(this.previousElementSibling);
                         document.body.removeChild(this);
-                        
+
                         GS.triggerEvent(this, 'afterclose', {'data': strAnswer, 'originalEvent': originalEvent});
-                        
+
                         if (document.getElementsByTagName('gs-dialog').length === 0) {
                             document.body.parentNode.classList.remove('no-scroll-except-for-dialog');
                         }
@@ -1572,7 +1625,7 @@ GS.closeDialog = function (dialog, strAnswer) {
             }
         }
     });
-    
+
     xtag.register('gs-dialog-overlay', {
         lifecycle: {},
         events: {},

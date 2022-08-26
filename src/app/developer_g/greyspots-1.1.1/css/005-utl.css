@@ -165,6 +165,11 @@ body {
                 be made taller. */
 }
 
+/* ######### prevent element from shrinking ######### */
+[flex-noshrink] {
+    flex-shrink: 0;
+}
+
 /*
 [flex-vertical] > *:not([flex]),
 [flex-horizontal] > *:not([flex]) {

@@ -317,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
-
+        console.log(result);
         return result;
     }
 
@@ -408,15 +408,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function newDateInCurrentTimeZone(str) {
         // this function is to counteract iso style dates being treated as GMT/UTC
+        var daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        var daysShort = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        var i = 0;
+        var len = 7;
+        while (i < len) {
+            str = str.replace(daysFull[i], '');
+            str = str.replace(daysShort[i], '');
+            i += 1;
+        }
+        
         if (/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]($|\ )/.test(str)) {
             str = str.replace('-', '/').replace('-', '/');
         }
         if (/\ [0-9]/.test(str)) {
             str = str.replace(/-[0-9][0-9]$/, '');
+            console.log(str);
             return new Date(str);
         } else if (str.indexOf(':') > -1) {
+            console.log('1/1/1970 ' + str);
             return new Date('1/1/1970 ' + str);
         } else {
+            console.log(str + ' 00:00:00');
             return new Date(str + ' 00:00:00');
         }
     }
@@ -428,22 +441,26 @@ document.addEventListener('DOMContentLoaded', function () {
         return d.getDate();
     }
 
-    function insertText(str) {
-        if (!document.queryCommandSupported('insertText') || !document.queryCommandEnabled('insertText')) {
+    function insertText(str, force) {
+        if (!document.queryCommandSupported('insertText') || !document.queryCommandEnabled('insertText') || force) {
             var element = document.activeElement;
             var jsnTextSelection = GS.getInputSelection(element);
-            //console.trace(JSON.stringify(jsnTextSelection), element.value);
+            // console.trace(JSON.stringify(jsnTextSelection), element.value);
             element.value = element.value.substring(0, jsnTextSelection.start) + str + element.value.substring(jsnTextSelection.end);
-            //console.log(JSON.stringify(jsnTextSelection), element.value);
+            // console.log(JSON.stringify(jsnTextSelection), element.value);
             element.parentNode.cancelSelectEvent = true;
             GS.setInputSelection(element, jsnTextSelection.start + str.length, jsnTextSelection.start + str.length);
-            //console.log(JSON.stringify(GS.getInputSelection(element)), jsnTextSelection.start + str.length);
+            // console.log(JSON.stringify(GS.getInputSelection(element)), jsnTextSelection.start + str.length);
         } else {
             var element = document.activeElement;
-            //console.log(element);
-            //console.log(element.value, element.parentNode.value);
-            document.execCommand('insertText', true, str);
-            //console.log(element.value, element.parentNode.value);
+            // console.log(element);
+            // console.log(element.value, element.parentNode.value);
+            var res = document.execCommand('insertText', true, str);
+            if (!res) {
+                console.warn('Could not use insertText command, overriding. Undo will not work.');
+                insertText(str, true);
+            }
+            // console.log(element.value, element.parentNode.value, res);
         }
     }
 
@@ -560,6 +577,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     var saveDay;
                     var saveMonth;
                     var saveYear;
+                    console.log(element.control.value, d, arrFormat[currentValueRange]);
                     if (intKeyCode === 38) {
                         if (/y/.test(arrFormat[currentValueRange])) {
                             d.setFullYear(d.getFullYear() + 1);
@@ -673,8 +691,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         }
                     }
+                    console.log(d);
 
                     element.internal.validDate = d.toString() !== 'Invalid Date';
+                    console.log(element.internal.validDate);
                     if (element.internal.validDate) {
                         element.internal.lastValidDate = d;
                         strValue = formatDate(d, getFormatString(element));

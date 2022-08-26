@@ -56,7 +56,9 @@ document.addEventListener('DOMContentLoaded', function () {
         len = arrSelectedOptions.length;
         while (i < len) {
             arrSelectedOptions[i].removeAttribute('selected');
-            arrSelectedOptions[i].setAttribute('tabindex', '-1');
+            if (!arrSelectedOptions[i].hasAttribute('no-focus')) {
+                arrSelectedOptions[i].setAttribute('tabindex', '-1');
+            }
             i += 1;
         }
 
@@ -70,10 +72,13 @@ document.addEventListener('DOMContentLoaded', function () {
         // select/highlight the record that was provided
         if (option) {
             option.setAttribute('selected', '');
-            option.setAttribute('tabindex', '0');
             option.setAttribute('aria-checked', 'true');
-            if (bolFocus) {
-                option.focus();
+
+            if (!option.hasAttribute('no-focus')) {
+                option.setAttribute('tabindex', '0');
+                if (bolFocus) {
+                    option.focus();
+                }
             }
         }
     }
@@ -348,10 +353,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             arrElement[i].setAttribute('icon', '');
             arrElement[i].setAttribute('role', 'radio');
-            arrElement[i].setAttribute('tabindex', '-1');
-            // arrElement[i].addEventListener('focus', function () {
-            //     selectOption(element, this, true);
-            // });
+            if (!arrElement[i].hasAttribute('no-focus')) {
+                arrElement[i].setAttribute('tabindex', '-1');
+                // arrElement[i].addEventListener('focus', function () {
+                //     selectOption(element, this, true);
+                // });
+            }
             i += 1;
         }
     }
@@ -543,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (parentOption && !parentOption.hasAttribute('selected')) {
                         selectOption(element, parentOption, true);
                     } else if (parentOption && parentOption.hasAttribute('selected') && element.hasAttribute('clearable')) {
-                        selectOption(element, undefined);
+                        selectOption(element, (element.getAttribute('empty-value') || undefined), (element.getAttribute('empty-value') ? true : undefined));
                     }
                 }
             }

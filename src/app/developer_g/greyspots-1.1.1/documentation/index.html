@@ -825,7 +825,6 @@ pre {
                 
                 <h4><gs-button style="margin: 0;" mini target="_self" href="#record_delete_button">Record</gs-button></h4>
                 <gs-button mini target="_self" href="#record_delete_button">Delete Button</gs-button>
-                <gs-button mini target="_self" href="#record_envelope">Envelope</gs-button>
                 <gs-button mini target="_self" href="#record_form">Form</gs-button>
                 <gs-button mini target="_self" href="#record_insert">Insert</gs-button>
                 <gs-button mini target="_self" href="#record_datasheet">Datasheet</gs-button>
@@ -5285,9 +5284,6 @@ function message() {
                         <p>
                             All gs-switch elements default to one hundred percent width and height.
                         </p>
-                        <p>
-                            Notice how the button in template-2 displays lower on the page than the button in template-1. In a real application we would have considered placing both buttons at the top of their templates so they would appear in the same place.
-                        </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
                         <pre><code>&lt;gs-switch id="switch"&gt;
@@ -7561,6 +7557,53 @@ code&lt;/pre&gt;
                     <gs-block class="equal_height_left content">
                         <div flex-horizontal>
                             <h5 flex>
+                                Attribute <code>[autoresize]</code>
+                            </h5>
+                            <div>
+                                <gs-dialog-button bg-primary inline>
+                                    <template data-max-width="80%" data-max-height="80%">
+                                        <gs-page>
+                                            <gs-header>
+                                                <center><h3>Attribute <code>[autoresize]</code> Example</h3></center>
+                                            </gs-header>
+                                            <gs-body padded>
+                                                <gs-doc-example>
+                                                    <template for="html">
+                                                        <label for="memo_auto">Autoresize:</label>
+                                                        <gs-ace autoresize id="memo_auto"></gs-ace>
+                                                    </template>
+                                                </gs-doc-example>
+                                            </gs-body>
+                                            <gs-footer>
+                                                <gs-grid gutter>
+                                                    <gs-block>
+                                                    </gs-block>
+                                                    <gs-block>
+                                                        <gs-button dialogclose bg-primary>Close</gs-button>
+                                                    </gs-block>
+                                                </gs-grid>
+                                            </gs-footer>
+                                        </gs-page>
+                                    </template>
+                                    Demo
+                                </gs-dialog-button>
+                            </div>
+                        </div>
+                    </gs-block>
+                    <gs-block class="equal_height_right code hide_on_reflow">
+                    </gs-block>
+                    <gs-block class="equal_height_left content">
+                        <p>
+                            Rather then automatically resizing the <code>&lt;gs-ace&gt;</code> to take up 100% space, it can automatically resize itself when you use the <code>[autoresize]</code> attribute to the text length.
+                        </p>
+                    </gs-block>
+                    <gs-block class="equal_height_right code">
+                        <pre><code>&lt;gs-ace autoresize&gt;&lt;/gs-ace&gt;</code></pre>
+                    </gs-block>
+                    
+                    <gs-block class="equal_height_left content">
+                        <div flex-horizontal>
+                            <h5 flex>
                                 Attribute <code>[disabled]</code>
                             </h5>
                             <div>
@@ -7646,7 +7689,7 @@ code&lt;/pre&gt;
                     </gs-block>
                     <gs-block class="equal_height_left content">
                         <p>
-                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The differences are that readonly is styled differently and allows you to copy the current text from the control.
+                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The only difference is that <code>[readonly]</code> does not grey out the field and <code>[disabled]</code> does.
                         </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
@@ -7901,138 +7944,13 @@ code&lt;/pre&gt;
                         <pre><code>&lt;gs-button href="http://www.wikipedia.org/" target="_blank"&gt;...&lt;/gs-button&gt;</code></pre>
                     </gs-block>
                     
+
                     <gs-block class="equal_height_left content">
                         <div flex-horizontal>
                             <h5 flex>
-                                Attributes <code>[href]</code> and <code>[value]</code>
+                                Attribute <code>[qs=""]</code>
                             </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Attributes <code>[href]</code> and <code>[value]</code> Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="auto">
-                                                        <gs-button href="http://www.wikipedia.org/">
-                                                            "href" Attribute
-                                                        </gs-button>
-                                                        <gs-button value="http://www.wikipedia.org/">
-                                                            "value" Attribute
-                                                        </gs-button>
-                                                        <gs-button href="http://www.wikipedia.org/" target="_self">
-                                                            "target" Attribute (Replace Page)
-                                                        </gs-button>
-                                                        <gs-button href="http://www.wikipedia.org/" target="_blank">
-                                                            "target" Attribute (New Tab/Page)
-                                                        </gs-button>
-                                                        <gs-button href="https://www.wikipedia.org/portal/wikipedia.org/assets/img/Wikipedia-logo-v2.png" download>
-                                                            "download" Attribute (Download Image, TODO: not working)
-                                                        </gs-button>
-                                                        <gs-button href="https://www.wikipedia.org/portal/wikipedia.org/assets/img/Wikipedia-logo-v2.png">
-                                                            No Attribute (Won't Download)
-                                                        </gs-button>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
                         </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            Sometimes you want to open a page like you would a link, but you want the appearance of a button. The <code>[target]</code> and <code>[href]</code> attributes work just like with an <code>&lt;a&gt;</code> tag. This is especially recommended if the target is an application or a download. Note that new windows will either appear as new browser windows or new tabs depending on brower settings. To force a file to download, use the HTML5 <code>[download]</code> attribute to set the file name. Or just use download by itself. Also note that the <code>[href]</code> and <code>[value]</code> attributes are interchangable.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-button href="http://www.wikipedia.org/" target="_blank"&gt;...&lt;/gs-button&gt;</code></pre>
-                    </gs-block>
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Attributes <code>[qs]</code>
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Attributes <code>[qs]</code> Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="35">
-                                                        <gs-button qs="test1">Test 1 (TODO: not working)</gs-button>
-                                                        <gs-button qs="test2=value">Test 2 (TODO: not working)</gs-button>
-                                                        <gs-button qs="test3=hidden">Test 3</gs-button>
-                                                        <gs-button qs="test4!=hidden">Test 4</gs-button>
-                                                        <br />
-                                                        <br />
-                                                        <gs-grid widths="1,1">
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.pushQueryString('test1=test1');">Add "test1"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.removeFromQueryString('test1');">Remove "test1"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.pushQueryString('test2=test2');">Add "test2"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.removeFromQueryString('test2');">Remove "test2"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.pushQueryString('test3=test3');">Add "test3"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.removeFromQueryString('test3');">Remove "test3"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.pushQueryString('test4=test4');">Add "test4"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.removeFromQueryString('test4');">Remove "test4"</gs-button>
-                                                            </gs-block>
-                                                        </gs-grid>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
                         <p>
                             The name <code>[qs]</code> stands for "querystring". The querystring is the part in the URL after the "?". The <code>[qs]</code> attribute has two formats, each with their own use.
                         </p>
@@ -9869,7 +9787,7 @@ code&lt;/pre&gt;
                     </gs-block>
                     <gs-block class="equal_height_left content">
                         <p>
-                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the checkbox from changing. The difference is that readonly is styled differently.
+                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The only difference is that <code>[readonly]</code> does not grey out the field and <code>[disabled]</code> does.
                         </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
@@ -10711,7 +10629,7 @@ code&lt;/pre&gt;
                     </gs-block>
                     <gs-block class="equal_height_left content">
                         <p>
-                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The differences are that readonly is styled differently and allows you to copy the current text from the control.
+                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The only difference is that <code>[readonly]</code> does not grey out the field and <code>[disabled]</code> does.
                         </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
@@ -11404,7 +11322,7 @@ code&lt;/pre&gt;
                     </gs-block>
                     <gs-block class="equal_height_left content">
                         <p>
-                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The differences are that readonly is styled differently and allows you to copy the current text from the control.
+                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The only difference is that <code>[readonly]</code> does not grey out the field and <code>[disabled]</code> does.
                         </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
@@ -12255,7 +12173,7 @@ code&lt;/pre&gt;
                     </gs-block>
                     <gs-block class="equal_height_left content">
                         <p>
-                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The differences are that readonly is styled differently and allows you to copy the current text from the control.
+                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The only difference is that <code>[readonly]</code> does not grey out the field and <code>[disabled]</code> does.
                         </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
@@ -14103,13 +14021,59 @@ listboxElement.scrollToSelectedRecord();</code></pre>
                     </gs-block>
                     <gs-block class="equal_height_left content">
                         <p>
-                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The differences are that readonly is styled differently and allows you to copy the current text from the control.
+                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The only difference is that <code>[readonly]</code> does not grey out the field and <code>[disabled]</code> does.
                         </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
                         <pre><code>&lt;gs-memo readonly&gt;&lt;/gs-memo&gt;</code></pre>
                     </gs-block>
                     
+                    <gs-block class="equal_height_left content">
+                        <div flex-horizontal>
+                            <h5 flex>
+                                Attribute <code>[uppercase]</code>
+                            </h5>
+                            <div>
+                                <gs-dialog-button bg-primary inline>
+                                    <template data-max-width="80%" data-max-height="80%">
+                                        <gs-page>
+                                            <gs-header>
+                                                <center><h3>Attribute <code>[uppercase]</code> Example</h3></center>
+                                            </gs-header>
+                                            <gs-body padded>
+                                                <gs-doc-example>
+                                                    <template for="html" height="5">
+                                                        <label for="control_uppercase">Uppercase:</label>
+                                                        <gs-memo id="control_uppercase" uppercase></gs-memo>
+                                                    </template>
+                                                </gs-doc-example>
+                                            </gs-body>
+                                            <gs-footer>
+                                                <gs-grid gutter>
+                                                    <gs-block>
+                                                    </gs-block>
+                                                    <gs-block>
+                                                        <gs-button dialogclose bg-primary>Close</gs-button>
+                                                    </gs-block>
+                                                </gs-grid>
+                                            </gs-footer>
+                                        </gs-page>
+                                    </template>
+                                    Demo
+                                </gs-dialog-button>
+                            </div>
+                        </div>
+                    </gs-block>
+                    <gs-block class="equal_height_right code hide_on_reflow">
+                    </gs-block>
+                    <gs-block class="equal_height_left content">
+                        <p>
+                            Sometimes you want a memo field to always be uppercase. The <code>[uppercase]</code> attribute can be used to make the <code>&lt;gs-memo&gt;</code> only return uppercase values, and always appear uppercase.
+                        </p>
+                    </gs-block>
+                    <gs-block class="equal_height_right code">
+                        <pre><code>&lt;gs-memo uppercase&gt;&lt;/gs-memo&gt;</code></pre>
+                    </gs-block>
                     
                     <gs-block class="equal_height_left content">
                         <hr id="controls_number"/>
@@ -14620,7 +14584,7 @@ listboxElement.scrollToSelectedRecord();</code></pre>
                                             <gs-body padded>
                                                 <gs-doc-example>
                                                     <template for="html" height="15">
-                                                        <gs-number readonly value="5555"></gs-number>
+                                                        <gs-number readonly>5555</gs-number>
                                                     </template>
                                                 </gs-doc-example>
                                             </gs-body>
@@ -14644,7 +14608,7 @@ listboxElement.scrollToSelectedRecord();</code></pre>
                     </gs-block>
                     <gs-block class="equal_height_left content">
                         <p>
-                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The differences are that readonly is styled differently and allows you to copy the current text from the control.
+                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The only difference is that <code>[readonly]</code> does not grey out the field and <code>[disabled]</code> does.
                         </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
@@ -15364,7 +15328,7 @@ listboxElement.scrollToSelectedRecord();</code></pre>
                     </gs-block>
                     <gs-block class="equal_height_left content">
                         <p>
-                            The <code>[readonly]</code> attribute is the same as <code>[disabled]</code> for this control. Most controls have a <code>[readonly]</code> that allows the user to select the typed text (whereas <code>[disabled]</code> prevents selection, we have a <code>[readonly]</code> here to maintain a consistent attribute list.
+                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The only difference is that <code>[readonly]</code> does not grey out the field and <code>[disabled]</code> does.
                         </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
@@ -15793,7 +15757,7 @@ listboxElement.scrollToSelectedRecord();</code></pre>
                     </gs-block>
                     <gs-block class="equal_height_left content">
                         <p>
-                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The differences are that readonly is styled differently and allows you to copy the current text from the control.
+                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The only difference is that <code>[readonly]</code> does not grey out the field and <code>[disabled]</code> does.
                         </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
@@ -16473,7 +16437,7 @@ listboxElement.scrollToSelectedRecord();</code></pre>
                     </gs-block>
                     <gs-block class="equal_height_left content">
                         <p>
-                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The differences are that readonly is styled differently and allows you to copy the current text from the control.
+                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The only difference is that <code>[readonly]</code> does not grey out the field and <code>[disabled]</code> does.
                         </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
@@ -17548,11 +17512,58 @@ listboxElement.scrollToSelectedRecord();</code></pre>
                     </gs-block>
                     <gs-block class="equal_height_left content">
                         <p>
-                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The difference is that readonly is styled differently.
+                            The <code>[readonly]</code> attribute is similar to <code>[disabled]</code> because it prevents the value from changing. The only difference is that <code>[readonly]</code> does not grey out the field and <code>[disabled]</code> does.
                         </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
                         <pre><code>&lt;gs-text readonly&gt;&lt;/gs-text&gt;</code></pre>
+                    </gs-block>
+                    
+                    <gs-block class="equal_height_left content">
+                        <div flex-horizontal>
+                            <h5 flex>
+                                Attribute <code>[uppercase]</code>
+                            </h5>
+                            <div>
+                                <gs-dialog-button bg-primary inline>
+                                    <template data-max-width="80%" data-max-height="80%">
+                                        <gs-page>
+                                            <gs-header>
+                                                <center><h3>Attribute <code>[uppercase]</code> Example</h3></center>
+                                            </gs-header>
+                                            <gs-body padded>
+                                                <gs-doc-example>
+                                                    <template for="html" height="5">
+                                                        <label for="control_uppercase">Uppercase:</label>
+                                                        <gs-text id="control_uppercase" uppercase></gs-text>
+                                                    </template>
+                                                </gs-doc-example>
+                                            </gs-body>
+                                            <gs-footer>
+                                                <gs-grid gutter>
+                                                    <gs-block>
+                                                    </gs-block>
+                                                    <gs-block>
+                                                        <gs-button dialogclose bg-primary>Close</gs-button>
+                                                    </gs-block>
+                                                </gs-grid>
+                                            </gs-footer>
+                                        </gs-page>
+                                    </template>
+                                    Demo
+                                </gs-dialog-button>
+                            </div>
+                        </div>
+                    </gs-block>
+                    <gs-block class="equal_height_right code hide_on_reflow">
+                    </gs-block>
+                    <gs-block class="equal_height_left content">
+                        <p>
+                            Sometimes you want a text field to always be uppercase. The <code>[uppercase]</code> attribute can be used to make the <code>&lt;gs-text&gt;</code> only return uppercase values, and always appear uppercase.
+                        </p>
+                    </gs-block>
+                    <gs-block class="equal_height_right code">
+                        <pre><code>&lt;gs-text uppercase&gt;&lt;/gs-text&gt;</code></pre>
                     </gs-block>
                     
                     <gs-block class="equal_height_left content">
@@ -17605,10 +17616,10 @@ listboxElement.scrollToSelectedRecord();</code></pre>
                             See the following links for details:
                         </p>
                         <ul>
-                            <li><a href="doc-attr-flex.html" target="_blank">CSS Flexbox</a></li>
-                            <li><a href="doc-attr-visibility.html" target="_blank">Visibility</a></li>
-                            <li><a href="doc-attr-text-selection.html" target="_blank">Text Selection</a></li>
-                            <li><a href="doc-attr-text-insertion.html" target="_blank">Text Insertion</a></li>
+                            <li><a href="#utility_flex">CSS Flexbox</a></li>
+                            <li><a href="#utility_visibility">Visibility</a></li>
+                            <li><a href="#utility_text_selection">Text Selection</a></li>
+                            <li><a href="#utility_text_insertion">Text Insertion</a></li>
                         </ul>
                     </gs-block>
                     <gs-block class="equal_height_right code hide_on_reflow">
@@ -18438,1677 +18449,6 @@ listboxElement.scrollToSelectedRecord();</code></pre>
                     
                     
                     <gs-block class="equal_height_left content">
-                        <hr id="record_envelope"/>
-                        <h4>Envelope</h4>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            The <code>gs-envelope</code> element is used for showing data in a spreadsheet. It also has the ability to create, update and delete records.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope&gt;&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Skeleton
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Skeleton Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="30">
-                                                        <gs-envelope src="gsdoc.texample">
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#">
-                                                                                <gs-static column="row_number"></gs-static>
-                                                                            </th>
-                                                                            <td heading="First Name">
-                                                                                <gs-text mini column="first_name"></gs-text>
-                                                                            </td>
-                                                                            <td heading="Last Name">
-                                                                                <gs-text mini column="last_name"></gs-text>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            This is an example of a basic, stand-alone envelope.
-                        </p>
-                        <p>
-                            Note that the default behavior is for the user to have access to UPDATE and DELETE functionality. If your SRC is a view or function you'll need RULEs or TRIGGERS for UPDATE and DELETE or your users will get errors when they attempt to UPDATE or DELETE records.
-                        </p>
-                        <p>
-                            Other default behaviors include limit, sorting and refresh. Row numbers are provided by envelope when your template includes the column="row_number" attribute. If you leave it out you still get a record selector column but there are no numbers. When you select records this column gets a triangle icon to indicate the record is selected.
-                        </p>
-                        <p>
-                            The copy-to-clipboard functionality allows you to select contiguous records by holding down shift. You can select individual records by holding down Command. You can drag across columns to select just a section of a table. When you paste into a document the data will be tab delimited. Tab delimited data tends to paste into a spreadsheet with the columns preserved. Columns will not typically line up correctly in a plain text document. Users can paste into a spreadsheet and then copy and paste into a document to get a rich text table into a document.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..."&gt;
-    &lt;template for="table"&gt;
-        &lt;table&gt;
-            &lt;tbody&gt;
-                &lt;tr&gt;
-                    &lt;th heading="#"&gt;
-                        &lt;gs-static column="row_number"&gt;&lt;/gs-static&gt;
-                    &lt;/th&gt;
-                    &lt;td heading="..."&gt;
-                        ...
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/tbody&gt;
-        &lt;/table&gt;
-    &lt;/template&gt;
-&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Attribute <code>[cols=""]</code>
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Attribute <code>[cols=""]</code> Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="32">
-                                                        <gs-envelope src="gsdoc.texample" cols="id,first_name,change_stamp">
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#">
-                                                                                <gs-static column="row_number"></gs-static>
-                                                                            </th>
-                                                                            <td heading="First Name">
-                                                                                <gs-text mini column="first_name"></gs-text>
-                                                                            </td>
-                                                                            <td heading="Last Name">
-                                                                                <gs-text mini column="last_name"></gs-text>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>          
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            In this example we are limiting the columns we get back from the database by using the <code>[cols=""]</code> attribute. The <code>[cols=""]</code> attribute is a comma-seperated list of columns that you want from the database. You can see we did not include the <code>[last_name=""]</code> column so it is empty.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..." cols="..."&gt;...&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                SQL Attributes
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>SQL Attributes Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="32">
-                                                        <gs-envelope src="gsdoc.texample" where="first_name ~ 'a'" 
-                                                            ord="first_name" limit="20" offset="2">
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#">
-                                                                                <gs-static column="row_number"></gs-static>
-                                                                            </th>
-                                                                            <td heading="First Name">
-                                                                                <gs-text mini column="first_name"></gs-text>
-                                                                            </td>
-                                                                            <td heading="Last Name">
-                                                                                <gs-text mini column="last_name"></gs-text>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            The <code>[where=""]</code> attribute takes as an argument any valid SQL WHERE clause and the <code>[ord=""]</code> attribute takes any valid SQL order by clause.
-                        </p>
-                        <p>
-                            Limit and offset need integers to work but they can also accept empty string in which case they are ignored.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..." where="..." ord="..."&gt;...&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Attribute <code>[qs=""]</code>
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Attribute <code>[qs=""]</code> Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example query-string="first_name=test2&test2=false">
-                                                    <template for="html" height="35">
-                                                        <gs-envelope src="gsdoc.texample" qs="first_name" limit="2" expand-to-content no-hudorderby no-hudlimit no-hudrefresh no-huddelete>
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody><tr><td heading="Name">{{! row.first_name }}</td></tr></tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                        <br />
-                                                        <gs-envelope src="gsdoc.texample" qs="test2=value" limit="2" expand-to-content child-column="first_name" no-hudorderby no-hudlimit no-hudrefresh no-huddelete>
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody><tr><td heading="Name">{{! row.first_name }}</td></tr></tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                        <br />
-                                                        <gs-envelope src="gsdoc.texample" qs="test3=hidden" limit="2" expand-to-content no-hudorderby no-hudlimit no-hudrefresh no-huddelete>
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody><tr><td heading="Name">{{! row.first_name }}</td></tr></tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                        <br />
-                                                        <gs-envelope src="gsdoc.texample" qs="test4!=hidden" limit="2" expand-to-content no-hudorderby no-hudlimit no-hudrefresh no-huddelete>
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody><tr><td heading="Name">{{! row.first_name }}</td></tr></tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                        <br />
-                                                        <br />
-                                                        <gs-grid widths="1,1">
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.pushQueryString('first_name=test1');">Add "first_name"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.removeFromQueryString('first_name');">Remove "first_name"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.pushQueryString('test2=test2');">Add "test2"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.removeFromQueryString('test2');">Remove "test2"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.pushQueryString('test3=test3');">Add "test3"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.removeFromQueryString('test3');">Remove "test3"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.pushQueryString('test4=test4');">Add "test4"</gs-button>
-                                                            </gs-block>
-                                                            <gs-block>
-                                                                <gs-button onclick="GS.removeFromQueryString('test4');">Remove "test4"</gs-button>
-                                                            </gs-block>
-                                                        </gs-grid>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            The name <code>[qs]</code> stands for "querystring". The querystring is the part in the URL after the "?". The <code>[qs]</code> attribute has two formats, each with their own use.
-                        </p>
-                        <ul>
-                            <li>qs="<i>key1</i>=<i>attribute1</i>". This format allows you to fill any attribute with any key from the querystring. To use multiple keys from the querystring you can put a comma-separated list of these expressions (for example: qs="<i>key1</i>=<i>attribute1</i>,<i>key2</i>=<i>attribute2</i>"). If you need an attribute to be added when a querystring key is not present, replace the "=" with "!=" (for example: qs="<i>key1</i>!=<i>attribute1</i>", attribute1 will only be added if key1 is not in the querystring). As a shorthand, if the key in the querystring is the same name as the attribute you want to fill, you can omit the attribute name in the expression (for example: qs="<i>key1</i>="). If an expression doesn't find it's key in the querystring: it reverts the attribute that it fills to it's original value.</li>
-                            <li>qs="<i>key</i>". This format will update the <code>[where]</code> attribute with the querystring whenever the querystring changes.</li>
-                        </ul>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..." qs="..."&gt;...&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Insert Dialog
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Insert Dialog Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="41">
-                                                        <gs-envelope src="gsdoc.texample">
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#">
-                                                                                <gs-static column="row_number"></gs-static>
-                                                                            </th>
-                                                                            <td heading="First Name">
-                                                                                <gs-text mini column="first_name"></gs-text>
-                                                                            </td>
-                                                                            <td heading="Last Name">
-                                                                                <gs-text mini column="last_name"></gs-text>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                            <template for="insert">
-                                                                <label for="text-insert-first_name">First Name:</label>
-                                                                <gs-text id="text-insert-first_name" column="first_name"></gs-text>
-                                                                <label for="text-insert-last_name">Last Name:</label>
-                                                                <gs-text id="text-insert-last_name" column="last_name"></gs-text>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            This is an example of an envelope with an insert dialog.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..."&gt;
-    ...
-    &lt;template for="insert"&gt;
-        &lt;label for="..."&lt;...:&gt;/label&gt;
-        &lt;gs-text id="..." column="..."&lt;/gs-text&gt;
-    &lt;/template&gt;
-&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                HUD Button Removal
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>HUD Button Removal Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="24">
-                                                        <gs-envelope src="gsdoc.tpeople" no-hudorderby no-hudlimit no-hudrefresh no-huddelete>
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#"><gs-static column="row_number"></gs-static></th>
-                                                                            <td heading="First Name"><gs-text mini column="first_name"></gs-text></td>
-                                                                            <td heading="Last Name"><gs-text mini column="last_name"></gs-text></td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            This is an example of an envelope with the hud buttons removed. The no-hudorderby attribute removes the order by button. The no-hudlimit attribute removes the limit button. The no-hudrefresh attribute removes the refresh button. The no-huddelete attribute removes the delete button. Note that, once you remove all the buttons from the header or footer, the entire header or footer colapses.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..." no-hudorderby no-hudlimit no-hudrefresh no-huddelete&gt;&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Add A Custom HUD Button
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Add A Custom HUD Button Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="28">
-                                                        <gs-envelope src="gsdoc.tpeople">
-                                                            <template for="hud">
-                                                                <gs-button onclick="alert('custom button')" inline>Click Me</gs-button>
-                                                            </template>
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#"><gs-static column="row_number"></gs-static></th>
-                                                                            <td heading="First Name"><gs-text mini column="first_name"></gs-text></td>
-                                                                            <td heading="Last Name"><gs-text mini column="last_name"></gs-text></td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            This is an example of an envelope with a custom button in the HUD.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..."&gt;
-    &lt;template for="hud"&gt;
-        &lt;gs-button onclick="..." inline&gt;...&lt;/gs-button&gt;
-    &lt;/template&gt;
-    ...
-&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Attribute <code>[scroll-to-bottom]</code>
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Attribute <code>[scroll-to-bottom]</code> Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="auto">
-                                                        <gs-envelope src="gsdoc.tpeople" scroll-to-bottom>
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#"><gs-static column="row_number"></gs-static></th>
-                                                                            <td heading="First Name"><gs-text mini column="first_name"></gs-text></td>
-                                                                            <td heading="Last Name"><gs-text mini column="last_name"></gs-text></td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            This is an example of an envelope that has been set to scroll to the bottom on the first load. This is done by adding the <code>[scroll-to-bottom]</code> attribute.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..." scroll-to-bottom&gt;...&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Column Heading Removal
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Column Heading Removal Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="23">
-                                                        <gs-envelope src="gsdoc.tpeople">
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th><gs-static column="row_number"></gs-static></th>
-                                                                            <td><gs-text mini column="first_name"></gs-text></td>
-                                                                            <td><gs-text mini column="last_name"></gs-text></td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            By omitting all of the heading attributes from the table template we've removed the column headings.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..."&gt;
-    &lt;template for="table"&gt;
-        &lt;table&gt;
-            &lt;tbody&gt;
-                &lt;tr&gt;
-                    &lt;th&gt;
-                        &lt;gs-static column="row_number"&gt;&lt;/gs-static&gt;
-                    &lt;/th&gt;
-                    &lt;td&gt;
-                        ...
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/tbody&gt;
-        &lt;/table&gt;
-    &lt;/template&gt;
-&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Attribute <code>[reflow-at=""]</code>
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Attribute <code>[reflow-at=""]</code> Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="23">
-                                                        <gs-envelope src="gsdoc.tpeople" reflow-at="400">
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#"><gs-static column="row_number"></gs-static></th>
-                                                                            <td heading="First Name"><gs-text mini column="first_name"></gs-text></td>
-                                                                            <td heading="Last Name"><gs-text mini column="last_name"></gs-text></td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            In this example the envelope has the <code>[reflow-at=""]</code> attribute. The <code>[reflow-at=""]</code> attribute is for telling the envelope when to reflow the table. When a table is "reflowed" that means that each record is essentially turned to be vertical. To put a heading above each of the controls you must have the <code>heading=""</code> attribute set for each cell.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..." reflow-at="400"&gt;...&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Attribute <code>[expand-to-content]</code>
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Attribute <code>[expand-to-content]</code> Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="23">
-                                                        <gs-envelope src="gsdoc.tpeople" expand-to-content>
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#"><gs-static column="row_number"></gs-static></th>
-                                                                            <td heading="First Name"><gs-text mini column="first_name"></gs-text></td>
-                                                                            <td heading="Last Name"><gs-text mini column="last_name"></gs-text></td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            In this example the envelope has the <code>expand-to-content</code> attribute. The <code>expand-to-content</code> attribute is for telling the envelope have it's height be determined by the height of it's content.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..." expand-to-content&gt;...&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Header And Line Relationship Attributes
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Header And Line Relationship Attributes Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="41">
-                                                        <gs-form src="gsdoc.tpeople" where="id=2341">
-                                                            <template>
-                                                                <gs-envelope src="gsdoc.tpeople_line" column="id" child-column="people_id">
-                                                                    <template for="table">
-                                                                        <table>
-                                                                            <tbody>
-                                                                                <tr>
-                                                                                    <th heading="#">
-                                                                                        <gs-static column="row_number"></gs-static>
-                                                                                    </th>
-                                                                                    <td heading="Name">
-                                                                                        <gs-text mini column="pet_name"></gs-text>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            </tbody>
-                                                                        </table>
-                                                                    </template>
-                                                                    <template for="insert">
-                                                                        <label for="text-insert-pet_name">Name:</label>
-                                                                        <gs-text id="text-insert-pet_name" column="pet_name"></gs-text>
-                                                                        <label for="text-insert-birth_date">Birth Day:</label>
-                                                                        <gs-date id="text-insert-birth_date" column="birth_date" value="today"></gs-date>
-                                                                    </template>
-                                                                </gs-envelope>
-                                                            </template>
-                                                        </gs-form>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            In this example we have a form with an envelope inside that has the <code>[column=""]</code> and <code>[child-column=""]</code> attributes set, it also gets it's <code>[value=""]</code> attribute set by the form. Each of these three attributes are used to filter the envelope based on a header record and make it so that records that are inserted using the envelope are connected to the same header record.
-                        </p>
-                        <p>
-                            <b>Attribute </b><code>[column=""]</code><br/>
-                            This attribute is for getting the value from the form and it (in the absence of the <code>[child-column=""]</code> attribute) is used as the column name that the envelope filters on and inserts with.
-                        </p>
-                        <p>
-                            <b>Attribute </b><code>[child-column=""]</code><br/>
-                            This attribute is the name of the column that you want to filter on and insert with. If this is not set it defaults to the value of the <code>[column=""]</code> attribute.
-                        </p>
-                        <p>
-                            <b>Attribute </b><code>[value=""]</code><br/>
-                            This attribute works in conjunction with the <code>[column=""]</code> and <code>[child-column=""]</code> attributes to be the value that the envelope filters for and inserts using.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..." column="..." child-column="..."&gt;...&lt;/gs-envelope&gt;
-&lt;gs-envelope src="..." value="..."&gt;...&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Attribute <code>[refresh-on-querystring-change=""]</code>
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Attribute <code>[refresh-on-querystring-change=""]</code> Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example query-string="first_name=Apple&unrelatedparameter=test">
-                                                    <template for="html" height="32">
-                                                        <gs-envelope src="gsdoc.tpeople" where="first_name = '{{! qs.first_name }}'" refresh-on-querystring-change>
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#">
-                                                                                <gs-static column="row_number"></gs-static>
-                                                                            </th>
-                                                                            <td heading="First Name">
-                                                                                <gs-text mini column="first_name"></gs-text>
-                                                                            </td>
-                                                                            <td heading="Last Name">
-                                                                                <gs-text mini column="last_name"></gs-text>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            The <code>[refresh-on-querystring-change=""]</code> attribute refreshes the form element when anything changes in the query string.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..." where="column_name = {{! qs.example }}" refresh-on-querystring-change&gt;...&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Javascript Methods
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Javascript Methods Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="37">
-                                                        <gs-button onclick="testData()">Refresh Data</gs-button>
-                                                        <gs-button onclick="testReflow()">Refresh Reflow</gs-button>
-                                                        <gs-button onclick="testHeader()">Refresh Header</gs-button>
-                                                        <br />
-                                                        <gs-envelope id="test-elem" src="gsdoc.tpeople" expand-to-content limit="12">
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#">
-                                                                                <gs-static column="row_number"></gs-static>
-                                                                            </th>
-                                                                            <td heading="First Name">
-                                                                                <gs-text mini column="first_name"></gs-text>
-                                                                            </td>
-                                                                            <td heading="Last Name">
-                                                                                <gs-text mini column="last_name"></gs-text>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                    <template for="js" height="13">
-                                                        function testData() {
-                                                            document.getElementById('test-elem').refresh();
-                                                        }
-                                                        function testReflow() {
-                                                            document.getElementById('test-elem').refreshReflow();
-                                                        }
-                                                        function testHeader() {
-                                                            document.getElementById('test-elem').refreshFixedHeader();
-                                                        }
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            These functions can be run on individual envelope elements:
-                        </p>
-                        <p>
-                            <b>Method </b><code>envelopeElement.refresh()</code><br/>
-                            This method refreshes the data inside the envelope.
-                        </p>
-                        <p>
-                            <b>Method </b><code>envelopeElement.refreshReflow()</code><br/>
-                            This method recalculates to see if the envelope should be reflowed or not. The effects of this method are only visible when for some reason the envelope changed width to the point of needing to reflow or un-reflow but was not refreshed because the window "resize" event was not triggered.
-                        </p>
-                        <p>
-                            <b>Method </b><code>envelopeElement.refreshFixedHeader()</code><br/>
-                            This method refreshes the widths of the envelope header. The effects of this method are only visible when for some reason the envelope changed width but the headers were not refreshed because the window "resize" event was not triggered.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>envelopeElement.refresh();
-envelopeElement.refreshReflow();
-envelopeElement.refreshFixedHeader();</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Getting The Current Selection
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Getting The Current Selection Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="50">
-                                                        <gs-button onclick="testGetCells()">Get Selected Cells</gs-button>
-                                                        <gs-button onclick="testGetRecords()">Get Selected Records</gs-button>
-                                                        <gs-button onclick="testGetIds()">Get Selected IDs</gs-button>
-                                                        <br />
-                                                        <gs-button onclick="testSetCells()">Set Selected Cells</gs-button>
-                                                        <gs-button onclick="testSetRecords()">Set Selected Records</gs-button>
-                                                        <gs-button onclick="testSetIds()">Set Selected IDs</gs-button>
-                                                        <br />
-                                                        <gs-envelope id="test-elem" src="gsdoc.tpeople" ord="id ASC" expand-to-content limit="5">
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#">
-                                                                                <gs-static column="row_number"></gs-static>
-                                                                            </th>
-                                                                            <td heading="First Name">
-                                                                                <gs-text mini column="first_name"></gs-text>
-                                                                            </td>
-                                                                            <td heading="Last Name">
-                                                                                <gs-text mini column="last_name"></gs-text>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                        <br />
-                                                        <div id="result"></div>
-                                                    </template>
-                                                    <template for="js" height="45">
-                                                        function testGetCells() {
-                                                            console.log(
-                                                                document.getElementById('test-elem').selectedCells);
-                                                        }
-                                                        function testGetRecords() {
-                                                            console.log(
-                                                                document.getElementById('test-elem').selectedRecords);
-                                                        }
-                                                        function testGetIds() {
-                                                            console.log(
-                                                                document.getElementById('test-elem').selectedIds);
-                                                        }
-                                                        
-                                                        function testSetCells() {
-                                                            document.getElementById('test-elem').selectedCells =
-                                                                [
-                                                                    document.getElementById('test-elem')
-                                                                        .querySelectorAll('tr')[1].children[0]
-                                                                ];
-                                                        }
-                                                        function testSetRecords() {
-                                                            document.getElementById('test-elem').selectedRecords =
-                                                                [
-                                                                    document.getElementById('test-elem')
-                                                                        .querySelectorAll('tr')[1]
-                                                                ];
-                                                        }
-                                                        function testSetIds() {
-                                                            document.getElementById('test-elem').selectedIds =
-                                                                [
-                                                                    '2316', '2318', '2320'
-                                                                ];
-                                                        }
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            For this example you will have to open the Javascript console for your browser.
-                        </p>
-                        <p>
-                            There are three ways to get the selection of an envelope:
-                        </p>
-                        <p>
-                            <b>Get attribute </b><code>envelopeElement.selectedCells</code><br/>
-                            This will return an array of cell elements that are selected.
-                        </p>
-                        <p>
-                            <b>Get attribute </b><code>envelopeElement.selectedRecords</code><br/>
-                            This will return an array of record elements that contain selected cells.
-                        </p>
-                        <p>
-                            <b>Set attribute </b><code>envelopeElement.selectedIds</code><br/>
-                            This will return an array of record IDs where the corresponding record element contains selected cells.
-                        </p>
-                        <p>
-                            There are three ways to set the selection of an envelope:
-                        </p>
-                        <p>
-                            <b>Set attribute </b><code>envelopeElement.selectedCells = ...;</code><br/>
-                            The format that this requires is an array of table cell elements that are inside the envelope you are setting the selection of.
-                        </p>
-                        <p>
-                            <b>Set attribute </b><code>envelopeElement.selectedRecords = ...;</code><br/>
-                            The format that this requires is an array of record elements that are inside the envelope you are setting the selection of.
-                        </p>
-                        <p>
-                            Set attribute <code>envelopeElement.selectedIds = ...;</code><br/>
-                            The format that this requires is an array of record IDs that are inside the envelope you are setting the selection of.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>envelopeElement.selectedCells;
-envelopeElement.selectedRecords
-envelopeElement.selectedIds</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Javascript Events
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Javascript Events Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="51">
-                                                        <gs-envelope id="test-elem" src="gsdoc.tpeople" ord="id ASC" expand-to-content limit="5">
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#">
-                                                                                <gs-static column="row_number"></gs-static>
-                                                                            </th>
-                                                                            <td heading="First Name">
-                                                                                <gs-text mini column="first_name"></gs-text>
-                                                                            </td>
-                                                                            <td heading="Last Name">
-                                                                                <gs-text mini column="last_name"></gs-text>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                            <template for="insert">
-                                                                <label for="text-insert-first_name">First Name:</label>
-                                                                <gs-text id="text-insert-first_name" column="first_name"></gs-text>
-                                                                
-                                                                <label for="text-insert-last_name">Last Name:</label>
-                                                                <gs-text id="text-insert-last_name" column="last_name"></gs-text>
-                                                                
-                                                                <label for="text-insert-birth_date">Birth Day:</label>
-                                                                <gs-date id="text-insert-birth_date" column="birth_date" value="today"></gs-date>
-                                                            </template>
-                                                        </gs-envelope>
-                                                        <br />
-                                                        <div id="event-log"></div>
-                                                    </template>
-                                                    <template for="js" height="64">
-                                                        function addToLog(strEventName, strExplain) {
-                                                            document.getElementById('event-log').innerHTML =
-                                                                '<div>' +
-                                                                    '<b>' + strEventName + '</b> ' +
-                                                                    strExplain +
-                                                                '</div>' +
-                                                                document.getElementById('event-log').innerHTML;
-                                                        }
-                                                        
-                                                        window.addEventListener('load', function () {
-                                                            document.getElementById('test-elem')
-                                                                .addEventListener('after_selection', function () {
-                                                                
-                                                                addToLog('after_selection',
-                                                                         'You\'ve changed the selection.');
-                                                            });
-                                                            document.getElementById('test-elem')
-                                                                .addEventListener('after_select', function () {
-                                                                
-                                                                addToLog('after_select',
-                                                                         'Envelope has gotten it\'s data.');
-                                                            });
-                                                            document.getElementById('test-elem')
-                                                                .addEventListener('after_update', function () {
-                                                                
-                                                                addToLog('after_update',
-                                                                         'Envelope has updated it\'s data.');
-                                                            });
-                                                            document.getElementById('test-elem')
-                                                                .addEventListener('after_delete', function () {
-                                                                
-                                                                addToLog('after_delete',
-                                                                         'Envelope has deleted some data.');
-                                                            });
-                                                            document.getElementById('test-elem')
-                                                                .addEventListener('after_insert', function () {
-                                                                
-                                                                addToLog('after_insert',
-                                                                         'Envelope has inserted some data.');
-                                                            });
-                                                            document.getElementById('test-elem')
-                                                                .addEventListener('insert_dialog_open', function () {
-                                                                
-                                                                addToLog('insert_dialog_open',
-                                                                         'Envelope insert dialog has been opened.');
-                                                            });
-                                                        });
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            In this example we have an envelope that logs every event that we have built in:
-                        </p>
-                        <p>
-                            <b>after_selection</b>: This event is triggered when the cell selection of the envelope changes.
-                        </p>
-                        <p>
-                            <b>after_select</b>: This event is triggered when the element receives the data, if there is not error.
-                        </p>
-                        <p>
-                            <b>after_update</b>: This event is triggered when the element receives confirmation that an update has gone through.
-                        </p>
-                        <p>
-                            <b>after_delete</b>: This event is triggered when the element receives confirmation that a delete has gone through.
-                        </p>
-                        <p>
-                            <b>after_insert</b>: This event is triggered when the element receives confirmation that an insert has gone through.
-                        </p>
-                        <p>
-                            <b>insert_dialog_open</b>: This event is triggered when the insert dialog has been opened.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>envelopeElement.addEventListener('after_selection', function () {});
-envelopeElement.addEventListener('after_select', function () {});
-envelopeElement.addEventListener('after_update', function () {});
-envelopeElement.addEventListener('after_delete', function () {});
-envelopeElement.addEventListener('after_insert', function () {});
-envelopeElement.addEventListener('insert_dialog_open', function () {});</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Envelope, Sub-Envelope
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Envelope, Sub-Envelope Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="auto">
-                                                        <gs-envelope src="gsdoc.tpeople" ord="id ASC" limit="3">
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <td>
-                                                                                <gs-text mini column="first_name"></gs-text>
-                                                                            </td>
-                                                                            <td>
-                                                                                <gs-text mini column="last_name"></gs-text>
-                                                                            </td>
-                                                                            <td>
-                                                                                <gs-envelope src="gsdoc.tpeople" ord="id ASC" limit="3" offset="{{! row_number * 3}}" expand-to-content>
-                                                                                    <template for="table">
-                                                                                        <table>
-                                                                                            <tbody>
-                                                                                                <tr>
-                                                                                                    <td>
-                                                                                                        <gs-text mini column="first_name"></gs-text>
-                                                                                                    </td>
-                                                                                                    <td>
-                                                                                                        <gs-text mini column="last_name"></gs-text>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                            </tbody>
-                                                                                        </table>
-                                                                                    </template>
-                                                                                </gs-envelope>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            In this example we have an envelope that has a sub-envelope. Note: the offset attribute on the sub-envelope is because all of these envelopes are looking at the same table, so the offset prevents any record from the table from being in two places at once.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..."&gt;
-    &lt;template for="table"&gt;
-        &lt;table&gt;
-            &lt;tbody&gt;
-                &lt;tr&gt;
-                    &lt;td&gt;
-                        &lt;gs-envelope src="..."&gt;...&lt;/gs-envelope&gt;
-                    &lt;/td&gt;
-                &lt;/tr&gt;
-            &lt;/tbody&gt;
-        &lt;/table&gt;
-    &lt;/template&gt;
-&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Attribute <code>[no-insert]</code>
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Attribute <code>[no-insert]</code> Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="30">
-                                                        <gs-envelope src="gsdoc.texample" no-insert>
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#">
-                                                                                <gs-static column="row_number"></gs-static>
-                                                                            </th>
-                                                                            <td heading="First Name">
-                                                                                <gs-text mini column="first_name"></gs-text>
-                                                                            </td>
-                                                                            <td heading="Last Name">
-                                                                                <gs-text mini column="last_name"></gs-text>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                            <template for="insert">
-                                                                <label for="text-insert-first_name">First Name:</label>
-                                                                <gs-text id="text-insert-first_name" column="first_name"></gs-text>
-                                                                <label for="text-insert-last_name">Last Name:</label>
-                                                                <gs-text id="text-insert-last_name" column="last_name"></gs-text>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            This is an example of an envelope with the <code>[no-insert]</code> attribute.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..." no-insert&gt;...&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Attribute <code>[no-update]</code>
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Attribute <code>[no-update]</code> Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="30">
-                                                        <gs-envelope src="gsdoc.texample" no-update>
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#">
-                                                                                <gs-static column="row_number"></gs-static>
-                                                                            </th>
-                                                                            <td heading="First Name">
-                                                                                <gs-text mini column="first_name"></gs-text>
-                                                                            </td>
-                                                                            <td heading="Last Name">
-                                                                                <gs-text mini column="last_name"></gs-text>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                            <template for="insert">
-                                                                <label for="text-insert-first_name">First Name:</label>
-                                                                <gs-text id="text-insert-first_name" column="first_name"></gs-text>
-                                                                <label for="text-insert-last_name">Last Name:</label>
-                                                                <gs-text id="text-insert-last_name" column="last_name"></gs-text>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            This is an example of an envelope with the <code>[no-update]</code> attribute.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..." no-insert&gt;...&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    <gs-block class="equal_height_left content">
-                        <div flex-horizontal>
-                            <h5 flex>
-                                Attribute <code>[template=""]</code>
-                            </h5>
-                            <div>
-                                <gs-dialog-button bg-primary inline>
-                                    <template data-max-width="80%" data-max-height="80%">
-                                        <gs-page>
-                                            <gs-header>
-                                                <center><h3>Attribute <code>[template=""]</code> Example</h3></center>
-                                            </gs-header>
-                                            <gs-body padded>
-                                                <gs-doc-example>
-                                                    <template for="html" height="50">
-                                                        <gs-button onclick="setTemplateAttr()">Set Template</gs-button>
-                                                        <gs-button onclick="removeTemplateAttr()">Reset Template</gs-button>
-                                                        <gs-envelope src="gsdoc.texample" id="test-envelope">
-                                                            <template for="table">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#">
-                                                                                <gs-static column="row_number"></gs-static>
-                                                                            </th>
-                                                                            <td heading="First Name">
-                                                                                <gs-text mini column="first_name"></gs-text>
-                                                                            </td>
-                                                                            <td heading="Last Name">
-                                                                                <gs-text mini column="last_name"></gs-text>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                            <template for="table" id="test1">
-                                                                <table>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <th heading="#">
-                                                                                <gs-static column="row_number"></gs-static>
-                                                                            </th>
-                                                                            <td heading="Last Name">
-                                                                                <gs-static mini column="last_name"></gs-static>
-                                                                            </td>
-                                                                            <td heading="First Name">
-                                                                                <gs-static mini column="first_name"></gs-static>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </template>
-                                                        </gs-envelope>
-                                                    </template>
-                                                    <template for="js" height="10">
-                                                        function setTemplateAttr() {
-                                                            document.getElementById('test-envelope').setAttribute('template', 'test1');
-                                                            document.getElementById('test-envelope').refresh();
-                                                        }
-                                                        function removeTemplateAttr() {
-                                                            document.getElementById('test-envelope').removeAttribute('template');
-                                                            document.getElementById('test-envelope').refresh();
-                                                        }
-                                                    </template>
-                                                </gs-doc-example>
-                                            </gs-body>
-                                            <gs-footer>
-                                                <gs-grid gutter>
-                                                    <gs-block>
-                                                    </gs-block>
-                                                    <gs-block>
-                                                        <gs-button dialogclose bg-primary>Close</gs-button>
-                                                    </gs-block>
-                                                </gs-grid>
-                                            </gs-footer>
-                                        </gs-page>
-                                    </template>
-                                    Demo
-                                </gs-dialog-button>
-                            </div>
-                        </div>
-                    </gs-block>
-                    <gs-block class="equal_height_right code hide_on_reflow">
-                    </gs-block>
-                    <gs-block class="equal_height_left content">
-                        <p>
-                            This is an example of an envelope with the <code>[template=""]</code> attribute.
-                        </p>
-                    </gs-block>
-                    <gs-block class="equal_height_right code">
-                        <pre><code>&lt;gs-envelope src="..." template="..."&gt;...&lt;/gs-envelope&gt;</code></pre>
-                    </gs-block>
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    <gs-block class="equal_height_left content">
                         <hr id="record_form"/>
                         <h4>Form</h4>
                     </gs-block>
@@ -20117,7 +18457,7 @@ envelopeElement.addEventListener('insert_dialog_open', function () {});</code></
                     
                     <gs-block class="equal_height_left content">
                         <p>
-                            The <code>gs-form</code> element is for selecting and updating records in the database. In most cases the form is used to select and update a single record but it can update multiple records.
+                            The <code>gs-form</code> tag enables you to navigate folders, upload files, delete files, rename files and open the file editor for files.
                         </p>
                     </gs-block>
                     <gs-block class="equal_height_right code">
@@ -29405,16 +27745,25 @@ GS.superUserLogin(&lt;LOGGED-IN-CALLBACK&gt;);</code></pre>
                                                     </template>
                                                     <template for="js" height="20">
                                                         function testGetIconList() {
-                                                            var i, len, html, arrIcon;
+                                                            var i;
+                                                            var len;
+                                                            var strHTML;
+                                                            var arrIcon;
                                                             
                                                             arrIcon = GS.iconList();
-                                                            for (i = 0, len = arrIcon.length, html = ''; i < len; i += 1) {
-                                                                html += arrIcon[i].code + ' ' +
-                                                                        arrIcon[i].name + '<br />';
+                                                            strHTML = '';
+                                                            i = 0;
+                                                            len = arrIcon.length;
+                                                            while (i < len) {
+                                                                strHTML += (
+                                                                    '<gs-button inline icononly icon="' + arrIcon[i].name + '"></gs-button> - ' +
+                                                                    arrIcon[i].code + ' - ' +
+                                                                    arrIcon[i].name + '<br />'
+                                                                );
+                                                                i += 1;
                                                             }
                                                             
-                                                            document.getElementById('result').innerHTML =
-                                                                html;
+                                                            document.getElementById('result').innerHTML = strHTML;
                                                         }
                                                     </template>
                                                 </gs-doc-example>

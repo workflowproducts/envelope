@@ -79,7 +79,7 @@ if (!window.hasOwnProperty('customElements')) {
                         options.lifecycle.attributeChanged.apply(this, arguments);
                     }
                 };
-                Object.defineProperty(ElementConstructor, 'observedAttributes', { get: function () { return ['disabled','for','format','href','media','min-width','no-focus','no-huddelete','no-hudlimit','no-hudorderby','no-hudrefresh','no-picker','path','placeholder','qs','reflow','reflow-at','src','suspend-created','suspend-inserted','tabindex','template','value','widths'].concat(options.observedAttributes); } });
+                Object.defineProperty(ElementConstructor, 'observedAttributes', { get: function () { return ['disabled','for','format','href','media','min-width','no-focus','no-huddelete','no-hudlimit','no-hudorderby','no-hudrefresh','no-picker','path','placeholder','qs','name', 'maxlength', 'autofocus', 'readonly', 'title','reflow','reflow-at','src','suspend-created','suspend-inserted','tabindex','template','value','widths'].concat(options.observedAttributes); } });
             }
         }
     
@@ -99,7 +99,16 @@ if (!window.hasOwnProperty('customElements')) {
     };
     
     xtag.matchSelector = function (e, s) {
-        return e.matches(s);
+        // console.log(e);
+        if (e.mozMatchesSelector) {
+            return e.mozMatchesSelector(s);
+        } else if (e.webkitMatchesSelector) {
+            return e.webkitMatchesSelector(s);
+        } else if (e.matches) {
+            return e.matches(s);
+        } else {
+            return false;
+        }
     };
     
     xtag.toArray = function (nodeList) {

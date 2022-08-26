@@ -1047,11 +1047,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!error) {
                     if (data === 'TRANSACTION COMPLETED') {
                         commitFunction();
-                        GS.triggerEvent(element, 'after_insert');
-                        GS.triggerEvent(element, 'onafter_insert');
-                        if (element.hasAttribute('onafter_insert')) {
-                            new Function(element.getAttribute('onafter_insert')).apply(element);
-                        }
                     }
                 } else {
                     removeLoader(element);
@@ -1059,10 +1054,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     GS.webSocketErrorDialog(data);
                 }
             },
-            function () {
+            function (action) {
                 removeLoader(element);
-                GS.triggerEvent(element, 'after_insert');
-                GS.closeDialog(dialog, 'Ok');
+                if (action === 'COMMIT') {
+                    GS.triggerEvent(element, 'after_insert');
+                    GS.triggerEvent(element, 'onafter_insert');
+                    if (element.hasAttribute('onafter_insert')) {
+                        new Function(element.getAttribute('onafter_insert')).apply(element);
+                    }
+                    GS.closeDialog(dialog, 'Ok');
+                }
                 getData(element, true);
             }
         );
@@ -2194,7 +2195,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (event.target.getAttribute('column')) {
                         if (event.target.value !== null) {
-                            newValue = event.target.value;
+                            // changed on 2022-06-11 by Nunzio
+                            // this is the behaviour of Microsoft Access, and Cross expected it
+                            newValue = event.target.value === '' ? '\\N' : event.target.value;
+                            // newValue = event.target.value;
                         } else {
                             newValue = event.target.checked;
                         }
@@ -2208,6 +2212,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         ) {
                             updateRecord(element, parentTr, event.target.getAttribute('column'), newValue);
                         }
+                    }
+                });
+                
+                // if td is clicked, and there is only one child, focus it
+                element.addEventListener('click', function (event) {
+                    if (event.target.tagName.toUpperCase() === 'TD' && event.target.children.length === 1) {
+                        event.target.children[0].focus();
                     }
                 });
 
