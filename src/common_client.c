@@ -1282,7 +1282,7 @@ error:
 
 void _client_request_free(struct sock_ev_client_request *client_request) {
 	EV_P = global_loop;
-	SDEBUG("Freeing request with messageid %s at location %p", client_request->str_message_id, client_request);
+	SINFO("Freeing request with messageid %s at location %p", client_request->str_message_id, client_request);
 	if (client_request->client_request_data != NULL) {
 		client_request->client_request_data->free(client_request->client_request_data);
 		SFREE(client_request->client_request_data);
@@ -1303,6 +1303,7 @@ void _client_request_free(struct sock_ev_client_request *client_request) {
 	if (client_request->frame != NULL) {
 		WS_freeFrame(client_request->frame);
 	}
+    ev_check_stop(EV_A, &client_request->check);
     ev_idle_stop(EV_A, &client_request->idle);
 	SFREE(client_request->str_current_response);
 	SFREE(client_request->str_message_id);
@@ -1959,6 +1960,7 @@ bool client_close(struct sock_ev_client *client) {
 
 			ev_prepare_init(&client->client_timeout_prepare->prepare, client_close_timeout_prepare_cb);
 			ev_prepare_start(EV_A, &client->client_timeout_prepare->prepare);
+			ev_idle_start(EV_A, &client->idle_request_queue);
 		}
 	}
 
@@ -1989,8 +1991,17 @@ void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 	// DEBUG("ev_now(EV_A)                                                 : %f",
 	// ev_now(EV_A));
 
+	SDEBUG("client_timeout_prepare->close_time: %d", client_timeout_prepare->close_time);
+	SDEBUG("ev_now(EV_A)                      : %d", ev_now(EV_A));
+	SDEBUG("client->bol_is_open               : %s", (client->bol_is_open ? "true" : "false"));
+
 	ev_io_stop(EV_A, &client_timeout_prepare->parent->io);
-	if ((client_timeout_prepare->close_time + 10) <= ev_now(EV_A)) {
+	if ((client_timeout_prepare->close_time + 10) <= ev_now(EV_A) ||
+		(
+			client->bol_is_open == false && // this means we got a close message, rather than just a network error
+			(client_timeout_prepare->close_time + 1) <= ev_now(EV_A) // so only wait one second, enough to send the close frame back
+		)
+	) {
 		SDEBUG("test2: %p", client);
 		ev_prepare_stop(EV_A, w);
 		client_timeout_prepare->parent->client_timeout_prepare = NULL;
@@ -2007,9 +2018,9 @@ void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 				SERROR_NORESPONSE_CHECK(DB_exec(EV_A, client->conn, client, "RESET SESSION AUTHORIZATION;", client_close_close_cnxn_cb), "DB_exec failed to reset session authorization");
 			}
 		} else {
-			SDEBUG("BEFORE client_close_immediate(%p)", client);
+			SINFO("BEFORE client_close_immediate(%p)", client);
 			client_close_immediate(client);
-			SDEBUG("AFTER  client_close_immediate(%p)", client);
+			SINFO("AFTER  client_close_immediate(%p)", client);
 		}
 #else
 		if (client->bol_public == false && bol_global_set_user == true) {
@@ -2164,11 +2175,6 @@ void client_close_immediate(struct sock_ev_client *client) {
 		ev_check_stop(EV_A, &client->client_request_watcher->check);
 		ev_idle_stop(EV_A, &client->client_request_watcher->idle);
 		SFREE(client->client_request_watcher);
-	}
-	if (client->client_request_watcher_search != NULL) {
-		ev_check_stop(EV_A, &client->client_request_watcher_search->check);
-		ev_idle_stop(EV_A, &client->client_request_watcher_search->idle);
-		SFREE(client->client_request_watcher_search);
 	}
 	if (client->reconnect_watcher != NULL) {
 		ev_io_stop(EV_A, &client->reconnect_watcher->io);
