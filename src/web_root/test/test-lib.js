@@ -103,7 +103,7 @@ var $ = {
 				$.tests[key].intRun = 0;
 			}
 			$.tests[key].intRun += 1;
-            if (key[0] !== '_' && $.tests[key].intRun < ($.intRun * 5) && (minRuns + 1) < $.intRun && !error) {
+            if (key[0] !== '_' && $.tests[key].intRun < (($.tests[key].intRunCount || $.intRun) * 5) && (minRuns + 1) < ($.tests[key].intRunCount || $.intRun) && !error) {
                 var i = 0, len = $.tests[key].tests.length;
 				for (; i < len; i += 1) {
 					$.changeStatus(key, i, 'pass', 'waiting');
@@ -587,6 +587,8 @@ var $ = {
                 $.changeStatus(key, intCurrent, 'running', 'pass');
                 $.runTest(key, intCurrent + 1);
             }, 5000);
+        } else {
+            console.error('wat');
         }
     }
 };

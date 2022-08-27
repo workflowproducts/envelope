@@ -2238,7 +2238,6 @@ bool ws_file_search_step2(EV_P, void *cb_data, bool bol_group) {
 	DIR *dirp = NULL;
 	struct stat *statdata = NULL;
 	struct dirent *dp = NULL;
-	struct sock_ev_client_request_watcher *client_request_watcher = NULL;
 
 	char *str_response = NULL;
 	size_t int_response_len = 0;
@@ -2301,14 +2300,10 @@ bool ws_file_search_step2(EV_P, void *cb_data, bool bol_group) {
 				dirp = NULL;
 			}
 		}
-
-		SFINISH_SALLOC(client_request_watcher, sizeof(struct sock_ev_client_request_watcher));
-		client_request_watcher->parent = client_request->parent;
-
-		ev_check_init(&client_request_watcher->check, ws_file_search_step5);
-		ev_check_start(EV_A, &client_request_watcher->check);
-		ev_idle_init(&client_request_watcher->idle, idle_cb);
-		ev_idle_start(EV_A, &client_request_watcher->idle);
+		ev_check_init(&client_request->check, ws_file_search_step5);
+		ev_check_start(EV_A, &client_request->check);
+		ev_idle_init(&client_request->idle, idle_cb);
+		ev_idle_start(EV_A, &client_request->idle);
 	}
 
 	bol_error_state = false;
@@ -2334,12 +2329,6 @@ finish:
 
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 		DArray_push(client_request->arr_response, str_response);
-
-        if (client_request_watcher != NULL) {
-            ev_check_stop(EV_A, &client_request_watcher->check);
-            ev_idle_stop(EV_A, &client_request_watcher->idle);
-        }
-		SFREE(client_request_watcher);
 	}
 	return true;
 }
@@ -2419,18 +2408,13 @@ bool ws_file_search_step4(EV_P, void *cb_data, bool bol_success) {
 	struct sock_ev_client_request *client_request = cb_data;
 	char *str_response = NULL;
 	size_t int_response_len = 0;
-	struct sock_ev_client_request_watcher *client_request_watcher = NULL;
 
 	SFINISH_CHECK(bol_success, "canonical_recurse failed");
 
-	SFINISH_SALLOC(client_request_watcher, sizeof(struct sock_ev_client_request_watcher));
-	client_request_watcher->parent = client_request->parent;
-	client_request->parent->client_request_watcher_search = client_request_watcher;
-
-	ev_check_init(&client_request_watcher->check, ws_file_search_step5);
-	ev_check_start(EV_A, &client_request_watcher->check);
-	ev_idle_init(&client_request_watcher->idle, idle_cb);
-	ev_idle_start(EV_A, &client_request_watcher->idle);
+	ev_check_init(&client_request->check, ws_file_search_step5);
+	ev_check_start(EV_A, &client_request->check);
+	ev_idle_init(&client_request->idle, idle_cb);
+	ev_idle_start(EV_A, &client_request->idle);
 
 finish:
 	if (str_response != NULL) {
@@ -2461,8 +2445,8 @@ finish:
 void ws_file_search_step5(EV_P, ev_check *w, int revents) {
 	if (revents != 0) {
 	} // get rid of unused parameter warning
-	struct sock_ev_client_request_watcher *client_request_watcher = (void *)w;
-	struct sock_ev_client_request *client_request = client_request_watcher->parent->cur_request;
+	SDEBUG("ws_file_search_step5");
+	struct sock_ev_client_request *client_request = (void *)w;
 	struct sock_ev_client_file *client_file = (struct sock_ev_client_file *)(client_request->client_request_data);
 	char *str_response = NULL;
 	size_t int_response_len = 0;
@@ -2500,10 +2484,8 @@ void ws_file_search_step5(EV_P, ev_check *w, int revents) {
 		DArray_push(client_request->arr_response, str_response);
 		str_response = NULL;
 
-		ev_check_stop(EV_A, w);
-		ev_idle_stop(EV_A, &client_request_watcher->idle);
-		client_request->parent->client_request_watcher_search = NULL;
-		SFREE(client_request_watcher);
+		ev_check_stop(EV_A, &client_request->check);
+		ev_idle_stop(EV_A, &client_request->idle);
 
 	} else if (client_file->fp == NULL) {
 		errno = 0;
@@ -2623,10 +2605,8 @@ finish:
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 		DArray_push(client_request->arr_response, str_response);
 
-		ev_check_stop(EV_A, w);
-		ev_idle_stop(EV_A, &client_request_watcher->idle);
-		client_request->parent->client_request_watcher_search = NULL;
-		SFREE(client_request_watcher);
+		ev_check_stop(EV_A, &client_request->check);
+		ev_idle_stop(EV_A, &client_request->idle);
 	}
 }
 

@@ -2159,6 +2159,13 @@ id
 			['SOCKET CLOSE', 'websocket end']
         ]
     },
+    ws_file_search_cancel: {
+		intRunCount: 1,
+        tests: [
+			['SOCKET OPEN', 'websocket start'],
+			['FILE SEARCH CANCEL', 'websocket close in request', '', 'FILE\tSEARCH\t/app/developer_g/greyspots-1.1.1/js/\t......[^z]z\nINSENSITIVE\tREGEX\n', 5]
+		]
+    },
     ws_file_app: {
         tests: [
 			['SOCKET OPEN', 'websocket start'],
