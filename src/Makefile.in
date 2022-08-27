@@ -1,5 +1,5 @@
 BINARY = envelope
-CONFIGS = -c config/envelope.conf -t 300 -f 127.0.0.1:8888 -i t
+CONFIGS = -c config/envelope.conf -t 300 -f envelope-test.wfprod.com -i t -p unix:/opt/jails_ssl/envelope.socket
 WEBROOTS = -r ./web_root/ -z ./role -y ./app
 INSTALL_DEPS = @prefix@/sbin/ @prefix@/etc/envelope/ \
 @prefix@/etc/envelope/envelope.conf @prefix@/etc/envelope/envelope-connections.conf \
@@ -32,7 +32,7 @@ libtre_OBJECTS = $(libtre_SOURCES:.c=.o)
 libev_SOURCES = http_ev.c
 libev_OBJECTS = $(libev_SOURCES:.c=.o)
 
-.PHONY: all all-format destroy check
+.PHONY: all all-format destroy check unit-test
 
 # this needs to be at the top to be the default target
 all: $(BINARY)
@@ -76,6 +76,51 @@ else
 	@echo " CC $@"
 	@$(CC) $(CFLAGS) $(CPPFLAGS) -Wall -Wextra -Wconversion $< -c -o $@
 endif
+
+#### UNIT TESTS
+only_unit_test_SOURCES = $(sort $(wildcard test/*.c))
+unit_test_SOURCES = $(sort $(wildcard test/*.c) $(filter-out common_main.c, $(envelope_SOURCES)))
+unit_test_OBJECTS = $(unit_test_SOURCES:.c=.o)
+only_unit_test_OBJECTS = $(only_unit_test_SOURCES:.c=.o)
+unit_test_BINARY = test/main_unit_test
+
+$(unit_test_BINARY): $(BUILD_DEPS) $(libtre_OBJECTS) $(libev_OBJECTS) $(unit_test_OBJECTS)
+ifeq ($(V), 1)
+	$(CC) $(libtre_OBJECTS) $(libev_OBJECTS) $(unit_test_OBJECTS) $(LDFLAGS) $(CFLAGS) -o ./$(unit_test_BINARY)
+else
+	@echo " CCLD $(unit_test_BINARY)"
+	@$(CC) $(libtre_OBJECTS) $(libev_OBJECTS) $(unit_test_OBJECTS) $(LDFLAGS) $(CFLAGS) -o ./$(unit_test_BINARY)
+endif
+
+$(only_unit_test_OBJECTS): %.o: %.c
+ifeq ($(V), 1)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -Wall -Wextra -Wconversion $< -c -o $@
+else
+	@echo " CC $@"
+	@$(CC) $(CFLAGS) $(CPPFLAGS) -Wall -Wextra -Wconversion $< -c -o $@
+endif
+
+unit-test: $(unit_test_BINARY)
+	@echo
+	@rmdir test/test || echo
+	@rmdir test/test2 || echo
+	@echo "Running Tests"
+	@echo
+	@$(unit_test_BINARY)
+	@rmdir test/test || echo
+	@rmdir test/test2 || echo
+	@echo
+
+unit-test-valgrind: $(unit_test_BINARY)
+	@echo
+	@rmdir test/test || echo
+	@rmdir test/test2 || echo
+	@echo "Running Tests"
+	@echo
+	@valgrind --leak-check=full --track-fds=yes --track-origins=yes --show-reachable=yes --suppressions=../valgrind/mac_suppressions.txt --num-callers=100 $(unit_test_BINARY)
+	@rmdir test/test || echo
+	@rmdir test/test2 || echo
+	@echo
 
 #### CLEAN
 clean:
@@ -170,6 +215,10 @@ test-common:
 
 test: test-common
 	./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function || \
+	{ kill `cat postgres.pid`; rm postgres.pid; rm -rf data_test; exit 1; }
+
+test-unix: test-common
+	./$(BINARY) $(CONFIGS) -p unix:/opt/jails_ssl/envelope.socket -d config/envelope-connections-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function || \
 	{ kill `cat postgres.pid`; rm postgres.pid; rm -rf data_test; exit 1; }
 
 test-set-user: test-common

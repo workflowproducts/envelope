@@ -5,6 +5,7 @@
 //#include <crtdbg.h>
 
 #else
+#include <sys/un.h>
 #include <ev.h>
 #endif
 
@@ -386,27 +387,48 @@ int main(int argc, char *const *argv) {
 	SSL_library_init();
 	init_aes_key_iv();
 
-	// Get address info
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
-	int int_status = getaddrinfo(NULL, str_global_port, &hints, &res);
-	SERROR_CHECK(int_status == 0, "getaddrinfo failed: %d (%s)", int_status, gai_strerror(int_status));
+#ifdef _WIN32
+#else
+	if (strncmp(str_global_port, "unix:", 5) == 0) {
+		struct sockaddr_un addr;
+		int_sock = socket(PF_UNIX, SOCK_STREAM, 0);
+		SERROR_CHECK(int_sock != INVALID_SOCKET, "Failed to create socket");
 
-	// Get socket to bind
-	int_sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-	SERROR_CHECK(int_sock != INVALID_SOCKET, "Failed to create socket");
+		memset(&addr, 0, sizeof(addr));
+		addr.sun_family = AF_UNIX;
+		memcpy(addr.sun_path, str_global_port + 5, strlen(str_global_port + 5));
+		unlink(addr.sun_path);
+		SINFO("addr.sun_path: %s", addr.sun_path);
+		SERROR_CHECK(bind(int_sock, (struct sockaddr *)&addr, sizeof(addr)) != -1, "bind failed");
+		chmod(addr.sun_path, 0666);
 
-	// Set socket to reuse the address
-	int bol_reuseaddr = 1;
-	SERROR_CHECK(setsockopt((int)int_sock, SOL_SOCKET, SO_REUSEADDR, &bol_reuseaddr, sizeof(int)) != -1, "setsockopt failed");
+	} else {
+#endif
+		// Get address info
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = AF_INET;
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_flags = AI_PASSIVE;
+		int int_status = getaddrinfo(NULL, str_global_port, &hints, &res);
+		SERROR_CHECK(int_status == 0, "getaddrinfo failed: %d (%s)", int_status, gai_strerror(int_status));
 
-	((struct sockaddr_in *)(res->ai_addr))->sin_addr.s_addr = htonl(bol_global_local_only ? INADDR_LOOPBACK : INADDR_ANY);
-	// Bind socket
-	SERROR_CHECK(bind(int_sock, res->ai_addr, (socklen_t)res->ai_addrlen) != -1, "bind failed");
+		// Get socket to bind
+		int_sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		SERROR_CHECK(int_sock != INVALID_SOCKET, "Failed to create socket");
 
-	freeaddrinfo(res);
+		// Set socket to reuse the address
+		int bol_reuseaddr = 1;
+		SERROR_CHECK(setsockopt((int)int_sock, SOL_SOCKET, SO_REUSEADDR, &bol_reuseaddr, sizeof(int)) != -1, "setsockopt failed");
+
+		((struct sockaddr_in *)(res->ai_addr))->sin_addr.s_addr = htonl(bol_global_local_only ? INADDR_LOOPBACK : INADDR_ANY);
+		// Bind socket
+		SERROR_CHECK(bind(int_sock, res->ai_addr, (socklen_t)res->ai_addrlen) != -1, "bind failed");
+
+		freeaddrinfo(res);
+#ifdef _WIN32
+#else
+	}
+#endif
 
 	// Listen on socket
 	SERROR_CHECK(listen(int_sock, 10) != -1, "listen failed");

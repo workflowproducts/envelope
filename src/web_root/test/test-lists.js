@@ -1330,7 +1330,7 @@ id	test_name
 test
 */
 			}),
-			["DB_exec failed:\nFATAL\nerror_text\tERROR:  invalid input syntax for integer: \"test\"\\nCONTEXT:  COPY rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\tCOPY rtesting_table\"\nerror_position\t\n"]],
+			["DB_exec failed:\nFATAL\nerror_text\tERROR:  invalid input syntax for type integer: \"test\"\\nCONTEXT:  COPY rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\tCOPY rtesting_table\"\nerror_position\t\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
@@ -1343,7 +1343,7 @@ id	test_name
 test
 */
 			}),
-  			["DB_exec failed:\nFATAL\nerror_text\tERROR:  invalid input syntax for integer: \"test\"\\nCONTEXT:  COPY rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\tCOPY rtesting_table\"\nerror_position\t\n"]],
+  			["DB_exec failed:\nFATAL\nerror_text\tERROR:  invalid input syntax for type integer: \"test\"\\nCONTEXT:  COPY rtesting_table\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\tCOPY rtesting_table\"\nerror_position\t\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
@@ -2204,17 +2204,17 @@ File already exists.*/})],
 			['APP FILE READ TO PREPARE', 'websocket', '', 'FILE\tREAD\t/app/all/test10.txt\n',
 				['ANYTHING', 'TRANSACTION COMPLETED']],
 			['APP FILE WRITE FAIL 2', 'websocket', '', 'FILE\tWRITE\t/app/all/test10.txtπ\t{{CHANGESTAMP}}\nThis is a test1\n',
-				["util_canonical.c:canonical: all/test10.txtπ is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/home/super/Repos/envelope/src/app|all/test10.txtπ<"]
+				["util_canonical.c:canonical: all/test10.txtπ is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/app|all/test10.txtπ<"]
 			],
 			['APP FILE WRITE FAIL 3', 'websocket', '', 'FILE\tWRITE\t/app/all/test10.txt\t',
 				["Someone updated this file before you."]],
 			['APP FILE WRITE FAIL 4', 'websocket', '', 'FILE\tWRITE\t/app/all/test10.txt',
 				["Invalid Request"]],
 			['APP FILE WRITE FAIL 5', 'websocket', '', 'FILE\tWRITE\t/app/all/test10.txtπ\tCHANGESTAMP\nThis is a test1\n',
-				["util_canonical.c:canonical: all/test10.txtπ is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/home/super/Repos/envelope/src/app|all/test10.txtπ<"]
+				["util_canonical.c:canonical: all/test10.txtπ is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/app|all/test10.txtπ<"]
 			],
 			['APP FILE WRITE FAIL 6', 'websocket', '', 'FILE\tWRITE\t/app/all/test10.txtπ\t\'2016-8-8 11:15:46\'\nThis is a test1\n',
-				["util_canonical.c:canonical: all/test10.txtπ is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/home/super/Repos/envelope/src/app|all/test10.txtπ<"]
+				["util_canonical.c:canonical: all/test10.txtπ is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/app|all/test10.txtπ<"]
 			],
 			['APP FILE WRITE 4', 'websocket', '', 'FILE\tWRITE\t/app/all/test1.txt\t10000000000000\nThis is a test\n',
 				['ANYTHING', 'TRANSACTION COMPLETED']],
@@ -2250,7 +2250,7 @@ File already exists.*/})],
 				["common_util_sql.c:canonical_full_start: Starting path not recognized.\nInvalid Path"]
 			],
 			['APP FILE READ FAIL 3', 'websocket', '', 'FILE\tREAD\t' + WS.encodeForTabDelimited('/role/trusted_g/test.txt > /role/trusted_g/test2.txt'),
-				["util_canonical.c:canonical: trusted_g/test.txt > /role\/trusted_g/test2.txt is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/home/super/Repos/envelope/src/role|trusted_g/test.txt > /role/trusted_g/test2.txt<"]
+				["util_canonical.c:canonical: trusted_g/test.txt > /role\/trusted_g/test2.txt is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/role|trusted_g/test.txt > /role/trusted_g/test2.txt<"]
 			],
 			['APP FILE READ FAIL 4', 'websocket', '', 'FILE\tREAD\t' + WS.encodeForTabDelimited(''),
 				["common_util_sql.c:canonical_full_start: Starting path not recognized.\nInvalid Path"]
@@ -2333,23 +2333,23 @@ File already exists.*/})],
 				["common_util_sql.c:canonical_full_start: Starting path not recognized.\nInvalid Path"]
 			],
 			['APP FILE CREATE_FOLDER FAIL 2', 'websocket', '', 'FILE\tCREATE_FOLDER\t' + WS.encodeForTabDelimited('/app/trusted_g/test-test--test-test') + '\n',
-				["util_canonical.c:canonical: trusted_g/test-test--test-test is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/home/super/Repos/envelope/src/app|trusted_g/test-test--test-test<"]
+				["util_canonical.c:canonical: trusted_g/test-test--test-test is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/app|trusted_g/test-test--test-test<"]
 			],
 			['APP FILE CREATE_FOLDER FAIL 3', 'websocket', '', 'FILE\tCREATE_FOLDER',
 				["Invalid Request","TRANSACTION COMPLETED"]],
 			['APP FILE CREATE_FOLDER FAIL 4', 'websocket', '', 'FILE\tCREATE_PI',
 				["Invalid Request","TRANSACTION COMPLETED"]],
 			['APP FILE CREATE_FOLDER FAIL 5', 'websocket', '', 'FILE\tCREATE_FOLDER\t' + WS.encodeForTabDelimited('/app/trusted_g///////') + '\n',
-				["util_canonical.c:canonical: trusted_g\\\\\\\\\\\\/ is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/home/super/Repos/envelope/src/app|trusted_g\\\\\\\\\\\\/<"]
+				["util_canonical.c:canonical: trusted_g\\\\\\\\\\\\/ is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/app|trusted_g\\\\\\\\\\\\/<"]
 			],
 			['APP FILE CREATE_FOLDER FAIL 6', 'websocket', '', 'FILE\tCREATE_FOLDER\t' + WS.encodeForTabDelimited('/role/trusted_g/ > /opt/test') + '\n',
-				["util_canonical.c:canonical: trusted_g/ > /opt/test is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/home/super/Repos/envelope/src/role|trusted_g/ > /opt/test<"]
+				["util_canonical.c:canonical: trusted_g/ > /opt/test is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/role|trusted_g/ > /opt/test<"]
 			],
 			['APP FILE CREATE_FOLDER FAIL 7', 'websocket', '', 'FILE\tCREATE_FOLDER\t' + WS.encodeForTabDelimited('/role/trusted_g/ > /opt/test'),
-				["util_canonical.c:canonical: trusted_g/ > /opt/test is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/home/super/Repos/envelope/src/role|trusted_g/ > /opt/test<"]
+				["util_canonical.c:canonical: trusted_g/ > /opt/test is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/role|trusted_g/ > /opt/test<"]
 			],
 			['APP FILE CREATE_FOLDER FAIL 8', 'websocket', '', 'FILE\tCREATE_FOLDER\t' + WS.encodeForTabDelimited('/role/trusted_g/π'),
-				["util_canonical.c:canonical: trusted_g/π is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/home/super/Repos/envelope/src/role|trusted_g/π<"]
+				["util_canonical.c:canonical: trusted_g/π is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/role|trusted_g/π<"]
 			],
 			['APP FILE CREATE_FOLDER', 'websocket', '', 'FILE\tCREATE_FOLDER\t/app/all/test3/test4/',
 				['ANYTHING', 'TRANSACTION COMPLETED']],
@@ -2385,7 +2385,7 @@ File already exists.*/})],
 			],
 			['APP FILE CREATE_FILE FAIL 9', 'websocket', '', 'FILE\tCREATE_FILE\t' +
 				WS.encodeForTabDelimited('/app/trusted_g/test.π'),
-				["util_canonical.c:canonical: trusted_g/test.π is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/home/super/Repos/envelope/src/app|trusted_g/test.π<"]
+				["util_canonical.c:canonical: trusted_g/test.π is a bad path. Path contains invalid characters.\n\nFailed to get canonical path: >/usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/app|trusted_g/test.π<"]
 			],
 			['APP FILE CREATE_FILE', 'websocket', '', 'FILE\tCREATE_FILE\t' +
 				WS.encodeForTabDelimited('/app/all/test3.txt'),
@@ -2438,7 +2438,7 @@ File already exists.*/})],
 				["common_util_sql.c:canonical_full_start: Starting path not recognized.\nInvalid Path"]
 			],
 			['APP FILE SEARCH FAIL 2', 'websocket', '', 'FILE\tSEARCH\t/app/nonexisitant/\tgs-page > gs-header,\nRECURSIVE\n',
-				["util_canonical.c:canonical: read_dir: /home/super/Repos/envelope/src/app/|nonexisitant/ is a bad path. Path does not exist.\n\nFailed to get canonical path: >/home/super/Repos/envelope/src/app|nonexisitant/<"]
+				["util_canonical.c:canonical: read_dir: /usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/app/|nonexisitant/ is a bad path. Path does not exist.\n\nFailed to get canonical path: >/usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/app|nonexisitant/<"]
 			],
 			['APP FILE SEARCH FAIL 3', 'websocket', '', 'FILE\tSEARCH\t/app/\tThis is a test of the [search|bran|envelope,\nREGEX\n',
 				["regcomp failed: 7 (Missing ']')"]],
@@ -2446,7 +2446,7 @@ File already exists.*/})],
 				WS.encodeForTabDelimited('/app/trust_g/') + '\t' +
 				WS.encodeForTabDelimited('This....a test' + ' of the search') + '\n' +
 				'INSENSITIVE\tREGEX' + '\n',
-				["util_canonical.c:canonical: read_dir: /home/super/Repos/envelope/src/app/|trust_g/ is a bad path. Path does not exist.\n\nFailed to get canonical path: >/home/super/Repos/envelope/src/app|trust_g/<"]
+				["util_canonical.c:canonical: read_dir: /usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/app/|trust_g/ is a bad path. Path does not exist.\n\nFailed to get canonical path: >/usr/smbroot/Groups/tocci_group/Joseph/Repos/envelope/src/app|trust_g/<"]
 			],
 			['APP FILE SEARCH FAIL 5', 'websocket', '', 'FILE\tSEARCH\t' +
 				WS.encodeForTabDelimited('../../') + '\t' +
@@ -2604,6 +2604,15 @@ $.ajax('/env/auth', 'action=login&username=postgres&password=password', 'POST', 
         }
     });
     $.ajax('/env/action_info', '', 'GET', function (data) {
+		if (data.replace && data.indexOf('<!DOCTYPE html>') !== 0) {
+			data = data.replace('c:\\users\\nunzio\\repos\\envelope\\src\\', '');
+			data = data.replace(/c\:\\users\\nunzio\\repos\\envelope\\/gi, '../');
+			data = data.replace(/\.\.\\\.\.\\/gi, '../');
+			data = data.replace(/\\(?![rnt])/gi, '/');
+			data = data.replace(' (0x0000274D/10061)', '');
+			data = data.replace(/\.\.\/src\//gi, '');
+			data = data.replace('FATAL\nUser "doesntexist" does not exist.', 'FATAL\nConnect failed: FATAL:  password authentication failed for user "doesntexist"\n');
+		}
         for (var i = 0, len = $.tests.http_action.tests.length; i < len; i += 1) {
             if ($.tests.http_action.tests[i][0] === 'action_info') {
                 $.tests.http_action.tests[i][5] = data;

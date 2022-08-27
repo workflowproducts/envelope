@@ -44,8 +44,6 @@ of.
 The second argument is the path supplied by yourself or the user in the second
 arguments.
 The third arguments specifies the extra checks you want to do.
-If canonical returns a path, it is valid. If it returns NULL there is an error
-or a failed check.
 
 Check types:
 "write_file"
@@ -69,5 +67,22 @@ Check to make sure path exists.
 No extra checks.
 
 A str_check_type of NULL will error. Use "valid_path" instead.
+
+Returns valid path
+Result must be free'd
+
+If it returns NULL there is an error or a failed check.
 */
-char *canonical(const char *str_file_base, char *_path, char *str_check_type);
+char *canonical(const char *str_base_path, char *str_path, char *str_check_type);
+/*
+//example
+
+char *str_base_path = "/opt";
+char *str_path = "test.txt";
+
+char *str_valid_path = canonical(str_base_path, str_path, "read_file");
+
+//use str_valid_path
+
+SFREE(str_valid_path);
+*/

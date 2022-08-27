@@ -56,43 +56,71 @@ If the `SUCCESS_CONDITION` evaluates to true, there is no error.
 But if it is false then is will raise an error then it will `goto error`.
 The `SFINISH_` functions are slightly different, not only will they raise
 an error but it will also copy the error into `str_response` before the
-goto statement. Also, the goto statement will be `finish:` instead of
+goto statement. Also, the goto statement must be `finish:` instead of
 `error:`. If a function returns a response, use `finish:`.
 In the function after the goto, make sure everything allocated in the
 function is `free`'d. Now if there is an error, you will get no memory
 errors and you will have a sane log.
 
+Global variables you can check:
+extern bool bol_error_state;
+extern char *str_global_error;
+
 Checking macros:
-SERROR_CHECK_NORESPONSE(SUCCESS_CONDITION, "Error occured: %s", ...);
-SERROR_CHECK(SUCCESS_CONDITION, "Error occured: %s", ...);
-SWARN_CHECK(SUCCESS_CONDITION, "Error occured: %s", ...);
-SFINISH_CHECK(SUCCESS_CONDITION, "Error occured: %s", ...);
-SFINISH_ERROR_CHECK(SUCCESS_CONDITION, "Error occured: %s", ...);
-*/
+Some have a SUCCESS_CONDITION, others don't.
+If you want to write the conditional yourself then use the one without.
 
-/*
-If you want to write the SUCCESS_CONDITION if statement yourself, use
-these. They will do the goto for you.
 
-SFINISH("%s %d %f etc", ...);
-SFINISH_ERROR("%s %d %f etc", ...);
-SWARN("%s %d %f etc", ...);
+// error
+// use for an error that fails the function
+// set bol_error_state
+// set str_global_error
+// goto error
 SERROR("%s %d %f etc", ...);
+SERROR_CHECK(SUCCESS_CONDITION, "Error occured: %s", ...);
 
-SFINISH doesn't raise an error, it raises a warn. Use like you would warn
-but in a `finish:` context.
-*/
+// error
+// use for an error that DOES NOT fail the function
+// set bol_error_state
+// set str_global_error
+// DOES NOT goto error
+SERROR_NORESPONSE("%s %d %f etc", ...);
+SERROR_NORESPONSE_CHECK(SUCCESS_CONDITION, "Error occured: %s", ...);
 
-/*
-Debugging a specific problem
+// warn
+// use for a warning that is not technically an error but does need to goto
+// DOES NOT set bol_error_state
+// set str_global_error
+// goto error
+SWARN("%s %d %f etc", ...);
+SWARN_CHECK(SUCCESS_CONDITION, "Error occured: %s", ...);
+
+// finish
+// use to return a response from a function
+// DOES NOT set bol_error_state
+// set str_global_error
+// goto finish
+SFINISH("%s %d %f etc", ...);
+SFINISH_CHECK(SUCCESS_CONDITION, "Error occured: %s", ...);
+
+// equivilent to above, but at "warn" logging level
+// use to return a response from a function
+// DOES NOT set bol_error_state
+// set str_global_error
+// goto finish
+SFINISH_ERROR("%s %d %f etc", ...);
+SFINISH_ERROR_CHECK(SUCCESS_CONDITION, "Error occured: %s", ...);
+
+// debug
+// Debugging a specific problem
+// Normally this macro gets removed entirely, but can be enabled on compilation with UTIL_DEBUG
+// no goto, no global variables set, just send to log
 SDEBUG("%s %d %f etc", ...);
 
-Typical debugging levels
+// Typical debugging levels
+// no goto, no global variables set, just send to log
 SINFO("%s %d %f etc", ...);
 SNOTICE("%s %d %f etc", ...);
-
-Use for an error that doesn't fail the function
-SERROR_NORESPONSE("%s %d %f etc", ...);
 */
 
 /*
@@ -141,7 +169,7 @@ char *warn_response_root(char *str_file, int int_line_no, char *str_function, ch
 	int_response_len = strlen(str_response);                                                                                     \
 	goto finish;
 
-#define SERROR_CHECK_NORESPONSE(A, M, ...)                                                                                       \
+#define SERROR_NORESPONSE_CHECK(A, M, ...)                                                                                       \
 	if (!(A)) {                                                                                                                  \
 		SERROR_NORESPONSE(M, ##__VA_ARGS__);                                                                                     \
 	}
