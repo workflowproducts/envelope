@@ -1,3 +1,7 @@
+temp_gdb_commands
+temp_lldb_commands
+vgcore.*
+
 *.dSYM
 
 *.a
