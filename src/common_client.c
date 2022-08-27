@@ -2081,7 +2081,7 @@ bool client_close_close_cnxn_cb(EV_P, void *cb_data, DB_result *res) {
 
 void client_close_immediate(struct sock_ev_client *client) {
 	EV_P = global_loop;
-	SINFO("Client %p closing", client);
+	SINFO("Client %p closing, session %s", client, client->str_session_id);
 	struct WSFrame *frame = NULL;
 	ev_io_stop(EV_A, &client->io);
 
@@ -2164,10 +2164,10 @@ void client_close_immediate(struct sock_ev_client *client) {
 			client_request->parent = NULL;
 			client_request_free(client_request);
 		}
-		ev_idle_stop(EV_A, &client->idle_request_queue);
 		Queue_destroy(client->que_request);
 		client->que_request = NULL;
 	}
+	ev_idle_stop(EV_A, &client->idle_request_queue);
 	client_paused_request_free(client->client_paused_request);
 	client->client_paused_request = NULL;
 
