@@ -161,10 +161,14 @@ window.addEventListener('design-register-element', function () {
     // DEFINE PROPERTIES
     window.designElementProperty_GSTABLE = function () {
         addDataAttributes('select,insert,update,delete,parent-child');
+        addText('D', 'Insert Source', 'insert-src');
+        addText('D', 'Update Source', 'update-src');
+        addText('D', 'Delete Source', 'delete-src');
         addText('D', 'Session Filter', 'session-filter');
         addDataEvents('select,insert,update,delete');
         addText('D', 'Null Display', 'null-string');
         addText('D', 'Null Set', 'null-set-string');
+        addCheck('D', 'Suppress Select Error', 'suppress-select-error');
         addCheck('V', 'No Record Selector', 'no-record-selector');
         addCheck('V', 'No Resize Record', 'no-resize-record');
         addCheck('V', 'No Resize Column', 'no-resize-column');
@@ -456,8 +460,8 @@ document.addEventListener('DOMContentLoaded', function () {
         //      just all whitespace, if it is: we're setting the insert record
         //      to visibility=false
         if (
-            !element.internalTemplates.insertRecord ||
-            !element.internalTemplates.insertRecord.trim()
+            !element.internalTemplates.originalInsertRecord ||
+            !element.internalTemplates.originalInsertRecord.trim()
         ) {
             element.internalDisplay.insertRecordVisible = false;
         }
@@ -1947,7 +1951,197 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // sometimes, we need to know what cell the mouse is over
+    // returns JSON: {"row": row, "column": column}
+    //      possible "column" values: NUMBER|"selector"
+    //      possible "row"    values: NUMBER|"header"|"insert"
     function getCellFromMouseEvent(element, event) {
+        var cell;
+        var row;
+        var column;
+
+        // if we can't extract from cell
+        var jsnMousePos;
+        var jsnElementPos;
+        var intMouseX;
+        var intMouseY;
+        var jsnRange;
+        var arrColumnWidths;
+        var arrRecordHeights;
+        var i;
+        var len;
+        var intLeft;
+        var intTop;
+        var intColBorderWidth;
+        var intRowBorderHeight;
+        var intRowSelectorWidth;
+        var intHeaderHeight;
+        var bolHeader;
+        var bolInsertRecord;
+        var bolRecordSelector;
+
+        // get cell element from mouse event
+        cell = event.target;
+        if (cell.nodeName !== 'GS-CELL') {
+            cell = GS.findParentTag(cell, 'gs-cell');
+        }
+
+        // if we have a cell, get row/column number from it
+        if (cell) {
+            // the only cells that don't have a row number are header cells
+            row = (cell.getAttribute('data-row-number') || 'header');
+
+            // record selectors are [data-col]="selector",
+            //      everything else is [data-col-number]="NUMBER"
+            column = (
+                cell.getAttribute('data-col') ||
+                cell.getAttribute('data-col-number')
+            );
+
+            // return number if possible, else string
+            if (!isNaN(row)) {
+                row = parseInt(row, 10);
+            }
+
+            // return number if possible, else string
+            if (!isNaN(column)) {
+                column = parseInt(column, 10);
+            }
+
+        // if we don't have a cell, use the old method
+        //      we take the mouse position and try to find the column/row
+        //      POSSIBLY STILL GOING TO RETURN INCORRECTLY ON PAGE SCROLL
+        //      after some testing, it seems that scrolling is only an issue if
+        //      the browser doesn't have ".getBoundingClientRect" built in,
+        //      which is used by GS.getElementOffset. If it isn't present,
+        //      GS.getElementOffset polyfills with our own solution, which is
+        //      likely inaccurate in some circumstances.
+        } else {
+            // gather display variables
+            jsnRange = element.internalDisplay.currentRange;
+
+            bolHeader = element.internalDisplay.headerVisible;
+            bolInsertRecord = (
+                element.internalDisplay.insertRecordVisible &&
+                jsnRange.insertRecord
+            );
+            bolRecordSelector = element.internalDisplay.recordSelectorVisible;
+
+            arrColumnWidths = element.internalDisplay.columnWidths;
+            arrRecordHeights = element.internalDisplay.recordHeights;
+            intColBorderWidth = element.internalDisplay.columnBorderWidth;
+            intRowBorderHeight = element.internalDisplay.recordBorderHeight;
+            intRowSelectorWidth = (
+                bolRecordSelector
+                    ? (
+                        element.internalDisplay.recordSelectorWidth +
+                        element.internalDisplay.recordSelectorBorderWidth
+                    )
+                    : 0
+            );
+            intHeaderHeight = (
+                bolHeader
+                    ? (
+                        element.internalDisplay.headerHeight +
+                        element.internalDisplay.headerBorderHeight
+                    )
+                    : 0
+            );
+
+            // we need the mouse position and the element position
+            jsnMousePos = GS.mousePosition(event);
+            jsnElementPos = GS.getElementOffset(
+                element.elems.dataViewport
+            );
+
+            // we need the mouse X to be relative to the dataViewport
+            intMouseX = (jsnMousePos.left - jsnElementPos.left);
+
+            // we need the mouse Y to be relative to the dataViewport
+            intMouseY = (jsnMousePos.top - jsnElementPos.top);
+
+            // get column. careful, it could be the record selector
+
+            // if record selector is visible and the mouse is above it
+            if (bolRecordSelector && intMouseX <= intRowSelectorWidth) {
+                column = 'selector';
+
+            } else {
+                intLeft = jsnRange.originLeft;//intRowSelectorWidth;
+                i = jsnRange.fromColumn;
+                len = jsnRange.toColumn;
+                while (i < len) {
+                    if (intMouseX >= intLeft) {
+                        column = i;
+                    } else {
+                        break;
+                    }
+
+                    intLeft += arrColumnWidths[i];
+                    intLeft += intColBorderWidth;
+                    i += 1;
+                }
+            }
+
+            // get record. careful, it could be the header or the insert record
+
+            // if header is visible
+            if (bolHeader && intMouseY <= intHeaderHeight) {
+                row = 'header';
+
+            } else {
+                intTop = intHeaderHeight;
+                i = jsnRange.fromRecord;
+                len = jsnRange.toRecord;
+                while (i < len) {
+                    if (intMouseY >= intTop) {
+                        row = i;
+                    } else {
+                        break;
+                    }
+
+                    intTop += arrRecordHeights[i];
+                    intTop += intRowBorderHeight;
+                    i += 1;
+                }
+
+                if (bolInsertRecord && intMouseY >= intTop) {
+                    row = 'insert';
+                }
+            }
+        }
+
+        // default row/column to first row/column (LAST RESORT, AVOID)
+        row = row || 0;
+        column = column || 0;
+
+        // return cell row and column
+        return {"row": row, "column": column};
+
+
+        // changed by Michael on 12/27/2021
+        // this code prevented insert, selector, and header cells from being
+        //      selected, because it "parseInt"ed all results
+/*
+        var cell = event.target;
+        if (cell.tagName.toLowerCase() !== 'gs-cell') {
+            cell = GS.findParentTag(event.target, 'gs-cell');
+        }
+        var row = cell.getAttribute('data-row-number');
+        var column = (
+            cell.getAttribute('data-col') === 'selector'
+                ? -1
+                : cell.getAttribute('data-col-number')
+        );
+
+        return {
+            "row": parseInt(row, 10),
+            "column": parseInt(column, 10)
+        };
+*/
+
+        // changed on 2021-10-12 by Nunzio
+        // This code breaks when the page is scrolled
+/*
         var jsnMousePos;
         var jsnElementPos;
         var intMouseX;
@@ -1972,6 +2166,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // gather display variables
         jsnRange = element.internalDisplay.currentRange;
+        console.log(jsnRange);
 
         bolHeader = element.internalDisplay.headerVisible;
         bolInsertRecord = (
@@ -2014,12 +2209,14 @@ document.addEventListener('DOMContentLoaded', function () {
         jsnElementPos = GS.getElementOffset(
             element.elems.dataViewport
         );
+        console.log(jsnMousePos, jsnElementPos);
 
         // we need the mouse X to be relative to the dataViewport
         intMouseX = (jsnMousePos.left - jsnElementPos.left);
 
         // we need the mouse Y to be relative to the dataViewport
         intMouseY = (jsnMousePos.top - jsnElementPos.top);
+        console.log(intMouseX, intMouseY);
 
         // get column. careful, it could be the record selector
 
@@ -2074,11 +2271,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-
         return {
             "row": row,
             "column": column
         };
+*/
     }
 
     // we need a way to compare the selection ranges, this function turns a
@@ -2149,11 +2346,15 @@ document.addEventListener('DOMContentLoaded', function () {
         len = element.internalDisplay.columnWidths.length;
         while (i < len) {
             if (
-                element.internalDisplay.setMinColumnWidths[i] ||
                 (
-                    !element.internalDisplay.setMinColumnWidths[i] &&
-                    !element.internalDisplay.setColumnWidths[i]
-                )
+                    element.internalDisplay.setMinColumnWidths[i] ||
+                    (
+                        !element.internalDisplay.setMinColumnWidths[i] &&
+                        !element.internalDisplay.setColumnWidths[i]
+                    )
+                ) &&
+                // prevent hidden columns from getting a ratio
+                element.internalDisplay.columnWidths[i] !== 0
             ) {
                 intTotalWidth += (
                     element.internalDisplay.setMinColumnWidths[i] ||
@@ -2177,11 +2378,15 @@ document.addEventListener('DOMContentLoaded', function () {
             //      nothing set at all. In which case, we use our detected
             //      width.
             if (
-                element.internalDisplay.setMinColumnWidths[i] ||
                 (
-                    !element.internalDisplay.setMinColumnWidths[i] &&
-                    !element.internalDisplay.setColumnWidths[i]
-                )
+                    element.internalDisplay.setMinColumnWidths[i] ||
+                    (
+                        !element.internalDisplay.setMinColumnWidths[i] &&
+                        !element.internalDisplay.setColumnWidths[i]
+                    )
+                ) &&
+                // prevent hidden columns from getting a ratio
+                element.internalDisplay.columnWidths[i] !== 0
             ) {
                 element.internalDisplay.columnRatios[i] = (
                     (
@@ -2192,6 +2397,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         intTotalWidth
                     ) * 100
                 );
+            } else {
+                element.internalDisplay.columnRatios[i] = 0;
             }
 
             i += 1;
@@ -2256,6 +2463,52 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function clearInsertRetainedValues(element) {
+        // we clear the retained values and columns here because
+        //      if the user decides to override the insert with
+        //      their own thing, we don't want to still be showing
+        //      the old values.
+        element.internalData.insertRecord = {};
+        element.internalData.insertRecordRetainedColumns = [];
+
+        // re-render so that the insert controls clear out in the DOM
+        element.internalDisplay.fullRenderRequired = true;
+        //renderLocation(element);
+        //element.goToLine('last');
+    }
+
+    // we need to split object names into schema and object
+    function splitObjectName(strObject) {
+        var arrParts;
+
+        // split "src" into "schema" and "object" attributes
+        arrParts = strObject.split('.');
+
+        // I don't know who added this. I don't inderstand why someone
+        //      would put something like "biz.bar.foo" in the "src"
+        //      attribute. That's the case that this code handles. If
+        //      you added this code: PUT A COMMENT!!!! We have comments
+        //      for a reason. Don't ruin this beautiful code. Only YOU
+        //      can prevent spaghetti code.
+        //  ~Michael
+        // It appears to be a solution to quote idented object names
+        //      that contain a period like this: test."test.asdf"
+        //      The problem with this (other than being unclear) is that
+        //      it wont work for schema names that contain a period.
+        //      We need a better solution for this. Perhaps it's time to
+        //      create a function that understands ident quoted names
+        //      for real, using actual parsing.
+        //  ~Also Michael
+        if (arrParts[2]) {
+            arrParts[1] = arrParts[1] + '.' + arrParts[2];
+        }
+
+        return {
+            "schema": arrParts[0],
+            "object": arrParts[1]
+        };
+    }
+
 
 // #############################################################################
 // ############################# ELEMENT FUNCTIONS #############################
@@ -2267,39 +2520,117 @@ document.addEventListener('DOMContentLoaded', function () {
     //      this function translates those attributes to their final formats
     // some attributes need to be defaulted, even if they're not present
     function resolveElementAttributes(element) {
-        var arrParts;
+        var jsnParts;
+        var strSrc;
 
         // GS-TABLE elements that are connected to Envelope need to have "pk"
         //      and "lock" attributes
         if (element.getAttribute('src')) {
-            // split "src" into "schema" and "object" attributes
-            arrParts = GS.templateWithQuerystring(
-                element.getAttribute('src')
-            ).split('.');
+            strSrc = GS.templateWithQuerystring(element.getAttribute('src'));
 
-            // I don't know who added this. I don't inderstand why someone
-            //      would put something like "biz.bar.foo" in the "src"
-            //      attribute. That's the case that this code handles. If
-            //      you added this code: PUT A COMMENT!!!! We have comments
-            //      for a reason. Don't ruin this beautiful code. Only YOU
-            //      can prevent spaghetti code.
-            //  ~Michael
-            // It appears to be a solution to quote idented object names that
-            //      contain a period like this: test."test.asdf"
-            //      The problem with this solution (other than being unclear)
-            //      is that it wont work for schema names that contain a period.
-            //      We need a better solution for this. Perhaps it's time to
-            //      create a function that understands ident quoted names for
-            //      real, using actual parsing.
-            //  ~Also Michael
-            if (arrParts[2]) {
-                arrParts[1] = arrParts[1] + '.' + arrParts[2];
+            // if arbituary query
+            if (strSrc.replace(/\s*/gi, '').indexOf('(SELECT') === 0) {
+                // save query as is
+                element.setAttribute('select-query', strSrc);
+
+            // else, it's just a table/view name
+            } else {
+                // split "src" into "schema" and "object" attributes
+                jsnParts = splitObjectName(strSrc);
+
+                // put the split sections of the object name into separate
+                //      attributes
+                element.setAttribute('select-schema', jsnParts.schema);
+                element.setAttribute('select-object', jsnParts.object);
+
+                element.setAttribute('insert-schema', jsnParts.schema);
+                element.setAttribute('insert-object', jsnParts.object);
+
+                element.setAttribute('update-schema', jsnParts.schema);
+                element.setAttribute('update-object', jsnParts.object);
+
+                element.setAttribute('delete-schema', jsnParts.schema);
+                element.setAttribute('delete-object', jsnParts.object);
             }
 
-            // put the split sections of the object name into separate
-            //      attributes
-            element.setAttribute('schema', arrParts[0]);
-            element.setAttribute('object', arrParts[1]);
+            // "insert-src" should always be a table or a view
+            if (element.getAttribute('insert-src')) {
+                // split into "schema" and "object" attributes
+                jsnParts = splitObjectName(element.getAttribute('insert-src'));
+
+                element.setAttribute('insert-schema', jsnParts.schema);
+                element.setAttribute('insert-object', jsnParts.object);
+            }
+
+            // "update-src" should always be a table or a view
+            if (element.getAttribute('update-src')) {
+                // split into "schema" and "object" attributes
+                jsnParts = splitObjectName(element.getAttribute('update-src'));
+
+                element.setAttribute('update-schema', jsnParts.schema);
+                element.setAttribute('update-object', jsnParts.object);
+            }
+
+            // "delete-src" should always be a table or a view
+            if (element.getAttribute('delete-src')) {
+                // split into "schema" and "object" attributes
+                jsnParts = splitObjectName(element.getAttribute('delete-src'));
+
+                element.setAttribute('delete-schema', jsnParts.schema);
+                element.setAttribute('delete-object', jsnParts.object);
+            }
+
+            // default insert, update, and delete
+            if (jsnParts) {
+                if (!element.hasAttribute('insert-schema')) {
+                    element.setAttribute('insert-schema', jsnParts.schema);
+                    element.setAttribute('insert-object', jsnParts.object);
+                }
+                if (!element.hasAttribute('update-schema')) {
+                    element.setAttribute('update-schema', jsnParts.schema);
+                    element.setAttribute('update-object', jsnParts.object);
+                }
+                if (!element.hasAttribute('delete-schema')) {
+                    element.setAttribute('delete-schema', jsnParts.schema);
+                    element.setAttribute('delete-object', jsnParts.object);
+                }
+            }
+
+            // if we're missing insert details, warn the developer
+            if (
+                !element.hasAttribute('insert-schema') ||
+                !element.hasAttribute('insert-object')
+            ) {
+                console.warn(
+                    'GS-TABLE Warning: Cannot figure out what object to ' +
+                    'insert to, please add an "insert-src" attribute with the' +
+                    ' view that needs to receive the insert commands.'
+                );
+            }
+
+            // if we're missing update details, warn the developer
+            if (
+                !element.hasAttribute('update-schema') ||
+                !element.hasAttribute('update-object')
+            ) {
+                console.warn(
+                    'GS-TABLE Warning: Cannot figure out what object to ' +
+                    'update, please add an "update-src" attribute with the' +
+                    ' view that needs to receive the update commands.'
+                );
+            }
+
+            // if we're missing delete details, warn the developer
+            if (
+                !element.hasAttribute('delete-schema') ||
+                !element.hasAttribute('delete-object')
+            ) {
+                console.warn(
+                    'GS-TABLE Warning: Cannot figure out what object to ' +
+                    'delete from, please add a "delete-src" attribute with' +
+                    ' the view that needs to receive the delete commands.'
+                );
+            }
 
             // default "pk" and "lock" attributes
             element.setAttribute(
@@ -2749,6 +3080,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var buttonElement;
         var i;
         var len;
+        var strWidth;
 
         // get each template element and save them to each their own variable,
         //      for easy access
@@ -2988,8 +3320,14 @@ document.addEventListener('DOMContentLoaded', function () {
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
+                strWidth = arrColumnElements[i].style.width;
+
                 element.internalDisplay.columnWidths.push(
-                    parseInt(arrColumnElements[i].style.width, 10) ||
+                    (
+                        arrColumnElements[i].style.width
+                            ? GS.sizeToPx(element, strWidth)
+                            : NaN
+                    ) ||
                     intColumnWidth
                 );
 
@@ -2997,7 +3335,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      user resizes them, so this array contains the column
                 //      widths and cannot be updated by column resizing
                 element.internalDisplay.defaultColumnWidths.push(
-                    parseInt(arrColumnElements[i].style.width, 10) ||
+                    (
+                        arrColumnElements[i].style.width
+                            ? GS.sizeToPx(element, strWidth)
+                            : NaN
+                    ) ||
                     intColumnWidth
                 );
 
@@ -3006,13 +3348,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // we want to retain the developer's declared width settings
                 element.internalDisplay.setColumnWidths.push(
-                    parseInt(arrColumnElements[i].style.width, 10)
+                    arrColumnElements[i].style.width
+                        ? GS.sizeToPx(element, strWidth)
+                        : NaN
                 );
                 element.internalDisplay.setMinColumnWidths.push(
-                    parseInt(arrColumnElements[i].style.minWidth, 10)
+                    (
+                        arrColumnElements[i].style.minWidth
+                            ? GS.sizeToPx(element, arrColumnElements[i].style.minWidth)
+                            : NaN
+                    )
                 );
                 element.internalDisplay.setMaxColumnWidths.push(
-                    parseInt(arrColumnElements[i].style.maxWidth, 10)
+                    (
+                        arrColumnElements[i].style.maxWidth
+                            ? GS.sizeToPx(element, arrColumnElements[i].style.maxWidth)
+                            : NaN
+                    )
                 );
 
                 // fill the minimum column widths with the default. If there's a
@@ -3526,9 +3878,18 @@ document.addEventListener('DOMContentLoaded', function () {
             //      and determine that it's an "insert" type cell
             templateCellAddRowNumber(insertRWTemplate, 'insert');
 
-            // save the template
+            // get HTML
+            strHTML = insertRWTemplate.innerHTML.trim();
+
+            // let's save the original record template text so that we can
+            //      modify it in the future
+            element.internalTemplates.originalInsertRecord = strHTML;
+
+            // we're going run the record template through a function to prep it
+            //      for templating (so we don't mess up inner templates, like
+            //      comboboxes and such)
             element.internalTemplates.insertRecord = (
-                insertRWTemplate.innerHTML.trim()
+                GS.templateHideSubTemplates(strHTML, false)
             );
 
             //// remove the template element now that it's been siphoned
@@ -5067,12 +5428,15 @@ document.addEventListener('DOMContentLoaded', function () {
             //      the first cell, select the first cell
             //console.log(element.internalSelection.ranges);
             jsnRange = element.internalSelection.ranges[0];
-
+            // console.log('ranges:', element.internalSelection.ranges.length);
+            // console.log('rows:', element.internalSelection.rows);
+            // console.log('columns:', element.internalSelection.columns);
             if (
                 !element.hasAttribute('no-force-select') &&
                 element.internalData.records.length > 0 && (
                     element.internalSelection.ranges &&
                     (
+                        // element.internalSelection.ranges.length !== 1 ||
                         element.internalSelection.ranges.length !== 1 ||
                         jsnRange.start.row !== 0 ||
                         jsnRange.start.column !== 0 ||
@@ -5321,10 +5685,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 toColumn
             );
         }
-        if (element.internalTemplates.insertRecord.trim()) {
+        if (
+            element.internalTemplates.insertRecord.templateHTML &&
+            element.internalTemplates.insertRecord.templateHTML.trim()
+        ) {
             strInsertTemplate = templateExtractVisibleCellRange(
                 element,
-                element.internalTemplates.insertRecord,
+                element.internalTemplates.insertRecord.templateHTML,
                 fromColumn,
                 toColumn
             );
@@ -5533,6 +5900,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // if there's a insert record: build it and append to HTML
         if (strInsertTemplate) {
             strRecord = strInsertTemplate;
+
+            // template insert record with querystring
+            strRecord = GS.templateWithQuerystring(strInsertTemplate);
+
+            strRecord = GS.templateShowSubTemplates(
+                strRecord,
+                element.internalTemplates.insertRecord
+            );
 
             //col_i = fromColumn;
             //col_len = toColumn;
@@ -6071,7 +6446,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return strRecord;
         };
 
-        var createNonDataCells = function (strTemplate) {
+        var createNonDataCells = function (strTemplate, jsnTemplate) {
             var strRecord;
 
             //// replace the css tokens so the cells are in the right place
@@ -6084,6 +6459,9 @@ document.addEventListener('DOMContentLoaded', function () {
             strRecord = '{{ var qs = jo.qs; }}' + strRecord;
 
             strRecord = doT.template(strRecord)({'qs': jsnQS});
+            if (jsnTemplate) {
+                strRecord = GS.templateShowSubTemplates(strRecord, jsnTemplate);
+            }
 
             //console.log(strRecord);
 
@@ -6277,13 +6655,13 @@ document.addEventListener('DOMContentLoaded', function () {
             // insert cells
             if (
                 // if there is an insert template
-                element.internalTemplates.insertRecord.trim() &&
+                element.internalTemplates.insertRecord.templateHTML.trim() &&
                 // if the insert record has already been added
                 !bolInsert
             ) {
                 strLeftInsertTemplate = templateExtractVisibleCellRange(
                     element,
-                    element.internalTemplates.insertRecord,
+                    element.internalTemplates.insertRecord.templateHTML,
                     jsnRange.fromColumn,
                     jsnOldRange.fromColumn
                 );
@@ -6346,13 +6724,13 @@ document.addEventListener('DOMContentLoaded', function () {
             // insert cells
             if (
                 // if there is an insert template
-                element.internalTemplates.insertRecord.trim() &&
+                element.internalTemplates.insertRecord.templateHTML.trim() &&
                 // if the insert record has already been added
                 !bolInsert
             ) {
                 strRightInsertTemplate = templateExtractVisibleCellRange(
                     element,
-                    element.internalTemplates.insertRecord,
+                    element.internalTemplates.insertRecord.templateHTML,
                     jsnOldRange.toColumn,
                     jsnRange.toColumn
                 );
@@ -6421,7 +6799,7 @@ document.addEventListener('DOMContentLoaded', function () {
             strInsertTemplate += (
                 templateExtractVisibleCellRange(
                     element,
-                    element.internalTemplates.insertRecord,
+                    element.internalTemplates.insertRecord.templateHTML,
                     jsnRange.fromColumn,
                     jsnRange.toColumn
                 )
@@ -6433,7 +6811,7 @@ document.addEventListener('DOMContentLoaded', function () {
             //        .replace(/\$\$CSSREPLACETOKEN\$\$/gi, '')
             //);
 
-            strHTML += createNonDataCells(strInsertTemplate);
+            strHTML += createNonDataCells(strInsertTemplate, element.internalTemplates.insertRecord);
         }
 
         // if we need to add cells to the left of the old visible range
@@ -6471,7 +6849,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // insert cells
             if (strLeftInsertTemplate) {
-                strHTML += createNonDataCells(strLeftInsertTemplate);
+                strHTML += createNonDataCells(strLeftInsertTemplate, element.internalTemplates.insertRecord);
             }
         }
 
@@ -6510,7 +6888,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // insert cells
             if (strRightInsertTemplate) {
-                strHTML += createNonDataCells(strRightInsertTemplate);
+                strHTML += createNonDataCells(strRightInsertTemplate, element.internalTemplates.insertRecord);
             }
         }
 
@@ -7165,7 +7543,14 @@ document.addEventListener('DOMContentLoaded', function () {
             if (focusElement) {
                 focusElement.focus();
 
-                if (element.internalDisplay.focus.selectionRange) {
+                if (
+                    element.internalDisplay.focus.selectionRange &&
+                    (
+                        focusElement.nodeName === 'INPUT' ||
+                        focusElement.nodeName === 'TEXTAREA'
+                    ) &&
+                    focusElement.getAttribute('type') !== 'file'
+                ) {
                     GS.setInputSelection(
                         focusElement,
                         element.internalDisplay.focus.selectionRange.start,
@@ -7942,6 +8327,11 @@ document.addEventListener('DOMContentLoaded', function () {
         var fadeOut;
         var removeFunction;
 
+        // if we can't find the loaders, we're too early, exit function
+        if (!element.internalLoaders.loaderIDs) {
+            return false;
+        }
+
         // get index of loader in loader array
         loaderIndex = element.internalLoaders.loaderIDs.indexOf(strID);
 
@@ -8114,7 +8504,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     function dataINSERTcallback(element) {
+        // clear retained values
+        clearInsertRetainedValues(element);
+
         element.internalData.bolInserting = false;
+
         // re-render scroll location because adding records changes scroll
         //      heights, and so that we can show the new data
         element.internalDisplay.fullRenderRequired = true;
@@ -8437,6 +8831,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function databaseWSSELECT(element) {
         var socket;
+        var strQuery;
         var strSchema;
         var strObject;
         var strWhere;
@@ -8463,13 +8858,17 @@ document.addEventListener('DOMContentLoaded', function () {
         var arrCols;
         var arrRecords;
         var arrRecordHeights;
+        var returnCallback;
 
         socket = getSocket(element);
+        strQuery = GS.templateWithQuerystring(
+            element.getAttribute('select-query') || ''
+        );
         strSchema = GS.templateWithQuerystring(
-            element.getAttribute('schema') || ''
+            element.getAttribute('select-schema') || ''
         );
         strObject = GS.templateWithQuerystring(
-            element.getAttribute('object') || ''
+            element.getAttribute('select-object') || ''
         );
         strWhere = getWhereClause(element);
         strOrd = GS.templateWithQuerystring(
@@ -8586,109 +8985,124 @@ document.addEventListener('DOMContentLoaded', function () {
                 .apply(element);
         }
 
-        // we need the user to know that the envelope is re-fetching data,
-        //      so we'll put a loader on
-        addLoader(element, 'data-select', 'Loading Data...');
-        GS.requestSelectFromSocket(
-            socket,
-            strSchema,
-            strObject,
-            strReturn,
-            strWhere,
-            strOrd,
-            strLimit,
-            strOffset,
-            function (data, error) {
-                //var i;
-                //var len;
-                var col_i;
-                var col_len;
-                var strCol;
-                //var index;
-                var strRecord;
-                var strMessage;
-                //var strChar;
+        // if the table element has been destroyed, we must stop execution
+        if (!element.internalData.columnNames) {
+            return;
+        }
 
-                if (!error) {
-                    // if this is the first callback, we need to save
-                    //      the column names and types and we need to
-                    //      re-link the filters, sorts and filter statuses
-                    //
-                    // this was below in the else, but requestSelectFromSocket
-                    //      will only callback once if there are no records
-                    //      - Nunzio 5/29/2017
-                    if (data.intCallback === 0) {
-                        // clear old column arrays to make remove for any
-                        //      changes to the column list
-                        element.internalData.columnNames = [];
-                        element.internalData.columnTypes = [];
-                        element.internalData.columnFilterStatuses = [];
-                        element.internalData.columnFilters = [];
-                        element.internalData.columnListFilters = [];
-                        element.internalData.columnOrders = [];
+        // because we use both arbitrary and named selects, we want this
+        //      callback to be a variable, so that we don't have to duplicate it
+        returnCallback = function (data, error) {
+            //var i;
+            //var len;
+            var col_i;
+            var col_len;
+            var strCol;
+            //var index;
+            var strRecord;
+            var strMessage;
+            //var strChar;
 
-                        // future mike, you need to make is so that the
-                        //      column name, filter and sort arrays are
-                        //      retained across select calls.
-                        // past mike, sounds good, I'll use the old column
-                        //      list to get the old sorts filters, and
-                        //      filter statuses
-                        col_i = 0;
-                        col_len = data.arrDecodedColumnNames.length;
-                        while (col_i < col_len) {
-                            strCol = data.arrDecodedColumnNames[col_i];
-                            index = arrOldColumnNames.indexOf(strCol);
+            // if the table element has been destroyed, we must stop execution
+            if (!element.internalData.columnNames) {
+                return;
+            }
 
-                            element.internalData.columnNames.push(
-                                strCol
+            if (!error) {
+                // if this is the first callback, we need to save
+                //      the column names and types and we need to
+                //      re-link the filters, sorts and filter statuses
+                //
+                // this was below in the else, but requestSelectFromSocket
+                //      will only callback once if there are no records
+                //      - Nunzio 5/29/2017
+                if (data.intCallback === 0) {
+                    // clear old column arrays to make remove for any
+                    //      changes to the column list
+                    element.internalData.columnNames = [];
+                    element.internalData.columnTypes = [];
+                    element.internalData.columnFilterStatuses = [];
+                    element.internalData.columnFilters = [];
+                    element.internalData.columnListFilters = [];
+                    element.internalData.columnOrders = [];
+
+                    // future mike, you need to make is so that the
+                    //      column name, filter and sort arrays are
+                    //      retained across select calls.
+                    // past mike, sounds good, I'll use the old column
+                    //      list to get the old sorts filters, and
+                    //      filter statuses
+                    col_i = 0;
+                    col_len = data.arrDecodedColumnNames.length;
+                    while (col_i < col_len) {
+                        strCol = data.arrDecodedColumnNames[col_i];
+                        index = arrOldColumnNames.indexOf(strCol);
+
+                        element.internalData.columnNames.push(
+                            strCol
+                        );
+                        element.internalData.columnTypes.push(
+                            data.arrDecodedColumnTypes[col_i]
+                        );
+
+                        // if we've got old values from the select,
+                        //      bring them over to the new arrays
+                        if (index > -1) {
+                            element.internalData.columnFilterStatuses.push(
+                                arrOldColumnFilterStatuses[index]
                             );
-                            element.internalData.columnTypes.push(
-                                data.arrDecodedColumnTypes[col_i]
+                            element.internalData.columnFilters.push(
+                                arrOldColumnFilters[index]
+                            );
+                            element.internalData.columnListFilters.push(
+                                arrOldColumnListFilters[index]
+                            );
+                            element.internalData.columnOrders.push(
+                                arrOldColumnOrders[index]
                             );
 
-                            // if we've got old values from the select,
-                            //      bring them over to the new arrays
-                            if (index > -1) {
-                                element.internalData
-                                    .columnFilterStatuses.push(
-                                        arrOldColumnFilterStatuses[index]
-                                    );
-                                element.internalData
-                                    .columnFilters.push(
-                                        arrOldColumnFilters[index]
-                                    );
-                                element.internalData
-                                    .columnListFilters.push(
-                                        arrOldColumnListFilters[
-                                            index
-                                        ]
-                                    );
-                                element.internalData
-                                    .columnOrders.push(
-                                        arrOldColumnOrders[index]
-                                    );
-
-                            // else, add empty sort, filter and filter
-                            //      status
-                            } else {
-                                element.internalData
-                                    .columnFilterStatuses.push('on');
-                                element.internalData
-                                    .columnFilters.push([]);
-                                element.internalData
-                                    .columnListFilters.push({});
-                                element.internalData
-                                    .columnOrders.push('neutral');
-                            }
-
-                            col_i += 1;
+                        // else, add empty sort, filter and filter
+                        //      status
+                        } else {
+                            element.internalData
+                                .columnFilterStatuses.push('on');
+                            element.internalData.columnFilters.push([]);
+                            element.internalData.columnListFilters.push({});
+                            element.internalData.columnOrders.push('neutral');
                         }
-                    }
 
-                    // we need to remove the loader at some point, if we see
-                    //      the last message of the select: remove loader and
-                    //      render
-                    if (data.strMessage === 'TRANSACTION COMPLETED') {
+                        col_i += 1;
+                    }
+                }
+
+                // we need to remove the loader at some point, if we see
+                //      the last message of the select: remove loader and
+                //      render
+                if (data.strMessage === 'TRANSACTION COMPLETED') {
+                    //// required for v3 test#1
+                    //element.internalData.records = (
+                    //    arrRecords
+                    //);
+                    //element.internalDisplay.recordHeights = (
+                    //    arrRecordHeights
+                    //);
+
+                    // back to non-test code
+                    //console.timeEnd('data load');
+                    //console.log(
+                    //    'record count:',
+                    //    element.internalData.records.length
+                    //);
+                    removeLoader(element, 'data-select', 'Data Loaded');
+                    dataSELECTcallback(element);
+
+                // we need to capture the records and columns and store
+                //      them in the internal data
+                } else {
+                    if (
+                        data.intCallback === 3 &&
+                        element.internalData.bolFirstLoadFinished === false
+                    ) {
                         //// required for v3 test#1
                         //element.internalData.records = (
                         //    arrRecords
@@ -8697,130 +9111,121 @@ document.addEventListener('DOMContentLoaded', function () {
                         //    arrRecordHeights
                         //);
 
-                        // back to non-test code
-                        //console.timeEnd('data load');
-                        //console.log(
-                        //    'record count:',
-                        //    element.internalData.records.length
-                        //);
-                        removeLoader(element, 'data-select', 'Data Loaded');
-                        dataSELECTcallback(element);
-
-                    // we need to capture the records and columns and store
-                    //      them in the internal data
-                    } else {
-                        if (
-                            data.intCallback === 3 &&
-                            element.internalData.bolFirstLoadFinished === false
-                        ) {
-                            //// required for v3 test#1
-                            //element.internalData.records = (
-                            //    arrRecords
-                            //);
-                            //element.internalDisplay.recordHeights = (
-                            //    arrRecordHeights
-                            //);
-
-                            // re-render scroll location because adding records
-                            //      changes scroll heights, and so that we can
-                            //      show the new data
-                            element.internalDisplay.fullRenderRequired = true;
-                            renderScrollDimensions(element);
-                        }
-
-                        // we need to parse the TSV into records and push them
-                        //      to the internalData "records" array
-                        // now, we have an advantage in that Envelope Websocket
-                        //      data is already encoded in the correct format
-                        //      and all we have to is split on \n
-                        // also, Envelope Websocket data always ends in \n so
-                        //      the loop doesn't need to do anything special
-                        //      to get the last record
-                        strMessage = data.strMessage;
-                        strRecord = '';
-
-                        //// splitter test#1 v3, slower than v2
-                        //var arrRecord = strMessage.split('\n');
-                        //arrRecord.pop();
-                        //arrRecords = arrRecords.concat(arrRecord);
-                        //if (bolLoadNewRecordHeights) {
-                        //    i = 0;
-                        //    len = (
-                        //        (
-                        //            arrRecords.length -
-                        //            arrRecordHeights.length
-                        //        ) +
-                        //        1
-                        //    );
-                        //    while (i < len) {
-                        //        arrRecordHeights.push(intRecordHeight);
-                        //        i += 1;
-                        //    }
-                        //}
-
-                        // splitter v2, faster than v1 by 1 third
-                        //if (window.asdfasdf === true) {
-                        //    //console.log(strMessage);
-                        //}
-                        i = 0;
-                        while (i < 15) {
-                            index = strMessage.indexOf('\n');
-                            strRecord = strMessage.substring(0, index);
-                            strMessage = strMessage.substring(index + 1);
-
-                            if (strRecord !== '' || strMessage !== '') {
-                                arrRecords.push(strRecord);
-
-                                //if (window.asdfasdfasdf === true) {
-                                //    //console.log(strRecord);
-                                //}
-                                if (bolLoadNewRecordHeights) {
-                                    arrRecordHeights.push(intRecordHeight);
-                                }
-                            } else {
-                                break;
-                            }
-
-                            i += 1;
-                        }
-
-                        //// splitter v1, replaced because it was slow
-                        //strMessage = data.strMessage;
-                        //strRecord = '';
-                        //i = 0;
-                        //len = strMessage.length;
-                        //while (i < len) {
-                        //    strChar = strMessage[i];
-
-                        //    if (strChar === '\n') {
-                        //        element.internalData.records.push(strRecord);
-
-                        //        if (bolLoadNewRecordHeights) {
-                        //            element.internalDisplay
-                        //                .recordHeights
-                        //                .push(intRecordHeight);
-                        //        }
-
-                        //        strRecord = '';
-                        //    } else {
-                        //        strRecord += strChar;
-                        //    }
-
-                        //    i += 1;
-                        //}
+                        // re-render scroll location because adding records
+                        //      changes scroll heights, and so that we can
+                        //      show the new data
+                        element.internalDisplay.fullRenderRequired = true;
+                        renderScrollDimensions(element);
                     }
 
-                // we need to make sure that the user knows that the select
-                //      failed and we need to prevent using any old select
-                //      info, so we'll re-render, remove the loader and pop
-                //      up an error
-                } else {
-                    dataSELECTcallback(element);
-                    removeLoader(element, 'data-select', 'Data Failed To Load');
+                    // we need to parse the TSV into records and push them
+                    //      to the internalData "records" array
+                    // now, we have an advantage in that Envelope Websocket
+                    //      data is already encoded in the correct format
+                    //      and all we have to is split on \n
+                    // also, Envelope Websocket data always ends in \n so
+                    //      the loop doesn't need to do anything special
+                    //      to get the last record
+                    strMessage = data.strMessage;
+                    strRecord = '';
+
+                    //// splitter test#1 v3, slower than v2
+                    //var arrRecord = strMessage.split('\n');
+                    //arrRecord.pop();
+                    //arrRecords = arrRecords.concat(arrRecord);
+                    //if (bolLoadNewRecordHeights) {
+                    //    i = 0;
+                    //    len = (
+                    //        (arrRecords.length - arrRecordHeights.length) + 1
+                    //    );
+                    //    while (i < len) {
+                    //        arrRecordHeights.push(intRecordHeight);
+                    //        i += 1;
+                    //    }
+                    //}
+
+                    // splitter v2, faster than v1 by 1 third
+                    i = 0;
+                    while (i < 15) {
+                        index = strMessage.indexOf('\n');
+                        strRecord = strMessage.substring(0, index);
+                        strMessage = strMessage.substring(index + 1);
+
+                        if (strRecord !== '' || strMessage !== '') {
+                            arrRecords.push(strRecord);
+
+                            if (bolLoadNewRecordHeights) {
+                                arrRecordHeights.push(intRecordHeight);
+                            }
+                        } else {
+                            break;
+                        }
+
+                        i += 1;
+                    }
+
+                    //// splitter v1, replaced because it was slow
+                    //strMessage = data.strMessage;
+                    //strRecord = '';
+                    //i = 0;
+                    //len = strMessage.length;
+                    //while (i < len) {
+                    //    strChar = strMessage[i];
+                    //    if (strChar === '\n') {
+                    //        element.internalData.records.push(strRecord);
+                    //        if (bolLoadNewRecordHeights) {
+                    //            element.internalDisplay
+                    //                .recordHeights
+                    //                .push(intRecordHeight);
+                    //        }
+                    //        strRecord = '';
+                    //    } else {
+                    //        strRecord += strChar;
+                    //    }
+                    //    i += 1;
+                    //}
+                }
+
+            // we need to make sure that the user knows that the select
+            //      failed and we need to prevent using any old select
+            //      info, so we'll re-render, remove the loader and pop
+            //      up an error
+            } else {
+                dataSELECTcallback(element);
+                removeLoader(element, 'data-select', 'Data Failed To Load');
+                if (!element.hasAttribute('suppress-select-error')) {
                     GS.webSocketErrorDialog(data);
                 }
             }
-        );
+        };
+
+        // we need the user to know that the envelope is re-fetching data,
+        //      so we'll put a loader on
+        if (strQuery) {
+            addLoader(element, 'data-select', 'Loading Data...');
+            GS.requestArbitrarySelectFromSocket(
+                socket,
+                strQuery,
+                strWhere,
+                strOrd,
+                strLimit,
+                strOffset,
+                returnCallback
+            );
+        } else {
+            addLoader(element, 'data-select', 'Loading Data...');
+            GS.requestSelectFromSocket(
+                socket,
+                strSchema,
+                strObject,
+                strReturn,
+                strWhere,
+                strOrd,
+                strLimit,
+                strOffset,
+                returnCallback
+            );
+        }
     }
     function databaseWSINSERT(element, strMode, jsnInsert) {
         var rec_i;
@@ -8848,10 +9253,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // get schema and object attributes and get the return column list
         strSchema = GS.templateWithQuerystring(
-            element.getAttribute('schema') || ''
+            element.getAttribute('insert-schema') || ''
         );
         strObject = GS.templateWithQuerystring(
-            element.getAttribute('object') || ''
+            element.getAttribute('insert-object') || ''
         );
 
         // the return column list must be defined the same as the column list
@@ -9130,6 +9535,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 strInsertData,
                 // transaction start callback
                 function (data, error) {
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        return;
+                    }
+
                     // insert failed, remove loader and popup error dialog
                     if (error) {
                         removeLoader(element, 'data-insert', 'Insert Failed');
@@ -9167,6 +9577,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     var arrRecords;
                     var i;
                     var len;
+
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        return;
+                    }
 
                     // the over-the-network part of the update has finished,
                     //      remove the loader now so that if there is an
@@ -9320,10 +9735,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // get schema and object attributes and get the return column list
         strSchema = GS.templateWithQuerystring(
-            element.getAttribute('schema') || ''
+            element.getAttribute('update-schema') || ''
         );
         strObject = GS.templateWithQuerystring(
-            element.getAttribute('object') || ''
+            element.getAttribute('update-object') || ''
         );
 
         // the return column list must be defined the same as the column list
@@ -9889,6 +10304,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 strUpdateData,
                 // transaction start callback
                 function (data, error) { //transID
+
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        return;
+                    }
+
                     // update failed: remove loader, popup an error
                     //      and reverse changes
                     if (error) {
@@ -9978,6 +10402,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     var arrRecords;
                     //var i;
                     //var len;
+
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        return;
+                    }
 
                     // the over-the-network part of the update has finished,
                     //      remove the loader now so that if there is an
@@ -10151,10 +10583,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // get schema and object attributes and get the return column list
         strSchema = GS.templateWithQuerystring(
-            element.getAttribute("schema") || ""
+            element.getAttribute('delete-schema') || ''
         );
         strObject = GS.templateWithQuerystring(
-            element.getAttribute("object") || ""
+            element.getAttribute('delete-object') || ''
         );
 
         // we want the null string to be configurable, so we'll read the
@@ -10379,6 +10811,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 strDeleteData,
                 // transaction start callback
                 function (data, error) { //transID
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        return;
+                    }
+
                     // delete failed: remove loader, popup an error
                     if (error) {
                         removeLoader(element, 'data-delete', 'Delete Failed');
@@ -10389,6 +10826,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 // "ignore" is a placeholder for "transID" and it tells JSLINT
                 //      that it is an unused variable
                 function (data, error, ignore, commit, rollback) {
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        rollback();
+                        return;
+                    }
+
                     if (!error) {
                         // delete made it through: commit the delete
                         if (data === 'TRANSACTION COMPLETED') {
@@ -10404,6 +10847,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 function (strAnswer, data, error) {
                     var arrRecords;
                     var arrRecordHeights;
+
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        return;
+                    }
 
                     // the over-the-network part of the delete has finished,
                     //      remove the loader now so that if there is an
@@ -10556,7 +11004,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             // we'll check the insertRecord template for column names
-            templateElement.innerHTML = element.internalTemplates.insertRecord;
+            templateElement.innerHTML = (
+                element.internalTemplates.insertRecord.templateHTML
+            );
             arrColumns = templateGetColumnList(templateElement);
             arrColumns.forEach(function (strColumn) {
                 if (
@@ -10572,7 +11022,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             // we'll check the record template for column names
-            templateElement.innerHTML = element.internalTemplates.record;
+            templateElement.innerHTML = (
+                element.internalTemplates.record.templateHTML
+            );
             arrColumns = templateGetColumnList(templateElement);
             arrColumns.forEach(function (strColumn) {
                 if (
@@ -11353,15 +11805,19 @@ document.addEventListener('DOMContentLoaded', function () {
         strColumn
     ) {
         var socket = getSocket(element);
+        var strQuery;
         var strSchema;
         var strObject;
         var strWhere;
 
+        strQuery = GS.templateWithQuerystring(
+            element.getAttribute('select-query') || ''
+        );
         strSchema = GS.templateWithQuerystring(
-            element.getAttribute('schema') || ''
+            element.getAttribute('select-schema') || ''
         );
         strObject = GS.templateWithQuerystring(
-            element.getAttribute('object') || ''
+            element.getAttribute('select-object') || ''
         );
         strWhere = element.getAttribute('where') || '1=1';
         // This way other filters apply to the current filter
@@ -11376,7 +11832,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             NULLIF(CAST("{{COLUMN}}" AS text), ''),
                             '(blanks)'
                        ) AS unique_value
-                  FROM {{SCHEMA}}.{{OBJECT}}
+                  FROM {{OBJECT}}
                   WHERE {{WHERE}}
               GROUP BY NULLIF(CAST("{{COLUMN}}" AS text), '')
               ORDER BY NULLIF(CAST("{{COLUMN}}" AS text), '') ASC NULLS FIRST
@@ -11384,8 +11840,10 @@ document.addEventListener('DOMContentLoaded', function () {
             })
                 .replace(/\{\{WHERE\}\}/gi, strWhere)
                 .replace(/\{\{COLUMN\}\}/gi, strColumn)
-                .replace(/\{\{SCHEMA\}\}/gi, strSchema)
-                .replace(/\{\{OBJECT\}\}/gi, strObject)
+                .replace(
+                    /\{\{OBJECT\}\}/gi,
+                    (strQuery || (strSchema + '.' + strObject))
+                )
         );
 
         var bolUncheckedFound = false;
@@ -11756,6 +12214,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     function dataSELECT(element) {
+        resolveElementAttributes(element);
         if (element.hasAttribute('src')) {
             databaseWSSELECT(element);
         } else {
@@ -11763,7 +12222,55 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     function dataINSERT(element, strMode, jsnInsert) {
+        var i;
+        var len;
+        var arrControls;
+        var templateElement;
+        var strColumn;
+        var strValue;
+        var arrRetained;
+        var jsnInsertRecord;
+
         element.internalData.bolInserting = true;
+
+        // because we allow the insert record to be templated, we need to
+        //      extract the templated values and use them as defaults in the
+        //      retained insert values
+        if (
+            element.internalTemplates.originalInsertRecord &&
+            element.internalTemplates.originalInsertRecord.trim()
+        ) {
+            templateElement = document.createElement('template');
+            templateElement.innerHTML = (
+                GS.templateWithQuerystring(
+                    element.internalTemplates.insertRecord.templateHTML
+                )
+            );
+            arrControls = tblQry(templateElement.content, 'gs-cell [column]');
+            arrRetained = element.internalData.insertRecordRetainedColumns;
+            jsnInsertRecord = element.internalData.insertRecord;
+
+            i = 0;
+            len = arrControls.length;
+            while (i < len) {
+                strColumn = arrControls[i].getAttribute('column');
+                strValue = arrControls[i].getAttribute('value');
+
+                // if the column hasn't already been typed in by the user,
+                //      add templated value to retained columns
+                if (
+                    strColumn &&
+                    strValue &&
+                    arrRetained.indexOf(strColumn) === -1
+                ) {
+                    arrRetained.push(strColumn);
+                    jsnInsertRecord[strColumn] = strValue;
+                }
+
+                i += 1;
+            }
+        }
+
         if (element.hasAttribute('src')) {
             databaseWSINSERT(element, strMode, jsnInsert);
         } else {
@@ -11807,35 +12314,20 @@ document.addEventListener('DOMContentLoaded', function () {
 // #############################################################################
 // ####################### POST-RENDER UTILITY FUNCTIONS #######################
 // #############################################################################
+
     function triggerRecordInsert(element) {
         dataINSERT(element, 'single-record', {
             "data": {
-                "values": (
-                    element
-                        .internalData
-                        .insertRecord
-                ),
-                "columns": (
-                    element
-                        .internalData
-                        .insertRecordRetainedColumns
-                ),
+                "values": (element.internalData.insertRecord),
+                "columns": (element.internalData.insertRecordRetainedColumns),
                 "addin": getInsertAddin(element)
             },
             "insertConfirmed": true
         });
 
-        // we clear the retained values and columns here because
-        //      if the user decides to override the insert with
-        //      their own thing, we don't want to still be showing
-        //      the old values.
-        element.internalData.insertRecord = {};
-        element.internalData.insertRecordRetainedColumns = [];
-
-        // re-render so that the insert controls clear out in the DOM
-        element.internalDisplay.fullRenderRequired = true;
+        // clear retained values
+        clearInsertRetainedValues(element);
         renderLocation(element);
-        //element.goToLine('last');
     }
 
     // sometimes you need to know what records are selected, this function
@@ -12742,7 +13234,7 @@ document.addEventListener('DOMContentLoaded', function () {
         search_div = document.createElement('div');
         search_div.innerHTML = templateExtractVisibleCellRange(
             element,
-            element.internalTemplates.insertRecord,
+            element.internalTemplates.insertRecord.templateHTML,
             intStart,
             (intEnd + 1)
             // the plus one is because the template extract function
@@ -12881,7 +13373,7 @@ document.addEventListener('DOMContentLoaded', function () {
         templateElement = document.createElement('template');
         templateElement.innerHTML = templateExtractVisibleCellRange(
             element,
-            element.internalTemplates.insertRecord,
+            element.internalTemplates.insertRecord.templateHTML,
             intStart,
             (intEnd + 1)
             // the plus one is because the template extract function
@@ -13027,7 +13519,7 @@ document.addEventListener('DOMContentLoaded', function () {
         templateElement = document.createElement('template');
 
         templateElement.innerHTML = (
-            element.internalTemplates.insertRecord
+            element.internalTemplates.insertRecord.templateHTML
         );
         arrInsertCellElements = tblQry(
             templateElement.content,
@@ -13523,30 +14015,35 @@ document.addEventListener('DOMContentLoaded', function () {
         //      the dialog function
         templateElement = document.createElement("template");
 
-        // fill template element
-        templateElement.innerHTML = ml(function () {/*
-            <gs-page gs-dynamic>
-                <gs-header>
-                    <center><h3>Create</h3></center>
-                </gs-header>
-                <gs-body padded>
-                    {{HTML}}
-                </gs-body>
-                <gs-footer>
-                    <gs-grid gutter>
-                        <gs-block>
-                            <gs-button dialogclose>Cancel</gs-button>
-                        </gs-block>
-                        <gs-block>
-                            <gs-button dialogclose
-                                       listen-for-return
-                                       bg-primary>Create</gs-button>
-                        </gs-block>
-                    </gs-grid>
-                </gs-footer>
-            </gs-page>
-        */
-        }).replace("{{HTML}}", strTemplate);
+        if (strTemplate.indexOf('<gs-page') > -1) {
+            // fill template element
+            templateElement.innerHTML = strTemplate;
+        } else {
+            // fill template element
+            templateElement.innerHTML = ml(function () {/*
+                <gs-page gs-dynamic>
+                    <gs-header>
+                        <center><h3>Create</h3></center>
+                    </gs-header>
+                    <gs-body padded>
+                        {{HTML}}
+                    </gs-body>
+                    <gs-footer>
+                        <gs-grid gutter>
+                            <gs-block>
+                                <gs-button dialogclose>Cancel</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button dialogclose
+                                           listen-for-return
+                                           bg-primary>Create</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </gs-footer>
+                </gs-page>
+            */
+            }).replace("{{HTML}}", strTemplate);
+        }
 
         // send out a before insert dialog open event, so that the developer
         //      can cancel it
@@ -13689,6 +14186,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 // else, re-render so that the internal storage is used to fill
                 //      the insert controls
                 } else {
+                    // added by Nunzio on 2022-01-14
+                    // if there is no insert record, clear out the internal
+                    // storage, otherwise you get errors about unsaved changes
+                    if (!element.internalTemplates.insertRecord) {
+                        element.internalData.insertRecord = {};
+                        element.internalData.insertRecordRetainedColumns = [];
+                    }
                     element.internalDisplay.fullRenderRequired = true;
                     renderLocation(element);
                 }
@@ -14970,9 +15474,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 var intDeltaY;
                 var intDeltaX;
                 var intRecordHeight;
+                var intViewportHeight;
 
                 // helper variable to help shorten the code
                 jsnScroll = element.internalScroll;
+
+                // when using the logitech smooth scrolling
+                // addon there are extra scroll events
+                // - Nunzio on 2021-09-21
+                if (event.deltaX === undefined || event.deltaY === undefined) {
+                    return;
+                }
 
                 // we don't want to intercept overscrolling
                 if (
@@ -15006,6 +15518,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      point
                 event.preventDefault();
 
+                // shortcut for viewport height
+                intViewportHeight = (
+                    element.elems.dataViewport.clientHeight - (
+                        element.internalDisplay.headerBorderHeight +
+                        element.internalDisplay.headerHeight
+                    )
+                );
+
                 // we need to save the original top and left so that we can have
                 //      the element rerender only if the scroll actually changed
                 originalTop = jsnScroll.top;
@@ -15025,6 +15545,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      in that direction
                 intDeltaY = Math.round(event.deltaY);
                 intDeltaX = Math.round(event.deltaX);
+
+                // We don't want to scroll more than the height of the viewport
+                //intViewportHeight
+
+                if (Math.abs(intDeltaY) > intViewportHeight) {
+                    if (intDeltaY < 0) {
+                        intDeltaY = -(intViewportHeight / 2);
+                    } else {
+                        intDeltaY = (intViewportHeight / 2);
+                    }
+                }
 
                 intRecordHeight = (
                     (
@@ -15470,6 +16001,7 @@ document.addEventListener('DOMContentLoaded', function () {
             element.internalEvents.selectRowStart = function (event) {
                 // find out the cell location based on the mouse event
                 jsnStartCell = getCellFromMouseEvent(element, event);
+                console.log(jsnStartCell);
                 jsnCurrentCell = jsnStartCell;
                 intStartScrollTop = element.internalScroll.displayTop;
                 intStartScrollLeft = element.internalScroll.displayLeft;
@@ -15763,14 +16295,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             element.internalEvents.selectDragMove = function (event) {
                 var intOldEndRow;
-                var intOldEndColumn;
+                var intOldEndCol;
                 var currentRange;
                 var jsnCurrentSelection;
+                var focusedElement;
+                var parentTable;
 
-                jsnCurrentSelection =
-                        GS.getInputSelection(document.activeElement);
-
-                getCellFromMouseEvent(element, event);
+                focusedElement = document.activeElement;
+                parentTable = GS.findParentTag(focusedElement, 'gs-table');
+                jsnCurrentSelection = GS.getInputSelection(focusedElement);
 
                 // if mouse is moving but no mouse button is down: finalize
                 //      selection, unbind selectDragMove and unbind
@@ -15802,7 +16335,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     //      a change was actually made (that way we only
                     //      re-render if the selection has changed)
                     intOldEndRow = currentRange.end.row;
-                    intOldEndColumn = currentRange.end.column;
+                    intOldEndCol = currentRange.end.column;
 
                     currentRange.end.row = jsnLocation.row;
                     currentRange.end.column = jsnLocation.column;
@@ -15826,10 +16359,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     //      if the currently focused element is not a child
                     //          of this gs-table element
                     if (
-                        document.activeElement !==
-                            element.elems.hiddenFocusControl
-                    ) {
-                        if (
+                        focusedElement !== element.elems.hiddenFocusControl &&
+                        (
                             // if the current range encompasses more than one
                             //      cell
                             (
@@ -15840,28 +16371,23 @@ document.addEventListener('DOMContentLoaded', function () {
                                             currentRange.end.column
                                 ) &&
                                 (
-                                    currentRange.start.row ===
-                                            intOldEndRow &&
-                                    currentRange.start.column ===
-                                            intOldEndColumn
+                                    currentRange.start.row === intOldEndRow &&
+                                    currentRange.start.column === intOldEndCol
                                 )
                             ) ||
                             // if the selection is not inside the gs-table
-                            GS.findParentTag(
-                                document.activeElement,
-                                'gs-table'
-                            ) !== element ||
+                            parentTable !== element ||
                             // if there is more than one selection
                             element.internalSelection.ranges.length > 1
-                        ) {
-                            focusHiddenControl(element);
-                        }
+                        )
+                    ) {
+                        focusHiddenControl(element);
                     }
 
                     // re-render selection if selection ranges have been changed
                     if (
                         currentRange.end.row !== intOldEndRow ||
-                        currentRange.end.column !== intOldEndColumn
+                        currentRange.end.column !== intOldEndCol
                     ) {
                         renderSelection(element);
                         GS.triggerEvent(element, 'selection_change');
@@ -15982,6 +16508,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         var intPoint;
                         var i;
                         var len;
+
+                        // the table might be taken out of the DOM before this
+                        //      code is run (in which case, there's nothing to
+                        //      do), so let's check
+                        if (!element.elems.dataViewport) {
+                            return false;
+                        }
 
                         jsnElementPos = GS.getElementOffset(
                             element.elems.dataViewport
@@ -18263,10 +18796,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         );
                     }
 
-                    if (element.internalTemplates.insertRecord) {
+                    if (element.internalTemplates.originalInsertRecord) {
                         insertTemplate = document.createElement('template');
                         insertTemplate.innerHTML = (
-                            element.internalTemplates.insertRecord
+                            element.internalTemplates.originalInsertRecord
                         );
                         arrOldInsertTemplate = (
                             tblQry(insertTemplate.content, 'gs-cell')
@@ -18533,10 +19066,23 @@ document.addEventListener('DOMContentLoaded', function () {
                         templateCellAddColumnNumber(insertTemplate);
                         strNewInsertTemplate = insertTemplate.innerHTML;
 
-                        // save the new insert template so that the render
-                        //      function uses it
-                        element.internalTemplates.insertRecord = (
+                        // let's save the original insert record template text
+                        //      so that we can modify it in the future
+                        element.internalTemplates.originalInsertRecord = (
                             strNewInsertTemplate
+                        );
+
+                        // save the new record template so that the render
+                        //      function uses it
+                        // we're going run the record template through a
+                        //      function to turn all of the "column"
+                        //      attributes into "value" attributes with
+                        //      the proper templating
+                        element.internalTemplates.InsertRecord = (
+                            GS.templateHideSubTemplates(
+                                strNewInsertTemplate,
+                                false // not a TR element
+                            )
                         );
                     }
 
@@ -18708,7 +19254,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         columnElement.value !== null &&
                         columnElement.value !== undefined
                     ) {
-                        newValue = columnElement.value;
+                        // changed on 2022-06-11 by Nunzio
+                        // this is the behaviour of Microsoft Access, and Cross expected it
+                        newValue = columnElement.value === '' ? '\\N' : columnElement.value;
+                        // newValue = columnElement.value;
 
                     // else if the "target" has a "value" accessor we'll use
                     //      that to get the value
@@ -18716,7 +19265,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         target.value !== null &&
                         target.value !== undefined
                     ) {
-                        newValue = target.value;
+                        // changed on 2022-06-11 by Nunzio
+                        // this is the behaviour of Microsoft Access, and Cross expected it
+                        newValue = target.value === '' ? '\\N' : target.value;
+                        // newValue = target.value;
 
                     // else if the "columnElement" has a "checked" accessor
                     //      we'll use that to get the value
@@ -19028,78 +19580,81 @@ document.addEventListener('DOMContentLoaded', function () {
                 parentCell.classList.contains('table-insert') &&
                 keyCode === 13
             ) {
-                // triggerRecordInsert(element);
+                triggerRecordInsert(element);
                 // don't trigger an insert, fire a blur instead
                 // clearSelection stops it from reverting the focus
                 element.clearSelection();
                 focusHiddenControl(element);
             }
         };
-        element.internalEvents.insertRecordBlur = function (event) {
-            setTimeout(
-                function () {
-                    var parentCell = GS.findParentTag(event.target, 'gs-cell');
-                    var newParentCell = GS.findParentTag(
-                        document.activeElement,
-                        'gs-cell'
-                    );
-                    var totalValues;
-                    var insertElements;
-                    var i;
-                    var len;
+        // COMMENTED 12/18/2021
+        //element.internalEvents.insertRecordBlur = function (event) {
+        //    // who put this timeout in here, and why? - Michael
+        //    setTimeout(
+        //        function () {
+        //            var parentCell =GS.findParentTag(event.target, 'gs-cell');
+        //            var newParentCell = GS.findParentTag(
+        //                document.activeElement,
+        //                'gs-cell'
+        //            );
+        //            var totalValues;
+        //            var insertElements;
+        //            var i;
+        //            var len;
 
-                    // element.internalEvents.insertRecordValueRetain(event);
+        //            // element.internalEvents.insertRecordValueRetain(event);
 
-                    // we only want return to insert if the return occured
-                    //      inside an insert cell
-                    if (
-                        parentCell &&
-                        (
-                            (
-                                parentCell.classList.contains('table-insert') &&
-                                !newParentCell
-                            ) ||
-                            (
-                                parentCell.classList.contains('table-insert') &&
-                                !newParentCell
-                                    .classList.contains('table-insert')
-                            )
-                        )
-                    ) {
-                        totalValues = false;
-                        insertElements = tblQry(
-                            element,
-                            '.table-insert input'
-                        );
+        //            // we only want return to insert if the return occured
+        //            //      inside an insert cell
+        //            if (
+        //                parentCell &&
+        //                (
+        //                    (
+        //                      parentCell.classList.contains('table-insert') &&
+        //                        !newParentCell
+        //                    ) ||
+        //                    (
+        //                      parentCell.classList.contains('table-insert') &&
+        //                        !newParentCell
+        //                            .classList.contains('table-insert')
+        //                    )
+        //                )
+        //            ) {
+        //                totalValues = false;
+        //              insertElements = tblQry(element, '.table-insert input');
 
-                        i = 0;
-                        len = insertElements.length;
-                        while (i < len) {
-                            totalValues += insertElements[i].value;
-                            i += 1;
-                        }
+        //                i = 0;
+        //                len = insertElements.length;
+        //                while (i < len) {
+        //                    totalValues += insertElements[i].value;
+        //                    i += 1;
+        //                }
 
-                        if (totalValues && totalValues !== 'false') {
-                            element.internalEvents
-                                .insertRecordValueRetain(event);
-                            triggerRecordInsert(element);
-                        }
-                    }
-                },
-                1
-            );
+        //                if (totalValues && totalValues !== 'false') {
+        //                    element.internalEvents
+        //                        .insertRecordValueRetain(event);
+        //                    triggerRecordInsert(element);
+        //                }
+        //            }
+        //        },
+        //        1
+        //    );
 
-        };
+        //};
 
         element.elems.dataViewport.addEventListener(
             'keydown',
             element.internalEvents.insertRecordReturn
         );
-        element.elems.dataViewport.addEventListener(
-            'blur',
-            element.internalEvents.insertRecordBlur,
-            true
-        );
+        // COMMENTED 12/18/2021, the standard we follow doesn't use blur to
+        //      insert, it's only on "return". Leaving it here for future
+        //      reference. Also, the code was buggy to boot, so removing this
+        //      will make the insert record more stable.
+        //element.elems.dataViewport.addEventListener(
+        //    'blur',
+        //    element.internalEvents.insertRecordBlur,
+        //    true
+        //);
 
         // we want to be able to fill in some insert cells, scroll away,
         //      scroll back, and not lose the values that have been typed in
@@ -19176,11 +19731,20 @@ document.addEventListener('DOMContentLoaded', function () {
         };
         // this was getting run every time you inserted causing it
         // to save the last edited value
-        // element.elems.dataViewport.addEventListener(
-        //     'change',
-        //     element.internalEvents.insertRecordValueRetain,
-        //     true
-        // );
+        // DECOMMENTED 12/14/2021 - I've made the insert function clear the
+        //      retained values before and after insert in order to get the
+        //      immediate clear, and prevent the last "change" value from
+        //      sticking.
+        //      The only weakness of this approach is if a user is able to start
+        //      typing before the insert is complete, we're prolly gonna clear
+        //      it out. However, I'm willing to take that risk for now and see
+        //      what happens. If we run into this issue for real, we will find
+        //      some way to determine what values to clear.
+        element.elems.dataViewport.addEventListener(
+            'change',
+            element.internalEvents.insertRecordValueRetain,
+            true
+        );
         element.elems.dataViewport.addEventListener(
             'keyup',
             element.internalEvents.insertRecordValueRetain
@@ -19838,6 +20402,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // convert the new record and column to special values
                     //      (if needed)
+
                     var intHeaderIndex;
                     var intSelectorIndex;
                     var intInsertIndex;
@@ -21641,8 +22206,6 @@ document.addEventListener('DOMContentLoaded', function () {
 // #############################################################################
 
     function elementInserted(element) {
-        var arrRetainedColumns;
-
         // if "created"/"inserted" are not suspended: run inserted code
         if (
             !element.hasAttribute('suspend-created') &&
@@ -21660,16 +22223,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderHUD(element);
                 bindElement(element);
 
-                arrRetainedColumns = (
-                    element
-                        .internalData
-                        .insertRecordRetainedColumns
-                );
-
                 GS.addBeforeUnloadEvent(function () {
+                    var arrRetainedColumns = (
+                        element
+                            .internalData
+                            .insertRecordRetainedColumns
+                    );
                     if (
                         arrRetainedColumns &&
-                        arrRetainedColumns.length > 0
+                        arrRetainedColumns.length > 0 &&
+                        document.body.contains(element)
                     ) {
                         return 'There is data in the insert record.';
                     }
@@ -21767,9 +22330,10 @@ document.addEventListener('DOMContentLoaded', function () {
             'destroy': function () {
                 var element = this;
 
+                // sometimes, the element is destroyed before it's initialized
                 // sometimes, the gs-table gets destroyed multiple times.
                 //      we don't want to cause any errors when this happens.
-                if (element.elems.dataViewport) {
+                if (element.elems && element.elems.dataViewport) {
                     // prevent the element from recieving any events
                     unbindElement(element);
 
@@ -21802,28 +22366,64 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             },
             'refresh': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 dataSELECT(this);
             },
             'triggerRecordInsert': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 triggerRecordInsert(this);
             },
             'selectData': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 dataSELECT(this);
             },
             'insertData': function (strMode, jsnInsert) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 dataINSERT(this, strMode, jsnInsert);
             },
             'updateData': function (strMode, jsnUpdate) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 dataUPDATE(this, strMode, jsnUpdate);
             },
             'deleteData': function (jsnDeleteData) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 dataDELETE(this, jsnDeleteData);
             },
             'render': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 if (
                     !this.hasAttribute('suspend-created') &&
                     !this.hasAttribute('suspend-inserted')
                 ) {
+                    this.internalDisplay.fullRenderRequired = true;
                     renderScrollDimensions(this);
                     renderHUD(this);
                 }
@@ -21831,6 +22431,11 @@ document.addEventListener('DOMContentLoaded', function () {
             'toggleFullContainer': function (container, target) {
                 var element = this;
                 var containerElement;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 containerElement = tblElemByID(container);
 
@@ -21852,6 +22457,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 var element = this;
                 var containerElement;
 
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 containerElement = tblElemByID(container);
 
                 if (!element.classList.contains('absolute')) {
@@ -21866,6 +22476,11 @@ document.addEventListener('DOMContentLoaded', function () {
             'closeFullContainer': function (container, target) {
                 var element = this;
                 var containerElement;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 containerElement = tblElemByID(container);
 
@@ -21885,11 +22500,21 @@ document.addEventListener('DOMContentLoaded', function () {
             //'scrollToCell': function (rowNumber, columnNumber) {
             //},
             'deleteSelected': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 deleteSelectedRecords(this);
             },
             'clearFilter': function () {
                 var filter_i;
                 var filter_len;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 filter_i = 0;
                 filter_len = this.internalData.columnFilters.length;
@@ -21905,6 +22530,11 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             'toggleFullscreen': function (target) {
                 var element = this;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 // using a class like this doesn't work on iOS (other things
                 //      z-index over it), we need to move the element to the
@@ -21930,6 +22560,11 @@ document.addEventListener('DOMContentLoaded', function () {
             'openFullscreen': function (target) {
                 var element = this;
 
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 if (!element.classList.contains('table-fullscreen')) {
                     GS.triggerEvent(element, 'openFullscreen');
                     element.classList.add('table-fullscreen');
@@ -21942,6 +22577,11 @@ document.addEventListener('DOMContentLoaded', function () {
             'closeFullscreen': function (target) {
                 var element = this;
 
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 if (element.classList.contains('table-fullscreen')) {
                     GS.triggerEvent(element, 'closeFullScreen');
                     element.classList.remove('table-fullscreen');
@@ -21953,10 +22593,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderScrollDimensions(element);
             },
             'openPrefs': function (target) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 openSettingsDialog(this, target);
             },
             'sort': function (action) {
                 var strNewSort;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 if (action === 'asc') {
                     strNewSort = 'asc';
                 } else if (action === 'desc') {
@@ -21988,9 +22639,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 dataSELECT(this);
             },
             'openInsertDialog': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 openInsertDialog(this);
             },
             'goToLine': function (action) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 var intCurrentRecord = (
                     this.internalSelection.originRecord || 0
                 );
@@ -22068,6 +22729,11 @@ document.addEventListener('DOMContentLoaded', function () {
             'clearSelection': function () {
                 var element = this;
 
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 // empty selection array
                 element.internalSelection.ranges = [];
 
@@ -22076,6 +22742,12 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             'renderSelection': function () {
                 var element = this;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 // re-render selection
                 renderSelection(element);
             },
@@ -22087,6 +22759,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 bolNegate
             ) {
                 var element = this;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 // bolNegate must be true or false, default to false
                 if (
@@ -22113,12 +22790,157 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderSelection(element);
             },
             'getCopyStrings': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 return getCopyStrings(this);
             },
             'updateDialog': function (event) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 this.internalEvents.updateDialog(event);
             },
+            // need to refactor hide/show column, too much duplicated code
+            // ### NEED CODING ###
+            'hideColumn': function (indexOrName) {
+                var element = this;
+                var columnIndex = null;
+                var i;
+                var len;
+                var arrDataCols;
+                var arrColNames;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
+                // if we have a number, we can use that as the index
+                if (
+                    typeof indexOrName === 'number' ||
+                    !isNaN(parseInt(indexOrName, 10))
+                ) {
+                    columnIndex = parseInt(indexOrName, 10);
+
+                // if the given value is a string, we need to find the column
+                //      index based on that name
+                } else if (typeof indexOrName === 'string') {
+                    arrDataCols = element.internalDisplay.dataColumnName;
+                    arrColNames = element.internalDisplay.columnPlainTextNames;
+                    i = 0;
+                    len = arrDataCols.length;
+                    while (i < len) {
+                        if (
+                            arrDataCols[i] === indexOrName ||
+                            arrColNames[i] === indexOrName
+                        ) {
+                            columnIndex = i;
+                            break;
+                        }
+
+                        i += 1;
+                    }
+
+                    // if we didn't find the column, error
+                    if (columnIndex === null) {
+                        throw 'GS-TABLE Error: hideColumn method error. ' +
+                                'Unable to find a column with the name "' +
+                                indexOrName + '". We only check the text ' +
+                                'from the header and the [column] attribute ' +
+                                'from inside the row cells.';
+                    }
+
+                // else, error
+                } else {
+                    throw 'GS-TABLE Error: hideColumn method error. The ' +
+                            'first parameter must be a column index or a ' +
+                            'column name';
+                }
+
+                // set width to zero to hide
+                element.internalDisplay.columnWidths[columnIndex] = 0;
+
+                // render
+                element.internalDisplay.fullRenderRequired = true;
+                renderScrollDimensions(element);
+                //renderLocation(element);
+            },
+            'showColumn': function (indexOrName) {
+                var element = this;
+                var columnIndex = null;
+                var i;
+                var len;
+                var arrDataCols;
+                var arrColNames;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
+                // if we have a number, we can use that as the index
+                if (
+                    typeof indexOrName === 'number' ||
+                    !isNaN(parseInt(indexOrName, 10))
+                ) {
+                    columnIndex = parseInt(indexOrName, 10);
+
+                // if the given value is a string, we need to find the column
+                //      index based on that name
+                } else if (typeof indexOrName === 'string') {
+                    arrDataCols = element.internalDisplay.dataColumnName;
+                    arrColNames = element.internalDisplay.columnPlainTextNames;
+                    i = 0;
+                    len = arrDataCols.length;
+                    while (i < len) {
+                        if (
+                            arrDataCols[i] === indexOrName ||
+                            arrColNames[i] === indexOrName
+                        ) {
+                            columnIndex = i;
+                            break;
+                        }
+
+                        i += 1;
+                    }
+
+                    // if we didn't find the column, error
+                    if (columnIndex === null) {
+                        throw 'GS-TABLE Error: showColumn method error. ' +
+                                'Unable to find a column with the name "' +
+                                indexOrName + '". We only check the text ' +
+                                'from the header and the [column] attribute ' +
+                                'from inside the row cells.';
+                    }
+
+                // else, error
+                } else {
+                    throw 'GS-TABLE Error: showColumn method error. The ' +
+                            'first parameter must be a column index or a ' +
+                            'column name';
+                }
+
+                // set width to zero to hide
+                element.internalDisplay.columnWidths[columnIndex] = (
+                    element.internalDisplay.defaultColumnWidths[columnIndex]
+                );
+
+                // render
+                element.internalDisplay.fullRenderRequired = true;
+                renderScrollDimensions(element);
+                //renderLocation(element);
+            },
             'paste': function (strPasteString) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 usePasteString(this, strPasteString);
             },
             'resizeAllColumns': function () {
@@ -22126,6 +22948,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 var arrIndexes = [];
                 var i;
                 var len;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 i = 0;
                 len = element.internalDisplay.columnPlainTextNames.length;
@@ -22141,6 +22968,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 var columnIndex;
                 var strWhere;
                 var strName;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 // filterType must be one of these values: (defaults to equals)
                 //      'contains', 'notcontains',

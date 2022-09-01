@@ -69,7 +69,7 @@ gs-combo[mini] input {
 /* ##################### READONLY STATE ##################### */
 /* ########################################################## */
 
-gs-combo[readonly] {
+/*gs-combo[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
     border-color: #E6E6E6;
@@ -79,13 +79,13 @@ gs-combo[readonly] {
 gs-combo[disabled] > .root,
 gs-combo[readonly] > .root {
     padding-right: 0;
-}
+}*/
 
 gs-combo[disabled] .drop_down_button,
 gs-combo[readonly] .drop_down_button {
-    display: none;
+    /*display: none;*/
     cursor: default;
-    opacity: 0.9;
+    /*opacity: 0.9;*/
     pointer-events: none;
 }
 

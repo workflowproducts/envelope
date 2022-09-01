@@ -94,6 +94,7 @@ window.addEventListener('design-register-element', function () {
     window.designElementProperty_GSCOMBO = function (selected) {
         addGSControlProps();
         addDataAttributes('select');
+        addText('V', 'Dropdown Width', 'dropdown-width');
         addText('V', 'Hide Columns', 'hide');
         addText('D', 'Null String', 'null-string');
         addFocusEvents();
@@ -212,9 +213,11 @@ document.addEventListener('DOMContentLoaded', function () {
             cell_len = arrCells.length;
             while (cell_i < cell_len) {
                 cell = arrCells[cell_i];
+                // NOTE: If there is no source, then we do the static data stuff
+                // Nunzio on 2021-09-20
 
                 // if there's only one record, just use it as the template.
-                if (i === 0 && len === 1) {
+                if (i === 0 && len === 1 && element.hasAttribute('src')) {
                     strCells += (
                         '<gs-cell ' + (
                             arrRows[i].getAttribute('value')
@@ -231,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      template for the developer. We use {{= because the data
                 //      is going to contain the cell html in it. So, we don't
                 //      want to html encode the developer's html with {{!
-                } else if (i === 0 && len > 1) {
+                } else if (i === 0 && (len > 1 || !element.hasAttribute('src'))) {
                     if (
                         cell_i === firstCellNumber &&
                         arrRows[i].hasAttribute('value')
@@ -262,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // if there's more than one record, we need to start storing
                 //      data, because the developer has opted for a local
                 //      combobox, not one that loads from the database
-                if (len > 1) {
+                if (len > 1 || !element.hasAttribute('src')) {
                     if (
                         cell_i === firstCellNumber &&
                         arrRows[i].hasAttribute('value')
@@ -321,6 +324,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // shorcut variables
         jsnDisp = element.internalDisplay;
         control = element.elems.control;
+        //console.log('lastPublishedIndex', jsnDisp.lastPublishedIndex
+        //    , 'lastVerifiedIndex', jsnDisp.lastVerifiedIndex);
+        //console.log('lastPublishedValue', jsnDisp.lastPublishedValue
+        //    , 'lastVerifiedValue', jsnDisp.lastVerifiedValue);
+        //console.log('lastPublishedDisplay', jsnDisp.lastPublishedDisplay
+        //    , 'lastVerifiedDisplay', jsnDisp.lastVerifiedDisplay);
 
         // the published value is always filled with the last verified value on
         //      entering the field, if the verified value is different from the
@@ -342,18 +351,58 @@ document.addEventListener('DOMContentLoaded', function () {
             //console.log('4:', control.value);
             //console.log('5:', element.value);
             //console.log('6:', element.getAttribute('value'));
-
+/*
             if (
                 element.hasAttribute('limit-to-list') &&
-                jsnDisp.lastVerifiedIndex === null
+                jsnDisp.lastVerifiedIndex === null &&
+                jsnDisp.lastVerifiedDisplay !== ''
             ) {
                 alert('The text you entered is not in the list');
                 openDropDown(element);
                 GS.setInputSelection(control, 0, control.value.length);
             }
+*/
 
-            // trigger event
-            GS.triggerEvent(element, 'change');
+            // ############ cross' version 2 ############
+            // if limit to list, and no value has been selected from the list
+            if (
+                element.hasAttribute('limit-to-list') &&
+                jsnDisp.lastVerifiedIndex === null
+            ) {
+                if (element.hasAttribute('allow-empty')) {
+                    // if the "allow-empty" attribute has a value, that is the
+                    //      default "empty" value, otherwise, set to empty
+                    //      string
+                    control.value = (element.getAttribute('allow-empty') || '');
+                    element.value = (element.getAttribute('allow-empty') || '');
+
+                } else if (jsnDisp.lastVerifiedDisplay !== '') {
+                    alert('The text you entered is not in the list.');
+                    openDropDown(element);
+                    GS.setInputSelection(control, 0, control.value.length);
+
+                    // if we have a limit to list error, we want to exit the
+                    //      function to prevent the change event from triggering
+                    //      and causing a database update when we have an
+                    //      invalid value
+                    return;
+                }
+            }
+
+            // we don't want to trigger a change if it's empty, when limit to
+            //      list is triggered, because it will cause an update to the
+            //      database, which (if the column doesn't allow empty string)
+            //      could cause a database error on top of the limit-to-list
+            //      error, stacking errors when the first error is all the user
+            //      needs.
+            if (
+                !element.hasAttribute('limit-to-list') ||
+                element.hasAttribute('allow-empty') ||
+                element.value
+            ) {
+                // trigger event
+                GS.triggerEvent(element, 'change');
+            }
         }
     }
 
@@ -521,14 +570,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // if partial, perform startswith match
+            // Nunzio commented out the value search on 2021-10-13
+            // this is because if the value column is hidden,
+            //      it should not be searched
             if (
                 bolPartial &&
                 (
-                    (
-                        valueTemplate &&
-                        valueRendered.toLowerCase().indexOf(currValue) === 0
-                    ) ||
-                    (displayRendered.toLowerCase().indexOf(currDisplay) === 0)
+                    // (
+                    //     valueTemplate &&
+                    //     valueRendered.toLowerCase().indexOf(currValue) === 0
+                    // ) ||
+                    displayRendered.toLowerCase().indexOf(currDisplay) === 0
                 )
             ) {
                 bolFound = true;
@@ -615,9 +667,16 @@ document.addEventListener('DOMContentLoaded', function () {
         var finalValue;
         var finalDisplay;
         var jsnRecord;
+        //console.log(element);
 
         // get selected row number from table
         intRow = getSelectedRowFromDropdown(element);
+        //console.log(
+        //    intRow,
+        //    element.elems.gsTable.internalSelection.ranges,
+        //    element.elems.gsTable.internalData.records,
+        //    element.internalData.records
+        //);
 
         // we don't want to do anything if there's no selection we can use
         if (intRow === null) {
@@ -661,6 +720,7 @@ document.addEventListener('DOMContentLoaded', function () {
             valueRendered = valueFunc(jsnRecord);
         }
         displayRendered = displayFunc(jsnRecord);
+        //console.log(valueRendered, displayRendered);
 
         finalValue = (valueRendered || displayRendered);
         finalDisplay = (displayRendered);
@@ -726,6 +786,12 @@ document.addEventListener('DOMContentLoaded', function () {
             // remove "open" combo status
             element.classList.remove('open');
             element.internalDisplay.open = false;
+
+            // THIS BROKE THE COMBO!!!!
+            //    WTF? IT WON'T TRIGGER A CHANGE IF YOU HAVE THIS?!!!!
+            //    WHY!?!?!?!?!?!??! 7/1/22 -cross
+            // make sure focus is in control
+            // element.elems.control.focus();
         }
     }
 
@@ -807,6 +873,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var intComboToBottom;
         var intComboToTop;
 
+        var intDropdownWidth;
+
         var strWidth = '';
         var strHeight = '';
         var strLeft = '';
@@ -867,8 +935,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // let's calculate width and horizontal position
 
+        // we need to try to expand the box depending on total width of columns
+
         // If we got lots of room, cap the width
-        if (intWindowWidth > 400) {
+        if (element.internalDisplay.definedDropdownWidth) {
+            intDropdownWidth = GS.sizeToPx(
+                element,
+                element.internalDisplay.definedDropdownWidth
+            );
+            intDropdownWidth = Math.min(intDropdownWidth, intWindowWidth);
+
+            strWidth = intDropdownWidth + 'px';
+            strLeft = Math.max(
+                ((intComboLeft + intComboWidth) - intDropdownWidth),
+                0
+            ) + 'px';
+
+        } else if (intWindowWidth > 400 && intComboWidth > 400) {
+            strWidth = intComboWidth + 'px';
+            strLeft = Math.max(intComboLeft, 0) + 'px';
+
+        } else if (intWindowWidth > 400) {
             strWidth = '300px';
             strLeft = Math.max(
                 ((intComboLeft + intComboWidth) - 300),
@@ -911,6 +998,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var len;
         var intMaxTop;
         var control;
+        var strHeight;
         var recordHeight;
 
         // no sense opening the dropdown twice, also no sense opening the
@@ -960,6 +1048,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 // gather templates
                 strHeader = element.internalTemplates.header;
                 strRow = element.internalTemplates.row;
+                if (element.hasAttribute('default-cell-height')) {
+                    strHeight = 'default-cell-height="' + element.getAttribute('default-cell-height') + '"';
+                } else {
+                    strHeight = '';
+                }
+
+
 
                 // fill dropdown with table, we use the GS-TABLE here so that
                 //      we don't have to code table rendering all over again.
@@ -976,6 +1071,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 no-column-reorder  no-context-menu
                                 column-auto-resize no-column-dropdown
                                 no-force-select    no-copy
+                                {{STRHEIGHT}}
                             >
                                 <template for="header-record">
                                     {{HEADER}}
@@ -987,6 +1083,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         })
                             .replace(/\{\{HEADER\}\}/gi, strHeader)
                             .replace(/\{\{DATA\}\}/gi, strRow)
+                            .replace(/\{\{STRHEIGHT\}\}/gi, strHeight)
                     )
                 );
 
@@ -1098,7 +1195,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // GS-COMBO elements that are connected to Envelope need to have "pk"
         //      attribute
-        if (element.getAttribute('src')) {
+        if (element.getAttribute('src')
+                && element.getAttribute('src')[0] !== '(') {
             // split "src" into "schema" and "object" attributes
             arrParts = GS.templateWithQuerystring(
                 element.getAttribute('src')
@@ -1127,6 +1225,11 @@ document.addEventListener('DOMContentLoaded', function () {
             //      attributes
             element.setAttribute('schema', arrParts[0]);
             element.setAttribute('object', arrParts[1]);
+        } else if (element.getAttribute('src')
+                && element.getAttribute('src')[0] === '(') {
+            element.setAttribute('object', GS.templateWithQuerystring(
+                element.getAttribute('src')
+            ));
         }
 
         // default null string attribute
@@ -1208,7 +1311,9 @@ document.addEventListener('DOMContentLoaded', function () {
             "lastVerifiedDisplay": undefined,
 
             // we want to maintain information about the last search
-            "lastNotFoundSearch": undefined
+            "lastNotFoundSearch": undefined,
+
+            "definedDropdownWidth": undefined
         };
 
         // we need a place to store selection information
@@ -1425,6 +1530,13 @@ document.addEventListener('DOMContentLoaded', function () {
             element.elems.control.setAttribute('spellcheck', 'false');
         }
 
+        // we allow users to define the dropdown width
+        if (element.hasAttribute('dropdown-width')) {
+            element.internalDisplay.definedDropdownWidth = (
+                element.getAttribute('dropdown-width')
+            );
+        }
+
         // if this combobox has an id, the control should have a related id
         if (element.hasAttribute('id')) {
             element.elems.control.setAttribute(
@@ -1571,6 +1683,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.elems.control.value = finalDisplay;
                 element.setAttribute('value', finalValue);
             }
+        }
+
+        var arrAttributes = [
+            'placeholder', 'name', 'maxlength', 'autofocus', 'readonly', 'title'
+        ];
+
+        var i = 0;
+        var len = arrAttributes.length;
+        while (i < len) {
+            if (element.hasAttribute(arrAttributes[i])) {
+                element.elems.control.setAttribute(
+                    arrAttributes[i],
+                    (element.getAttribute(arrAttributes[i]) || '')
+                );
+            } else {
+                element.elems.control.removeAttribute(arrAttributes[i]);
+            }
+            i += 1;
         }
     }
 
@@ -2102,6 +2232,18 @@ document.addEventListener('DOMContentLoaded', function () {
         element.internalEvents.change = function () {
             event.preventDefault();
             event.stopPropagation();
+            // Nunzio added this on 2021-10-12, see below
+            if (!element.hasAttribute('limit-to-list')
+                    && element.internalDisplay.lastVerifiedDisplay !==
+                    element.control.value) {
+                element.internalDisplay.lastVerifiedDisplay =
+                        element.control.value;
+            }
+
+            // Nunzio added this on 2021-07-03
+            // Change events weren't getting triggered when
+            // typing instead of selecting from the dropdown
+            triggerChangeIfNeeded(element);
         };
         element.elems.control.addEventListener(
             'change',
@@ -2119,11 +2261,16 @@ document.addEventListener('DOMContentLoaded', function () {
             'keyup',
             element.internalEvents.keyup
         );
+        element.elems.control.removeEventListener(
+            'paste',
+            element.internalEvents.paste
+        );
     }
     function bindKey(element) {
         element.internalEvents.keydown = function (event) {
             var key = (event.keyCode || event.which);
-            var mod = (event.shiftKey || event.metaKey || event.ctrlKey);
+            var shft = event.shiftKey;
+            var mod = (event.metaKey || event.ctrlKey);
             var del = (key === 46 || key === 8);
             var keyLeft = (key === 37);
             var keyUp = (key === 38);
@@ -2200,7 +2347,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if ((keyRight || key === 13 || key === 9) && !mod) {
                 if (element.internalDisplay.open) {
                     closeDropDown(element);
-
                     triggerChangeIfNeeded(element);
                 }
 
@@ -2231,20 +2377,45 @@ document.addEventListener('DOMContentLoaded', function () {
                     closeDropDown(element);
                 }
 
-            // not modifier, delete or arrow keys, allow paste
+            // (not modifier, delete or arrow keys) OR (paste)
             } else if (
                 (!mod && !del && !arr) ||
                 // allow paste otherwise pasting a value and leaving the combo
                 //      won't trigger resize because the verified value wont be
                 //      updated.
-                (mod && key === 86) // CMD/CTRL - V
+                (!shft && mod && key === 86 && event.pasteEvent) // CMD/CTRL - V
             ) {
                 // we only want to search the records on keyup, because it
                 //      can be resource intensive. So, if we're not using a
                 //      modifier key, delete key, or arrow key, then we want
                 //      to search on the next keyup.
                 element.internalEvents.searchNextKeyUp = true;
+
+            // if delete key
+            } else if (del) {
+                // we only want to search the records on keyup, because it
+                //      can be resource intensive. So, if we're not using a
+                //      modifier key, delete key, or arrow key, then we want
+                //      to search on the next keyup.
+                element.internalEvents.searchNextKeyUpDelete = true;
             }
+        };
+        element.internalEvents.paste = function () {
+            var controlElem = this;
+            setTimeout(function() {
+                console.log('this.value: ' + controlElem.value);
+                console.log('element.control.value: ' + element.control.value);
+                GS.triggerEvent(controlElem, 'keydown', {
+                    "keyCode": 86,
+                    "metaKey": true,
+                    "pasteEvent": true
+                });
+                GS.triggerEvent(controlElem, 'keyup', {
+                    "keyCode": 86,
+                    "metaKey": true,
+                    "pasteEvent": true
+                });
+            }, 5);
         };
         element.internalEvents.keyup = function () {
             var intLastIndex;
@@ -2266,6 +2437,10 @@ document.addEventListener('DOMContentLoaded', function () {
             intLastIndex = element.internalDisplay.lastVerifiedIndex;
             strLastDisplay = element.internalDisplay.lastVerifiedDisplay;
 
+            console.log('strSearch: ' + strSearch);
+            console.log('jsnSelection: ' + jsnSelection);
+            console.log('intLastIndex: ' + intLastIndex);
+            console.log('strLastDisplay: ' + strLastDisplay);
             // we want to prevent extra searching if we can, because with lots
             //      of data it can get pretty intensive
             if (
@@ -2276,6 +2451,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 strSearch &&
                 strLastDisplay.indexOf(strSearch) === 0
             ) {
+                //console.log('prefill the rest of the value');
                 // prefill the rest of the value
                 element.elems.control.value = strLastDisplay;
 
@@ -2300,6 +2476,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.internalDisplay.lastNotFoundSearch
                 ) === -1
             ) {
+                //console.log('perform partial search through our data');
                 // perform partial search through our data
                 jsnSearch = findRecord(element, strSearch, strSearch, true);
 
@@ -2350,14 +2527,70 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // not in the list, no searching
             } else if (element.internalEvents.searchNextKeyUp) {
+                //console.log('save current display value for the changeevent');
                 // save current display value for the change event
                 strLastDisplay = element.elems.control.value;
                 element.internalDisplay.lastVerifiedIndex = null;
                 element.internalDisplay.lastVerifiedValue = strLastDisplay;
                 element.internalDisplay.lastVerifiedDisplay = strLastDisplay;
+
+            // if we are clearing the field
+            } else if (!strSearch) {
+                //console.log('save current display value for the changeevent');
+                // save current display value for the change event
+                strLastDisplay = element.elems.control.value;
+                element.internalDisplay.lastVerifiedIndex = null;
+                element.internalDisplay.lastVerifiedValue = strLastDisplay;
+                element.internalDisplay.lastVerifiedDisplay = strLastDisplay;
+                element.value = '';
+
+            // on delete, we want to search for items in case they match the
+            //      list
+            } else if (element.internalEvents.searchNextKeyUpDelete) {
+                // // get search string
+                // strSearch = element.elems.control.value;
+
+                // // perform partial search through our data (exact was looking
+                // //  for a complete match, not the start matching up)
+                // jsnSearch = findRecord(element, strSearch, strSearch, true);
+
+                // if (jsnSearch.found) {
+                //     strValue = jsnSearch.value;
+                //     strDisplay = jsnSearch.display;
+                // } else {
+                //     strValue = strSearch;
+                //     strDisplay = strSearch;
+
+                //     // we don't want to search next key if this search didn't
+                //     //      find anything
+                //     element.internalDisplay.lastNotFoundSearch = strSearch;
+                // }
+
+                // // save search results as the last verified value, this will be
+                // //      important if we try to trigger a change
+                // element.internalDisplay.lastVerifiedIndex = jsnSearch.index;
+                // element.internalDisplay.lastVerifiedValue = strValue;
+                // element.internalDisplay.lastVerifiedDisplay = strDisplay;
+
+                // // prefill the rest of the value
+                // // might need to comment out these two lines below, might've
+                // //      been misbehaving due to previous exact search which we
+                // //      have now changed to partial - Michael/Cross 6/6/2022
+                // element.elems.control.value = strDisplay;
+                // element.setAttribute('value', strValue);
+                // element.internalEvents.searchNextKeyUpDelete = false;
+
+                // if we are deleting, we shouldnt be autocompleting
+                //      - Michael 7/1/2022
+                strSearch = element.elems.control.value;
+                element.internalDisplay.lastVerifiedIndex = null;
+                element.internalDisplay.lastVerifiedValue = strSearch;
+                element.internalDisplay.lastVerifiedDisplay = strSearch;
             }
 
+            // reset for next cycle
             element.internalEvents.searchNextKeyUp = false;
+            element.internalEvents.searchNextKeyUpDelete = false;
         };
 
         element.elems.control.addEventListener(
@@ -2367,6 +2600,10 @@ document.addEventListener('DOMContentLoaded', function () {
         element.elems.control.addEventListener(
             'keyup',
             element.internalEvents.keyup
+        );
+        element.elems.control.addEventListener(
+            'paste',
+            element.internalEvents.paste
         );
     }
 
@@ -2382,7 +2619,14 @@ document.addEventListener('DOMContentLoaded', function () {
             // if this click propagates/bubbles, it triggers the close drop down
             //      code. Because, we want to close the dropdown after the first
             //      registered click.
-            event.stopPropagation();
+            //event.stopPropagation();
+            // for some reason, in a gs-table the stopPropagation is not enough
+            // Nunzio on 2022-01-10
+            //event.preventDefault();
+
+            // prevent this event from bubbling up and triggering the dropdown
+            //      close code (we exclude events that have "gs" set to true
+            event.gs = true;
 
             // time to toggle
             toggleDropdown(element);
@@ -2391,6 +2635,21 @@ document.addEventListener('DOMContentLoaded', function () {
         element.elems.button.addEventListener(
             'click',
             element.internalEvents.dropdownClick
+        );
+
+        // for an unknown reason, clicking on the dropdown causes a click on the
+        //      control. It cannot bubble up to it, but it's there, and it
+        //      causes the dropdown to close. So, we're tagging it as a GS
+        //      event to prevent it from closing the dropdown in GS tables.
+        element.internalEvents.dropdownClick2 = function () {
+            //event.stopPropagation();
+            //event.preventDefault();
+            event.gs = true;
+        };
+
+        element.elems.control.addEventListener(
+            'click',
+            element.internalEvents.dropdownClick2
         );
     }
 
@@ -2513,7 +2772,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     !element.hasAttribute('suspend-created') &&
                     !element.hasAttribute('suspend-inserted')
                 ) {
-                    if (attr === 'value') {
+                    var arrAttributes = [
+                        'placeholder', 'name', 'maxlength', 'autofocus', 'readonly', 'title'
+                    ];
+                    if (attr === 'value' || arrAttributes.indexOf(attr) > -1) {
                         renderControl(element);
                     }
                 }
@@ -2533,7 +2795,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     return this.getAttribute('value');
                 },
                 'set': function (newValue) {
-                    this.setAttribute('value', newValue);
+                    if (newValue === null || newValue === '') {
+                        this.elems.control.value = '';
+                        this.setAttribute('value', '');
+                    } else {
+                        this.setAttribute('value', newValue);
+                    }
                 }
             },
 
@@ -2545,6 +2812,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 'set': function (newValue) {
                     this.setAttribute('value', newValue);
+                }
+            },
+
+            // sometimes, we want to know if the current value is custom from
+            //      the user or found in the dropdown list, this accessor
+            //      returns true if the value is found in the dropdown
+            'valueIsFromDropdown': {
+                'get': function () {
+                    return this.internalDisplay.lastVerifiedIndex !== null;
+                },
+                'set': function () {//newValue
+                    //this.setAttribute('value', newValue);
                 }
             }
         },
@@ -2561,9 +2840,13 @@ document.addEventListener('DOMContentLoaded', function () {
             'destroy': function () {
                 var element = this;
 
+                // sometimes, the element is destroyed before it's initialized
                 // sometimes, the element gets destroyed multiple times.
                 //      we don't want to cause any errors when this happens.
-                if (element.elems.control) {
+                if (element.elems && element.elems.control) {
+                    //close the dropdown
+                    closeDropDown(this);
+
                     // prevent the element from recieving any events
                     unbindElement(element);
 
@@ -2591,11 +2874,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 // we want to run a callback without binding to every
                 //      after_select. So, it'll unbind itself after the first
                 //      call.
-                singleUseEvent = function () {
-                    callback();
-                    this.removeEventListener('after_select', singleUseEvent);
-                };
-                this.addEventListener('after_select', singleUseEvent);
+                if (callback) {
+                    singleUseEvent = function () {
+                        callback();
+                        this.removeEventListener('after_select', singleUseEvent);
+                    };
+                    this.addEventListener('after_select', singleUseEvent);
+                }
 
                 // we cache select results for comboboxes. So, we need to make
                 //      sure to clear the cache before we reselect.

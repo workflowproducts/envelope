@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             element.removeEventListener('focus', focusFunction);
             element.classList.add('focus');
-            element.addControl();
+            element.appendChild(multiLineTemplate.cloneNode(true));
             if (element.control.value && element.control.value.length > 0) {
                 if (element.bolSelect) {
                     element.control.setSelectionRange(0, element.control.value.length);
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function keydownFunction(event) {
         var element = event.target;
         if (!element.hasAttribute('readonly')) {
-            if (element.getAttribute('disabled') !== null && !(event.keyCode === 122 && event.metaKey)) {
+            if (element.hasAttribute('disabled') && !(event.keyCode === 122 && event.metaKey)) {
                 event.preventDefault();
                 event.stopPropagation();
             } else if (event.keyCode === 9 && element.parentNode.hasAttribute('allow-tab-char') === true) {
@@ -224,7 +224,6 @@ document.addEventListener('DOMContentLoaded', function () {
     //}
     
     function saveDefaultAttributes(element) {
-                                
         var i;
         var len;
         var arrAttr;
@@ -247,7 +246,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function createPushReplacePopHandler(element) {
-                                
         var i;
         var len;
         var strQS = GS.getQueryString();
@@ -421,7 +419,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         element.syncGetters();
                     }
-                    element.style.height = ((element.getAttribute('rows') || 2) * 1.2) + 'em';
+                    if (!element.hasAttribute('autoresize')) {
+                        element.style.height = ((element.getAttribute('rows') || 2) * 1.2) + 'em';
+                    }
                     if (element.control) {
                         element.control.lastWidth = element.control.clientWidth;
                         element.control.lastHeight = element.control.clientHeight;
@@ -516,18 +516,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (element.hasAttribute('title')) {
                         element.control.setAttribute('title', element.getAttribute('title'));
                     }
-    
+                    // console.log(element, element.getAttribute('rows'));
+                    if (!element.hasAttribute('autoresize')) {
+                        element.style.height = ((element.getAttribute('rows') || 2) * 1.2) + 'em';
+                    }
+                    // console.log(element, element.style.height);
+
                     element.control.lastWidth = element.control.clientWidth;
                     element.control.lastHeight = element.control.clientHeight;
                     element.syncView();
-    
+
                     if (element.getAttribute('qs')) {
                         //strQSValue = GS.qryGetVal(GS.getQueryString(), element.getAttribute('qs'));
                         //
                         //if (strQSValue !== '' || !element.getAttribute('value')) {
                         //    element.value = strQSValue;
                         //}
-    
+
                         createPushReplacePopHandler(element);
                         window.addEventListener('pushstate',    function () { createPushReplacePopHandler(element); });
                         window.addEventListener('replacestate', function () { createPushReplacePopHandler(element); });
@@ -546,11 +551,11 @@ document.addEventListener('DOMContentLoaded', function () {
             created: function () {
                 elementCreated(this);
             },
-            
+
             inserted: function () {
                 elementInserted(this);
             },
-            
+
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'value' && this.initalized && oldValue !== newValue) {
@@ -558,6 +563,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     var newCryptedValue = newValue;
                     // if there is a difference between the new value in the
                     //      attribute and the valued in the front end: refresh the front end
+                    newCryptedValue = this.hasAttribute('uppercase') ? newCryptedValue.toUpperCase() : newCryptedValue;
+                    currentValue = this.hasAttribute('uppercase') ? currentValue.toUpperCase() : currentValue;
                     if (newCryptedValue !== currentValue) {
                         this.setAttribute('value', newCryptedValue);
                         if (this.hasAttribute('encrypted')) {
@@ -622,17 +629,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 set: function (strNewValue) {
                     if (this.hasAttribute('defer-insert')) {
                         if (this.hasAttribute('encrypted')) {
-                            if (CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) === '') {
-                                this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
+                            if (CryptoJS.AES.decrypt(this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) === '') {
+                                this.setAttribute('value', CryptoJS.AES.encrypt(this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue, (window[this.getAttribute('encrypted')] || '')));
                             } else {
-                                this.setAttribute('value', strNewValue);
+                                this.setAttribute('value', this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue);
                             }
                         } else {
-                            this.setAttribute('value', strNewValue);
+                            this.setAttribute('value', this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue);
                             this.syncView();
                         }
                     } else {
-                        this.setAttribute('value', strNewValue);
+                        this.setAttribute('value', this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue);
                     }
                 }
             },
@@ -641,15 +648,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 get: function () {
                     if (this.hasAttribute('defer-insert')) {
                         if (this.control) {
-                            return this.control.value;
+                            return this.hasAttribute('uppercase') ? this.control.value.toUpperCase() : this.control.value;
                         } else {
                             return '';
                         }
                     } else {
                         if (this.control) {
-                            return this.control.value;
+                            return this.hasAttribute('uppercase') ? this.control.value.toUpperCase() : this.control.value;
                         } else {
-                            return this.innerHTML;
+                            return this.hasAttribute('uppercase') ? this.innerHTML.toUpperCase() : this.innerHTML;
                         }
                     }
                 },
@@ -660,9 +667,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     // this.value = newValue;
                 
                     if (this.control) {
-                        this.control.value = newValue;
+                        this.control.value = this.hasAttribute('uppercase') ? newValue.toUpperCase() : newValue;
                     } else {
-                        this.innerHTML = newValue;
+                        this.innerHTML = this.hasAttribute('uppercase') ? newValue.toUpperCase() : newValue;
                     }
                 }
             }
@@ -737,8 +744,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 ];
                 var i;
                 var len;
-                var elementValue = element.textContent || element.value;
-                if (element.children[0].classList.contains('placeholder')) {
+                var elementValue = element.textContent || element.value || '';
+                if (element.children[0] && element.children[0].classList.contains('placeholder')) {
                     elementValue = '';
                 }
                 // if the gs-text element has a tabindex: save the tabindex and remove the attribute
@@ -777,13 +784,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 i = 0;
                 len = arrPassThroughAttributes.length;
                 while (i < len) {
+                    // console.log(arrPassThroughAttributes[i]);
                     if (element.hasAttribute(arrPassThroughAttributes[i])) {
+                        // console.log('found', arrPassThroughAttributes[i]);
                         if (arrPassThroughAttributes[i] === 'disabled') {
+                        // console.log('setting', 'readonly');
                             element.control.setAttribute(
                                 'readonly',
                                 element.getAttribute(arrPassThroughAttributes[i]) || ''
                             );
                         } else {
+                            // console.log('setting', arrPassThroughAttributes[i]);
                             element.control.setAttribute(
                                 arrPassThroughAttributes[i],
                                 element.getAttribute(arrPassThroughAttributes[i]) || ''
@@ -916,10 +927,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (this.control) {
                     if (this.hasAttribute('encrypted')) {
                         if (window[this.getAttribute('encrypted')]) {
-                            this.setAttribute('value', CryptoJS.AES.encrypt(this.control.value, (window[this.getAttribute('encrypted')] || '')));
+                            this.setAttribute('value', CryptoJS.AES.encrypt(this.hasAttribute('uppercase') ? this.control.value.toUpperCase() : this.control.value, (window[this.getAttribute('encrypted')] || '')));
                         }
                     } else {
-                        this.setAttribute('value', this.control.value);
+                        this.setAttribute('value', this.hasAttribute('uppercase') ? this.control.value.toUpperCase() : this.control.value);
                     }
                     
                 }
@@ -936,13 +947,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         element.control.style.height = ''; // '0';
                         
                         if (element.control.scrollHeight > intMinHeight) {
-                            element.control.style.height = element.control.scrollHeight + 'px';
+                            element.control.style.height = (element.control.scrollHeight + 1) + 'px';
                         } else {
-                            element.control.style.height = intMinHeight + 'px';
+                            element.control.style.height = (intMinHeight + 1) + 'px';
                         }
                         
                         if (element.hasAttribute('defer-insert')) {
-                            element.style.height = element.control.style.height;
+                            element.style.height = (parseInt(element.control.style.height.replace('px','')) + 2) + 'px';
                         }
                     }
                     

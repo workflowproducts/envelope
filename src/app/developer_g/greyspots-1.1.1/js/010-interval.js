@@ -1386,7 +1386,7 @@ document.addEventListener('DOMContentLoaded', function () {
             toggle: function () {
                 var element = this;
 
-                if (element.innerState === 'open') {
+                if (element.innerState === 'open' || element.hasAttribute('readonly') || element.hasAttribute('disabled')) {
                     element.close();
                 } else {
                     element.open();

@@ -76,7 +76,7 @@ evt.click     = 'click';
 // ##############################################################
 // ########### PINK BACKGROUND WHEN NOT IN PRODUCTION ###########
 // ##############################################################
-if (window.location.hostname.toString().match(/test[^.]*\.sunnyserve.com/i)) {
+if (window.location.hostname.toString().match(/test[^.]*\..*/i)) {
     window.addEventListener('load', function () {
         var styleElement, helperElement, helperFunction;
         
@@ -604,6 +604,7 @@ window.addEventListener('load', function () {
     shimmed.MutationObserver    = !nativeTest(window.MutationObserver);
     shimmed.WeakMap             = !nativeTest(window.WeakMap);
     shimmed.customElements      = !nativeTest(customElements.define);
+    shimmed.registerElement     = !nativeTest(document.registerElement);
     shimmed.DOMTokenList        = !nativeTest(window.DOMTokenList);
     shimmed.HTMLTemplateElement = Boolean(HTMLTemplateElement.bootstrap);
     
@@ -675,6 +676,22 @@ window.addEventListener('load', function () {
     } catch (e) {
         functionality.customElements = false;
         functionality.errors.customElements = e;
+    }
+    
+    functionality.registerElement = false;
+    try {
+        var prototype = Object.create(HTMLElement.prototype);
+        prototype.testmethod = function () { return true; };
+        document.registerElement('asdf-test', {'prototype': prototype});
+        
+        var testElement;
+        testElement = document.createElement('asdf-test');
+        
+        functionality.registerElement = testElement.testmethod();
+        
+    } catch (e) {
+        functionality.registerElement = false;
+        functionality.errors.registerElement = e;
     }
     
     functionality.DOMTokenList = false;

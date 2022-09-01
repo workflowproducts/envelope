@@ -29,6 +29,12 @@
                 addCheck('V', 'Mini', 'mini');
                 addText('O', 'Hot Key', 'key');
                 addCheck('O', 'No Modifier For Hot Key', 'no-modifier-key');
+                addSelect('O', 'Modifier for Hot Key', 'modifier-key', [
+                    {"val": "", "txt": "Default (Ctrl)"},
+                    {"val": "ctrl", "txt": "Ctrl"},
+                    {"val": "alt", "txt": "Alt"},
+                    {"val": "meta", "txt": "Meta"}
+                ]);
                 designAdditionalFunction(selectedElement);
                 addFocusEvents('static');
                 addText('O', 'Column In QS', 'qs');
@@ -65,23 +71,23 @@
                 var len;
                 var arrAttr;
                 var jsnAttr;
-        
+
                 // we need a place to store the attributes
                 element.internal.defaultAttributes = {};
-        
+
                 // loop through attributes and store them in the internal defaultAttributes object
                 arrAttr = element.attributes;
                 i = 0;
                 len = arrAttr.length;
                 while (i < len) {
                     jsnAttr = arrAttr[i];
-        
+
                     element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
-        
+
                     i += 1;
                 }
             }
-        
+
             function pushReplacePopHandler(element) {
                 var i;
                 var len;
@@ -221,25 +227,36 @@
                                 element.classList.remove('down');
                                 element.classList.add('hover');
                             });
-                            
+
                             element.addEventListener('keydown', function (event) {
-                                if (!element.hasAttribute('disabled') && !element.classList.contains('down') &&
-                                    (event.keyCode === 13 || event.keyCode === 32)) {
-                                    
+                                if (
+                                    !element.hasAttribute('disabled') &&
+                                    !element.classList.contains('down') &&
+                                    (
+                                        event.keyCode === 13 ||
+                                        event.keyCode === 32
+                                    )
+                                ) {
                                     element.classList.add('down');
                                 }
-                                
+
                                 if (element.hasAttribute('disabled')) {
                                     event.preventDefault();
                                     event.stopPropagation();
                                     return true;
                                 }
                             });
-                            
+
                             element.addEventListener('keyup', function (event) {
                                 // if we are not disabled and we pressed return (13) or space (32): trigger click
-                                if (!element.hasAttribute('disabled') && element.classList.contains('down') &&
-                                    (event.keyCode === 13 || event.keyCode === 32)) {
+                                if (
+                                    !element.hasAttribute('disabled') &&
+                                    element.classList.contains('down') &&
+                                    (
+                                        event.keyCode === 13 ||
+                                        event.keyCode === 32
+                                    )
+                                ) {
                                     GS.triggerEvent(element, 'click');
                                 }
                             });
@@ -258,7 +275,14 @@
                         
                         element.addEventListener('keypress', function (event) {
                             // if we pressed return (13) or space (32): prevent default and stop propagation (to prevent scrolling of the page)
-                            if (event.keyCode === 13 || event.keyCode === 32) {
+                            if (
+                                event.target === element &&
+                                (
+                                    event.keyCode === 13 ||
+                                    event.keyCode === 32
+                                )
+                            ) {
+                                console.log('press, intercepted');
                                 event.preventDefault();
                                 event.stopPropagation();
                             }
@@ -272,17 +296,69 @@
                                     console.warn('gs-skype-button Warning: by setting the hot key of this button to "' + strKey + '" you may be overriding browser functionality.', element);
                                 }
                                 
-                                window.addEventListener('keydown', function (event) {
-                                    if (String(event.keyCode || event.which) === GS.keyCode(strKey) &&
-                                        (
-                                            (element.hasAttribute('no-modifier-key') && !event.metaKey && !event.ctrlKey)
-                                            || (!element.hasAttribute('no-modifier-key') && (event.metaKey || event.ctrlKey))
-                                        )) {
+                                window.addEventListener('keydown', function __this_function(event) {
+                                    // console.log(element, element.parentNode, document.body.contains(element));
+                                    if (!document.body.contains(element)) {
+                                        window.removeEventListener('keydown', __this_function);
+                                        return;
+                                    }
+                                    var arrDialog = document.querySelectorAll('gs-dialog');
+                                    var bolDialog = arrDialog.length > 0;
+                                    var parentDialog = GS.findParentTag(element, 'gs-dialog');
+                                    if (
+                                            String(event.keyCode || event.which) === GS.keyCode(strKey) &&
+                                            (
+                                                (
+                                                    (
+                                                        (
+                                                            element.hasAttribute('modifier-key') &&
+                                                            element.hasAttribute('no-modifier-key') &&
+                                                            !event.metaKey &&
+                                                            !event.altKey &&
+                                                            !event.ctrlKey
+                                                        ) ||
+                                                        (
+                                                            element.hasAttribute('modifier-key') &&
+                                                            element.getAttribute('modifier-key').toLowerCase() === 'ctrl' &&
+                                                            !event.metaKey &&
+                                                            !event.altKey &&
+                                                            event.ctrlKey
+                                                        ) ||
+                                                        (
+                                                            element.hasAttribute('modifier-key') &&
+                                                            element.getAttribute('modifier-key').toLowerCase() === 'alt' &&
+                                                            !event.metaKey &&
+                                                            event.altKey &&
+                                                            !event.ctrlKey
+                                                        ) ||
+                                                        (
+                                                            element.hasAttribute('modifier-key') &&
+                                                            element.getAttribute('modifier-key').toLowerCase() === 'meta' &&
+                                                            event.metaKey &&
+                                                            !event.altKey &&
+                                                            !event.ctrlKey
+                                                        ) ||
+                                                        (
+                                                            !element.hasAttribute('modifier-key') &&
+                                                            !event.metaKey &&
+                                                            !event.altKey &&
+                                                            !event.ctrlKey
+                                                        )
+                                                    ) &&
+                                                    (document.activeElement.tagName.toLowerCase() !== 'input' || document.activeElement.className === 'hidden-focus-control' || strKey.length > 0) &&
+                                                    (document.activeElement.tagName.toLowerCase() !== 'textarea' || document.activeElement.className === 'hidden-focus-control' || strKey.length > 0) &&
+                                                    (!bolDialog || parentDialog === arrDialog[arrDialog.length - 1])
+                                                )
+                                            )
+                                        ) {
                                         event.preventDefault();
                                         event.stopPropagation();
                                         
                                         element.focus();
                                         GS.triggerEvent(element, 'click');
+                                        if (element.getAttribute('href')) {
+                                            window.open(element.getAttribute('href'), element.getAttribute('target') || '_blank');
+                                        }
                                     }
                                 });
                                 
@@ -480,6 +556,12 @@
             var strHash;
             var strPkValue;
             var strLockValue;
+            
+            if (element.deleting) {
+                console.warn('double delete!');
+                return;
+            }
+            element.deleting = true;
 
             element.classList.remove('down');
 
@@ -499,7 +581,7 @@
             strDeleteData = strRoles + '\n' + strColumns + '\n' + strDeleteData;
 
             // create delete transaction
-            GS.addLoader(element, 'Creating Delete Transaction...');
+            GS.addLoader(element, 'Deleting...');
             GS.requestDeleteFromSocket(
                 GS.envSocket, strSchema, strObject, strHashColumns, strDeleteData
                 , function (data, error, transactionID) {
@@ -554,6 +636,7 @@
                 , function (strAnswer, data, error) {
                     var arrElements, i, len;
                     GS.removeLoader(element);
+                    element.deleting = false;
 
                     if (!error) {
                         if (strAnswer === 'COMMIT') {
@@ -626,7 +709,7 @@
             addText('E', 'After Close', 'after-close');
         },
         function (element) {// on click
-            var targetElement0;
+            var targetElement;
             var strTemplate = element.getAttribute('template');
             var templateElement;
             var strTargetSelector = element.getAttribute('target');
@@ -731,6 +814,12 @@ window.addEventListener('design-register-element', function () {
         addCheck('V', 'Mini', 'mini');
         addText('O', 'Hot Key', 'key');
         addCheck('O', 'No Modifier For Hot Key', 'no-modifier-key');
+        addSelect('O', 'Modifier for Hot Key', 'modifier-key', [
+            {"val": "", "txt": "Default (Ctrl)"},
+            {"val": "ctrl", "txt": "Ctrl"},
+            {"val": "alt", "txt": "Alt"},
+            {"val": "meta", "txt": "Meta"}
+        ]);
         addText('O', 'Href', 'href');
         addSelect('O', 'Target', 'target', [
             {"val": "", "txt": "Default"},
@@ -1008,18 +1097,58 @@ document.addEventListener('DOMContentLoaded', function () {
                             console.warn('gs-button Warning: by setting the hot key of this button to "' + strKey + '" you may be overriding browser functionality.', element);
                         }
                         
-                        window.addEventListener('keydown', function (event) {
+                        window.addEventListener('keydown', function __this_function(event) {
+                            // console.log(element, element.parentNode, document.body.contains(element));
+                            if (!document.body.contains(element)) {
+                                window.removeEventListener('keydown', __this_function);
+                                return;
+                            }
+                            var arrDialog = document.querySelectorAll('gs-dialog');
+                            var bolDialog = arrDialog.length > 0;
+                            var parentDialog = GS.findParentTag(element, 'gs-dialog');
                             if (
                                     String(event.keyCode || event.which) === GS.keyCode(strKey) &&
                                     (
                                         (
-                                            element.hasAttribute('no-modifier-key') &&
-                                            !event.metaKey &&
-                                            !event.ctrlKey
-                                        ) ||
-                                        (
-                                            !element.hasAttribute('no-modifier-key') &&
-                                            (event.metaKey || event.ctrlKey)
+                                            (
+                                                (
+                                                    element.hasAttribute('modifier-key') &&
+                                                    element.hasAttribute('no-modifier-key') &&
+                                                    !event.metaKey &&
+                                                    !event.altKey &&
+                                                    !event.ctrlKey
+                                                ) ||
+                                                (
+                                                    element.hasAttribute('modifier-key') &&
+                                                    element.getAttribute('modifier-key').toLowerCase() === 'ctrl' &&
+                                                    !event.metaKey &&
+                                                    !event.altKey &&
+                                                    event.ctrlKey
+                                                ) ||
+                                                (
+                                                    element.hasAttribute('modifier-key') &&
+                                                    element.getAttribute('modifier-key').toLowerCase() === 'alt' &&
+                                                    !event.metaKey &&
+                                                    event.altKey &&
+                                                    !event.ctrlKey
+                                                ) ||
+                                                (
+                                                    element.hasAttribute('modifier-key') &&
+                                                    element.getAttribute('modifier-key').toLowerCase() === 'meta' &&
+                                                    event.metaKey &&
+                                                    !event.altKey &&
+                                                    !event.ctrlKey
+                                                ) ||
+                                                (
+                                                    !element.hasAttribute('modifier-key') &&
+                                                    !event.metaKey &&
+                                                    !event.altKey &&
+                                                    !event.ctrlKey
+                                                )
+                                            ) &&
+                                            (document.activeElement.tagName.toLowerCase() !== 'input' || document.activeElement.className === 'hidden-focus-control' || strKey.length > 0) &&
+                                            (document.activeElement.tagName.toLowerCase() !== 'textarea' || document.activeElement.className === 'hidden-focus-control' || strKey.length > 0) &&
+                                            (!bolDialog || parentDialog === arrDialog[arrDialog.length - 1])
                                         )
                                     )
                                 ) {
@@ -1028,6 +1157,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                 
                                 element.focus();
                                 GS.triggerEvent(element, 'click');
+                                if (element.getAttribute('href')) {
+                                    window.open(element.getAttribute('href'), element.getAttribute('target') || '_blank');
+                                }
                             }
                         });
                         

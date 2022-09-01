@@ -20,16 +20,21 @@ gs-text[mini] input {
 /* ###################################################################################### */
 /* #################################### READONLY STATE ################################## */
 /* ###################################################################################### */
-
+/*
 gs-text[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
 }
-
+*/
 gs-text {
     position: relative;
+}
+
+gs-text[uppercase],
+gs-text[uppercase] .control {
+    text-transform: uppercase;
 }
 
 gs-text[show-caps].caps::after {

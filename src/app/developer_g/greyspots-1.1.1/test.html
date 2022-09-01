@@ -19,6 +19,14 @@
                 <h3>Test Page</h3>
                 <input>
                 <gs-date format="Default (01/01/2015)" id="test"></gs-date>
+                <gs-combo src="wtkv2.tcust_header">
+                    <template for="header">
+                        <gs-cell>Yooooo</gs-cell>
+                    </template>
+                    <template for="row">
+                        <gs-cell>{{! row.cname }}</gs-cell>
+                    </template>
+                </gs-combo>
                 <gs-button href="test.html">BADA BING</gs-button>
             </gs-header>
             <gs-body padded>

@@ -336,7 +336,7 @@ if (typeof HTMLTemplateElement === 'undefined') {
                         options.lifecycle.attributeChanged.apply(this, arguments);
                     }
                 };
-                Object.defineProperty(ElementConstructor, 'observedAttributes', { get: function () { return ['disabled','for','format','href','media','min-width','no-focus','no-huddelete','no-hudlimit','no-hudorderby','no-hudrefresh','no-picker','path','placeholder','qs','reflow','reflow-at','src','suspend-created','suspend-inserted','tabindex','template','value','widths'].concat(options.observedAttributes); } });
+                Object.defineProperty(ElementConstructor, 'observedAttributes', { get: function () { return ['disabled','for','format','href','media','min-width','no-focus','no-huddelete','no-hudlimit','no-hudorderby','no-hudrefresh','no-picker','path','placeholder','qs','name', 'maxlength', 'autofocus', 'readonly', 'title','reflow','reflow-at','src','suspend-created','suspend-inserted','tabindex','template','value','widths'].concat(options.observedAttributes); } });
             }
         }
     
@@ -356,7 +356,16 @@ if (typeof HTMLTemplateElement === 'undefined') {
     };
     
     xtag.matchSelector = function (e, s) {
-        return e.matches(s);
+        // console.log(e);
+        if (e.mozMatchesSelector) {
+            return e.mozMatchesSelector(s);
+        } else if (e.webkitMatchesSelector) {
+            return e.webkitMatchesSelector(s);
+        } else if (e.matches) {
+            return e.matches(s);
+        } else {
+            return false;
+        }
     };
     
     xtag.toArray = function (nodeList) {
@@ -2641,7 +2650,7 @@ evt.click     = 'click';
 // ##############################################################
 // ########### PINK BACKGROUND WHEN NOT IN PRODUCTION ###########
 // ##############################################################
-if (window.location.hostname.toString().match(/test[^.]*\.sunnyserve.com/i)) {
+if (window.location.hostname.toString().match(/test[^.]*\..*/i)) {
     window.addEventListener('load', function () {
         var styleElement, helperElement, helperFunction;
         
@@ -3169,6 +3178,7 @@ window.addEventListener('load', function () {
     shimmed.MutationObserver    = !nativeTest(window.MutationObserver);
     shimmed.WeakMap             = !nativeTest(window.WeakMap);
     shimmed.customElements      = !nativeTest(customElements.define);
+    shimmed.registerElement     = !nativeTest(document.registerElement);
     shimmed.DOMTokenList        = !nativeTest(window.DOMTokenList);
     shimmed.HTMLTemplateElement = Boolean(HTMLTemplateElement.bootstrap);
     
@@ -3240,6 +3250,22 @@ window.addEventListener('load', function () {
     } catch (e) {
         functionality.customElements = false;
         functionality.errors.customElements = e;
+    }
+    
+    functionality.registerElement = false;
+    try {
+        var prototype = Object.create(HTMLElement.prototype);
+        prototype.testmethod = function () { return true; };
+        document.registerElement('asdf-test', {'prototype': prototype});
+        
+        var testElement;
+        testElement = document.createElement('asdf-test');
+        
+        functionality.registerElement = testElement.testmethod();
+        
+    } catch (e) {
+        functionality.registerElement = false;
+        functionality.errors.registerElement = e;
     }
     
     functionality.DOMTokenList = false;
@@ -5617,7 +5643,287 @@ GS.getInertDOMHTML = function (inertDOM) {
             //    }
             //}
     };
-})();
+})();//global registerDesignSnippet, window, GS, ml, encodeHTML
+//jslint browser
+
+
+window.addEventListener('design-register-element', function () {
+    "use strict";
+
+    //registerDesignSnippet('GS.formatDate', 'GS.formatDate', 'GS.formatDate(${1:dteDate}, ${2:strFormat})');
+});
+
+GS.convertNumberToRoman = function (varNum) {
+    "use strict";
+    var intNum = parseInt(varNum, 10) || 0;
+    var strNum = String(intNum);
+    var arrDigits = strNum.split('');
+
+    var arrOnes = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
+    var arrTens = ['', 'X', 'XX', 'XXX', 'XL', 'L', 'LX', 'LXX', 'LXXX', 'XC'];
+    var arrHundreds = ['', 'C', 'CC', 'CCC', 'CD', 'D', 'DC', 'DCC', 'DCCC', 'CM'];
+
+    var intOnes = parseInt(arrDigits.pop(), 10);
+    var intTens = parseInt(arrDigits.pop(), 10);
+    var intHundreds = parseInt(arrDigits.pop(), 10);
+    var intRemaining = parseInt(arrDigits.join(''), 10);
+    var arrRemaining = new Array(intRemaining + 1);
+
+    return (
+        arrRemaining.join('M') + // repeat "M" for all remaining numbers
+        (arrHundreds[intHundreds] || '') + // add hundreds
+        (arrTens[intTens] || '') + // add tens
+        (arrOnes[intOnes] || '') // add ones
+    );
+};
+
+// .--------------------------.---------------------------------------------------------------------------------------------------.
+// | Pattern                  | Description                                                                                       |
+// |--------------------------|---------------------------------------------------------------------------------------------------|
+// | H                        | hour of day (01–12)                                                                               |
+// | HH12                     | hour of day (01–12)                                                                               |
+// | HH24                     | hour of day (00–23)                                                                               |
+// | MI                       | minute (00–59)                                                                                    |
+// | SS                       | second (00–59)                                                                                    |
+// | MS                       | millisecond (000–999)                                                                             |
+// | US                       | microsecond (000000–999999)                                                                       |
+// | FF1                      | tenth of second (0–9)                                                                             |
+// | FF2                      | hundredth of second (00–99)                                                                       |
+// | FF3                      | millisecond (000–999)                                                                             |
+// | FF4                      | tenth of a millisecond (0000–9999)                                                                |
+// | FF5                      | hundredth of a millisecond (00000–99999)                                                          |
+// | FF6                      | microsecond (000000–999999)                                                                       |
+// | SSSS, SSSSS              | seconds past midnight (0–86399)                                                                   |
+// | AM, am, PM or pm         | meridiem indicator (without periods)                                                              |
+// | A.M., a.m., P.M. or p.m. | meridiem indicator (with periods)                                                                 |
+// | Y,YYY                    | year (4 or more digits) with comma                                                                |
+// | YYYY                     | year (4 or more digits)                                                                           |
+// | YYY                      | last 3 digits of year                                                                             |
+// | YY                       | last 2 digits of year                                                                             |
+// | Y                        | last digit of year                                                                                |
+// | IYYY                     | ISO 8601 week-numbering year (4 or more digits)                                                   |
+// | IYY                      | last 3 digits of ISO 8601 week-numbering year                                                     |
+// | IY                       | last 2 digits of ISO 8601 week-numbering year                                                     |
+// | I                        | last digit of ISO 8601 week-numbering year                                                        |
+// | BC, bc, AD or ad         | era indicator (without periods)                                                                   |
+// | B.C., b.c., A.D. or a.d. | era indicator (with periods)                                                                      |
+// | MONTH                    | full upper case month name (blank-padded to 9 chars)                                              |
+// | Month                    | full capitalized month name (blank-padded to 9 chars)                                             |
+// | month                    | full lower case month name (blank-padded to 9 chars)                                              |
+// | MON                      | abbreviated upper case month name (3 chars in English, localized lengths vary)                    |
+// | Mon                      | abbreviated capitalized month name (3 chars in English, localized lengths vary)                   |
+// | mon                      | abbreviated lower case month name (3 chars in English, localized lengths vary)                    |
+// | MM                       | month number (01–12)                                                                              |
+// | DAY                      | full upper case day name (blank-padded to 9 chars)                                                |
+// | Day                      | full capitalized day name (blank-padded to 9 chars)                                               |
+// | day                      | full lower case day name (blank-padded to 9 chars)                                                |
+// | DY                       | abbreviated upper case day name (3 chars in English, localized lengths vary)                      |
+// | Dy                       | abbreviated capitalized day name (3 chars in English, localized lengths vary)                     |
+// | dy                       | abbreviated lower case day name (3 chars in English, localized lengths vary)                      |
+// | DDD                      | day of year (001–366)                                                                             |
+// | IDDD                     | day of ISO 8601 week-numbering year (001–371; day 1 of the year is Monday of the first ISO week)  |
+// | DD                       | day of month (01–31)                                                                              |
+// | D                        | day of the week, Sunday (1) to Saturday (7)                                                       |
+// | ID                       | ISO 8601 day of the week, Monday (1) to Sunday (7)                                                |
+// | W                        | week of month (1–5) (the first week starts on the first day of the month)                         |
+// | WW                       | week number of year (1–53) (the first week starts on the first day of the year)                   |
+// | IW                       | week number of ISO 8601 week-numbering year (01–53; the first Thursday of the year is in week 1)  |
+// | CC                       | century (2 digits) (the twenty-first century starts on 2001-01-01)                                |
+// | J                        | Julian Date (integer days since November 24, 4714 BC at local midnight; see Section B.7)          |
+// | Q                        | quarter                                                                                           |
+// | RM                       | month in upper case Roman numerals (I–XII; I=January)                                             |
+// | rm                       | month in lower case Roman numerals (i–xii; i=January)                                             |
+// | TZ                       | upper case time-zone abbreviation (only supported in to_char)                                     |
+// | tz                       | lower case time-zone abbreviation (only supported in to_char)                                     |
+// | TZH                      | time-zone hours                                                                                   |
+// | TZM                      | time-zone minutes                                                                                 |
+// | OF                       | time-zone offset from UTC (only supported in to_char)                                             |
+// '--------------------------'---------------------------------------------------------------------------------------------------'
+
+// .--------------------------.-----------------------------------------------------------------------.---------------------------.
+// | Modifier                 | Description                                                           | Example                   |
+// |--------------------------|-----------------------------------------------------------------------|---------------------------|
+// | FM prefix                | fill mode (suppress leading zeroes and padding blanks)                | FMMonth                   |
+// | TH suffix                | upper case ordinal number suffix                                      | DDTH, e.g., 12TH          |
+// | th suffix                | lower case ordinal number suffix                                      | DDth, e.g., 12th          |
+// | FX prefix                | fixed format global option (see usage notes)                          | FX Month DD Day           |
+// | TM prefix                | translation mode (use localized day and month names based on lc_time) | TMMonth                   |
+// | SP suffix                | spell mode (not implemented)                                          | DDSP                      |
+// '--------------------------'-----------------------------------------------------------------------'---------------------------'
+
+// GS.formatDate = function (dteDate, strFormat) {
+//     "use strict";
+//     var arrFullMon = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+//     var arrAbbrMon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+//     var arrFullDay = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+//     var arrAbbrDay = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    
+// };
+
+
+/*
+
+
+    function formatDate(dteValue, strFormat) {
+        / * (this function contains a (modified) substantial portion of code from another source
+            here is the copyright for sake of legality) (Uses code by Matt Kruse)
+        Copyright (c) 2006-2009 Rostislav Hristov, Asual DZZD
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy of this software and associated documentation files
+        (the "Software"), to deal in the Software without restriction,
+        including without limitation the rights to use, copy, modify, merge,
+        publish, distribute, sublicense, and/or sell copies of the Software,
+        and to permit persons to whom the Software is furnished to do so,
+        subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included
+        in all copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+        IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+        CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+        TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+        SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.* /
+        var i = 0, j = 0, l = 0, c = '', token = '', x, y, yearLen,
+            formatNumber = function (n, s) {
+                if (typeof s == 'undefined' || s == 2) {
+                  return (n >= 0 && n < 10 ? '0' : '') + n;
+                } else {
+                    if (n >= 0 && n < 10) {
+                       return '00' + n;
+                    }
+                    if (n >= 10 && n <100) {
+                       return '0' + n;
+                    }
+                    return n;
+                }
+            },
+            locale = {
+                monthsFull:   ['January','February','March','April','May','June', 'July','August','September','October','November','December'],
+                monthsShort:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                daysFull:     ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+                daysShort:    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+                shortDateFormat: 'M/d/yyyy h:mm a',
+                longDateFormat: 'EEEE, MMMM dd, yyyy h:mm:ss a'
+            };
+
+        y = dteValue.getFullYear();
+        // Nunzio commented this out on Monday, October 19, 2015
+        // It was causing an issue during typing in the year field
+        / *if (y < 1000) {
+            y = String(y + 1900);
+        }* /
+
+        var M = dteValue.getMonth() + 1,
+            d = dteValue.getDate(),
+            E = dteValue.getDay(),
+            H = dteValue.getHours(),
+            m = dteValue.getMinutes(),
+            s = dteValue.getSeconds(),
+            S = dteValue.getMilliseconds();
+
+        //console.log(dteValue.getFullYear());
+
+        yearLen = String(y).length;
+        dteValue = {
+            y: y,
+            yyyy: y,
+            yy: String(y).substring(yearLen - 2, yearLen),
+            M: M,
+            MM: formatNumber(M),
+            MMM: locale.monthsShort[M-1],
+            MMMM: locale.monthsFull[M-1],
+            d: d,
+            dd: formatNumber(d),
+            EEE: locale.daysShort[E],
+            EEEE: locale.daysFull[E],
+            H: H,
+            HH: formatNumber(H)
+        };
+
+        //console.log(dteValue);
+
+        if (H === 0) {
+            dteValue.h = 12;
+        } else if (H > 12) {
+            dteValue.h = H - 12;
+        } else {
+            dteValue.h = H;
+        }
+
+        dteValue.hh = formatNumber(dteValue.h);
+        dteValue.k = H !== 0 ? H : 24;
+        dteValue.kk = formatNumber(dteValue.k);
+
+        if (H > 11) {
+            dteValue.K = H - 12;
+        } else {
+            dteValue.K = H;
+        }
+
+        dteValue.KK = formatNumber(dteValue.K);
+
+        if (H > 11) {
+            dteValue.a = 'PM';
+        } else {
+            dteValue.a = 'AM';
+        }
+
+        dteValue.m = m;
+        dteValue.mm = formatNumber(m);
+        dteValue.s = s;
+        dteValue.ss = formatNumber(s);
+        dteValue.S = S;
+        dteValue.SS = formatNumber(S);
+        dteValue.SSS = formatNumber(S, 3);
+
+        var result = '';
+
+        i = 0;
+        c = '';
+        token = '';
+        s = false;
+
+        while (i < strFormat.length) {
+            token = '';
+            c = strFormat.charAt(i);
+            if (c == '\'') {
+                i++;
+                if (strFormat.charAt(i) == c) {
+                    result = result + c;
+                    i++;
+                } else {
+                    s = !s;
+                }
+            } else {
+                while (strFormat.charAt(i) == c) {
+                    token += strFormat.charAt(i++);
+                }
+                if (token.indexOf('MMMM') != -1 && token.length > 4) {
+                    token = 'MMMM';
+                }
+                if (token.indexOf('EEEE') != -1 && token.length > 4) {
+                    token = 'EEEE';
+                }
+                if (typeof dteValue[token] != 'undefined' && !s) {
+                    result = result + dteValue[token];
+                } else {
+                    result = result + token;
+                }
+            }
+        }
+
+        return result;
+    }
+
+
+*/
+
+
 window.addEventListener('design-register-element', function () {
     'use strict';
     
@@ -5983,6 +6289,16 @@ GS.templateWithQuerystring = function (templateText) {
                              '{{#def.snippet}}';
     
     return doT.template(strWrapperTemplate, null, {'template': templateText})(GS.qryToJSON(GS.getQueryString())).trim();
+};
+
+GS.templateWithJSON = function (templateText, jsnJSON) {
+    'use strict';
+    var strWrapperTemplate = '{{ var qs = jo.qs; var jsnData = jo.data; }} ' + templateText;
+
+    return doT.template(strWrapperTemplate)({
+        "qs": GS.qryToJSON(GS.getQueryString()),
+        "data": jsnJSON
+    }).trim();
 };
 
 
@@ -6627,6 +6943,7 @@ GS.normalUserLogin = function (loggedInCallback, strOldError, strDefaultSubDomai
         if (relinkSessionID) {
             socket.GSSessionID = relinkSessionID;
             socket.oldSessionID = relinkSessionID;
+            socket.greyspotsProvidedSession = false;
         }
         if (relinkSessionNotifications) {
             socket.notifications = relinkSessionNotifications;
@@ -6634,7 +6951,17 @@ GS.normalUserLogin = function (loggedInCallback, strOldError, strDefaultSubDomai
             socket.notifications = [];
         }
         socket.onmessage = function (event) {
-            var message = event.data, messageID, responseNumber, key, strError, arrLines, i, len, jsnMessage, startFrom;
+            var message = event.data;
+            var messageID;
+            var responseNumber;
+            var key;
+            var strError;
+            var arrLines;
+            var i;
+            var len;
+            var jsnMessage;
+            var startFrom;
+            var bolDuplicate;
 
             if (typeof (message) === 'object') {
                 //window.binaryTestTEST = message;
@@ -6648,6 +6975,7 @@ GS.normalUserLogin = function (loggedInCallback, strOldError, strDefaultSubDomai
             // if sessionid
             if (message.indexOf('sessionid = ') === 0) {
                 socket.GSSessionID = message.substring('sessionid = '.length, message.indexOf('\n'));
+                socket.greyspotsProvidedSession = true;
                 GS.triggerEvent(window, 'socket-connect', {"socket": socket});
 
                 for (key in jsnMessages) {
@@ -6661,7 +6989,6 @@ GS.normalUserLogin = function (loggedInCallback, strOldError, strDefaultSubDomai
                         ) &&
                         jsnMessage.bolFinished === false
                     ) {
-
                         jsnMessage.session = socket.GSSessionID;
 
                         startFrom = 1;
@@ -6687,6 +7014,7 @@ GS.normalUserLogin = function (loggedInCallback, strOldError, strDefaultSubDomai
             } else {
                 messageID = message.substring('messageid = '.length, message.indexOf('\n'));
                 message = message.substring(message.indexOf('\n') + 1);
+                bolDuplicate = false;
 
                 jsnMessage = jsnMessages[messageID];
 
@@ -6713,8 +7041,14 @@ GS.normalUserLogin = function (loggedInCallback, strOldError, strDefaultSubDomai
                         message = message.substring(message.indexOf('\n') + 1);
 
                         // append message number and message content to arrays
-                        jsnMessage.arrResponseNumbers.push(parseInt(responseNumber, 10));
-                        jsnMessage.arrResponses.push(message);
+                        if (jsnMessage.arrResponseNumbers.indexOf(parseInt(responseNumber, 10)) === -1) {
+                            jsnMessage.arrResponseNumbers.push(parseInt(responseNumber, 10));
+                            jsnMessage.arrResponses.push(message);
+                        } else {
+                            bolDuplicate = true;
+                        }
+
+                        //console.log(relinkSessionID, jsnMessage.arrResponseNumbers, responseNumber);
 
                         // send confirm signal
                         GS.requestFromSocket(socket, 'CONFIRM\t' + responseNumber, '', messageID);
@@ -6750,7 +7084,10 @@ GS.normalUserLogin = function (loggedInCallback, strOldError, strDefaultSubDomai
 
                     // else: call callback with message
                     } else {
-                        jsnMessage.callback.apply(null, [message]);
+                        // don't callback with duplicate data packages
+                        if (!bolDuplicate) {
+                            jsnMessage.callback.apply(null, [message]);
+                        }
                     }
 
                     if (jsnMessage.bolFinished === true) {
@@ -6808,14 +7145,17 @@ GS.normalUserLogin = function (loggedInCallback, strOldError, strDefaultSubDomai
                 setTimeout(function() {
                     console.warn('ATTEMPTING SOCKET RE-OPEN', socket);
                     var event = GS.triggerEvent(window, 'socket-reconnect', {"socket": socket});
+                    var strURL;
                     if (! event.defaultPrevented) {
                         if (socketname) {
+                            strURL = GS.websockets[socketname].url;
                             GS.closeSocket(GS.websockets[socketname]);
-                            GS.websockets[socketname] = GS.openSocket('env', GS.websockets[socketname].GSSessionID, GS.websockets[socketname].notifications);
+                            GS.websockets[socketname] = GS.openSocket(strURL, GS.websockets[socketname].GSSessionID, GS.websockets[socketname].notifications);
 
                         } else {
+                            strURL = GS.envSocket.url;
                             GS.closeSocket(GS.envSocket);
-                            GS.envSocket = GS.openSocket('env', GS.envSocket.GSSessionID, GS.envSocket.notifications);
+                            GS.envSocket = GS.openSocket(strURL, GS.envSocket.GSSessionID, GS.envSocket.notifications);
                         }
                     }
                 }, 1000);
@@ -6843,8 +7183,12 @@ GS.normalUserLogin = function (loggedInCallback, strOldError, strDefaultSubDomai
         }
 
         // if the socket is open: register callback and send request
-        if (socket.readyState === socket.OPEN && socket.GSSessionID) {
-
+        if (
+            socket.readyState === socket.OPEN &&
+            socket.GSSessionID &&
+            // we don't want to send a request until greyspots has sent us a session id
+            socket.greyspotsProvidedSession
+        ) {
             if (!forceMessageID) {
                 sequence += 1;
                 messageID = socket.GSSessionID + '_' + sequence;
@@ -7665,7 +8009,7 @@ window.addEventListener('socket-reconnect', function (event) {
     if (event.socket && event.socket.isGSSocket) {
         reconnectNumber -= 1;
 
-        if (reconnectNumber <= -6) {
+        if (reconnectNumber <= -6 * (GS.websockets.length)) {
             window.location = '/' + (window.location.toString().match(/postage|env/g)[0]) + '/auth?action=logout&error=Connection%20timed%20out';
         }
     }
@@ -7683,6 +8027,8 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('GS.pxToEm', 'GS.pxToEm', 'GS.pxToEm(${1:elementToTestIn}, ${0:pxToConvert});');
     
     registerDesignSnippet('GS.emToPx', 'GS.emToPx', 'GS.emToPx(${1:elementToTestIn}, ${0:emToConvert});');
+    
+    registerDesignSnippet('GS.sizeToPx', 'GS.sizeToPx', 'GS.sizeToPx(${1:elementToTestIn}, ${0:CSSSizeToConvert});');
 
     registerDesignSnippet('GS.keyCode', 'GS.keyCode', 'GS.keyCode(\'${0:characterToGetTheKeyCodeOf}\');');
     
@@ -7733,11 +8079,67 @@ window.addEventListener('design-register-element', function () {
     registerDesignSnippet('GS.hitLink', 'GS.hitLink', 'GS.hitLink(${1:strLink});');
 
     registerDesignSnippet('GS.log', 'GS.log', 'GS.log(\'${1:send}\', ${2:message});');
+
+    registerDesignSnippet('GS.sanitizeString', 'GS.sanitizeString', 'GS.sanitizeString(${1:strToSanitize}, ${2:arrAdditional});');
+
+    registerDesignSnippet('GS.sqlSafeString', 'GS.sqlSafeString', 'GS.sqlSafeString(${1:strToSanitize});');
+
+    registerDesignSnippet('GS.filenameSafeString', 'GS.filenameSafeString', 'GS.filenameSafeString(${1:strToSanitize});');
 });
+
+// note: these three functions are meant for shorter strings
+// they are not efficient enough for longer strings, which
+// usually don't need client-side sanitization anyway
+GS.sanitizeString = function (strToSanitize, arrAdditional) {
+    "use strict";
+    var strResult;
+    arrAdditional = arrAdditional || [];
+
+    // remove control characters (this does not include \r\n\t)
+    strResult = strToSanitize.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '');
+
+    // remove additional characters
+    if (arrAdditional.length > 0) {
+        strResult = strResult.split('').map(function (a) {
+            return arrAdditional.indexOf(a) > -1 ? '' : a;
+        }).join('');
+    }
+
+    return strResult;
+};
+
+GS.sqlSafeString = function (strToSanitize) {
+    "use strict";
+    return '\'' + GS.sanitizeString(strToSanitize.replace(/'/g, '\\\'')) + '\'';
+};
+
+GS.filenameSafeString = function (strToSanitize) {
+    "use strict";
+    return GS.sanitizeString(strToSanitize, [
+        '('
+        , ')'
+        , '#'
+        , '*'
+        , ':'
+        , '<'
+        , '>'
+        , '?'
+        , '|'
+        , '\\'
+        , '&'
+        , '/'
+        , '\''
+        , '"'
+        , '\t'
+        , '\r'
+        , '\n'
+    ]);
+};
+
 
 
 GS.positionHandlingFunction = function (element, elementTarget, intMargin, strDirectionRequest, defaultDirection, returnCallback) {
-    "usr strict";
+    "use strict";
     var intDialogTop = '', intDialogLeft = '', intDialogMarginTop = '', intDialogMarginLeft = '', strOldStyle
         , arrElements, arrScrollingElements, i, len, strOverflow, jsnPositionData, arrTests
         , strResolvedDirection, intDialogResolvedWidth, intDialogResolvedHeight
@@ -8022,6 +8424,73 @@ GS.numberSuffix = function(intNumber) {
     return strNumber + jsnSuffixes[strNumber[strNumber.length - 1]];
 }
 
+//convert number into check number. will round if given more than two decimals.
+GS.convertNumToWords = function (num) {
+    'use strict';
+    var intDollars = Math.trunc(num);
+    var intCents = num.toFixed(2).split('.')[1];
+    if ((num || 0) == 0) {
+        return 'zero';
+    }
+    var ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    var tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    var teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+
+    var bolInvert = false;
+
+    if (intDollars < 0) {
+        bolInvert = true;
+        intDollars = (intDollars * -1);
+    }
+
+    function convert_tens(dollars) {
+        if (dollars < 10) {
+            return ones[dollars];
+        } else if (dollars >= 10 && dollars < 20) {
+            return teens[dollars - 10];
+        } else {
+            return tens[Math.floor(dollars / 10)] + " " + ones[dollars % 10];
+        }
+    }
+
+    function convert_hundreds(dollars) {
+        if (dollars > 99) {
+            return ones[Math.floor(dollars / 100)] + ' Hundred ' + convert_tens(dollars % 100);
+        } else {
+            return convert_tens(dollars);
+        }
+    }
+
+    function convert_thousands(dollars) {
+        if (dollars >= 1000) {
+            return convert_hundreds(Math.floor(dollars / 1000)) + ' Thousand ' + convert_hundreds(dollars % 1000);
+        } else {
+            return convert_hundreds(dollars);
+        }
+    }
+
+    function convert_millions(dollars) {
+        if (dollars >= 1000000) {
+            return convert_millions(Math.floor(dollars / 1000000)) + ' Million ' + convert_thousands(dollars % 1000000);
+        } else {
+            return convert_thousands(dollars);
+        }
+    }
+
+    if (num == 0) {
+        return 'zero';
+    } else if (num > 0 && num < 1) {
+        return 'Zero and ' + intCents + '/100';
+    } else {
+        //num was negative
+        if (bolInvert) {
+            return ('Negative ' + convert_millions(intDollars) + ' and ' + intCents + '/100').replace(/(  )/g, ' ');
+        } else {
+            return (convert_millions(intDollars) + ' and ' + intCents + '/100').replace(/(  )/g, ' ');
+        }
+    }
+}
+
 // ###########################################################
 // #################### PADDING FUNCTIONS ####################
 // ###########################################################
@@ -8116,7 +8585,29 @@ GS.emToPx = function (elementScope, fromEM) {
 	                                             // so I will leave it here until there is a problem -michael
 };
 
-
+// convert arbitrary CSS expression to pixels
+GS.sizeToPx = function (elementScope, fromCSS) {
+    'use strict';
+	var heightTestElement = document.createElement('div'),
+	    intElementHeight;
+    
+    elementScope = elementScope || document.body;
+    
+    heightTestElement.style.fontSize = fromCSS;
+    heightTestElement.style.margin = '0';
+    heightTestElement.style.padding = '0';
+    heightTestElement.style.lineHeight = '1';
+    heightTestElement.style.border = '0';
+    
+    heightTestElement.innerHTML = 'a';
+    
+    elementScope.appendChild(heightTestElement);
+    intElementHeight = heightTestElement.offsetHeight;
+    elementScope.removeChild(heightTestElement);
+    
+	return Math.round(intElementHeight); // not sure if we want to round here but the old function did
+	                                             // so I will leave it here until there is a problem -michael
+};
 
 // ################################################################
 // #################### MISC UTILITY FUNCTIONS ####################
@@ -16291,9 +16782,10 @@ document.addEventListener('DOMContentLoaded', function () {
             'destroy': function () {
                 var element = this;
 
+                // sometimes, the element is destroyed before it's initialized
                 // sometimes, the element gets destroyed multiple times.
                 //      we don't want to cause any errors when this happens.
-                if (element.elems.root) {
+                if (element.elems && element.elems.root) {
                     // prevent the element from recieving any events
                     unbindElement(element);
 
@@ -16627,6 +17119,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 addCheck('V', 'Mini', 'mini');
                 addText('O', 'Hot Key', 'key');
                 addCheck('O', 'No Modifier For Hot Key', 'no-modifier-key');
+                addSelect('O', 'Modifier for Hot Key', 'modifier-key', [
+                    {"val": "", "txt": "Default (Ctrl)"},
+                    {"val": "ctrl", "txt": "Ctrl"},
+                    {"val": "alt", "txt": "Alt"},
+                    {"val": "meta", "txt": "Meta"}
+                ]);
                 designAdditionalFunction(selectedElement);
                 addFocusEvents('static');
                 addText('O', 'Column In QS', 'qs');
@@ -16663,23 +17161,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 var len;
                 var arrAttr;
                 var jsnAttr;
-        
+
                 // we need a place to store the attributes
                 element.internal.defaultAttributes = {};
-        
+
                 // loop through attributes and store them in the internal defaultAttributes object
                 arrAttr = element.attributes;
                 i = 0;
                 len = arrAttr.length;
                 while (i < len) {
                     jsnAttr = arrAttr[i];
-        
+
                     element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
-        
+
                     i += 1;
                 }
             }
-        
+
             function pushReplacePopHandler(element) {
                 var i;
                 var len;
@@ -16819,25 +17317,36 @@ document.addEventListener('DOMContentLoaded', function () {
                                 element.classList.remove('down');
                                 element.classList.add('hover');
                             });
-                            
+
                             element.addEventListener('keydown', function (event) {
-                                if (!element.hasAttribute('disabled') && !element.classList.contains('down') &&
-                                    (event.keyCode === 13 || event.keyCode === 32)) {
-                                    
+                                if (
+                                    !element.hasAttribute('disabled') &&
+                                    !element.classList.contains('down') &&
+                                    (
+                                        event.keyCode === 13 ||
+                                        event.keyCode === 32
+                                    )
+                                ) {
                                     element.classList.add('down');
                                 }
-                                
+
                                 if (element.hasAttribute('disabled')) {
                                     event.preventDefault();
                                     event.stopPropagation();
                                     return true;
                                 }
                             });
-                            
+
                             element.addEventListener('keyup', function (event) {
                                 // if we are not disabled and we pressed return (13) or space (32): trigger click
-                                if (!element.hasAttribute('disabled') && element.classList.contains('down') &&
-                                    (event.keyCode === 13 || event.keyCode === 32)) {
+                                if (
+                                    !element.hasAttribute('disabled') &&
+                                    element.classList.contains('down') &&
+                                    (
+                                        event.keyCode === 13 ||
+                                        event.keyCode === 32
+                                    )
+                                ) {
                                     GS.triggerEvent(element, 'click');
                                 }
                             });
@@ -16856,7 +17365,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         
                         element.addEventListener('keypress', function (event) {
                             // if we pressed return (13) or space (32): prevent default and stop propagation (to prevent scrolling of the page)
-                            if (event.keyCode === 13 || event.keyCode === 32) {
+                            if (
+                                event.target === element &&
+                                (
+                                    event.keyCode === 13 ||
+                                    event.keyCode === 32
+                                )
+                            ) {
+                                console.log('press, intercepted');
                                 event.preventDefault();
                                 event.stopPropagation();
                             }
@@ -16870,17 +17386,69 @@ document.addEventListener('DOMContentLoaded', function () {
                                     console.warn('gs-skype-button Warning: by setting the hot key of this button to "' + strKey + '" you may be overriding browser functionality.', element);
                                 }
                                 
-                                window.addEventListener('keydown', function (event) {
-                                    if (String(event.keyCode || event.which) === GS.keyCode(strKey) &&
-                                        (
-                                            (element.hasAttribute('no-modifier-key') && !event.metaKey && !event.ctrlKey)
-                                            || (!element.hasAttribute('no-modifier-key') && (event.metaKey || event.ctrlKey))
-                                        )) {
+                                window.addEventListener('keydown', function __this_function(event) {
+                                    // console.log(element, element.parentNode, document.body.contains(element));
+                                    if (!document.body.contains(element)) {
+                                        window.removeEventListener('keydown', __this_function);
+                                        return;
+                                    }
+                                    var arrDialog = document.querySelectorAll('gs-dialog');
+                                    var bolDialog = arrDialog.length > 0;
+                                    var parentDialog = GS.findParentTag(element, 'gs-dialog');
+                                    if (
+                                            String(event.keyCode || event.which) === GS.keyCode(strKey) &&
+                                            (
+                                                (
+                                                    (
+                                                        (
+                                                            element.hasAttribute('modifier-key') &&
+                                                            element.hasAttribute('no-modifier-key') &&
+                                                            !event.metaKey &&
+                                                            !event.altKey &&
+                                                            !event.ctrlKey
+                                                        ) ||
+                                                        (
+                                                            element.hasAttribute('modifier-key') &&
+                                                            element.getAttribute('modifier-key').toLowerCase() === 'ctrl' &&
+                                                            !event.metaKey &&
+                                                            !event.altKey &&
+                                                            event.ctrlKey
+                                                        ) ||
+                                                        (
+                                                            element.hasAttribute('modifier-key') &&
+                                                            element.getAttribute('modifier-key').toLowerCase() === 'alt' &&
+                                                            !event.metaKey &&
+                                                            event.altKey &&
+                                                            !event.ctrlKey
+                                                        ) ||
+                                                        (
+                                                            element.hasAttribute('modifier-key') &&
+                                                            element.getAttribute('modifier-key').toLowerCase() === 'meta' &&
+                                                            event.metaKey &&
+                                                            !event.altKey &&
+                                                            !event.ctrlKey
+                                                        ) ||
+                                                        (
+                                                            !element.hasAttribute('modifier-key') &&
+                                                            !event.metaKey &&
+                                                            !event.altKey &&
+                                                            !event.ctrlKey
+                                                        )
+                                                    ) &&
+                                                    (document.activeElement.tagName.toLowerCase() !== 'input' || document.activeElement.className === 'hidden-focus-control' || strKey.length > 0) &&
+                                                    (document.activeElement.tagName.toLowerCase() !== 'textarea' || document.activeElement.className === 'hidden-focus-control' || strKey.length > 0) &&
+                                                    (!bolDialog || parentDialog === arrDialog[arrDialog.length - 1])
+                                                )
+                                            )
+                                        ) {
                                         event.preventDefault();
                                         event.stopPropagation();
                                         
                                         element.focus();
                                         GS.triggerEvent(element, 'click');
+                                        if (element.getAttribute('href')) {
+                                            window.open(element.getAttribute('href'), element.getAttribute('target') || '_blank');
+                                        }
                                     }
                                 });
                                 
@@ -17078,6 +17646,12 @@ document.addEventListener('DOMContentLoaded', function () {
             var strHash;
             var strPkValue;
             var strLockValue;
+            
+            if (element.deleting) {
+                console.warn('double delete!');
+                return;
+            }
+            element.deleting = true;
 
             element.classList.remove('down');
 
@@ -17097,7 +17671,7 @@ document.addEventListener('DOMContentLoaded', function () {
             strDeleteData = strRoles + '\n' + strColumns + '\n' + strDeleteData;
 
             // create delete transaction
-            GS.addLoader(element, 'Creating Delete Transaction...');
+            GS.addLoader(element, 'Deleting...');
             GS.requestDeleteFromSocket(
                 GS.envSocket, strSchema, strObject, strHashColumns, strDeleteData
                 , function (data, error, transactionID) {
@@ -17152,6 +17726,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 , function (strAnswer, data, error) {
                     var arrElements, i, len;
                     GS.removeLoader(element);
+                    element.deleting = false;
 
                     if (!error) {
                         if (strAnswer === 'COMMIT') {
@@ -17224,7 +17799,7 @@ document.addEventListener('DOMContentLoaded', function () {
             addText('E', 'After Close', 'after-close');
         },
         function (element) {// on click
-            var targetElement0;
+            var targetElement;
             var strTemplate = element.getAttribute('template');
             var templateElement;
             var strTargetSelector = element.getAttribute('target');
@@ -17329,6 +17904,12 @@ window.addEventListener('design-register-element', function () {
         addCheck('V', 'Mini', 'mini');
         addText('O', 'Hot Key', 'key');
         addCheck('O', 'No Modifier For Hot Key', 'no-modifier-key');
+        addSelect('O', 'Modifier for Hot Key', 'modifier-key', [
+            {"val": "", "txt": "Default (Ctrl)"},
+            {"val": "ctrl", "txt": "Ctrl"},
+            {"val": "alt", "txt": "Alt"},
+            {"val": "meta", "txt": "Meta"}
+        ]);
         addText('O', 'Href', 'href');
         addSelect('O', 'Target', 'target', [
             {"val": "", "txt": "Default"},
@@ -17606,18 +18187,58 @@ document.addEventListener('DOMContentLoaded', function () {
                             console.warn('gs-button Warning: by setting the hot key of this button to "' + strKey + '" you may be overriding browser functionality.', element);
                         }
                         
-                        window.addEventListener('keydown', function (event) {
+                        window.addEventListener('keydown', function __this_function(event) {
+                            // console.log(element, element.parentNode, document.body.contains(element));
+                            if (!document.body.contains(element)) {
+                                window.removeEventListener('keydown', __this_function);
+                                return;
+                            }
+                            var arrDialog = document.querySelectorAll('gs-dialog');
+                            var bolDialog = arrDialog.length > 0;
+                            var parentDialog = GS.findParentTag(element, 'gs-dialog');
                             if (
                                     String(event.keyCode || event.which) === GS.keyCode(strKey) &&
                                     (
                                         (
-                                            element.hasAttribute('no-modifier-key') &&
-                                            !event.metaKey &&
-                                            !event.ctrlKey
-                                        ) ||
-                                        (
-                                            !element.hasAttribute('no-modifier-key') &&
-                                            (event.metaKey || event.ctrlKey)
+                                            (
+                                                (
+                                                    element.hasAttribute('modifier-key') &&
+                                                    element.hasAttribute('no-modifier-key') &&
+                                                    !event.metaKey &&
+                                                    !event.altKey &&
+                                                    !event.ctrlKey
+                                                ) ||
+                                                (
+                                                    element.hasAttribute('modifier-key') &&
+                                                    element.getAttribute('modifier-key').toLowerCase() === 'ctrl' &&
+                                                    !event.metaKey &&
+                                                    !event.altKey &&
+                                                    event.ctrlKey
+                                                ) ||
+                                                (
+                                                    element.hasAttribute('modifier-key') &&
+                                                    element.getAttribute('modifier-key').toLowerCase() === 'alt' &&
+                                                    !event.metaKey &&
+                                                    event.altKey &&
+                                                    !event.ctrlKey
+                                                ) ||
+                                                (
+                                                    element.hasAttribute('modifier-key') &&
+                                                    element.getAttribute('modifier-key').toLowerCase() === 'meta' &&
+                                                    event.metaKey &&
+                                                    !event.altKey &&
+                                                    !event.ctrlKey
+                                                ) ||
+                                                (
+                                                    !element.hasAttribute('modifier-key') &&
+                                                    !event.metaKey &&
+                                                    !event.altKey &&
+                                                    !event.ctrlKey
+                                                )
+                                            ) &&
+                                            (document.activeElement.tagName.toLowerCase() !== 'input' || document.activeElement.className === 'hidden-focus-control' || strKey.length > 0) &&
+                                            (document.activeElement.tagName.toLowerCase() !== 'textarea' || document.activeElement.className === 'hidden-focus-control' || strKey.length > 0) &&
+                                            (!bolDialog || parentDialog === arrDialog[arrDialog.length - 1])
                                         )
                                     )
                                 ) {
@@ -17626,6 +18247,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                 
                                 element.focus();
                                 GS.triggerEvent(element, 'click');
+                                if (element.getAttribute('href')) {
+                                    window.open(element.getAttribute('href'), element.getAttribute('target') || '_blank');
+                                }
                             }
                         });
                         
@@ -17991,7 +18615,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (
                     !this.hasAttribute('suspend-created') &&
                     !this.hasAttribute('suspend-inserted') &&
-                    !this.hasAttribute('readonly')
+                    !this.hasAttribute('readonly') &&
+                    !this.hasAttribute('disabled')
                 ) {
                     this.classList.add('down');
                 }
@@ -18011,7 +18636,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (
                     !this.hasAttribute('suspend-created') &&
                     !this.hasAttribute('suspend-inserted') &&
-                    !this.hasAttribute('readonly')
+                    !this.hasAttribute('readonly') &&
+                    !this.hasAttribute('disabled')
                 ) {
                     bolTripleState = this.hasAttribute('triplestate');
                     strValue = this.getAttribute('value').trim().toLowerCase();
@@ -18092,7 +18718,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (
                     !this.hasAttribute('suspend-created') &&
                     !this.hasAttribute('suspend-inserted') &&
-                    !this.hasAttribute('readonly')
+                    !this.hasAttribute('readonly') &&
+                    !this.hasAttribute('disabled')
                 ) {
                     // if we pressed return (13) or space (32)
                     if (event.keyCode === 13 || event.keyCode === 32) {
@@ -18251,6 +18878,7 @@ window.addEventListener('design-register-element', function () {
     window.designElementProperty_GSCOMBO = function (selected) {
         addGSControlProps();
         addDataAttributes('select');
+        addText('V', 'Dropdown Width', 'dropdown-width');
         addText('V', 'Hide Columns', 'hide');
         addText('D', 'Null String', 'null-string');
         addFocusEvents();
@@ -18369,9 +18997,11 @@ document.addEventListener('DOMContentLoaded', function () {
             cell_len = arrCells.length;
             while (cell_i < cell_len) {
                 cell = arrCells[cell_i];
+                // NOTE: If there is no source, then we do the static data stuff
+                // Nunzio on 2021-09-20
 
                 // if there's only one record, just use it as the template.
-                if (i === 0 && len === 1) {
+                if (i === 0 && len === 1 && element.hasAttribute('src')) {
                     strCells += (
                         '<gs-cell ' + (
                             arrRows[i].getAttribute('value')
@@ -18388,7 +19018,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      template for the developer. We use {{= because the data
                 //      is going to contain the cell html in it. So, we don't
                 //      want to html encode the developer's html with {{!
-                } else if (i === 0 && len > 1) {
+                } else if (i === 0 && (len > 1 || !element.hasAttribute('src'))) {
                     if (
                         cell_i === firstCellNumber &&
                         arrRows[i].hasAttribute('value')
@@ -18419,7 +19049,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // if there's more than one record, we need to start storing
                 //      data, because the developer has opted for a local
                 //      combobox, not one that loads from the database
-                if (len > 1) {
+                if (len > 1 || !element.hasAttribute('src')) {
                     if (
                         cell_i === firstCellNumber &&
                         arrRows[i].hasAttribute('value')
@@ -18478,6 +19108,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // shorcut variables
         jsnDisp = element.internalDisplay;
         control = element.elems.control;
+        //console.log('lastPublishedIndex', jsnDisp.lastPublishedIndex
+        //    , 'lastVerifiedIndex', jsnDisp.lastVerifiedIndex);
+        //console.log('lastPublishedValue', jsnDisp.lastPublishedValue
+        //    , 'lastVerifiedValue', jsnDisp.lastVerifiedValue);
+        //console.log('lastPublishedDisplay', jsnDisp.lastPublishedDisplay
+        //    , 'lastVerifiedDisplay', jsnDisp.lastVerifiedDisplay);
 
         // the published value is always filled with the last verified value on
         //      entering the field, if the verified value is different from the
@@ -18499,18 +19135,58 @@ document.addEventListener('DOMContentLoaded', function () {
             //console.log('4:', control.value);
             //console.log('5:', element.value);
             //console.log('6:', element.getAttribute('value'));
-
+/*
             if (
                 element.hasAttribute('limit-to-list') &&
-                jsnDisp.lastVerifiedIndex === null
+                jsnDisp.lastVerifiedIndex === null &&
+                jsnDisp.lastVerifiedDisplay !== ''
             ) {
                 alert('The text you entered is not in the list');
                 openDropDown(element);
                 GS.setInputSelection(control, 0, control.value.length);
             }
+*/
 
-            // trigger event
-            GS.triggerEvent(element, 'change');
+            // ############ cross' version 2 ############
+            // if limit to list, and no value has been selected from the list
+            if (
+                element.hasAttribute('limit-to-list') &&
+                jsnDisp.lastVerifiedIndex === null
+            ) {
+                if (element.hasAttribute('allow-empty')) {
+                    // if the "allow-empty" attribute has a value, that is the
+                    //      default "empty" value, otherwise, set to empty
+                    //      string
+                    control.value = (element.getAttribute('allow-empty') || '');
+                    element.value = (element.getAttribute('allow-empty') || '');
+
+                } else if (jsnDisp.lastVerifiedDisplay !== '') {
+                    alert('The text you entered is not in the list.');
+                    openDropDown(element);
+                    GS.setInputSelection(control, 0, control.value.length);
+
+                    // if we have a limit to list error, we want to exit the
+                    //      function to prevent the change event from triggering
+                    //      and causing a database update when we have an
+                    //      invalid value
+                    return;
+                }
+            }
+
+            // we don't want to trigger a change if it's empty, when limit to
+            //      list is triggered, because it will cause an update to the
+            //      database, which (if the column doesn't allow empty string)
+            //      could cause a database error on top of the limit-to-list
+            //      error, stacking errors when the first error is all the user
+            //      needs.
+            if (
+                !element.hasAttribute('limit-to-list') ||
+                element.hasAttribute('allow-empty') ||
+                element.value
+            ) {
+                // trigger event
+                GS.triggerEvent(element, 'change');
+            }
         }
     }
 
@@ -18678,14 +19354,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // if partial, perform startswith match
+            // Nunzio commented out the value search on 2021-10-13
+            // this is because if the value column is hidden,
+            //      it should not be searched
             if (
                 bolPartial &&
                 (
-                    (
-                        valueTemplate &&
-                        valueRendered.toLowerCase().indexOf(currValue) === 0
-                    ) ||
-                    (displayRendered.toLowerCase().indexOf(currDisplay) === 0)
+                    // (
+                    //     valueTemplate &&
+                    //     valueRendered.toLowerCase().indexOf(currValue) === 0
+                    // ) ||
+                    displayRendered.toLowerCase().indexOf(currDisplay) === 0
                 )
             ) {
                 bolFound = true;
@@ -18772,9 +19451,16 @@ document.addEventListener('DOMContentLoaded', function () {
         var finalValue;
         var finalDisplay;
         var jsnRecord;
+        //console.log(element);
 
         // get selected row number from table
         intRow = getSelectedRowFromDropdown(element);
+        //console.log(
+        //    intRow,
+        //    element.elems.gsTable.internalSelection.ranges,
+        //    element.elems.gsTable.internalData.records,
+        //    element.internalData.records
+        //);
 
         // we don't want to do anything if there's no selection we can use
         if (intRow === null) {
@@ -18818,6 +19504,7 @@ document.addEventListener('DOMContentLoaded', function () {
             valueRendered = valueFunc(jsnRecord);
         }
         displayRendered = displayFunc(jsnRecord);
+        //console.log(valueRendered, displayRendered);
 
         finalValue = (valueRendered || displayRendered);
         finalDisplay = (displayRendered);
@@ -18883,6 +19570,12 @@ document.addEventListener('DOMContentLoaded', function () {
             // remove "open" combo status
             element.classList.remove('open');
             element.internalDisplay.open = false;
+
+            // THIS BROKE THE COMBO!!!!
+            //    WTF? IT WON'T TRIGGER A CHANGE IF YOU HAVE THIS?!!!!
+            //    WHY!?!?!?!?!?!??! 7/1/22 -cross
+            // make sure focus is in control
+            // element.elems.control.focus();
         }
     }
 
@@ -18964,6 +19657,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var intComboToBottom;
         var intComboToTop;
 
+        var intDropdownWidth;
+
         var strWidth = '';
         var strHeight = '';
         var strLeft = '';
@@ -19024,8 +19719,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // let's calculate width and horizontal position
 
+        // we need to try to expand the box depending on total width of columns
+
         // If we got lots of room, cap the width
-        if (intWindowWidth > 400) {
+        if (element.internalDisplay.definedDropdownWidth) {
+            intDropdownWidth = GS.sizeToPx(
+                element,
+                element.internalDisplay.definedDropdownWidth
+            );
+            intDropdownWidth = Math.min(intDropdownWidth, intWindowWidth);
+
+            strWidth = intDropdownWidth + 'px';
+            strLeft = Math.max(
+                ((intComboLeft + intComboWidth) - intDropdownWidth),
+                0
+            ) + 'px';
+
+        } else if (intWindowWidth > 400 && intComboWidth > 400) {
+            strWidth = intComboWidth + 'px';
+            strLeft = Math.max(intComboLeft, 0) + 'px';
+
+        } else if (intWindowWidth > 400) {
             strWidth = '300px';
             strLeft = Math.max(
                 ((intComboLeft + intComboWidth) - 300),
@@ -19068,6 +19782,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var len;
         var intMaxTop;
         var control;
+        var strHeight;
         var recordHeight;
 
         // no sense opening the dropdown twice, also no sense opening the
@@ -19117,6 +19832,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 // gather templates
                 strHeader = element.internalTemplates.header;
                 strRow = element.internalTemplates.row;
+                if (element.hasAttribute('default-cell-height')) {
+                    strHeight = 'default-cell-height="' + element.getAttribute('default-cell-height') + '"';
+                } else {
+                    strHeight = '';
+                }
+
+
 
                 // fill dropdown with table, we use the GS-TABLE here so that
                 //      we don't have to code table rendering all over again.
@@ -19133,6 +19855,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 no-column-reorder  no-context-menu
                                 column-auto-resize no-column-dropdown
                                 no-force-select    no-copy
+                                {{STRHEIGHT}}
                             >
                                 <template for="header-record">
                                     {{HEADER}}
@@ -19144,6 +19867,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         })
                             .replace(/\{\{HEADER\}\}/gi, strHeader)
                             .replace(/\{\{DATA\}\}/gi, strRow)
+                            .replace(/\{\{STRHEIGHT\}\}/gi, strHeight)
                     )
                 );
 
@@ -19255,7 +19979,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // GS-COMBO elements that are connected to Envelope need to have "pk"
         //      attribute
-        if (element.getAttribute('src')) {
+        if (element.getAttribute('src')
+                && element.getAttribute('src')[0] !== '(') {
             // split "src" into "schema" and "object" attributes
             arrParts = GS.templateWithQuerystring(
                 element.getAttribute('src')
@@ -19284,6 +20009,11 @@ document.addEventListener('DOMContentLoaded', function () {
             //      attributes
             element.setAttribute('schema', arrParts[0]);
             element.setAttribute('object', arrParts[1]);
+        } else if (element.getAttribute('src')
+                && element.getAttribute('src')[0] === '(') {
+            element.setAttribute('object', GS.templateWithQuerystring(
+                element.getAttribute('src')
+            ));
         }
 
         // default null string attribute
@@ -19365,7 +20095,9 @@ document.addEventListener('DOMContentLoaded', function () {
             "lastVerifiedDisplay": undefined,
 
             // we want to maintain information about the last search
-            "lastNotFoundSearch": undefined
+            "lastNotFoundSearch": undefined,
+
+            "definedDropdownWidth": undefined
         };
 
         // we need a place to store selection information
@@ -19582,6 +20314,13 @@ document.addEventListener('DOMContentLoaded', function () {
             element.elems.control.setAttribute('spellcheck', 'false');
         }
 
+        // we allow users to define the dropdown width
+        if (element.hasAttribute('dropdown-width')) {
+            element.internalDisplay.definedDropdownWidth = (
+                element.getAttribute('dropdown-width')
+            );
+        }
+
         // if this combobox has an id, the control should have a related id
         if (element.hasAttribute('id')) {
             element.elems.control.setAttribute(
@@ -19728,6 +20467,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.elems.control.value = finalDisplay;
                 element.setAttribute('value', finalValue);
             }
+        }
+
+        var arrAttributes = [
+            'placeholder', 'name', 'maxlength', 'autofocus', 'readonly', 'title'
+        ];
+
+        var i = 0;
+        var len = arrAttributes.length;
+        while (i < len) {
+            if (element.hasAttribute(arrAttributes[i])) {
+                element.elems.control.setAttribute(
+                    arrAttributes[i],
+                    (element.getAttribute(arrAttributes[i]) || '')
+                );
+            } else {
+                element.elems.control.removeAttribute(arrAttributes[i]);
+            }
+            i += 1;
         }
     }
 
@@ -20259,6 +21016,18 @@ document.addEventListener('DOMContentLoaded', function () {
         element.internalEvents.change = function () {
             event.preventDefault();
             event.stopPropagation();
+            // Nunzio added this on 2021-10-12, see below
+            if (!element.hasAttribute('limit-to-list')
+                    && element.internalDisplay.lastVerifiedDisplay !==
+                    element.control.value) {
+                element.internalDisplay.lastVerifiedDisplay =
+                        element.control.value;
+            }
+
+            // Nunzio added this on 2021-07-03
+            // Change events weren't getting triggered when
+            // typing instead of selecting from the dropdown
+            triggerChangeIfNeeded(element);
         };
         element.elems.control.addEventListener(
             'change',
@@ -20276,11 +21045,16 @@ document.addEventListener('DOMContentLoaded', function () {
             'keyup',
             element.internalEvents.keyup
         );
+        element.elems.control.removeEventListener(
+            'paste',
+            element.internalEvents.paste
+        );
     }
     function bindKey(element) {
         element.internalEvents.keydown = function (event) {
             var key = (event.keyCode || event.which);
-            var mod = (event.shiftKey || event.metaKey || event.ctrlKey);
+            var shft = event.shiftKey;
+            var mod = (event.metaKey || event.ctrlKey);
             var del = (key === 46 || key === 8);
             var keyLeft = (key === 37);
             var keyUp = (key === 38);
@@ -20357,7 +21131,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if ((keyRight || key === 13 || key === 9) && !mod) {
                 if (element.internalDisplay.open) {
                     closeDropDown(element);
-
                     triggerChangeIfNeeded(element);
                 }
 
@@ -20388,20 +21161,45 @@ document.addEventListener('DOMContentLoaded', function () {
                     closeDropDown(element);
                 }
 
-            // not modifier, delete or arrow keys, allow paste
+            // (not modifier, delete or arrow keys) OR (paste)
             } else if (
                 (!mod && !del && !arr) ||
                 // allow paste otherwise pasting a value and leaving the combo
                 //      won't trigger resize because the verified value wont be
                 //      updated.
-                (mod && key === 86) // CMD/CTRL - V
+                (!shft && mod && key === 86 && event.pasteEvent) // CMD/CTRL - V
             ) {
                 // we only want to search the records on keyup, because it
                 //      can be resource intensive. So, if we're not using a
                 //      modifier key, delete key, or arrow key, then we want
                 //      to search on the next keyup.
                 element.internalEvents.searchNextKeyUp = true;
+
+            // if delete key
+            } else if (del) {
+                // we only want to search the records on keyup, because it
+                //      can be resource intensive. So, if we're not using a
+                //      modifier key, delete key, or arrow key, then we want
+                //      to search on the next keyup.
+                element.internalEvents.searchNextKeyUpDelete = true;
             }
+        };
+        element.internalEvents.paste = function () {
+            var controlElem = this;
+            setTimeout(function() {
+                console.log('this.value: ' + controlElem.value);
+                console.log('element.control.value: ' + element.control.value);
+                GS.triggerEvent(controlElem, 'keydown', {
+                    "keyCode": 86,
+                    "metaKey": true,
+                    "pasteEvent": true
+                });
+                GS.triggerEvent(controlElem, 'keyup', {
+                    "keyCode": 86,
+                    "metaKey": true,
+                    "pasteEvent": true
+                });
+            }, 5);
         };
         element.internalEvents.keyup = function () {
             var intLastIndex;
@@ -20423,6 +21221,10 @@ document.addEventListener('DOMContentLoaded', function () {
             intLastIndex = element.internalDisplay.lastVerifiedIndex;
             strLastDisplay = element.internalDisplay.lastVerifiedDisplay;
 
+            console.log('strSearch: ' + strSearch);
+            console.log('jsnSelection: ' + jsnSelection);
+            console.log('intLastIndex: ' + intLastIndex);
+            console.log('strLastDisplay: ' + strLastDisplay);
             // we want to prevent extra searching if we can, because with lots
             //      of data it can get pretty intensive
             if (
@@ -20433,6 +21235,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 strSearch &&
                 strLastDisplay.indexOf(strSearch) === 0
             ) {
+                //console.log('prefill the rest of the value');
                 // prefill the rest of the value
                 element.elems.control.value = strLastDisplay;
 
@@ -20457,6 +21260,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     element.internalDisplay.lastNotFoundSearch
                 ) === -1
             ) {
+                //console.log('perform partial search through our data');
                 // perform partial search through our data
                 jsnSearch = findRecord(element, strSearch, strSearch, true);
 
@@ -20507,14 +21311,70 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // not in the list, no searching
             } else if (element.internalEvents.searchNextKeyUp) {
+                //console.log('save current display value for the changeevent');
                 // save current display value for the change event
                 strLastDisplay = element.elems.control.value;
                 element.internalDisplay.lastVerifiedIndex = null;
                 element.internalDisplay.lastVerifiedValue = strLastDisplay;
                 element.internalDisplay.lastVerifiedDisplay = strLastDisplay;
+
+            // if we are clearing the field
+            } else if (!strSearch) {
+                //console.log('save current display value for the changeevent');
+                // save current display value for the change event
+                strLastDisplay = element.elems.control.value;
+                element.internalDisplay.lastVerifiedIndex = null;
+                element.internalDisplay.lastVerifiedValue = strLastDisplay;
+                element.internalDisplay.lastVerifiedDisplay = strLastDisplay;
+                element.value = '';
+
+            // on delete, we want to search for items in case they match the
+            //      list
+            } else if (element.internalEvents.searchNextKeyUpDelete) {
+                // // get search string
+                // strSearch = element.elems.control.value;
+
+                // // perform partial search through our data (exact was looking
+                // //  for a complete match, not the start matching up)
+                // jsnSearch = findRecord(element, strSearch, strSearch, true);
+
+                // if (jsnSearch.found) {
+                //     strValue = jsnSearch.value;
+                //     strDisplay = jsnSearch.display;
+                // } else {
+                //     strValue = strSearch;
+                //     strDisplay = strSearch;
+
+                //     // we don't want to search next key if this search didn't
+                //     //      find anything
+                //     element.internalDisplay.lastNotFoundSearch = strSearch;
+                // }
+
+                // // save search results as the last verified value, this will be
+                // //      important if we try to trigger a change
+                // element.internalDisplay.lastVerifiedIndex = jsnSearch.index;
+                // element.internalDisplay.lastVerifiedValue = strValue;
+                // element.internalDisplay.lastVerifiedDisplay = strDisplay;
+
+                // // prefill the rest of the value
+                // // might need to comment out these two lines below, might've
+                // //      been misbehaving due to previous exact search which we
+                // //      have now changed to partial - Michael/Cross 6/6/2022
+                // element.elems.control.value = strDisplay;
+                // element.setAttribute('value', strValue);
+                // element.internalEvents.searchNextKeyUpDelete = false;
+
+                // if we are deleting, we shouldnt be autocompleting
+                //      - Michael 7/1/2022
+                strSearch = element.elems.control.value;
+                element.internalDisplay.lastVerifiedIndex = null;
+                element.internalDisplay.lastVerifiedValue = strSearch;
+                element.internalDisplay.lastVerifiedDisplay = strSearch;
             }
 
+            // reset for next cycle
             element.internalEvents.searchNextKeyUp = false;
+            element.internalEvents.searchNextKeyUpDelete = false;
         };
 
         element.elems.control.addEventListener(
@@ -20524,6 +21384,10 @@ document.addEventListener('DOMContentLoaded', function () {
         element.elems.control.addEventListener(
             'keyup',
             element.internalEvents.keyup
+        );
+        element.elems.control.addEventListener(
+            'paste',
+            element.internalEvents.paste
         );
     }
 
@@ -20539,7 +21403,14 @@ document.addEventListener('DOMContentLoaded', function () {
             // if this click propagates/bubbles, it triggers the close drop down
             //      code. Because, we want to close the dropdown after the first
             //      registered click.
-            event.stopPropagation();
+            //event.stopPropagation();
+            // for some reason, in a gs-table the stopPropagation is not enough
+            // Nunzio on 2022-01-10
+            //event.preventDefault();
+
+            // prevent this event from bubbling up and triggering the dropdown
+            //      close code (we exclude events that have "gs" set to true
+            event.gs = true;
 
             // time to toggle
             toggleDropdown(element);
@@ -20548,6 +21419,21 @@ document.addEventListener('DOMContentLoaded', function () {
         element.elems.button.addEventListener(
             'click',
             element.internalEvents.dropdownClick
+        );
+
+        // for an unknown reason, clicking on the dropdown causes a click on the
+        //      control. It cannot bubble up to it, but it's there, and it
+        //      causes the dropdown to close. So, we're tagging it as a GS
+        //      event to prevent it from closing the dropdown in GS tables.
+        element.internalEvents.dropdownClick2 = function () {
+            //event.stopPropagation();
+            //event.preventDefault();
+            event.gs = true;
+        };
+
+        element.elems.control.addEventListener(
+            'click',
+            element.internalEvents.dropdownClick2
         );
     }
 
@@ -20670,7 +21556,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     !element.hasAttribute('suspend-created') &&
                     !element.hasAttribute('suspend-inserted')
                 ) {
-                    if (attr === 'value') {
+                    var arrAttributes = [
+                        'placeholder', 'name', 'maxlength', 'autofocus', 'readonly', 'title'
+                    ];
+                    if (attr === 'value' || arrAttributes.indexOf(attr) > -1) {
                         renderControl(element);
                     }
                 }
@@ -20690,7 +21579,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     return this.getAttribute('value');
                 },
                 'set': function (newValue) {
-                    this.setAttribute('value', newValue);
+                    if (newValue === null || newValue === '') {
+                        this.elems.control.value = '';
+                        this.setAttribute('value', '');
+                    } else {
+                        this.setAttribute('value', newValue);
+                    }
                 }
             },
 
@@ -20702,6 +21596,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 'set': function (newValue) {
                     this.setAttribute('value', newValue);
+                }
+            },
+
+            // sometimes, we want to know if the current value is custom from
+            //      the user or found in the dropdown list, this accessor
+            //      returns true if the value is found in the dropdown
+            'valueIsFromDropdown': {
+                'get': function () {
+                    return this.internalDisplay.lastVerifiedIndex !== null;
+                },
+                'set': function () {//newValue
+                    //this.setAttribute('value', newValue);
                 }
             }
         },
@@ -20718,9 +21624,13 @@ document.addEventListener('DOMContentLoaded', function () {
             'destroy': function () {
                 var element = this;
 
+                // sometimes, the element is destroyed before it's initialized
                 // sometimes, the element gets destroyed multiple times.
                 //      we don't want to cause any errors when this happens.
-                if (element.elems.control) {
+                if (element.elems && element.elems.control) {
+                    //close the dropdown
+                    closeDropDown(this);
+
                     // prevent the element from recieving any events
                     unbindElement(element);
 
@@ -20748,11 +21658,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 // we want to run a callback without binding to every
                 //      after_select. So, it'll unbind itself after the first
                 //      call.
-                singleUseEvent = function () {
-                    callback();
-                    this.removeEventListener('after_select', singleUseEvent);
-                };
-                this.addEventListener('after_select', singleUseEvent);
+                if (callback) {
+                    singleUseEvent = function () {
+                        callback();
+                        this.removeEventListener('after_select', singleUseEvent);
+                    };
+                    this.addEventListener('after_select', singleUseEvent);
+                }
 
                 // we cache select results for comboboxes. So, we need to make
                 //      sure to clear the cache before we reselect.
@@ -24950,6 +25862,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     ? '\t'
                     : ''
             ) + GS.encodeForTabDelimited(target.value, element.nullString);
+            console.log(target.value, element.nullString, GS.encodeForTabDelimited(target.value, element.nullString));
 
             strUpdateData = (strRoles + '\n' + strColumns + '\n' + strRecord + '\n');
             updateRecords(element, strHashColumns, strUpdateData, [updateRecord], false);
@@ -25328,7 +26241,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.hasAttribute('null-string')) {
                     element.nullString = element.getAttribute('null-string') || '';
                 } else {
-                    element.nullString = 'NULL';
+                    element.nullString = '';
                 }
 
                 prepareElement(element);
@@ -25778,92 +26691,92 @@ document.addEventListener('DOMContentLoaded', function () {
         // fix date being off by one day by replacing the dashes with slashes
         strInputValue = strInputValue.replace(/-/, '/')  // replace first dash with forward slash
                                      .replace(/-/, '/'); // replace second dash with forward slash
-        
+
         dteCurrent = new Date(strInputValue);
-        
+
         if (isNaN(dteCurrent.getTime())) {
             dteCurrent = new Date();
         }
-        
+
         element.datePickerButton.setAttribute('selected', '');
-        
+
         // if no date was sent
         if (!dteDate) {
             // try using the value from the input
             if (element.control.value) {
                 dteDate = dteCurrent;
                 bolSelectOrigin = true;
-                
+
             // else just use now
             } else {
                 dteDate = new Date();
             }
         }
-        
+
         //if we are in the current month and year, Highlight the day we are on
         if (dteDate.getMonth() === dteCurrent.getMonth() && dteDate.getFullYear() === dteCurrent.getFullYear()) {
             bolSelectOrigin = true;
         }
-        
+
         // set html using date
-        strHTML = getContentForDatePicker(dteDate, bolSelectOrigin);
-        
+        strHTML = getContentForDatePicker(element, dteDate, bolSelectOrigin);
+
         divElement.innerHTML =  '<div class="gs-date-date-picker-container" gs-dynamic>' +
                                     '<div class="gs-date-date-picker" gs-dynamic>' + strHTML + '</div>' +
                                 '</div>';
-        
+
         datePickerContainer = divElement.children[0];
         element.datePickerContainer = datePickerContainer;
-        
+
         datePicker = datePickerContainer.children[0];
-        
+
         document.body.appendChild(datePickerContainer);
-        
+
         // position datePickerContainer
         intTop = jsnOffset.top + element.offsetHeight;
-        
+
         if (intTop + datePicker.offsetHeight > window.innerHeight) {
             intTop -= datePicker.offsetHeight;
             intTop -= element.offsetHeight;
-            
+
             if (intTop < 0) {
                 intTop = 0;
             }
         }
-        
+
         datePicker.style.top = intTop + 'px';
-        
+
         // if window width is wider than 450 pixels width AND the date picker will not fall off of the screen:
         if (window.innerWidth > 450 && jsnOffset.left > 450) {
             // datepicker width: 450px; right: calculated;
             datePicker.style.width = '450px';
             datePicker.style.right = window.innerWidth - (jsnOffset.left + element.datePickerButton.offsetWidth) + 'px';
-            
+
         // if window width is wider than 450 pixels width AND the date picker will not fall off of the screen:
         } else if (window.innerWidth > 450 && jsnOffset.left <= 450) {
             // datepicker width: 450px; right: calculated;
             datePicker.style.width = '450px';
             datePicker.style.left = jsnControlOffset.left + 'px';
-            
+
         // else:
         } else {
             // datepicker width: 96%; right: 2%;
             datePicker.style.width = '96%';
             datePicker.style.right = '2%';
         }
-        
+
         // next month, previous month, next year, previous year click events
         datePickerContainer.getElementsByClassName('prev-month')[0].addEventListener('click', function () {
-            dteDate.setMonth((dteDate.getMonth() - 1 < 0 ? 11 : dteDate.getMonth() - 1));
+            dteDate.setMonth(dteDate.getMonth() - 1);
             closeDatePicker(element);
             openDatePicker(element, dteDate);
         });
         datePickerContainer.getElementsByClassName('next-month')[0].addEventListener('click', function () {
             var i, oldMonth;
-            
+
             oldMonth = dteDate.getMonth();
-            dteDate.setMonth((oldMonth + 1 > 11 ? 0 : oldMonth + 1));
-            
+            dteDate.setMonth(oldMonth + 1);
+
             // if a month is skipped (no need to worry about the loop back to january because december and january both seem to have 31 days)
             if (dteDate.getMonth() === oldMonth + 2) {
                 // loop backwards until we reach the correct month
@@ -25873,7 +26786,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     i += 1;
                 }
             }
-            
+
             closeDatePicker(element);
             openDatePicker(element, dteDate);
         });
@@ -25887,14 +26800,14 @@ document.addEventListener('DOMContentLoaded', function () {
             closeDatePicker(element);
             openDatePicker(element, dteDate);
         });
-        
+
         // background click event
         datePickerContainer.addEventListener('click', function (event) {
             if (event.target.classList.contains('gs-date-date-picker-container')) {
                 closeDatePicker(element);
             }
         });
-        
+
         // month-letter click event
         datePickerContainer.addEventListener('click', function (event) {
             if (event.target.classList.contains('month-letter')) {
@@ -25903,43 +26816,58 @@ document.addEventListener('DOMContentLoaded', function () {
                 openDatePicker(element, dteDate);
             }
         });
-        
+
         // date click events
         dateClickHandler = function () {
             var dteNewDate = new Date(this.getAttribute('data-date'));
-            
+
             closeDatePicker(element);
-            
+
             element.value = (dteNewDate.getMonth() + 1) + '/' + dteNewDate.getDate() + '/' + dteNewDate.getFullYear();
             //console.trace('test', element.value);
             handleFormat(element);
             xtag.fireEvent(element, 'change', { bubbles: true, cancelable: true });
         };
-        
+
         arrDateButtons = datePickerContainer.getElementsByClassName('day-marker');
-        
+
         for (i = 0, len = arrDateButtons.length; i < len; i += 1) {
             arrDateButtons[i].addEventListener('click', dateClickHandler);
         }
     }
-    
+
     function closeDatePicker(element) {
         element.datePickerButton.removeAttribute('selected');
         document.body.removeChild(element.datePickerContainer);
     }
-    
-    function getContentForDatePicker(originDate, bolSelectOrigin) {
-        var strHTML = '', i, looperDate, lookaheadDate, intFirstDayOfWeek = 0, dteToday = new Date(),
-            arrDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-            arrShortDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-            arrMonths = [
-                'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
-            ];
+
+    function getContentForDatePicker(element, originDate, bolSelectOrigin) {
+        var strHTML = '', i, looperDate, lookaheadDate, intFirstDayOfWeek = 0, dteToday = new Date();
         
+        
+        if (element.hasAttribute('spanish')) {
+            var arrDays = ['Domingo', 'Lune', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            var arrShortDays = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+            var arrMonths = [
+                    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                ];
+        } else {
+            var arrDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            var arrShortDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+            var arrMonths = [
+                    'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
+                ];
+        }
+
         looperDate = new Date(originDate);
         looperDate.setDate(1);
-        
-        strHTML =   '<gs-button class="month-letter" month="0">J</gs-button>' +
+
+        if (element.hasAttribute('spanish')) {
+            strHTML =   '<gs-button class="month-letter" month="0">E</gs-button>';
+        } else {
+            strHTML =   '<gs-button class="month-letter" month="0">J</gs-button>';
+        }
+        strHTML = strHTML +
                     '<gs-button class="month-letter" month="1">F</gs-button>' +
                     '<gs-button class="month-letter" month="2">M</gs-button>' +
                     '<gs-button class="month-letter" month="3">A</gs-button>' +
@@ -25961,38 +26889,37 @@ document.addEventListener('DOMContentLoaded', function () {
                         '<span flex gs-dynamic>' + originDate.getFullYear() + '</span>' +
                         '<gs-button class="next-year" inline icononly icon="arrow-right" gs-dynamic>Next</gs-button>' +
                     '</div>';
-        
         if (!isNaN(looperDate.getTime())) {
-            
+
             // reverse back to the previous intFirstDayOfWeek
             i = 0;
             while (looperDate.getDay() !== intFirstDayOfWeek && i < 20) {
                 looperDate.setDate(looperDate.getDate() - 1);
-                
+
                 i += 1;
             }
             //console.log(looperDate);
-            
+
             // add day of week markers
             strHTML += '<div class="date-picker-divider" gs-dynamic></div><div class="day-of-week-markers-container" gs-dynamic>';
             for (i = 0; i < 7; i += 1) {
                 strHTML += '<div class="day-of-week-marker" gs-dynamic>' + arrShortDays[i] + '</div>';
             }
             strHTML += '</div>';
-            
+
             // loop through till at least the end of the month (or further to find the day that is before the next intFirstDayOfWeek)
             i = 0;
-            
+
             lookaheadDate = new Date(looperDate);
             lookaheadDate.setDate(lookaheadDate.getDate() + 1);
-            
+
             while (!(looperDate.getDay()         === intFirstDayOfWeek &&
                     (looperDate.getMonth()       !== originDate.getMonth() && i > 0) &&
                      lookaheadDate.getFullYear() >=  originDate.getFullYear()) &&
                    i < 50) {
-                
+
                 strHTML +=  '<gs-button inline class="day-marker';
-                
+
                 if (looperDate.getMonth() !== originDate.getMonth()) {
                     strHTML += ' other-month';
                 }
@@ -26002,11 +26929,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     strHTML += ' today';
                 }
                 strHTML += '"';
-                
+
                 if (looperDate.getTime() === originDate.getTime() && bolSelectOrigin) {
                     strHTML += ' selected ';
                 }
-                
+
                 strHTML +=  'data-date="' + looperDate + '" gs-dynamic>';
                 if (looperDate.getFullYear() === dteToday.getFullYear() &&
                     looperDate.getMonth() === dteToday.getMonth() &&
@@ -26016,9 +26943,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     strHTML += looperDate.getDate();
                 }
                 strHTML += '</gs-button>';
-                
+
                 //console.log(looperDate, lookaheadDate);
-                
+
                 lookaheadDate.setDate(lookaheadDate.getDate() + 1);
                 looperDate.setDate(looperDate.getDate() + 1);
                 i += 1;
@@ -26032,19 +26959,19 @@ document.addEventListener('DOMContentLoaded', function () {
         ///console.log(element.value);
         if (element.value) {
             var dteValue, strValueToFormat = element.value, tempSelection = GS.getInputSelection(element.control);
-    
+
             // if there is a day of the week in the value: remove it
             if (strValueToFormat.match(/monday|tuesday|wednesday|thursday|friday|saturday|sunday/gim)) {
                 strValueToFormat = strValueToFormat.replace(/monday|tuesday|wednesday|thursday|friday|saturday|sunday/gim, '')
                                                    .replace(/  /gim, ' ')
                                                    .trim();
             }
-    
+
             if (strValueToFormat.indexOf(':') !== -1) {
                 strValueToFormat = strValueToFormat.substring(0, strValueToFormat.indexOf(':'));
                 strValueToFormat = strValueToFormat.substring(0, strValueToFormat.lastIndexOf(' '));
             }
-    
+
             // if there are only six numbers in the field assume that
             //      the first  two are the month
             //      the second two are the day   and
@@ -26053,22 +26980,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 dteValue = new Date(strValueToFormat.substring(0, 2) + '/' +
                                     strValueToFormat.substring(2, 4) + '/' +
                                     strValueToFormat.substring(4, 6));
+
+            // for example: 02012022
+            } else if (strValueToFormat.length === 8 && strValueToFormat.match(/[0-9]/g).join('') === element.value) {
+                dteValue = new Date(strValueToFormat.substring(0, 2) + '/' +
+                                    strValueToFormat.substring(2, 4) + '/' +
+                                    strValueToFormat.substring(4, 8));
+
             } else {
                 //console.log(strValueToFormat.replace(/-/, '/').replace(/-/, '/').replace(/-.*/, ''));
                 dteValue = new Date(strValueToFormat.replace(/-/, '/').replace(/-/, '/').replace(/-.*/, ''));
                 //console.log(dteValue, dteValue.getFullYear());
             }
-            
+
             //console.trace('test', element.value, strValueToFormat, dteValue);
-            
+
             if (isNaN(dteValue.getTime())) {
                 if (bolAlertOnError !== undefined && bolAlertOnError !== false) {
                     alert('Invalid Date: ' + element.value);
                 }
-                
+
                 if (document.activeElement === element.control) {
                     GS.setInputSelection(element.control, tempSelection.start, tempSelection.end);
-                    
+
                     if (event) {
                         if (event.keyCode === GS.keyCode('backspace')) {
                             GS.setInputSelection(element.control, tempSelection.start - 1, tempSelection.start - 1);
@@ -26079,29 +27013,29 @@ document.addEventListener('DOMContentLoaded', function () {
                         event.preventDefault();
                     }
                 }
-                
+
             } else {
                 if (element.control) {
-                    element.control.value = formatDate(dteValue, getFormatString(element));
+                    element.control.value = formatDate(element, dteValue, getFormatString(element));
                     if (document.activeElement === element.control) {
                         GS.setInputSelection(element.control, tempSelection.start, tempSelection.end);
                     }
                 } else {
-                    element.innerHTML = formatDate(dteValue, getFormatString(element));
+                    element.innerHTML = formatDate(element, dteValue, getFormatString(element));
                 }
             }
         } else {
-            return 'NULL';
+            return '\\N';
         }
     }
-    
+
     function getFormatString(element) {
         var strFormat;
-        
+
         if (element.hasAttribute('format')) {
             strFormat = element.getAttribute('format');
         }
-        
+
         if (!strFormat) {
             strFormat = 'MM/dd/yyyy';
         } else if (strFormat.toLowerCase() === 'shortdate') {
@@ -26123,32 +27057,32 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (strFormat.toLowerCase() === 'isodatetime') {
             strFormat = 'yyyy-MM-dd\'T\'HH:mm:ss';
         }
-        
+
         return strFormat;
     }
-    
-    function formatDate(dteValue, strFormat) {
+
+    function formatDate(element, dteValue, strFormat) {
         /* (this function contains a (modified) substantial portion of code from another source
             here is the copyright for sake of legality) (Uses code by Matt Kruse)
         Copyright (c) 2006-2009 Rostislav Hristov, Asual DZZD
-        
-        Permission is hereby granted, free of charge, to any person obtaining a 
-        copy of this software and associated documentation files 
-        (the "Software"), to deal in the Software without restriction, 
-        including without limitation the rights to use, copy, modify, merge, 
-        publish, distribute, sublicense, and/or sell copies of the Software, 
-        and to permit persons to whom the Software is furnished to do so, 
+
+        Permission is hereby granted, free of charge, to any person obtaining a
+        copy of this software and associated documentation files
+        (the "Software"), to deal in the Software without restriction,
+        including without limitation the rights to use, copy, modify, merge,
+        publish, distribute, sublicense, and/or sell copies of the Software,
+        and to permit persons to whom the Software is furnished to do so,
         subject to the following conditions:
-        
-        The above copyright notice and this permission notice shall be included 
+
+        The above copyright notice and this permission notice shall be included
         in all copies or substantial portions of the Software.
-        
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
-        OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
-        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-        IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
-        CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
-        TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+        OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+        IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+        CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+        TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
         SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
         var i = 0, j = 0, l = 0, c = '', token = '', x, y, yearLen,
             formatNumber = function (n, s) {
@@ -26156,22 +27090,34 @@ document.addEventListener('DOMContentLoaded', function () {
                   return (n >= 0 && n < 10 ? '0' : '') + n;
                 } else {
                     if (n >= 0 && n < 10) {
-                       return '00' + n; 
+                       return '00' + n;
                     }
                     if (n >= 10 && n <100) {
                        return '0' + n;
                     }
                     return n;
                 }
-            },
-            locale = {
-                monthsFull:   ['January','February','March','April','May','June', 'July','August','September','October','November','December'],
-                monthsShort:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-                daysFull:     ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-                daysShort:    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
-                shortDateFormat: 'M/d/yyyy h:mm a',
-                longDateFormat: 'EEEE, MMMM dd, yyyy h:mm:ss a'
             };
+
+        if (element.hasAttribute('spanish')) {
+            var locale = {
+                    monthsFull:   ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                    monthsShort:  ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+                    daysFull:     ['Domingo', 'Lune', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+                    daysShort:    ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+                    shortDateFormat: 'M/d/yyyy h:mm a',
+                    longDateFormat: 'EEEE, MMMM dd, yyyy h:mm:ss a'
+                };
+        } else {
+            var locale = {
+                    monthsFull:   ['January','February','March','April','May','June', 'July','August','September','October','November','December'],
+                    monthsShort:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                    daysFull:     ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+                    daysShort:    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+                    shortDateFormat: 'M/d/yyyy h:mm a',
+                    longDateFormat: 'EEEE, MMMM dd, yyyy h:mm:ss a'
+                };
+        }
 
         y = dteValue.getFullYear();
         // Nunzio commented this out on Monday, October 19, 2015
@@ -26187,9 +27133,9 @@ document.addEventListener('DOMContentLoaded', function () {
             m = dteValue.getMinutes(),
             s = dteValue.getSeconds(),
             S = dteValue.getMilliseconds();
-        
+
         //console.log(dteValue.getFullYear());
-        
+
         yearLen = String(y).length;
         dteValue = {
             y: y,
@@ -26206,7 +27152,7 @@ document.addEventListener('DOMContentLoaded', function () {
             H: H,
             HH: formatNumber(H)
         };
-        
+
         //console.log(dteValue);
 
         if (H === 0) {
@@ -26251,7 +27197,7 @@ document.addEventListener('DOMContentLoaded', function () {
         s = false;
 
         while (i < strFormat.length) {
-            token = '';   
+            token = '';
             c = strFormat.charAt(i);
             if (c == '\'') {
                 i++;
@@ -26278,10 +27224,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
-        
+
         return result;
     }
-    
+
     // dont do anything that modifies the element here
     function elementCreated(element) {
         // if "created" hasn't been suspended: run created code
@@ -26295,7 +27241,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 //element.value = undefined;
                 //element.value = null;
             }
-            
+
         }
     }
 
@@ -26323,7 +27269,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
-        
+
         /*
             if (element.hasAttribute('id')) {
                 findFor(element);
@@ -26345,7 +27291,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function elementInserted(element) {
         console.warn('GS-DATE WARNING: this element is deprecated, please use the gs-datetime instead.');
         var today, strQSValue;
-        
+
         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
             // if this is the first time inserted has been run: continue
@@ -26353,27 +27299,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 element.inserted = true;
                 element.internal = {};
                 saveDefaultAttributes(element);
-                
+
                 /*
                 element.addEventListener(evt.mouseout, function (event) {
                     element.classList.remove('hover');
                 });
-                
+
                 element.addEventListener(evt.mouseover, function (event) {
                     element.classList.add('hover');
                 });
                 */
-                
+
                 if (element.hasAttribute('tabindex')) {
                     element.oldTabIndex = element.getAttribute('tabindex');
                     element.removeAttribute('tabindex');
                 }
-                
+
                 if (element.hasAttribute('value') && element.getAttribute('value').trim().toLowerCase() === 'today') {
                     today = new Date();
                     element.setAttribute('value', GS.leftPad(today.getFullYear(), '0', 4) + '/' + GS.leftPad(today.getMonth() + 1, '0', 2) + '/' + GS.leftPad(today.getDate(), '0', 2));
                 }
-                
+
                 // handle "qs" attribute
                 if (element.getAttribute('qs')) {
                     //strQSValue = GS.qryGetVal(GS.getQueryString(), element.getAttribute('qs'));
@@ -26381,19 +27327,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     //if (strQSValue !== '' || !element.getAttribute('value')) {
                     //    element.setAttribute('value', strQSValue);
                     //}
-                    
+
                     pushReplacePopHandler(element);
                     window.addEventListener('pushstate',    function () { pushReplacePopHandler(element); });
                     window.addEventListener('replacestate', function () { pushReplacePopHandler(element); });
                     window.addEventListener('popstate',     function () { pushReplacePopHandler(element); });
                 }
-                
+
                 element.innerHTML = '';
                 element.appendChild(singleLineTemplate.cloneNode(true));
                 if (element.oldTabIndex) {
                     xtag.query(element, '.control')[0].setAttribute('tabindex', element.oldTabIndex);
                 }
-                
+
                 element.refresh();
             }
             if (element.hasAttribute('id')) {
@@ -26401,19 +27347,19 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
-    
+
     function getControlState(element) {
         var jsnTextSelection, intStart, intEnd, strFormat = getFormatString(element),
             strValue = element.control.value, delimiter1index, delimiter2index,
             intCurrentSection, strCurrentSection, arrParts, intCurrentSectionSize;
-        
+
         jsnTextSelection = GS.getInputSelection(element.control);
         intStart = jsnTextSelection.start;
         intEnd = jsnTextSelection.end;
         delimiter1index = (strValue.indexOf('-') === -1 ? strValue.indexOf('/') : strValue.indexOf('-'));
         delimiter2index = (strValue.lastIndexOf('-') === -1 ? strValue.lastIndexOf('/') : strValue.lastIndexOf('-'));
         arrParts = strFormat.split(/[-|/]/g);
-        
+
         // calculate current section number
         if (intStart > delimiter2index) {
             intCurrentSection = 2;
@@ -26422,7 +27368,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             intCurrentSection = 0;
         }
-        
+
         // calculate current part type
         if (arrParts[intCurrentSection].indexOf('y') !== -1) {
             strCurrentSection = 'year';
@@ -26431,7 +27377,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             strCurrentSection = 'day';
         }
-        
+
         // calculate current section size
         if (intCurrentSection === 2) {
             intCurrentSectionSize = (strValue.length) - (delimiter2index + 1);
@@ -26440,7 +27386,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             intCurrentSectionSize = delimiter1index;
         }
-        
+
         return {
             'jsnTextSelection': jsnTextSelection,
             'intStart': intStart,
@@ -26455,30 +27401,31 @@ document.addEventListener('DOMContentLoaded', function () {
             'intCurrentSectionSize': intCurrentSectionSize
         };
     }
-    
+
     xtag.register('gs-date', {
         lifecycle: {
             created: function () {
                 elementCreated(this);
             },
-            
+
             inserted: function () {
                 elementInserted(this);
             },
-            
+
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'suspend-created' && newValue === null) {
                     elementCreated(this);
                     elementInserted(this);
-                    
+
                 // if "suspend-inserted" has been removed: run inserted code
                 } else if (strAttrName === 'suspend-inserted' && newValue === null) {
                     elementInserted(this);
-                    
+
                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
                     if (strAttrName === 'disabled' && newValue !== null) {
-                        this.innerHTML = this.getAttribute('value') || this.getAttribute('placeholder');
+                        // console.log(this.dteValue);
+                        this.innerHTML = this.value ? formatDate(this, new Date(this.value), getFormatString(this)) : this.getAttribute('placeholder');
                     } else if (strAttrName === 'disabled' && newValue === null) {
                         this.innerHTML = '';
                         this.appendChild(singleLineTemplate.cloneNode(true));
@@ -26488,7 +27435,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         this.refresh();
                     } else if (strAttrName === 'value') {
                         //console.log(newValue);
-                        
+
                         // This caused an infinite recursion
                         //this.value = newValue;
                         this.refresh();
@@ -26504,42 +27451,42 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             click: function (event) {
                 var jsnTextSelection, intStart, strFormat, strValue, delimiter1index, delimiter2index;
-                
+
                 if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted') && !this.hasAttribute('readonly')) {
                     jsnTextSelection = GS.getInputSelection(this.control);
                     strFormat = getFormatString(this);
                     strValue = this.control.value;
-                    
+
                     // if format is dash delimited or slash delimited and
                     //      we are not on a touch device
                     if ((/^[M|y]{1,}[/|-]{1}[M|d]{1,}[/|-]{1}[d|y]{1,}$/).test(strFormat) &&
                         (strValue.substring(jsnTextSelection.start, jsnTextSelection.end).match(/[-|/]/g) || []).length === 0 &&
                         !evt.touchDevice) {
-                        
+
                         // if there is a date and it's dash or slash delimited: select date part
                         if ((/^[0-9]{1,}[-]{1}[0-9]{1,}[-]{1}[0-9]{1,}$/).test(strValue) ||
                             (/^[0-9]{1,}[/]{1}[0-9]{1,}[/]{1}[0-9]{1,}$/).test(strValue)) {
-                            
+
                             intStart = jsnTextSelection.start;
                             delimiter1index = (strValue.indexOf('-') === -1 ? strValue.indexOf('/') : strValue.indexOf('-'));
                             delimiter2index = (strValue.lastIndexOf('-') === -1 ? strValue.lastIndexOf('/') : strValue.lastIndexOf('-'));
-                            
+
                             // if greater than second delimeter
                             if (intStart > delimiter2index) {
                                 //console.log('Section 3');
                                 GS.setInputSelection(this.control, delimiter2index + 1, strValue.length);
-                                
+
                             // if in between than first and second delimeter
                             } else if (intStart > delimiter1index && intStart <= delimiter2index) {
                                 //console.log('Section 2');
                                 GS.setInputSelection(this.control, delimiter1index + 1, delimiter2index);
-                                
+
                             // else
                             } else {
                                 //console.log('Section 1');
                                 GS.setInputSelection(this.control, 0, delimiter1index);
                             }
-                            
+
                             //console.log(intStart, delimiter1index, delimiter2index);
                         }
                     }
@@ -26550,27 +27497,27 @@ document.addEventListener('DOMContentLoaded', function () {
                     intKeyCode = (event.keyCode || event.which), delimiter1index, delimiter2index,
                     intCurrentSection, strCurrentSection, arrParts, dteDate, intCurrentSectionSize,
                     jsnState;
-                
+
                 if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted') && !this.hasAttribute('readonly')) {
                     jsnTextSelection = GS.getInputSelection(this.control);
                     strValue = this.control.value;
                     strFormat = getFormatString(this);
-                    
+
                     // if format is dash delimited or slash delimited and
                     //      the selection doesn't encompass a delimeter and
                     //      we are not on a touch device
                     if ((/^[M|y]{1,}[/|-]{1}[M|d]{1,}[/|-]{1}[d|y]{1,}$/).test(strFormat) &&
                         (strValue.substring(jsnTextSelection.start, jsnTextSelection.end).match(/[-|/]/g) || []).length === 0 &&
                         !evt.touchDevice) {
-                        
+
                         // if there is a date and it's dash or slash delimited
                         if ((/^[0-9]{1,}[-]{1}[0-9]{1,}[-]{1}[0-9]{1,}$/).test(strValue) ||
                             (/^[0-9]{1,}[/]{1}[0-9]{1,}[/]{1}[0-9]{1,}$/).test(strValue)) {
-                            
+
                             // if shift, command and option keys are not down
                             if (!event.shiftKey && !event.metaKey && !event.ctrlKey) {
                                 event.stopPropagation();
-                                
+
                                 jsnState = getControlState(this)
                                 jsnTextSelection =      jsnState.jsnTextSelection
                                 intStart =              jsnState.intStart
@@ -26583,7 +27530,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 strCurrentSection =     jsnState.strCurrentSection
                                 arrParts =              jsnState.arrParts
                                 intCurrentSectionSize = jsnState.intCurrentSectionSize
-                                
+
                                 //// log
                                 //console.log('intCurrentSectionSize: ' + intCurrentSectionSize + '\n' +
                                 //            'intCurrentSection:     ' + intCurrentSection + '\n' +
@@ -26594,54 +27541,54 @@ document.addEventListener('DOMContentLoaded', function () {
                                 //            'strValue:              ' + strValue + '\n' +
                                 //            'Selection Start:       ' + jsnTextSelection.start + '\n' +
                                 //            'Selection End:         ' + jsnTextSelection.end);
-                                
+
                                 // if number: replace current date part
                                 if ((intKeyCode >= 96 && intKeyCode <= 105) || // numpad numbers
                                     (intKeyCode >= 48 && intKeyCode <= 57)) {  // other numbers
                                     this.keyupHandle = true;
-                                    
+
                                 // if (/|-):
                                 } else if (intKeyCode === 111 || intKeyCode === 191 || // "/"
                                            intKeyCode === 109 || intKeyCode === 189) { // "-"
                                     // if first part: go to second part
                                     if (intCurrentSection === 0) {
                                         intCurrentSection = 1;
-                                        
+
                                     // if second part: go to third part
                                     } else if (intCurrentSection === 1) {
                                         intCurrentSection = 2;
                                     }
-                                    
+
                                 // if horizontal arrow: move to a different date part
                                 } else if (intKeyCode === 37 || // left arrow
                                            intKeyCode === 39) { // right arrow
                                     //console.log(intCurrentSection, intKeyCode);
-                                    
+
                                     if (intCurrentSection === 2 && intKeyCode === 37) {
                                         intCurrentSection = 1;
-                                        
+
                                     } else if (intCurrentSection === 1) {
                                         if (intKeyCode === 37) {
                                             intCurrentSection = 0;
                                         } else {
                                             intCurrentSection = 2;
                                         }
-                                        
+
                                     } else if (intCurrentSection === 0 && intKeyCode === 39) {
                                         intCurrentSection = 1;
                                     }
-                                    
+
                                 // if vertical arrow: update current date part
                                 } else if (intKeyCode === 38 || // up arrow
                                            intKeyCode === 40) { // down arrow
                                     // If the date is in ISO format, new Date() will create it in GMT then convert it to the local timezone
                                     dteDate = new Date(strValue + ' 00:00:00');
-                                    
+
                                     // if current part is year
                                     if (strCurrentSection === 'year') {
                                         //console.log(dteDate, dteDate.getFullYear(), dteDate.getYear(), (intKeyCode === 38 ? 1 : -1),
                                         //                        dteDate.getYear() + (intKeyCode === 38 ? 1 : -1));
-                                        
+
                                         // We're using "getFullYear" here instead of "getYear" because "getYear" for some unknown reason
                                         //      worked fine before the 29th of october 2015 (that's the date of discovery anyway) but now
                                         //      throws a number over a thousand years off instead of the actual number.
@@ -26650,37 +27597,37 @@ document.addEventListener('DOMContentLoaded', function () {
                                         //      "getFullYear"?
                                         // Still unexplained is why when I tested not more than a week ago it worked without a hitch.
                                         dteDate.setFullYear(dteDate.getFullYear() + (intKeyCode === 38 ? 1 : -1));
-                                        
+
                                         //console.log(dteDate);
-                                        
+
                                     // if current part is month
                                     } else if (strCurrentSection === 'month') {
                                         dteDate.setMonth(dteDate.getMonth() + (intKeyCode === 38 ? 1 : -1));
-                                        
+
                                     // if current part is day
                                     } else if (strCurrentSection === 'day') {
                                         dteDate.setDate(dteDate.getDate() + (intKeyCode === 38 ? 1 : -1));
                                     }
-                                    
+
                                     // set the value
-                                    strValue = formatDate(dteDate, strFormat);
+                                    strValue = formatDate(this, dteDate, strFormat);
                                     this.control.value = strValue;
                                     this.triggerChangeManually = true;
                                 }
-                                
+
                                 if (this.keyupHandle !== true) {
                                     // reset the section selection in case something has changed it
                                     if (intCurrentSection === 2) {
                                         GS.setInputSelection(this.control, delimiter2index + 1, strValue.length);
-                                        
+
                                     } else if (intCurrentSection === 1) {
                                         GS.setInputSelection(this.control, delimiter1index + 1, delimiter2index);
-                                        
+
                                     } else {
                                         GS.setInputSelection(this.control, 0, delimiter1index);
                                     }
                                 }
-                                
+
                                 // if not return or tab or number: prevent
                                 if (!(intKeyCode >= 96 && intKeyCode <= 105) && // numpad numbers
                                     !(intKeyCode >= 48 && intKeyCode <= 57) &&
@@ -26698,15 +27645,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     intKeyCode = (event.keyCode || event.which),
                     delimiter1index, delimiter2index, intCurrentSection, strCurrentSection,
                     arrParts, dteDate, intCurrentSectionSize, jsnState;
-                
+
                 if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted') && !this.hasAttribute('readonly')) {
                     strFormat = getFormatString(this);
-                    
+
                     // if format is dash delimited or slash delimited and
                     //      keyup has been allowed and
                     //      we are not on a touch device
                     if ((/^[M|y]{1,}[/|-]{1}[M|d]{1,}[/|-]{1}[d|y]{1,}$/).test(strFormat) && this.keyupHandle && !evt.touchDevice) {
-                        
+
                         // if shift, command and option keys are not down
                         if (!event.shiftKey && !event.metaKey && !event.ctrlKey) {
                             jsnState = getControlState(this)
@@ -26721,7 +27668,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             strCurrentSection =     jsnState.strCurrentSection
                             arrParts =              jsnState.arrParts
                             intCurrentSectionSize = jsnState.intCurrentSectionSize
-                            
+
                             //// log
                             //console.log('intCurrentSectionSize: ' + intCurrentSectionSize + '\n' +
                             //            'intCurrentSection:     ' + intCurrentSection + '\n' +
@@ -26731,17 +27678,17 @@ document.addEventListener('DOMContentLoaded', function () {
                             //            'strCurrentSection:     ' + strCurrentSection + '\n' +
                             //            'strValue:              ' + strValue + '\n' +
                             //            'strFormat:             ' + strFormat);
-                            
+
                             if ((strCurrentSection === 'day' && intCurrentSectionSize === 2) ||
                                 (strCurrentSection === 'month' && intCurrentSectionSize === 2) ||
                                 (strCurrentSection === 'year' && intCurrentSectionSize === strFormat.match(/y/g).length)) {
-                                
+
                                 if (intCurrentSection === 2) {
                                     GS.setInputSelection(this.control, delimiter2index + 1, strValue.length);
-                                    
+
                                 } else if (intCurrentSection === 1) {
                                     GS.setInputSelection(this.control, delimiter1index + 1, delimiter2index);
-                                    
+
                                 } else {
                                     GS.setInputSelection(this.control, 0, delimiter1index);
                                 }
@@ -26749,7 +27696,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     }
                     this.keyupHandle = false;
-                    
+
                     //console.log(intKeyCode);
                     if (intKeyCode === 13 && this.triggerChangeManually) {
                         this.triggerChangeManually = false;
@@ -26766,8 +27713,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             }
-            
-            
+
+
             /*// on keydown and keyup sync the value attribute and the control value
             keydown: function (event) {
                 var element = this, currentDate, currentSelectionRange, currentSelectionText, currentSelectionNumber, currentSelectionFormatText,
@@ -26775,9 +27722,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     daysOfTheWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
                     monthsOfTheYear = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
                     strKeyCode = event.keyCode.toString();
-                
+
                 currentSelectionRange = GS.getInputSelection(element.control);
-                
+
                 if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
                     if (element.getAttribute('disabled') !== null && event.keyCode !== 9) {
                         event.preventDefault();
@@ -26787,7 +27734,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         //console.log(strKeyCode === GS.keyCode('up arrow')    , GS.keyCode('up arrow'));
                         //console.log(strKeyCode === GS.keyCode('right arrow') , GS.keyCode('right arrow'));
                         //console.log(strKeyCode === GS.keyCode('down arrow')  , GS.keyCode('down arrow'));
-                        
+
                         // When the user presses an arrow key:
                         // It finds the current number that the user has selected
                         //     If they pressed up or down
@@ -26795,7 +27742,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         //     If they pressed left or right
                         //         Move their selection to the left or right depending on what they pressed
                         // Then moves the selection to the current number (handling day/month name length differences)
-                        
+
                         // Fix date format
                         strDateFormat = element.getAttribute('format');
                         //console.log(strDateFormat);
@@ -26820,59 +27767,59 @@ document.addEventListener('DOMContentLoaded', function () {
                         } else if (strDateFormat.toLowerCase() === 'isodatetime') {
                             strDateFormat = 'yyyy-MM-dd\'T\'HH:mm:ss';
                         }
-                        
+
                         formatDivider = strDateFormat.match(/[^mdyehmsa]/gi).join('');
-                        
+
                         currentValue = element.control.value;
                         currentDate = new Date(currentValue.replace('\'T\'', ' ').replace(/-/g, '/'));
-                        
+
                         if (strDateFormat.indexOf('M') === -1) {
                             currentDate = new Date('2015/6/15 ' + currentValue);
                         }
-                        
+
                         arrMatch = strDateFormat.match(/(M|E)+/g);
                         if (arrMatch && arrMatch[0].length > 3) {
                             strDateFormat = strDateFormat.replace(/E+/g, new Array(daysOfTheWeek[currentDate.getDay()].length + 1).join('E'));
                             strDateFormat = strDateFormat.replace(/M+/g, new Array(monthsOfTheYear[currentDate.getDay()].length + 1).join('M'));
                         }
-                        
+
                         // If it was an arrow that was pressed
                         if (strKeyCode === GS.keyCode('left arrow') ||
                             strKeyCode === GS.keyCode('up arrow') ||
                             strKeyCode === GS.keyCode('right arrow') ||
                             strKeyCode === GS.keyCode('down arrow')) {
-                            
+
                             //console.log('test');
-                            
+
                             // Prevent the browser from moving the cursor and prevent envelope from using arrows
                             event.preventDefault();
                             event.stopPropagation();
-                            
+
                             //console.log(currentValue, formatDivider, currentSelectionRange.start, currentSelectionRange.end);
-                            
+
                             // Encompass the field in which the cursor is inside
                             while (currentSelectionRange.start >= 0 && formatDivider.indexOf(currentValue[currentSelectionRange.start - 1]) < 0) {
                                 currentSelectionRange.start -= 1;
                             }
-                            
+
                             currentSelectionRange.end = currentSelectionRange.start;
                             while ( currentSelectionRange.end < currentValue.length &&
                                     formatDivider.indexOf(currentValue[currentSelectionRange.end]) < 0) {
                                 currentSelectionRange.end += 1;
                             }
-                            
+
                             //console.log(currentValue, currentSelectionRange.start, currentSelectionRange.end);
-                            
+
                             GS.setInputSelection(element.control, currentSelectionRange.start, currentSelectionRange.end);
-                            
+
                             currentSelectionText = currentValue.substring(currentSelectionRange.start, currentSelectionRange.end);
                             currentSelectionFormatText = strDateFormat.substring(currentSelectionRange.start, currentSelectionRange.end);
-                            
+
                             // If it is up or down
                             if (strKeyCode === GS.keyCode('up arrow') ||
                                 strKeyCode === GS.keyCode('down arrow')) {
                                 var increment = strKeyCode === GS.keyCode('up arrow') ? 1 : -1;
-                                
+
                                 if (currentSelectionFormatText[0] === 'M') {
                                     currentDate.setMonth(currentDate.getMonth() +       increment);
                                     if ((currentSelectionRange.end - currentSelectionRange.start) > 2) {
@@ -26880,37 +27827,37 @@ document.addEventListener('DOMContentLoaded', function () {
                                     } else {
                                         currentSelectionRange.end = currentSelectionRange.start + currentDate.getMonth().toString().length;
                                     }
-                                    
+
                                 } else if (currentSelectionFormatText[0] === 'd') {
                                     currentDate.setDate(currentDate.getDate() + increment);
                                     currentSelectionRange.end = currentSelectionRange.start + currentDate.getDate().toString().length;
-                                    
+
                                 } else if (currentSelectionFormatText[0] === 'y') {
                                     currentDate.setFullYear(currentDate.getFullYear() + increment);
                                     currentSelectionRange.end = currentSelectionRange.start + currentDate.getFullYear().toString().length;
-                                    
+
                                 } else if (currentSelectionFormatText[0] === 'E') {
                                     currentDate.setDate(currentDate.getDate() + increment);
                                     currentSelectionRange.start = 0;
                                     currentSelectionRange.end = daysOfTheWeek[currentDate.getDay()].length;
-                                    
+
                                 } else if (currentSelectionFormatText[0] === 'h' || currentSelectionFormatText[0] === 'H') {
                                     currentDate.setHours(currentDate.getHours() + increment);
                                     currentSelectionRange.end = currentSelectionRange.start + currentDate.getHours().toString().length;
-                                    
+
                                 } else if (currentSelectionFormatText[0] === 'm') {
                                     currentDate.setMinutes(currentDate.getMinutes() + increment);
                                     currentSelectionRange.end = currentSelectionRange.start + currentDate.getMinutes().toString().length;
-                                    
+
                                 } else if (currentSelectionFormatText[0] === 's') {
                                     currentDate.setSeconds(currentDate.getSeconds() + increment);
                                     currentSelectionRange.end = currentSelectionRange.start + currentDate.getSeconds().toString().length;
-                                    
+
                                 } else if (currentSelectionFormatText[0] === 'a') {
                                     currentDate.setHours(currentDate.getHours() + 12);
                                 }
-                                
-                                newValue = formatDate(currentDate, strDateFormat);
+
+                                newValue = formatDate(element, currentDate, strDateFormat);
                                 this.control.value = newValue;
                                 currentValue = newValue;
                             } else if (strKeyCode === GS.keyCode('left arrow')) {
@@ -26920,7 +27867,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 currentSelectionRange.end = currentSelectionRange.end + 2;
                                 currentSelectionRange.start = currentSelectionRange.end;
                             }
-                            
+
                             // Copied from above
                             arrMatch = strDateFormat.match(/(M|E)+/g);
                             if (arrMatch && arrMatch[0].length > 3) {
@@ -26935,23 +27882,23 @@ document.addEventListener('DOMContentLoaded', function () {
                                     formatDivider.indexOf(currentValue[currentSelectionRange.end]) < 0) {
                                 currentSelectionRange.end += 1;
                             }
-                            
+
                             GS.setInputSelection(element.control, currentSelectionRange.start, currentSelectionRange.end);
-                            
+
                         // All number keys
                         } else if (event.keyCode >= 96 && event.keyCode <= 105) {
                             //// HARK YE ONLOOKER:
                             //// This code caps the number that is inputed by the user to the length that the format allows,
                             //// this will dissallow anyone form entering a year that is > 4 characters unless the
                             //// page's developer allows it in a custom format.
-                            //// 
+                            ////
                             //// This should be fixed around the year 9998 to have all default formats have 5 character years
-                            
+
                             currentSelectionText = currentValue.substring(currentSelectionRange.start, currentSelectionRange.end);
                             currentSelectionFormatText = strDateFormat.substring(currentSelectionRange.start, currentSelectionRange.end);
-                            
+
                             currentValue = element.value;
-                            
+
                             // This is sort of copied from above
                             // There are only two differences:
                             //     the var name
@@ -26967,20 +27914,20 @@ document.addEventListener('DOMContentLoaded', function () {
                                     formatDivider.indexOf(currentValue[currentFieldRange.end]) < 0) {
                                 currentFieldRange.end += 1;
                             }
-                            
+
                             //console.log(currentFieldRange);
-                            
+
                             //console.log(currentValue.substring(0, currentSelectionRange.start));
                             //console.log(GS.charFromKeyCode(event), currentSelectionText, currentSelectionFormatText, currentDate);
                             //console.log(currentValue.substring(currentSelectionRange.end));
-                            
+
                             // This error checking is probably unneeded, but what the hey
                             currentFieldRange.start = Math.max(currentFieldRange.start, 0);
                             arrMatch = strDateFormat.match(strDateFormat[currentFieldRange.start] + '+', 'g');
                             if (arrMatch) {
                                 // Prevent the browser from putting the number in for us
                                 event.preventDefault();
-                                
+
                                 // Get the character that they pressed
                                 newFieldValue = GS.charFromKeyCode(event);
                               //console.log(newFieldValue);
@@ -26988,18 +27935,18 @@ document.addEventListener('DOMContentLoaded', function () {
                                 // all characters in the field except the first one
                                 newFieldValue = currentValue.substring(currentFieldRange.start + 1, currentFieldRange.start + arrMatch[0].length) + newFieldValue;
                               //console.log(newFieldValue, currentValue);
-                                
+
                               //console.log(currentFieldRange.start + 1, currentFieldRange.start + arrMatch[0].length);
-                                
+
                                 // Build the value using the current field range and the new field value we built above
-                                element.value = 
+                                element.value =
                                     currentValue.substring(0, currentFieldRange.start) +
                                     newFieldValue +
                                     currentValue.substring(currentFieldRange.end);
-                                
-                                
+
+
                               //console.log(currentValue.substring(0, currentFieldRange.start), newFieldValue, currentValue.substring(currentFieldRange.end));
-                            
+
                                 // This is copied from above
                                 currentFieldRange = {
                                     start: currentSelectionRange.start
@@ -27012,7 +27959,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         formatDivider.indexOf(currentValue[currentFieldRange.end]) < 0) {
                                     currentFieldRange.end += 1;
                                 }
-                                
+
                                 //                                                                          This indexOf does not need to be checked for -1
                                 //                                                                          Because we know for a fact that the match is in
                                 //                                                                          the string we are searching
@@ -27021,18 +27968,18 @@ document.addEventListener('DOMContentLoaded', function () {
                                 //console.log(arrMatch[0].length, strDateFormat.indexOf(arrMatch[0]), newCursorPos, arrMatch[0]);
                                 GS.setInputSelection(element.control, newCursorPos, newCursorPos);
                             }
-                            
+
                         }
-                        
+
                         //// All visible keys
                         //} else if ( event.keyCode >= 48 && event.keyCode <= 90 ||
                         //            event.keyCode >= 96 && event.keyCode <= 109 ||
                         //            event.keyCode >= 186 && event.keyCode <= 222 ||
                         //            event.keyCode === 32) {
                         //    //console.log('test');
-                        //    
+                        //
                         //    //GS.triggerEvent(element, 'change');
-                        //    
+                        //
                         //    if ((currentSelectionRange.end - currentSelectionRange.start) > 0) {
                         //        element.control.addEventListener('keyup', function ______self() {
                         //            GS.setInputSelection(this, currentSelectionRange.start + 1, currentSelectionRange.start) + 1;
@@ -27040,9 +27987,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         //        });
                         //    }
                         //}
-                        
+
                         //console.log(event.keyCode);
-                        
+
                         syncView(element);
                     }
                 }
@@ -27059,9 +28006,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     monthsOfTheYear = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
                     arrMatch, strDateFormat, formatDivider, currentValue, currentDate;
                 //console.log(currentSelectionRange.start, currentSelectionRange.end);
-                
+
                 ////// Copied from above until otherwise noted
-                
+
                 // Fix date format
                 strDateFormat = element.getAttribute('format');
                 //console.log(strDateFormat);
@@ -27086,22 +28033,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (strDateFormat.toLowerCase() === 'isodatetime') {
                     strDateFormat = 'yyyy-MM-dd\'T\'HH:mm:ss';
                 }
-                
+
                 formatDivider = strDateFormat.match(/[^mdyehmsa]/gi).join('');
-                
+
                 currentValue = element.control.value;
                 currentDate = new Date(currentValue.replace('\'T\'', ' ').replace(/-/g, '/'));
-                
+
                 if (strDateFormat.indexOf('M') === -1) {
                     currentDate = new Date('2015/6/15 ' + currentValue);
                 }
-                
+
                 arrMatch = strDateFormat.match(/(M|E)+/g);
                 if (arrMatch && arrMatch[0].length > 3) {
                     strDateFormat = strDateFormat.replace(/E+/g, new Array(daysOfTheWeek[currentDate.getDay()].length + 1).join('E'));
                     strDateFormat = strDateFormat.replace(/M+/g, new Array(monthsOfTheYear[currentDate.getDay()].length + 1).join('M'));
                 }
-                
+
                 while (currentSelectionRange.start >= 0 && formatDivider.indexOf(currentValue[currentSelectionRange.start - 1]) < 0) {
                     currentSelectionRange.start -= 1;
                 }
@@ -27111,11 +28058,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     currentSelectionRange.end += 1;
                 }
                 //console.log(currentSelectionRange.start, currentSelectionRange.end);
-                
+
                 ////// Not copied
                 element.ignoreSelect = true;
                 GS.setInputSelection(element.control, currentSelectionRange.start, currentSelectionRange.end);
-                
+
                 //console.log('CLICK EVENT FIRED');
             },
             focus: function () {
@@ -27127,16 +28074,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 //    this.ignoreSelect = false;
                 //}
                 //console.log('SELECT EVENT FIRED', GS.getInputSelection(this.control));
-                
+
                 // Copied from click handler until otherwise noted
                 var element = this, currentSelectionRange = GS.getInputSelection(element.control),
                     daysOfTheWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
                     monthsOfTheYear = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
                     arrMatch, strDateFormat, formatDivider, currentValue, currentDate;
                 //console.log(currentSelectionRange.start, currentSelectionRange.end);
-                
+
                 ////// Copied from above until otherwise noted
-                
+
                 // Fix date format
                 strDateFormat = element.getAttribute('format');
                 //console.log(strDateFormat);
@@ -27161,22 +28108,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (strDateFormat.toLowerCase() === 'isodatetime') {
                     strDateFormat = 'yyyy-MM-dd\'T\'HH:mm:ss';
                 }
-                
+
                 formatDivider = strDateFormat.match(/[^mdyehmsa]/gi).join('');
-                
+
                 currentValue = element.control.value;
                 currentDate = new Date(currentValue.replace('\'T\'', ' ').replace(/-/g, '/'));
-                
+
                 if (strDateFormat.indexOf('M') === -1) {
                     currentDate = new Date('2015/6/15 ' + currentValue);
                 }
-                
+
                 arrMatch = strDateFormat.match(/(M|E)+/g);
                 if (arrMatch && arrMatch[0].length > 3) {
                     strDateFormat = strDateFormat.replace(/E+/g, new Array(daysOfTheWeek[currentDate.getDay()].length + 1).join('E'));
                     strDateFormat = strDateFormat.replace(/M+/g, new Array(monthsOfTheYear[currentDate.getDay()].length + 1).join('M'));
                 }
-                
+
                 // Condition copied only
                 if ((currentSelectionRange.start >= 0 && formatDivider.indexOf(currentValue[currentSelectionRange.start - 1]) < 0) ||
                     (currentSelectionRange.end < currentValue.length && formatDivider.indexOf(currentValue[currentSelectionRange.end]) < 0)) {
@@ -27190,22 +28137,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 // get value straight from the input
                 get: function () {
                     if (this.control) {
-                        if (this.control.value.trim() === '') {
-                            return 'NULL';
-                        } else {
-                            return this.control.value;
-                        }
+                        return this.control.value;
                     } else if (this.hasAttribute('disabled')) {
                         return this.innerHTML;
                     }
-                    
+
                     return undefined;
                 },
-                
+
                 // set the value of the input and set the value attribute
                 set: function (newValue) {
                     var tempSelection = this.control ? GS.getInputSelection(this.control) : null;
-                    
+
                     if (this.control) {
                       //console.log(newValue);
                         if (newValue && typeof newValue === 'object') {
@@ -27213,25 +28156,24 @@ document.addEventListener('DOMContentLoaded', function () {
                         } else {
                             this.control.value = newValue || '';
                         }
-                        
+
                         if (document.activeElement === this.control) {
                            GS.setInputSelection(this.control, tempSelection.start, tempSelection.end);
                         }
-                        
+
                     } else if (this.hasAttribute('disabled')) {
                         if (newValue && typeof newValue === 'object') {
-                          //console.log(newValue, getFormatString(this), formatDate(newValue, getFormatString(this)));
-                            this.innerHTML = formatDate(newValue, getFormatString(this));
+                            this.innerHTML = formatDate(this, newValue, getFormatString(this));
                         } else {
                           //console.log(newValue);
                             this.innerHTML = newValue || '';
                         }
-                        
+
                     } else {
                       //console.log(newValue);
                         this.setAttribute('value', newValue);
                     }
-                    
+
                     if (this.control) {
                         handleFormat(this);
                     }
@@ -27242,14 +28184,14 @@ document.addEventListener('DOMContentLoaded', function () {
         methods: {
             refresh: function () {
                 var element = this, arrPassThroughAttributes, i, len;
-                
+
                 // set a variable for the control element for convenience and speed
                 element.control = xtag.query(element, '.control')[0];
                 // set a variable for the date picker button element for convenience and speed
                 element.datePickerButton = xtag.query(element, '.date-picker-button')[0];
-                
+
                 //console.log(element.control, element.getAttribute('value'), element.getAttribute('column'));
-                
+
                 if (element.control) {
                     if (element.hasAttribute('id')) {
                         element.control.setAttribute('id', element.getAttribute('id') + '_control');
@@ -27260,10 +28202,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (element.hasAttribute('title')) {
                         element.control.setAttribute('title', element.getAttribute('title'));
                     }
-                    
+
                     element.control.removeEventListener('change', changeFunction);
                     element.control.addEventListener('change', changeFunction);
-                    
+
                     element.control.removeEventListener('focus', focusFunction);
                     element.control.addEventListener('focus', focusFunction);
 
@@ -27272,20 +28214,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     element.control.removeEventListener(evt.mouseout, mouseoutFunction);
                     element.control.addEventListener(evt.mouseout, mouseoutFunction);
-                    
+
                     element.control.removeEventListener(evt.mouseout, mouseoverFunction);
                     element.control.addEventListener(evt.mouseover, mouseoverFunction);
                 }
                 if (element.datePickerButton) {
                     element.datePickerButton.addEventListener('click', buttonClickFunction);
                 }
-                
+
                 // if there is a value already in the attributes of the element: set the control value
                 if (element.control && element.hasAttribute('value')) {
                     element.control.value = element.getAttribute('value');
                     handleFormat(element, undefined, false);
                 }
-                
+
                 if (element.control) {
                 // copy passthrough attributes to control
                     arrPassThroughAttributes = [
@@ -27306,7 +28248,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             },
-            
+
             focus: function () {
                 GS.triggerEvent(this, 'focus');
                 this.control.focus();
@@ -27486,7 +28428,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>
         */});
-        
+
         timeHTML = ml(function () {/*
             <div class="time-section">
                 <div class="adjust-section time-adjust-section centered">
@@ -27560,7 +28502,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (element.hasDate) {
                 var dialog = this;
-                
+
                 var calendar = xtag.query(dialog, '.calendar')[0];
                 var dateAdjustSection = xtag.query(dialog, '.date-adjust-section')[0];
                 var dateInput = xtag.query(dateAdjustSection, '.date-input')[0];
@@ -27574,6 +28516,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 var arrMonth = [
                     'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
                 ];
+                
+                if (element.hasAttribute('spanish')) {
+                    var arrMonth = [
+                        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                    ];
+                } else {
+                    var arrMonth = [
+                        'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
+                    ];
+                }
 
                 refreshDateInputs = function () {
                     dayInput.value = GS.leftPad(dteValue.getDate(), '0', 2);
@@ -27613,7 +28565,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         if (dteCurrent.getMonth() === dteToday.getMonth() && dteCurrent.getFullYear() === dteToday.getFullYear() && dteCurrent.getDate() === dteToday.getDate()) {
                             day.classList.add('today');
-                            day.innerText = 'T';
+                            if (!element.hasAttribute('show-today')) {
+                                day.innerText = 'T';
+                            }
                         }
                         if (dteCurrent.getMonth() === dteValue.getMonth() && dteCurrent.getFullYear() === dteValue.getFullYear() && dteCurrent.getDate() === dteValue.getDate()) {
                             day.classList.add('selected');
@@ -28076,7 +29030,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var i;
         var len;
         var arrFormat = element.getAttribute('format').split(/\b/);
-        var arrDate = element.value ? element.value.split(/\b/) : formatDate(new Date(), getFormatString(element)).split(/\b/);
+        var arrDate = element.value ? element.value.split(/\b/) : formatDate(element, new Date(), getFormatString(element)).split(/\b/);
         if (arrFormat.indexOf('\'') > -1) {
             var arrTempDate = [];
             for (i = 0, len = arrDate.length; i < len; i += 1) {
@@ -28101,8 +29055,14 @@ document.addEventListener('DOMContentLoaded', function () {
         var label = element.hasAttribute('id') ? xtag.query(document, '[for="' + element.id + '"]')[0] : null;
         var labelHTML = label ? '<center><h3>' + label.innerHTML.replace(/:$/, '') + '</h3></center>' : '';
         var dialogTemplate = document.createElement('template');
-        var monthsFull   = ['January','February','March','April','May','June', 'July','August','September','October','November','December'];
-        var monthsShort  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        
+        if (element.hasAttribute('spanish')) {
+            var monthsFull   = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            var monthsShort  = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        } else {
+            var monthsFull   = ['January','February','March','April','May','June', 'July','August','September','October','November','December'];
+            var monthsShort  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        }
 
         var wheelHTML = function () {
             var strRet = '';
@@ -28141,29 +29101,56 @@ document.addEventListener('DOMContentLoaded', function () {
             return strRet;
         };
 
-        dialogHTML = ml(function () {/*
-            <gs-page id="wheel-dialog">
-                <gs-header>
-                    {{LABELHTML}}
-                    <gs-grid widths="1,1,1">
-                        <gs-block>
-                            <gs-button dialogclose>Cancel</gs-button>
-                        </gs-block>
-                        <gs-block>
-                            <gs-button class="now-button">Now</gs-button>
-                        </gs-block>
-                        <gs-block>
-                            <gs-button dialogclose bg-primary>Done</gs-button>
-                        </gs-block>
-                    </gs-grid>
-                </gs-header>
-                <gs-body class="gs-datetime-wheel-dialog">
-                    <div class="root">
-                        {{WHEELS}}
-                    </div>
-                </gs-body>
-            </gs-page>
-        */}).replace('{{LABELHTML}}', labelHTML).replace('{{WHEELS}}', wheelHTML());
+        if (element.hasAttribute('spanish')) {
+            dialogHTML = ml(function () {/*
+                <gs-page id="wheel-dialog">
+                    <gs-header>
+                        {{LABELHTML}}
+                        <gs-grid widths="1,1,1">
+                            <gs-block>
+                                <gs-button dialogclose>Cancelar</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button class="now-button">Ahora</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button dialogclose bg-primary>Hecho</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </gs-header>
+                    <gs-body class="gs-datetime-wheel-dialog">
+                        <div class="root">
+                            {{WHEELS}}
+                        </div>
+                    </gs-body>
+                </gs-page>
+            */}).replace('{{LABELHTML}}', labelHTML).replace('{{WHEELS}}', wheelHTML());
+        } else {
+            dialogHTML = ml(function () {/*
+                <gs-page id="wheel-dialog">
+                    <gs-header>
+                        {{LABELHTML}}
+                        <gs-grid widths="1,1,1">
+                            <gs-block>
+                                <gs-button dialogclose>Cancel</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button class="now-button">Now</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button dialogclose bg-primary>Done</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </gs-header>
+                    <gs-body class="gs-datetime-wheel-dialog">
+                        <div class="root">
+                            {{WHEELS}}
+                        </div>
+                    </gs-body>
+                </gs-page>
+            */}).replace('{{LABELHTML}}', labelHTML).replace('{{WHEELS}}', wheelHTML());
+        }
+        
         dialogTemplate.innerHTML = dialogHTML;
         dialogTemplate.setAttribute('data-mode', evt.touchDevice ? 'full' : 'detect');
         GS.openDialog(dialogTemplate, function () {
@@ -28197,7 +29184,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
         }, function (event, strAnswer) {
-            if (strAnswer === 'Done') {
+            if (strAnswer === 'Done' || strAnswer === 'Hecho') {
                 var dialog = xtag.query(document, 'gs-dialog')[0];
                 //console.log(dialog);
 
@@ -28272,7 +29259,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return strFormat;
     }
 
-    function formatDate(dteValue, strFormat) {
+    function formatDate(element, dteValue, strFormat) {
         /* (this function contains a (modified) substantial portion of code from another source
             here is the copyright for sake of legality) (Uses code by Matt Kruse)
         Copyright (c) 2006-2009 Rostislav Hristov, Asual DZZD
@@ -28308,15 +29295,28 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     return n;
                 }
-            },
-            locale = {
-                monthsFull:   ['January','February','March','April','May','June', 'July','August','September','October','November','December'],
-                monthsShort:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-                daysFull:     ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-                daysShort:    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
-                shortDateFormat: 'M/d/yyyy h:mm a',
-                longDateFormat: 'EEEE, MMMM dd, yyyy h:mm:ss a'
             };
+            
+            if (element.hasAttribute('spanish')) {
+                var locale = {
+                        monthsFull:   ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                        monthsShort:  ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+                        daysFull:     ['Domingo', 'Lune', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+                        daysShort:    ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+                        shortDateFormat: 'M/d/yyyy h:mm a',
+                        longDateFormat: 'EEEE, MMMM dd, yyyy h:mm:ss a'
+                    };
+                    
+            } else {
+                var locale = {
+                    monthsFull:   ['January','February','March','April','May','June', 'July','August','September','October','November','December'],
+                    monthsShort:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                    daysFull:     ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+                    daysShort:    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+                    shortDateFormat: 'M/d/yyyy h:mm a',
+                    longDateFormat: 'EEEE, MMMM dd, yyyy h:mm:ss a'
+                };
+            }
 
         y = dteValue.getFullYear();
         // Nunzio commented this out on Monday, October 19, 2015
@@ -28467,7 +29467,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 element.setAttribute('format', getFormatString(element));
                 /*if (element.hasAttribute('format')) {
-                    var d1 = new Date(), d2 = new Date(formatDate(d1, element.getAttribute('format')));
+                    var d1 = new Date(), d2 = new Date(formatDate(element, d1, element.getAttribute('format')));
                     if (d1.getTime() !== d2.getTime()) {
                         element.timezoneOffset = d2.getTime() - d1.getTime();
                     }
@@ -28475,7 +29475,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 //console.log(element.getAttribute('value'));
                 // if (element.getAttribute('value') === 'now' || element.getAttribute('value') === 'today') {
-                //     element.setAttribute('value', formatDate(new Date(), element.getAttribute('format')));
+                //     element.setAttribute('value', formatDate(element, new Date(), element.getAttribute('format')));
                 // }
                 //console.log(element.getAttribute('value'));
 
@@ -28583,13 +29583,13 @@ document.addEventListener('DOMContentLoaded', function () {
         accessors: {
             value: {
                 get: function () {
-                    return this.hasAttribute('value') && this.getAttribute('value') ? formatDate(new Date(this.getAttribute('value')), this.getAttribute('format')) : '';
+                    return this.hasAttribute('value') && this.getAttribute('value') ? formatDate(this, new Date(this.getAttribute('value')), this.getAttribute('format')) : '';
                 },
                 set: function (newValue) {
                     if (newValue != null) {
                         var newerValue = GS.newDate(newValue);
                         this.setAttribute('value', newerValue);
-                        this.innerText = formatDate(new Date(this.getAttribute('value')), this.getAttribute('format'));
+                        this.innerText = formatDate(this, new Date(this.getAttribute('value')), this.getAttribute('format'));
                     } else {
                         this.setAttribute('value', newValue || '');
                         this.innerText = '';
@@ -28608,7 +29608,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // if (this.hasAttribute('format')) {
                         this.value = newerValue;
                     // } else {
-                    //     this.value = formatDate(newerValue, (this.hasDate ? 'yyyy/MM/dd' : '') + ' ' + (this.hasTime ? 'HH:mm:ss' : '').trim());
+                    //     this.value = formatDate(element, newerValue, (this.hasDate ? 'yyyy/MM/dd' : '') + ' ' + (this.hasTime ? 'HH:mm:ss' : '').trim());
                     // }
                 }
             }
@@ -29325,6 +30325,7 @@ document.addEventListener('DOMContentLoaded', function () {
         methods: {}
     });
 });
+
 //global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
 //global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
 //global addControlProps, addFlexContainerProps, addProp
@@ -29407,12 +30408,12 @@ window.addEventListener('design-register-element', function () {
                                                                                 'function (strInputValue) {\n' +
                                                         '    // before dialog close\n' +
                                                         '    $0\n' +
-                                                        '});');
+                                                        '}${3:, \'default\'});');
     addSnippet('Input Box', 'Input Box', 'GS.inputbox(${1:\'Are you sure...\'}, ${2:\'Are you sure you want to do this?\'}, ' +
                                                                             'function (strInputValue) {\n' +
                                                     '    // before dialog close\n' +
                                                     '    $0\n' +
-                                                    '});');
+                                                    '}${3:, \'default\'});');
 
     addSnippet('GS.openDialogToElement', 'GS.openDialogToElement',
                                         'GS.openDialogToElement(${1:document.getElementById(\'target\')}, \'${2:templateID}\', ' +
@@ -29439,38 +30440,38 @@ window.addEventListener('design-register-element', function () {
 
 (function () {
     'use strict';
-    
+
     function buttonHTML(buttons) {
         var strHTML, i, len;
-        
+
         buttons = buttons || ['Ok'];
-        
+
         // change button parameter to array format if it is string format (and the string is recognized)
         if (typeof buttons === 'string') {
             if (buttons === 'okcancel' || buttons === 'cancelok') {
                 buttons = ['Cancel', 'Ok'];
-                
+
             } else if (buttons === 'ok' || buttons === 'okonly') {
                 buttons = ['Ok'];
-                
+
             } else if (buttons === 'cancel' || buttons === 'cancelonly') {
                 buttons = ['Cancel'];
-                
+
             } else if (buttons === 'yesno' || buttons === 'noyes') {
                 buttons = ['No', 'Yes'];
-                
+
             } else if (buttons === 'Yes' || buttons === 'yesonly') {
                 buttons = ['Yes'];
-                
+
             } else if (buttons === 'No' || buttons === 'noonly') {
                 buttons = ['No'];
             }
         }
-        
+
         if (typeof buttons === 'object') {
             if (buttons.length > 0) {
                 strHTML = '<gs-grid gs-dynamic>';
-                
+
                 for (i = 0, len = buttons.length; i < len; i += 1) {
                     strHTML +=
                         '<gs-block gs-dynamic>' +
@@ -29512,14 +30513,14 @@ window.addEventListener('design-register-element', function () {
     };
 
     // GS.inputbox('test1', 'test2', function (strAnswer) {console.log(strAnswer); });
-    GS.inputbox = function (strTitle, strMessage, callback) {
+    GS.inputbox = function (strTitle, strMessage, callback, defaultValue) {
         var templateElement = document.createElement('template');
 
         templateElement.innerHTML = '<gs-page>' +
                                     '    <gs-header><center><h3>' + strTitle + '</h3></center></gs-header>' +
                                     '    <gs-body padded>' +
                                     '        ' + strMessage +
-                                    '        <gs-text id="dialog-inputbox-control"></gs-text>' +
+                                    '        <gs-text id="dialog-inputbox-control" value="' + (defaultValue || '') + '"></gs-text>' +
                                     '    </gs-body>' +
                                     '    <gs-footer>' + buttonHTML(['Cancel', 'Ok']) + '</gs-footer>' +
                                     '</gs-page>';
@@ -29920,16 +30921,29 @@ GS.closeDialog = function (dialog, strAnswer) {
                     '</gs-dialog>';
 
         // get elements
-        dialogOverlay = GS.stringToElement(
-            '<gs-dialog-overlay gs-dynamic' +
-            (
-                template.hasAttribute('no-background')
-                    ? ' no-background '
-                    : ''
-            ) +
-            '></gs-dialog-overlay>'
-        );
         dialog = GS.stringToElement(strHTML);
+
+        if (template.hasAttribute('data-no-overlay')) {
+            dialogOverlay = GS.stringToElement(
+                '<gs-dialog-overlay style="display: none;" gs-dynamic' +
+                (
+                    template.hasAttribute('no-background')
+                        ? ' no-background '
+                        : ''
+                ) +
+                '></gs-dialog-overlay>'
+            );
+        } else {
+            dialogOverlay = GS.stringToElement(
+                '<gs-dialog-overlay gs-dynamic' +
+                (
+                    template.hasAttribute('no-background')
+                        ? ' no-background '
+                        : ''
+                ) +
+                '></gs-dialog-overlay>'
+            );
+        }
 
         // append overlay element
         document.body.appendChild(dialogOverlay);
@@ -29951,6 +30965,34 @@ GS.closeDialog = function (dialog, strAnswer) {
         dialogOverlay.addEventListener('mousewheel', function (event) {
             event.preventDefault();
         });
+    
+
+        // used by TFW, effective 2022-06-28
+        // If this note is still here in a few weeks it's probably stable (;
+        // only draggable by header
+        if (template.hasAttribute('data-draggable')) {
+            dialog.bolDraggable = true;
+            xtag.query(dialog, 'gs-header').forEach(function (curr) {
+                curr.style.userSelect = 'none';
+                curr.addEventListener('mousedown', function (event) {
+                    dialog.dragOriginX = event.screenX;
+                    dialog.dragOriginY = event.screenY;
+                    dialog.bolMouseDown = true;
+                });
+            });
+            window.addEventListener('mouseup', function (event) {
+                dialog.bolMouseDown = false;
+            });
+            dialog.addEventListener('mousemove', function (event) {
+                if (dialog.bolMouseDown) {
+                    dialog.style.left = Math.min(Math.max((GS.getElementOffset(dialog).left - (dialog.dragOriginX - event.screenX)), 0), (window.innerWidth - GS.getElementOffset(dialog).width)) + 'px';
+                    dialog.style.top = Math.min(Math.max((GS.getElementOffset(dialog).top - (dialog.dragOriginY - event.screenY)), 0), (window.innerHeight - GS.getElementOffset(dialog).height)) + 'px';
+                    dialog.dragOriginX = event.screenX;
+                    dialog.dragOriginY = event.screenY;
+                }
+            });
+            dialog.setAttribute('draggable-window-listen', '');
+        }
 
         // append dialog
         document.body.appendChild(dialog);
@@ -30043,12 +31085,14 @@ GS.closeDialog = function (dialog, strAnswer) {
             }
         };
 
-        if (evt.touchDevice) {
-            window.addEventListener('touchstart', scrollProtectorTouchStart);
-            window.addEventListener('touchmove', scrollProtectorTouchMove);
+        if (!template.hasAttribute('unprotected-scroll')) {
+            if (evt.touchDevice) {
+                window.addEventListener('touchstart', scrollProtectorTouchStart);
+                window.addEventListener('touchmove', scrollProtectorTouchMove);
+            }
+    
+            dialog.addEventListener('mousewheel', scrollProtectorMouseWheel);
         }
-
-        dialog.addEventListener('mousewheel', scrollProtectorMouseWheel);
 
         dialog.addEventListener('beforeclose', function (event) {
             if (typeof beforeCloseFunction === 'function') {
@@ -30144,7 +31188,7 @@ GS.closeDialog = function (dialog, strAnswer) {
         //      until after the elements are ready. to do this we'll get a list of
         //      the current elements that are xtag-defined and on a 30ms loop we'll
         //      check their __upgraded__ property until they are all true
-        if (shimmed.registerElement === true) {
+        if (shimmed.registerElement === true && shimmed.customElements === true) {
             // build selector to get all xtag elements
             xtagSelector = '';
             for (strTag in xtag.tags) {
@@ -30220,7 +31264,7 @@ GS.closeDialog = function (dialog, strAnswer) {
 
         // save and blur currently focused element
         refocusElement = document.activeElement;
-        
+
         if (!template.hasAttribute('no-focus-lock')) {
             refocusElement.blur();
         }
@@ -30398,22 +31442,22 @@ GS.closeDialog = function (dialog, strAnswer) {
 
         scrollProtectorMouseWheel = function (event) {
             var target = GS.scrollParent(event.target); //event.target;
-            
+
             if (dialogElement.parentNode !== document.body) {
                 dialogElement.removeEventListener('mousewheel', scrollProtectorMouseWheel);
                 return true;
             }
-            
+
             //console.log(event.deltaY, event.deltaX,
             //            target.scrollTop, target.scrollLeft,
             //            target.scrollHeight, target.scrollWidth,
             //            target.clientHeight, target.clientWidth);
-            
+
             // if event.deltaY < 0 AND we are already at the top
             // if event.deltaY > 0 AND we are already at the bottom
             // if event.deltaX < 0 AND we are already at the left
             // if event.deltaX > 0 AND we are already at the right
-            
+
             if ((event.deltaY < 0 && target.scrollTop <= 0) ||
                 (event.deltaY > 0 && (target.scrollTop + target.clientHeight) >= target.scrollHeight) ||
                 (event.deltaX < 0 && target.scrollLeft <= 0) ||
@@ -30422,14 +31466,14 @@ GS.closeDialog = function (dialog, strAnswer) {
                 event.stopPropagation();
             }
         };
-        
+
         if (evt.touchDevice) {
             window.addEventListener('touchstart', scrollProtectorTouchStart);
             window.addEventListener('touchmove', scrollProtectorTouchMove);
         }
-        
+
         dialogElement.addEventListener('mousewheel', scrollProtectorMouseWheel);
-        
+
         dialogElement.addEventListener('beforeclose', function (event) {
             if (typeof beforeCloseFunction === 'function') {
                 beforeCloseFunction.apply(dialogElement, [event.originalEvent, event.data]);
@@ -30475,13 +31519,13 @@ GS.closeDialog = function (dialog, strAnswer) {
                 console.warn('dialog Warning: Too many [listen-for-return] elements, defaulting to the first one. Please have only one [listen-for-return] element per dialog.');
             }
         }
-        
+
         // if no direction was sent: set direction to down
         strDirectionRequest = strDirectionRequest || 'down';
-        
+
         // make strDirectionRequest lowercase
         strDirectionRequest.toLowerCase();
-        
+
         // if the direction does not match any valid direction: set direction to down and warn
         if (!strDirectionRequest.match(/^up$|^down$|^left$|^right$|^full$/)) {
             console.warn('GS.openDialogToElement Error: ' +
@@ -30489,12 +31533,12 @@ GS.closeDialog = function (dialog, strAnswer) {
                                 'Please use \'up\', \'down\', \'left\', \'right\' or \'full\'.');
             strDirectionRequest = 'down';
         }
-        
+
         /*
         positionHandlingFunction = function () {
             var intDialogTop = '', intDialogLeft = '', intDialogMarginTop = '', intDialogMarginLeft = '', strOldStyle,
                 arrElements, arrScrollingElements, i, len, strOverflow;
-            
+
             // if the dialog is not in the DOM: unbind and skip the contents of the function using return
             if (dialogElement.parentNode !== document.body) {
                 window.removeEventListener('resize', positionHandlingFunction);
@@ -30502,28 +31546,28 @@ GS.closeDialog = function (dialog, strAnswer) {
                 observer.disconnect();
                 return;
             }
-            
+
             // save old style attribute
             strOldStyle = dialogElement.getAttribute('style');
-            
+
             // save scroll numbers
             arrElements = xtag.query(dialogElement, '*');
             arrScrollingElements = [];
-            
+
             for (i = 0, len = arrElements.length; i < len; i += 1) {
                 strOverflow = GS.getStyle(arrElements[i], 'overflow');
-                
+
                 if (strOverflow === 'scroll' ||
                     (strOverflow === 'auto' && arrElements[i].clientHeight < arrElements[i].scrollHeight)) {
                     arrScrollingElements.push(arrElements[i]);
                 }
             }
-            
+
             for (i = 0, len = arrScrollingElements.length; i < len; i += 1) {
                 arrScrollingElements[i].oldScrollTop = arrScrollingElements[i].scrollTop;
                 arrScrollingElements[i].oldScrollLeft = arrScrollingElements[i].scrollLeft;
             }
-            
+
             // clear dialog CSS
             dialogElement.style.top        = '';
             dialogElement.style.left       = '';
@@ -30532,57 +31576,57 @@ GS.closeDialog = function (dialog, strAnswer) {
             dialogElement.style.width      = '94%';
             dialogElement.style.height     = '';
             dialogElement.style.maxHeight  = '';
-            
+
             //console.log(dialogElement.oldHeight, dialogElement.offsetHeight);
-            
+
             // if height hasn't changed: restore style
             if (dialogElement.oldHeight === dialogElement.offsetHeight) {
                 dialogElement.setAttribute('style', strOldStyle);
-                
+
                 for (i = 0, len = arrScrollingElements.length; i < len; i += 1) {
                     arrScrollingElements[i].scrollTop = arrScrollingElements[i].oldScrollTop;
                     arrScrollingElements[i].scrollLeft = arrScrollingElements[i].oldScrollLeft;
                 }
-                
+
             // else: recalculate style
             } else {
                 dialogElement.oldHeight = dialogElement.offsetHeight;
-                
+
                 // resolve dialog width and height
-                
+
                 // if dialog is taller than: window height - (intMargin * 2): add max-height and height
                 if (dialogElement.clientHeight > ((window.innerHeight / 100) * 94)) {
                     dialogElement.style.height = '94%';
                     dialogElement.style.maxHeight = strMaxHeight;
                 }
-                
+
                 intDialogResolvedWidth  = dialogElement.offsetWidth;
                 intDialogResolvedHeight = dialogElement.offsetHeight + 1; // + 1 added to fix occasional scrollbar issue
-                
+
                 // set dialog width and height to resolved width and height
                 dialogElement.style.width  = intDialogResolvedWidth  + 'px';
                 dialogElement.style.height = intDialogResolvedHeight + 'px';
-                
+
                 // get target position data
                 jsnPositionData = GS.getElementPositionData(elementTarget);
-                
+
                 // order of tests depending on direction
                 if (strDirectionRequest === 'up') { // up: up, down, left, right, full
                     arrTests = ['up', 'down', 'left', 'right'];
-                    
+
                 } else if (strDirectionRequest === 'down') { // down: down, up, left, right, full
                     arrTests = ['down', 'up', 'left', 'right'];
-                    
+
                 } else if (strDirectionRequest === 'left') { // left: left, right, down, up, full
                     arrTests = ['left', 'right', 'down', 'up'];
-                    
+
                 } else if (strDirectionRequest === 'right') { // right: right, left, down, up, full
                     arrTests = ['right', 'left', 'down', 'up'];
-                    
+
                 } else { // full: no tests (just go to full)
                     arrTests = [];
                 }
-                
+
                 // up: compare room above to dialog resolved height
                 //      pass: display
                 //      fail: next test
@@ -30595,56 +31639,56 @@ GS.closeDialog = function (dialog, strAnswer) {
                         break;
                     }
                 }
-                
+
                 // if we could not resolve to a particular direction: set direction to full screen
                 strResolvedDirection = strResolvedDirection || 'full';
                 //console.log(strResolvedDirection);
-                
+
                 // if up or down: get as close to horizontally centered on the element as possible
                 if (strResolvedDirection === 'up' || strResolvedDirection === 'down') {
                     intElementMidPoint = (jsnPositionData.intElementLeft + (jsnPositionData.intElementWidth / 2));
                     intDialogMidPoint = (intDialogResolvedWidth / 2);
                     //console.log(intElementMidPoint, jsnPositionData.left, jsnPositionData.intElementWidth);
-                    
+
                     // if centered goes past intMargin of the left edge of the screen: go to intMargin from the bottom
                     if (intElementMidPoint - intDialogMidPoint < intMargin) {
                         intDialogLeft = intMargin;
                         //console.log('1***', intMargin);
-                        
+
                     // else if centered goes past intMargin of the right edge of the screen: go to intMargin less than the width of the viewport
                     } else if (intElementMidPoint + intDialogMidPoint > window.innerWidth - intMargin) {
                         intDialogLeft = ((window.innerWidth - intDialogResolvedWidth) - intMargin);
                         //console.log('2***', window.innerWidth, intDialogResolvedWidth, intMargin);
-                        
+
                     // else centered does not go past intMargin of either edge of the screen: center
                     } else {
                         intDialogLeft = (intElementMidPoint - intDialogMidPoint);
                         //console.log('3***', intElementMidPoint, intDialogMidPoint, (intElementMidPoint - intDialogMidPoint) + 'px');
                     }
-                    
+
                 // else if left or right: get as close to vertically centered next to the element as possible
                 } else if (strResolvedDirection === 'left' || strResolvedDirection === 'right') {
                     intElementMidPoint = (jsnPositionData.intElementTop + (jsnPositionData.intElementHeight / 2));
                     intDialogMidPoint = (intDialogResolvedHeight / 2);
-                    
+
                     //console.log('0***', intElementMidPoint, intDialogMidPoint, window.innerHeight, intMargin, intDialogResolvedHeight);
-                    
+
                     // if centered goes past intMargin of the top edge of the screen: go to intMargin from the bottom
                     if (intElementMidPoint - intDialogMidPoint < intMargin) {
                         intDialogTop = intMargin;
                         //console.log('1***', intMargin);
-                        
+
                     // else if centered goes past intMargin of the bottom edge of the screen: go to intMargin less than the height of the viewport
                     } else if (intElementMidPoint + intDialogMidPoint > window.innerHeight - intMargin) {
                         intDialogTop = ((window.innerHeight - intDialogResolvedHeight) - intMargin);
                         //console.log('2***', window.innerHeight, intDialogResolvedHeight, intMargin);
-                        
+
                     // else centered does not go past intMargin of either edge of the screen: center
                     } else {
                         intDialogTop = (intElementMidPoint - intDialogMidPoint);
                         //console.log('3***', intElementMidPoint, intDialogMidPoint, (intElementMidPoint - intDialogMidPoint) + 'px');
                     }
-                    
+
                 // else full: use dialog logic to get width and height and center both vertically and horizontally
                 } else {
                     intDialogTop        = '50%';
@@ -30652,19 +31696,19 @@ GS.closeDialog = function (dialog, strAnswer) {
                     intDialogMarginTop  = '-' + (intDialogResolvedHeight / 2) + 'px';
                     intDialogMarginLeft = '-' + (intDialogResolvedWidth / 2) + 'px';
                 }
-                
+
                 // if direction is up: connect the bottom of the dialog to the top of the element
                 if (strResolvedDirection === 'up') {
                     intDialogTop = (jsnPositionData.intElementTop - intDialogResolvedHeight);
-                    
+
                 // if direction is down: connect the top of the dialog to the bottom of the element
                 } else if (strResolvedDirection === 'down') {
                     intDialogTop = (jsnPositionData.intElementTop + jsnPositionData.intElementHeight);
-                    
+
                 // if direction is left: connect the right of the dialog to the left of the element
                 } else if (strResolvedDirection === 'left') {
                     intDialogLeft = (jsnPositionData.intElementLeft - intDialogResolvedWidth);
-                    
+
                 // if direction is right: connect the left of the dialog to the right of the element
                 } else if (strResolvedDirection === 'right') {
                     intDialogLeft = (jsnPositionData.intElementLeft + jsnPositionData.intElementWidth);
@@ -30673,7 +31717,7 @@ GS.closeDialog = function (dialog, strAnswer) {
                 // prevent the dialog from vertically going outside the viewport
                 if (intDialogTop + intDialogResolvedHeight > window.innerHeight) {
                     intDialogTop -= (intDialogTop + intDialogResolvedHeight) - window.innerHeight;
-                    
+
                 }
 
                 // prevent the dialog from horizontally going outside the viewport
@@ -30688,14 +31732,14 @@ GS.closeDialog = function (dialog, strAnswer) {
                 dialogElement.style.marginLeft = intDialogMarginLeft + 'px';
             }
         };
-        
+
         positionHandlingFunction();
         window.addEventListener('resize', positionHandlingFunction);
         window.addEventListener('orientationchange', positionHandlingFunction);
         */
-        
+
         var positionHandlingFunction;
-        
+
         positionHandlingFunction = function () {
             GS.positionHandlingFunction(dialogElement, elementTarget, intMargin, strDirectionRequest, 'full', function () {
                 window.removeEventListener('resize', positionHandlingFunction);
@@ -30703,7 +31747,7 @@ GS.closeDialog = function (dialog, strAnswer) {
                 observer.disconnect();
             })
         };
-        
+
         positionHandlingFunction();
         window.addEventListener('resize', positionHandlingFunction);
         window.addEventListener('orientationchange', positionHandlingFunction);
@@ -30761,7 +31805,7 @@ GS.closeDialog = function (dialog, strAnswer) {
         //      until after the elements are ready. to do this we'll get a list of
         //      the current elements that are xtag-defined and on a 30ms loop we'll
         //      check their __upgraded__ property until they are all true
-        if (shimmed.registerElement === true) {
+        if (shimmed.registerElement === true && shimmed.customElements === true) {
             // build selector to get all xtag elements
             xtagSelector = '';
             for (strTag in xtag.tags) {
@@ -30862,35 +31906,44 @@ GS.closeDialog = function (dialog, strAnswer) {
             bind: function () {
                 var element = this;
 
-                if (!element.hasAttribute('no-window-listen')) {
+                if (!element.hasAttribute('no-window-listen') && !element.hasAttribute('draggable-window-listen')) {
                     element.windowResizeHandler = function () {
                         element.style.left = (window.innerWidth / 2) - (element.offsetWidth / 2) + 'px';
                     };
-                    
+
+                    window.addEventListener('resize', element.windowResizeHandler);
+                    window.addEventListener('orientationchange', element.windowResizeHandler);
+
+                } else if (element.hasAttribute('draggable-window-listen')) {
+                    element.windowResizeHandler = function () {
+                        element.style.left = Math.max(Math.min((window.innerWidth - element.offsetWidth), GS.getElementOffset(element).left), 0) + 'px';
+                        element.style.top = Math.max(Math.min((window.innerHeight - element.offsetHeight), GS.getElementOffset(element).top), 0) + 'px';
+                    };
+
                     window.addEventListener('resize', element.windowResizeHandler);
                     window.addEventListener('orientationchange', element.windowResizeHandler);
                 }
             },
-            
+
             unbind: function () {
                 window.removeEventListener('resize', this.windowResizeHandler);
                 window.removeEventListener('orientationchange', this.windowResizeHandler);
-                
+
                 GS.triggerEvent(window, 'resize');
             },
-            
+
             destroy: function (strAnswer, originalEvent) {
                 var beforeCloseEvent;
-                
+
                 if (this.parentNode === document.body) {
                     beforeCloseEvent = GS.triggerEvent(this, 'beforeclose', {'data': strAnswer, 'originalEvent': originalEvent});
-                    
+
                     if (!beforeCloseEvent.defaultPrevented && (!originalEvent || !originalEvent.defaultPrevented)) {
                         document.body.removeChild(this.previousElementSibling);
                         document.body.removeChild(this);
-                        
+
                         GS.triggerEvent(this, 'afterclose', {'data': strAnswer, 'originalEvent': originalEvent});
-                        
+
                         if (document.getElementsByTagName('gs-dialog').length === 0) {
                             document.body.parentNode.classList.remove('no-scroll-except-for-dialog');
                         }
@@ -30899,7 +31952,7 @@ GS.closeDialog = function (dialog, strAnswer) {
             }
         }
     });
-    
+
     xtag.register('gs-dialog-overlay', {
         lifecycle: {},
         events: {},
@@ -31225,7 +32278,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
-
+        console.log(result);
         return result;
     }
 
@@ -31316,15 +32369,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function newDateInCurrentTimeZone(str) {
         // this function is to counteract iso style dates being treated as GMT/UTC
+        var daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        var daysShort = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        var i = 0;
+        var len = 7;
+        while (i < len) {
+            str = str.replace(daysFull[i], '');
+            str = str.replace(daysShort[i], '');
+            i += 1;
+        }
+        
         if (/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]($|\ )/.test(str)) {
             str = str.replace('-', '/').replace('-', '/');
         }
         if (/\ [0-9]/.test(str)) {
             str = str.replace(/-[0-9][0-9]$/, '');
+            console.log(str);
             return new Date(str);
         } else if (str.indexOf(':') > -1) {
+            console.log('1/1/1970 ' + str);
             return new Date('1/1/1970 ' + str);
         } else {
+            console.log(str + ' 00:00:00');
             return new Date(str + ' 00:00:00');
         }
     }
@@ -31336,22 +32402,26 @@ document.addEventListener('DOMContentLoaded', function () {
         return d.getDate();
     }
 
-    function insertText(str) {
-        if (!document.queryCommandSupported('insertText') || !document.queryCommandEnabled('insertText')) {
+    function insertText(str, force) {
+        if (!document.queryCommandSupported('insertText') || !document.queryCommandEnabled('insertText') || force) {
             var element = document.activeElement;
             var jsnTextSelection = GS.getInputSelection(element);
-            //console.trace(JSON.stringify(jsnTextSelection), element.value);
+            // console.trace(JSON.stringify(jsnTextSelection), element.value);
             element.value = element.value.substring(0, jsnTextSelection.start) + str + element.value.substring(jsnTextSelection.end);
-            //console.log(JSON.stringify(jsnTextSelection), element.value);
+            // console.log(JSON.stringify(jsnTextSelection), element.value);
             element.parentNode.cancelSelectEvent = true;
             GS.setInputSelection(element, jsnTextSelection.start + str.length, jsnTextSelection.start + str.length);
-            //console.log(JSON.stringify(GS.getInputSelection(element)), jsnTextSelection.start + str.length);
+            // console.log(JSON.stringify(GS.getInputSelection(element)), jsnTextSelection.start + str.length);
         } else {
             var element = document.activeElement;
-            //console.log(element);
-            //console.log(element.value, element.parentNode.value);
-            document.execCommand('insertText', true, str);
-            //console.log(element.value, element.parentNode.value);
+            // console.log(element);
+            // console.log(element.value, element.parentNode.value);
+            var res = document.execCommand('insertText', true, str);
+            if (!res) {
+                console.warn('Could not use insertText command, overriding. Undo will not work.');
+                insertText(str, true);
+            }
+            // console.log(element.value, element.parentNode.value, res);
         }
     }
 
@@ -31468,6 +32538,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     var saveDay;
                     var saveMonth;
                     var saveYear;
+                    console.log(element.control.value, d, arrFormat[currentValueRange]);
                     if (intKeyCode === 38) {
                         if (/y/.test(arrFormat[currentValueRange])) {
                             d.setFullYear(d.getFullYear() + 1);
@@ -31581,8 +32652,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         }
                     }
+                    console.log(d);
 
                     element.internal.validDate = d.toString() !== 'Invalid Date';
+                    console.log(element.internal.validDate);
                     if (element.internal.validDate) {
                         element.internal.lastValidDate = d;
                         strValue = formatDate(d, getFormatString(element));
@@ -33678,11 +34751,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!error) {
                     if (data === 'TRANSACTION COMPLETED') {
                         commitFunction();
-                        GS.triggerEvent(element, 'after_insert');
-                        GS.triggerEvent(element, 'onafter_insert');
-                        if (element.hasAttribute('onafter_insert')) {
-                            new Function(element.getAttribute('onafter_insert')).apply(element);
-                        }
                     }
                 } else {
                     removeLoader(element);
@@ -33690,10 +34758,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     GS.webSocketErrorDialog(data);
                 }
             },
-            function () {
+            function (action) {
                 removeLoader(element);
-                GS.triggerEvent(element, 'after_insert');
-                GS.closeDialog(dialog, 'Ok');
+                if (action === 'COMMIT') {
+                    GS.triggerEvent(element, 'after_insert');
+                    GS.triggerEvent(element, 'onafter_insert');
+                    if (element.hasAttribute('onafter_insert')) {
+                        new Function(element.getAttribute('onafter_insert')).apply(element);
+                    }
+                    GS.closeDialog(dialog, 'Ok');
+                }
                 getData(element, true);
             }
         );
@@ -34825,7 +35899,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (event.target.getAttribute('column')) {
                         if (event.target.value !== null) {
-                            newValue = event.target.value;
+                            // changed on 2022-06-11 by Nunzio
+                            // this is the behaviour of Microsoft Access, and Cross expected it
+                            newValue = event.target.value === '' ? '\\N' : event.target.value;
+                            // newValue = event.target.value;
                         } else {
                             newValue = event.target.checked;
                         }
@@ -34839,6 +35916,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         ) {
                             updateRecord(element, parentTr, event.target.getAttribute('column'), newValue);
                         }
+                    }
+                });
+                
+                // if td is clicked, and there is only one child, focus it
+                element.addEventListener('click', function (event) {
+                    if (event.target.tagName.toUpperCase() === 'TD' && event.target.children.length === 1) {
+                        event.target.children[0].focus();
                     }
                 });
 
@@ -36920,30 +38004,90 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
 //global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
-//global addControlProps, addFlexContainerProps, addProp
+//global addControlProps, addFlexContainerProps, addProp, shimmed
 //global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
-//global addIconProps, shimmed, HTMLTemplateElement
-//jslint browser:true, white:false, this:true
-//, maxlen:80
+//global addIconProps, addFocusEvents, addDataEvents, addDataAttributes
+//global addAutocompleteProps
+//jslint browser:true, maxlen:80, white:false, this:true
+
+// # CODE INDEX:          <- (use "find" (CTRL-f or CMD-f) to skip to a section)
+//      # TOP             <- (this just brings you back this index)
+//      # ELEMENT DOCUMENTATION
+//      # NOTES/IDEAS
+//      # SNIPPET/DESIGN
+//      # FUNCTION SHORTCUTS
+//      # UTILITY FUNCTIONS
+//      # ELEMENT FUNCTIONS
+//      # RENDER FUNCTIONS
+//      # DATA FUNCTIONS
+//      # EVENT FUNCTIONS
+//          # QS EVENTS
+//          # CHANGE EVENTS
+//          # KEY EVENTS
+//          # DEVELOPER EVENTS
+//          # HIGH LEVEL BINDING
+//      # XTAG DEFINITION
+//      # ELEMENT LIFECYCLE
+//      # ELEMENT ACCESSORS
+//      # ELEMENT METHODS
+//
+// For code that needs to be completed:
+//      # NEED CODING
+
+
+// ############################################################################
+// ########################## ELEMENT DOCUMENTATION ###########################
+// ############################################################################
+
+
+
+
+
+// ############################################################################
+// ############################### NOTES/IDEAS ################################
+// ############################################################################
+
+/*
+Event 'after_select_error'
+
+class 'saving-warning-parent'
+class 'saving-warning'
+Attribute 'data-theme', 'error'
+
+Attribute 'suppress-no-record-found'
+
+
+*/
+
+
+// ############################################################################
+// ############################## SNIPPET/DESIGN ##############################
+// ############################################################################
 
 window.addEventListener('design-register-element', function () {
     'use strict';
     addSnippet(
         '<gs-form>',
         '<gs-form>',
-        'gs-form src="${1:test.tpeople}">\n' +
-        '    <template>\n' +
-        '        ${2}\n' +
-        '    </template>\n' +
-        '</gs-form>'
+        (
+            'gs-form src="${1:test.tpeople}">\n' +
+            '    <template>\n' +
+            '        ${2}\n' +
+            '    </template>\n' +
+            '</gs-form>'
+        )
     );
 
     addElement('gs-form', '#record_form');
 
-    window.designElementProperty_GSFORM = function (selectedElement) {
+    window.designElementProperty_GSFORM = function () {
         addDataAttributes('select,update');
         addCheck('D', 'Save&nbsp;While&nbsp;Typing', 'save-while-typing');
-        addCheck('D', 'Suppress<br />"No&nbsp;Record&nbsp;Found"<br />Error', 'suppress-no-record-found');
+        addCheck(
+            'D',
+            'Suppress<br />"No&nbsp;Record&nbsp;Found"<br />Error',
+            'suppress-no-record-found'
+        );
         addDataEvents('select,update');
         addText('O', 'Column In QS', 'qs');
         addText('O', 'Refresh On QS Columns', 'refresh-on-querystring-values');
@@ -36955,237 +38099,86 @@ window.addEventListener('design-register-element', function () {
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
-    // #################################################################
-    // ########################### UTILITIES ###########################
-    // #################################################################
-    
-    function removeMessage(element, strMessageName) {
-        if (strMessageName === 'saving' && element.savingMessage) {
-            element.removeChild(element.savingMessage);
-            element.savingMessage = null;
-            
-        } else if (strMessageName === 'waiting' && element.waitingMessage) {
-            element.removeChild(element.waitingMessage);
-            element.waitingMessage = null;
-        }
-    }
-    
-    function addMessage(element, strMessageName) {
-        if (strMessageName === 'saving') {
-            if (element.savingMessage) {
-                removeMessage(element, 'saving');
-            }
-            element.savingMessage = document.createElement('div');
-            element.savingMessage.classList.add('message');
-            element.savingMessage.innerHTML = 'Saving...';
-            
-            element.appendChild(element.savingMessage);
-            
-        } else if (strMessageName === 'waiting') {
-            if (element.waitingMessage) {
-                removeMessage(element, 'waiting');
-            }
-            element.waitingMessage = document.createElement('div');
-            element.waitingMessage.classList.add('message');
-            element.waitingMessage.innerHTML = 'Waiting<br />to save...';
-            
-            element.appendChild(element.waitingMessage);
-        }
-    }
-    
-    function columnParentsUntilForm(form, element) {
-        var intColumnParents = 0;
-        var currentElement = element;
-        var maxLoops = 50;
-        var i = 0;
+// ############################################################################
+// ############################ FUNCTION SHORTCUTS ############################
+// ############################################################################
 
-        while (currentElement.parentNode !== form && currentElement.parentNode && i < maxLoops) {
-            if (currentElement.parentNode.hasAttribute('column') === true //If something with a column attribute
-                || currentElement.parentNode.hasAttribute('src') === true) { //or something with a src attribute
-                intColumnParents += 1;
-            }
-            
-            currentElement = currentElement.parentNode;
-            i += 1;
-        }
+    var qryKids = xtag.queryChildren;
+    var qryAll = xtag.query;
 
-        return intColumnParents;
-    }
 
-    function saveDefaultAttributes(element) {
+// ############################################################################
+// ########################## PAGE LEAVE PROTECTION ###########################
+// ############################################################################
+
+    // before the page unloads, we need to check to make sure there aren't any
+    //      queued changes that have yet to be sent up the websocket. Also, if
+    //      there are changes typed that haven't been committed, we want to
+    //      focusout to get that update into the websocket. Once the update is
+    //      in the websocket, we don't have to worry about leaving the page.
+    GS.addBeforeUnloadEvent(function () {
+        var arrElement;
         var i;
         var len;
-        var arrAttr;
-        var jsnAttr;
 
-        // we need a place to store the attributes
-        element.internal.defaultAttributes = {};
+        // trigger save on any incomplete controls
+        document.activeElement.blur();
 
-        // loop through attributes and store them in the internal defaultAttributes object
-        arrAttr = element.attributes;
+        // check for queued updates, or timed updates
+        arrElement = qryAll(document.body, 'gs-form');
+
         i = 0;
-        len = arrAttr.length;
+        len = arrElement.length;
         while (i < len) {
-            jsnAttr = arrAttr[i];
-
-            element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
+            if (arrElement[i].internalData.updateQueue.length > 0) {
+                return 'The page has not finished saving.';
+            }
+            if (arrElement[i].internalData.timerCount > 0) {
+                return 'The page has not finished saving.';
+            }
 
             i += 1;
         }
+    });
+
+
+// ############################################################################
+// ############################ UTILITY FUNCTIONS #############################
+// ############################################################################
+
+    // we need to be able to execute event attributes (like onafter_select)
+    //      while being able to reference the form as "this" in the code.
+    function evalInContext(element, strJS) {
+        var execFunc = function () {
+            return eval(strJS);
+        };
+
+        execFunc.call(element);
     }
 
-    function pushReplacePopHandler(element) {
-        var i;
-        var len;
-        var strQS = GS.getQueryString();
-        var strQSCol = element.getAttribute('qs');
-        var strQSValue;
-        var strQSAttr;
-        var arrQSParts;
-        var arrAttrParts;
-        var arrPopKeys;
-        var currentValue;
-        var bolRefresh;
-        var strOperator;
+    // we want to standardize event triggering in this element.
+    function triggerEvent(element, strEvent, jsnData) {
+        var eventObject;
 
-        if (strQSCol) {
-            if (strQSCol.indexOf('=') !== -1) {
-                arrAttrParts = strQSCol.split(',');
-                i = 0;
-                len = arrAttrParts.length;
-                while (i < len) {
-                    strQSCol = arrAttrParts[i];
-    
-                    if (strQSCol.indexOf('!=') !== -1) {
-                        strOperator = '!=';
-                        arrQSParts = strQSCol.split('!=');
-                    } else {
-                        strOperator = '=';
-                        arrQSParts = strQSCol.split('=');
-                    }
-    
-                    strQSCol = arrQSParts[0];
-                    strQSAttr = arrQSParts[1] || arrQSParts[0];
-    
-                    // if the key is not present or we've got the negator: go to the attribute's default or remove it
-                    if (strOperator === '!=') {
-                        // if the key is not present: add the attribute
-                        if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
-                            element.setAttribute(strQSAttr, '');
-                        // else: remove the attribute
-                        } else {
-                            element.removeAttribute(strQSAttr);
-                        }
-                    } else {
-                        // if the key is not present: go to the attribute's default or remove it
-                        if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
-                            if (element.internal.defaultAttributes[strQSAttr] !== undefined) {
-                                element.setAttribute(strQSAttr, (element.internal.defaultAttributes[strQSAttr] || ''));
-                            } else {
-                                element.removeAttribute(strQSAttr);
-                            }
-                        // else: set attribute to exact text from QS
-                        } else {
-                            element.setAttribute(strQSAttr, (
-                                GS.qryGetVal(strQS, strQSCol) ||
-                                element.internal.defaultAttributes[strQSAttr] ||
-                                ''
-                            ));
-                        }
-                    }
-                    i += 1;
-                }
-            } else if (GS.qryGetKeys(strQS).indexOf(strQSCol) > -1) {
-                strQSValue = GS.qryGetVal(strQS, strQSCol);
-    
-                if (element.internal.bolQSFirstRun !== true) {
-                  //console.log(element.getAttribute('value'));
-                    if (strQSValue !== '' || !element.getAttribute('value')) {
-                        element.setAttribute('where', 'id=' + (isNaN(strQSValue) ? '$WHEREQuoTE$' + strQSValue + '$WHEREQuoTE$' : strQSValue));
-                        bolRefresh = true;
-                    }
-                } else {
-                    element.setAttribute('where', 'id=' + (isNaN(strQSValue) ? '$WHEREQuoTE$' + strQSValue + '$WHEREQuoTE$' : strQSValue));
-                    bolRefresh = true;
-                }
-            }
+        eventObject = GS.triggerEvent(element, strEvent, jsnData);
+        GS.triggerEvent(element, 'on' + strEvent, jsnData);
+        if (
+            element.hasAttribute('on' + strEvent) &&
+            // onfocus and onblur attributes are handled automatically by the
+            //      browser
+            strEvent !== 'focus' &&
+            strEvent !== 'blur'
+        ) {
+            evalInContext(element, element.getAttribute('on' + strEvent));
         }
-        
-        // handle "refresh-on-querystring-values" and "refresh-on-querystring-change" attributes
-        if (element.internal.bolQSFirstRun === true) {
-            if (element.hasAttribute('refresh-on-querystring-values')) {
-                arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
 
-                i = 0;
-                len = arrPopKeys.length;
-                while (i < len) {
-                    currentValue = GS.qryGetVal(strQS, arrPopKeys[i]);
+        // if the user prevents the default on the "before_update"
+        //      event, prevent the execution of the following update code
+        if (eventObject.defaultPrevented) {
+            return false;
+        }
 
-                    if (element.popValues[arrPopKeys[i]] !== currentValue) {
-                        bolRefresh = true;
-                    }
-
-                    element.popValues[arrPopKeys[i]] = currentValue;
-                    i += 1;
-                }
-            } else if (element.hasAttribute('refresh-on-querystring-change')) {
-                bolRefresh = true;
-            }
-        } else {
-            if (element.hasAttribute('refresh-on-querystring-values')) {
-                arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
-                
-                i = 0;
-                len = arrPopKeys.length;
-                while (i < len) {
-                    element.popValues[arrPopKeys[i]] = GS.qryGetVal(strQS, arrPopKeys[i]);
-                    i += 1;
-                }
-            }
-            
-            if (GS.getQueryString() || element.hasAttribute('refresh-on-querystring-change') || element.hasAttribute('src')) {
-                bolRefresh = true;
-            }
-        }
-        
-        if (bolRefresh && element.hasAttribute('src')) {
-            getData(element);
-        } else if (bolRefresh && !element.hasAttribute('src')) {
-            console.warn('gs-combo Warning: element has "refresh-on-querystring-values" or "refresh-on-querystring-change", but no "src".', element);
-        }
-        
-        element.internal.bolQSFirstRun = true;
-    }
-    
-    function triggerBeforeSelect(element) {
-        GS.triggerEvent(element, 'before_select');
-        if (element.hasAttribute('onbefore_select')) {
-            new Function(element.getAttribute('onbefore_select')).apply(element);
-        }
-    }
-
-    function triggerAfterSelect(element) {
-        GS.triggerEvent(element, 'after_select');
-        if (element.hasAttribute('onafter_select')) {
-            new Function(element.getAttribute('onafter_select')).apply(element);
-        }
-    }
-
-    //this one doesn't seem to be working properly
-    function triggerBeforeUpdate(element) {
-        GS.triggerEvent(element, 'before_update');
-        if (element.hasAttribute('onbefore_update')) {
-            new Function(element.getAttribute('onbefore_update')).apply(element);
-        }
-    }
-
-    function triggerAfterUpdate(element) {
-        GS.triggerEvent(element, 'after_update');
-        if (element.hasAttribute('onafter_update')) {
-            new Function(element.getAttribute('onafter_update')).apply(element);
-        } else if (element.hasAttribute('afterupdate')) {
-            new Function(element.getAttribute('afterupdate')).apply(element);
-        }
+        return true;
     }
 
     // the user needs to be able to set a custom websocket for this element,
@@ -37197,427 +38190,659 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         return GS.envSocket;
     }
-    
-    // ##################################################################
-    // ######################## UPDATE FUNCTIONS ########################
-    // ##################################################################
-    
-    function emergencyUpdate(element) {
-        if (element.currentSaveAjax) {
-            element.currentSaveAjax.abort();
+
+    // we don't want to listen to column elements that are inside other elements
+    //      so, this function allows us to exclude such elements in the change
+    //      events
+    function columnParentsUntilForm(form, element) {
+        var intColumnParents = 0;
+        var currentElement = element;
+        var maxLoops = 50;
+        var i = 0;
+
+        while (
+            currentElement.parentNode !== form &&
+            currentElement.parentNode &&
+            i < maxLoops
+        ) {
+            if (
+                //If something with a column attribute
+                currentElement.parentNode.hasAttribute('column') === true ||
+                //or something with a src attribute
+                currentElement.parentNode.hasAttribute('src') === true
+            ) {
+                intColumnParents += 1;
+            }
+
+            currentElement = currentElement.parentNode;
+            i += 1;
         }
-        element.bolCurrentlySaving = false;
-        updateDataWithoutTemplate(element, false);
+
+        return intColumnParents;
     }
-    
-    function updateData(element, updateElement, strColumn, newValue) {
-        var parentRecord;
-        var strID;
-        var strHash;
-        var srcParts = GS.templateWithQuerystring(element.getAttribute('update-src') || element.getAttribute('src')).split('.');
-        var strSchema = srcParts[0];
-        var strObject = srcParts[1];
-        var strReturnCols = element.arrColumns.join('\t');
-        var strHashCols = element.lockColumn;
-        var strPk;
-        var updateFrameData;
-        var strRoles;
-        var strColumns;
-        var arrTotalRecords = [];
 
-        parentRecord = GS.findParentElement(updateElement, '.form-record');
+    // we want to be able to easily access a record
+    function recordToJSON(element, strRecord) {
+        var col_i;
+        var col_len;
+        var decodeTab = GS.decodeFromTabDelimited;
+        var arrRecord;
+        var jsnRecord;
+        var strCell;
+        var delim;
+        var strNull;
+        var arrColNames;
 
-        strPk = element.getAttribute('pk') || 'id';
-        strID = parentRecord.getAttribute('data-id');
-        strHash = CryptoJS.MD5(parentRecord.getAttribute('data-' + element.lockColumn)).toString();
+        // we need the null-string in order to properly decode WS data
+        strNull = element.getAttribute('null-string');
 
-        strRoles   = 'pk\thash\tset';
-        strColumns = strPk + '\thash\t' + GS.encodeForTabDelimited(strColumn);
-        updateFrameData = strID + '\t' + strHash + '\t' + GS.encodeForTabDelimited(newValue);
-        
-        updateFrameData = (strRoles + '\n' + strColumns + '\n' + updateFrameData);
-        
-        triggerBeforeUpdate(element);
-        //GS.triggerEvent(element, 'before_update');
-        
-        element.saveState = 'saving';
-        if (element.saveTimeout) {
-            clearTimeout(element.saveTimeout);
+        // save the column name array for quick and easy access
+        arrColNames = element.internalData.columnNames;
+
+        // create cell array for this record
+        strRecord = strRecord + '\t';
+        arrRecord = [];
+        col_i = 0;
+        col_len = element.internalData.columnNames.length;//9999;
+        while (col_i < col_len) {
+            delim = strRecord.indexOf('\t');
+            strCell = strRecord.substring(0, delim);
+            strRecord = strRecord.substring(delim + 1);
+            arrRecord.push(decodeTab(strCell, strNull));
+            col_i += 1;
         }
-        element.saveTimeout = setTimeout(function () {
-            if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
-                element.saveState = 'error';
-                var parentElement = document.createElement('center');
-                parentElement.setAttribute('class', 'saving-warning-parent');
-                
-                var warningElement = document.createElement('div');
-                warningElement.setAttribute('class', 'saving-warning');
-    
-                // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
-                warningElement.innerHTML = 'YOUR CHANGES ARE NOT SAVED<br />WE HAVEN\'T HEARD BACK FROM THE SERVER<br />EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR';
-                
-                parentElement.appendChild(warningElement);
-                element.insertBefore(parentElement, element.children[0]);
-                
-                // element.appendChild(parentElement);
-                /*
-                warningElement.addEventListener('click', function () {
-                    saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
-                });
-                */
-            }
-        }, /*30*/ 5 * 1000);
-        
-        GS.requestUpdateFromSocket(
-            getSocket(element), strSchema, strObject
-          , strReturnCols, strHashCols, updateFrameData
-            
-          , function (data, error) { //, transactionID
-                if (error) {
-                    if (element.saveTimeout) {
-                        clearTimeout(element.saveTimeout);
-                    }
-                    element.saveState = 'error';
 
-                    getData(element);
-                    GS.removeLoader(element);
-                    GS.webSocketErrorDialog(data);
-                }
-            }
-          , function (data, error, transactionID, commitFunction, rollbackFunction) {
-                // removed by Nunzio on 2019-07-31 because there is no loader
-                //GS.removeLoader(element);
-                
-                if (!error) {
-                    if (data === 'TRANSACTION COMPLETED') {
-                        if (element.saveTimeout) {
-                            clearTimeout(element.saveTimeout);
-                        }
-                        element.saveState = 'saved';
-                        
-                        commitFunction();
-                    } else {
-                        var arrRecords;
-                        var arrCells;
-                        var i;
-                        var len;
-                        var cell_i;
-                        var cell_len;
-
-                        arrRecords = GS.trim(data, '\n').split('\n');
-
-                        i = 0;
-                        len = arrRecords.length;
-                        while (i < len) {
-                            arrCells = arrRecords[i].split('\t');
-                            
-                            cell_i = 0;
-                            cell_len = arrCells.length;
-                            while (cell_i < cell_len) {
-                                arrCells[cell_i] = arrCells[cell_i] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[cell_i]);
-                                cell_i += 1;
-                            }
-                            
-                            arrTotalRecords.push(arrCells);
-                            i += 1;
-                        }
-                    }
-                    
-                } else {
-                    if (element.saveTimeout) {
-                        clearTimeout(element.saveTimeout);
-                    }
-                    element.saveState = 'error';
-                    
-                    rollbackFunction();
-                    getData(element);
-                    GS.webSocketErrorDialog(data);
-                }
-            }
-          , function (strAnswer, data, error) {
-                var idIndex;
-                var i;
-                var len;
-
-                //GS.removeLoader(element);
-
-                if (!error) {
-                    if (strAnswer === 'COMMIT') {
-                        if (element.saveTimeout) {
-                            clearTimeout(element.saveTimeout);
-                        }
-                        element.saveState = 'saved';
-
-                        idIndex = element.lastSuccessData.arr_column.indexOf('id');
-                        i = 0;
-                        len = element.lastSuccessData.dat.length;
-                        while (i < len) {
-                            if (String(element.lastSuccessData.dat[i][idIndex]) === strID) {
-                                element.lastSuccessData.dat[i] = arrTotalRecords[0];
-                                break;
-                            }
-                            i += 1;
-                        }
-
-                        handleData(element, element.lastSuccessData);
-
-                        triggerAfterUpdate(element);
-                        //GS.triggerEvent(element, 'after_update');
-                    } else {
-                        getData(element);
-                    }
-                } else {
-                    if (element.saveTimeout) {
-                        clearTimeout(element.saveTimeout);
-                    }
-                    element.saveState = 'error';
-
-                    getData(element);
-                    GS.webSocketErrorDialog(data);
-                }
-            }
-        );
-    }
-    
-    function updateDataWithoutTemplate(element) {
-        if (element.bolCurrentlySaving === false && !element.bolErrorOpen) {
-            var strID;
-            var strHash;
-            var srcParts = GS.templateWithQuerystring(element.getAttribute('src')).split('.');
-            var strSchema = srcParts[0];
-            var strObject = srcParts[1];
-            var strReturnCols = element.arrColumns.join('\t');
-            var strHashCols = element.lockColumn;
-            var updateFrameData;
-            var strRoles;
-            var strColumns;
-            var arrTotalRecords = [];
-            var functionUpdateRecord;
-            var col_key;
-            var key;
-            var strColumn;
-            var newValue;
-            var idIndex;
-            var i;
-            var len;
-            
-            functionUpdateRecord = function (strID, strColumn, recordIndex, strParameters) {
-                var strWhere;
-                var strChangeStamp;
-                var strValue;
-                var strPk;
-                
-                element.bolCurrentlySaving = true;
-                element.jsnUpdate[strID][strColumn] = undefined;
-                
-                // run ajax
-                removeMessage(element, 'waiting');
-                addMessage(element, 'saving');
-                element.state = 'saving';
-                
-                element.saveTimeout = setTimeout(function () {
-                    if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
-                        element.saveState = 'error';
-                        var parentElement = document.createElement('center');
-                        parentElement.setAttribute('class', 'saving-warning-parent');
-                        
-                        var warningElement = document.createElement('div');
-                        warningElement.setAttribute('class', 'saving-warning');
-            
-                        // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
-                        warningElement.innerHTML = 'YOUR CHANGES ARE NOT SAVED<br />WE HAVEN\'T HEARD BACK FROM THE SERVER<br />EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR';
-                        
-                        parentElement.appendChild(warningElement);
-                        element.insertBefore(parentElement, element.children[0]);
-                        
-                        // element.appendChild(parentElement);
-                        /*
-                        warningElement.addEventListener('click', function () {
-                            saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
-                        });
-                        */
-                    }
-                }, /*30*/ 5 * 1000);
-                
-                strWhere        = GS.qryGetVal(strParameters, 'where');
-                strColumn       = GS.qryGetVal(strParameters, 'column');
-                strValue        = GS.qryGetVal(strParameters, 'value');
-                strID           = GS.qryGetVal(strWhere,      'id');
-                strChangeStamp  = GS.qryGetVal(strWhere,      element.lockColumn);
-                strHash = CryptoJS.MD5(strChangeStamp).toString();
-                strPk = element.getAttribute('pk') || 'id';
-
-                strRoles   = 'pk\thash\tset';
-                strColumns = strPk + '\thash\t' + GS.encodeForTabDelimited(strColumn);
-                updateFrameData = strID + '\t' + strHash + '\t' + GS.encodeForTabDelimited(strValue);
-                updateFrameData = (strRoles + '\n' + strColumns + '\n' + updateFrameData);
-                
-                GS.requestUpdateFromSocket(
-                    getSocket(element), strSchema, strObject
-                  , strReturnCols, strHashCols, updateFrameData
-                    
-                  , function (data, error, transactionID) {
-                        if (error) {
-                            getData(element);
-                            GS.webSocketErrorDialog(data);
-                        }
-                    }
-                  , function (data, error, transactionID, commitFunction, rollbackFunction) {
-                        if (!error) {
-                            if (data === 'TRANSACTION COMPLETED') {
-                                commitFunction();
-                            } else {
-                                var arrRecords;
-                                var arrCells;
-                                var i;
-                                var len;
-                                var cell_i;
-                                var cell_len;
-
-                                arrRecords = GS.trim(data, '\n').split('\n');
-
-                                i = 0;
-                                len = arrRecords.length;
-                                while (i < len) {
-                                    arrCells = arrRecords[i].split('\t');
-
-                                    cell_i = 0;
-                                    cell_len = arrCells.length;
-                                    while (cell_i < cell_len) {
-                                        arrCells[cell_i] = arrCells[cell_i] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[cell_i]);
-                                        cell_i += 1;
-                                    }
-                                    
-                                    arrTotalRecords.push(arrCells);
-                                    i += 1;
-                                }
-                            }
-                            
-                        } else {
-                            rollbackFunction();
-                            getData(element);
-                            GS.webSocketErrorDialog(data);
-                        }
-                    }
-                  , function (strAnswer, data, error) {
-                        var col_key;
-                        var key;
-                        var bolSaveWaiting;
-
-                        removeMessage(element, 'saving');
-                        element.state = 'saved';
-                        if (element.saveTimeout) {
-                            clearTimeout(element.saveTimeout);
-                        }
-
-                        GS.removeLoader(element);
-
-                        if (!error) {
-                            if (strAnswer === 'COMMIT') {
-                                element.lastSuccessData.dat[recordIndex] = arrTotalRecords[0];
-                                element.bolCurrentlySaving = false;
-
-                                // if there is another save in the pipeline: bolSaveWaiting = true
-                                for (key in element.jsnUpdate) {
-                                    for (col_key in element.jsnUpdate[key]) {
-                                        if (element.jsnUpdate[key][col_key] !== undefined) {
-                                            bolSaveWaiting = true;
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                // if there is a save waiting: update again
-                                if (bolSaveWaiting) {
-                                    updateDataWithoutTemplate(element);
-                                    
-                                } else {
-                                    triggerAfterUpdate(element);
-                                }
-                            } else {
-                                getData(element);
-                            }
-                        } else {
-                            GS.webSocketErrorDialog(data);
-                        }
-                    }
-                );
-            };
-            
-            // loop through the jsnUpdate variable and make one update for every record that needs an update
-            for (key in element.jsnUpdate) {
-                for (col_key in element.jsnUpdate[key]) {
-                    if (element.jsnUpdate[key][col_key] !== undefined) {
-                        strID = key;
-                        strColumn = col_key;
-                        newValue = element.jsnUpdate[key][col_key];
-                        idIndex = element.lastSuccessData.arr_column.indexOf('id');
-                        
-                        i = 0;
-                        len = element.lastSuccessData.dat.length;
-                        while (i < len) {
-                            if (String(element.lastSuccessData.dat[i][idIndex]) === strID) {
-                                functionUpdateRecord(strID, strColumn, i,
-                                            'where=' + encodeURIComponent(
-                                                'id=' + strID +
-                                                '&' + element.lockColumn + '=' + GS.envGetCell(element.lastSuccessData, i, element.lockColumn)
-                                            ) +
-                                            '&column=' + strColumn +
-                                            '&value=' +  encodeURIComponent(newValue));
-                                
-                                break;
-                            }
-                            i += 1;
-                        }
-                        
-                        break;
-                    }
-                }
-            }
+        // create record JSON from the cell array
+        col_i = 0;
+        col_len = arrRecord.length;
+        jsnRecord = {};
+        while (col_i < col_len) {
+            jsnRecord[arrColNames[col_i]] = arrRecord[col_i];
+            col_i += 1;
         }
-    }
-    
-    
-    // #################################################################
-    // ######################### DATA HANDLING #########################
-    // #################################################################
 
-    function dataTemplateRecords(element, data) {
-        var jsnTemplate;
-        var strRet;
-        
-        jsnTemplate = GS.templateHideSubTemplates(element.templateHTML);
-        
-        strRet = GS.templateWithEnvelopeData('<div class="form-record" ' + (data.dat.length === 1 ? 'style="height: 100%;" ' : '') +
-                                                'data-id="{{! row.id }}" data-' + element.lockColumn + '="{{! row.' + element.lockColumn + ' }}" gs-dynamic>' +
-                                                jsnTemplate.templateHTML +
-                                            '</div>',
-                                            data);
-        strRet = GS.templateShowSubTemplates(strRet, jsnTemplate);
-        
-        return strRet;
+        return jsnRecord;
     }
-    
-    // handles data result from method function: getData 
-    //      success:  template
-    //      error:    add error classes
-    function handleData(element, data, error) {
-        var arrElements;
+
+    // we need to split object names into schema and object
+    function splitObjectName(strObject) {
+        var arrParts;
+
+        // split "src" into "schema" and "object" attributes
+        arrParts = strObject.split('.');
+
+        // I don't know who added this. I don't inderstand why someone
+        //      would put something like "biz.bar.foo" in the "src"
+        //      attribute. That's the case that this code handles. If
+        //      you added this code: PUT A COMMENT!!!! We have comments
+        //      for a reason. Don't ruin this beautiful code. Only YOU
+        //      can prevent spaghetti code.
+        //  ~Michael
+        // It appears to be a solution to quote idented object names
+        //      that contain a period like this: test."test.asdf"
+        //      The problem with this (other than being unclear) is that
+        //      it wont work for schema names that contain a period.
+        //      We need a better solution for this. Perhaps it's time to
+        //      create a function that understands ident quoted names
+        //      for real, using actual parsing.
+        //  ~Also Michael
+        if (arrParts[2]) {
+            arrParts[1] = arrParts[1] + '.' + arrParts[2];
+        }
+
+        return {
+            "schema": arrParts[0],
+            "object": arrParts[1]
+        };
+    }
+
+    function convertWSFormattoAjax(element) {
+        var arrTotalRecords;
+        var arrRecords;
         var i;
         var len;
-        var intColumnElementFocusNumber;
-        var jsnSelection;
-        var matchElement;
-        var templateElement = document.createElement('template');
-        var focusTimerID;
-        var focusToElement;
+        var arrCells;
+        var cell_i;
+        var cell_len;
+
+        // convert data into something we can use
+        arrTotalRecords = [];
+        arrRecords = element.internalData.records;
+        i = 0;
+        len = arrRecords.length;
+        while (i < len) {
+            arrCells = arrRecords[i].split('\t');
+
+            cell_i = 0;
+            cell_len = arrCells.length;
+            while (cell_i < cell_len) {
+                arrCells[cell_i] = (
+                    arrCells[cell_i] === '\\N'
+                        ? null
+                        : GS.decodeFromTabDelimited(arrCells[cell_i])
+                );
+                cell_i += 1;
+            }
+
+            arrTotalRecords.push(arrCells);
+            i += 1;
+        }
+
+        return {
+            "arr_column": element.internalData.columnNames,
+            "dat": arrTotalRecords,
+            "row_count": arrTotalRecords.length
+        };
+    }
+
+    function refocusElement(row, strFocusColumn, jsnSelection) {
+        var parentColumn;
+        var refocusFunction;
         var timer_i;
-        
-        // clear any old error status
-        element.classList.remove('error');
-        
-        if (!error && data.dat.length === 0 && !element.hasAttribute('limit') && !element.hasAttribute('suppress-no-record-found')) {
-            templateElement.setAttribute('data-theme', 'error');
+        var focusTimerID;
+
+        parentColumn = qryAll(row, '[column="' + strFocusColumn + '"]')[0];
+
+        refocusFunction = function () {
+            parentColumn.focus();
+            if (
+                parentColumn &&
+                jsnSelection &&
+                (
+                    document.activeElement.nodeName === 'INPUT' ||
+                    document.activeElement.nodeName === 'TEXTAREA'
+                )
+            ) {
+                GS.setInputSelection(
+                    document.activeElement,
+                    jsnSelection.start,
+                    jsnSelection.end
+                );
+            }
+        };
+
+        if (parentColumn) {
+            // if element registration is not shimmed, we can just focus into
+            //      the target element
+            if (shimmed.customElements === false) {
+                refocusFunction();
+
+            // else, we have to check on a loop to see if the element has been
+            //      upgraded, the reason I need to use a loop here is because
+            //      there is no event for when an element is upgraded (if there
+            //      was then 1000 custom elements would emit 1000 events, which
+            //      is a lot and we don't want to bog the browser down)
+            } else {
+                timer_i = 0;
+                focusTimerID = setInterval(function () {
+                    if (parentColumn['__upgraded__'] || timer_i >= 10) {
+                        clearTimeout(focusTimerID);
+                    }
+                    if (parentColumn['__upgraded__']) {
+                        refocusFunction();
+                    }
+                    timer_i += 1;
+                }, 5);
+            }
+        }
+    }
+
+
+// #############################################################################
+// ############################# ELEMENT FUNCTIONS #############################
+// #############################################################################
+
+    // some attributes can't be used in their normal, dev-friendly format,
+    //      this function translates those attributes to their final formats
+    // some attributes need to be defaulted, even if they're not present
+    function resolveElementAttributes(element) {
+        var strSrc;
+        var jsnParts;
+
+        // GS-COMBO elements that are connected to Envelope need to have "pk"
+        //      attribute
+        if (element.getAttribute('src')) {
+            strSrc = GS.templateWithQuerystring(element.getAttribute('src'));
+
+            // if arbituary query
+            if (strSrc.replace(/\s*/gi, '').indexOf('(') === 0) {//SELECT
+                // save query as is
+                element.setAttribute('select-query', strSrc);
+
+            // else, it's just a table/view name
+            } else {
+                // split "src" into "schema" and "object" attributes
+                jsnParts = splitObjectName(strSrc);
+
+                // put the split sections of the object name into separate
+                //      attributes
+                element.setAttribute('select-schema', jsnParts.schema);
+                element.setAttribute('select-object', jsnParts.object);
+
+                element.setAttribute('update-schema', jsnParts.schema);
+                element.setAttribute('update-object', jsnParts.object);
+            }
+
+            // "update-src" should always be a table or a view
+            if (element.getAttribute('update-src')) {
+                // split into "schema" and "object" attributes
+                jsnParts = splitObjectName(element.getAttribute('update-src'));
+
+                element.setAttribute('update-schema', jsnParts.schema);
+                element.setAttribute('update-object', jsnParts.object);
+            }
+
+            // default insert, update, and delete
+            if (jsnParts) {
+                if (!element.hasAttribute('update-schema')) {
+                    element.setAttribute('update-schema', jsnParts.schema);
+                    element.setAttribute('update-object', jsnParts.object);
+                }
+            }
+
+            // if we're missing update details, warn the developer
+            if (
+                !element.hasAttribute('update-schema') ||
+                !element.hasAttribute('update-object')
+            ) {
+                console.warn(
+                    'GS-FORM Warning: Cannot figure out what object to ' +
+                    'update, please add an "update-src" attribute with the' +
+                    ' view that needs to receive the update commands.'
+                );
+            }
+        }
+
+        // default null string attribute
+        element.setAttribute(
+            'null-string',
+            (element.getAttribute('null-string') || '')
+        );
+
+        // default "pk" and "lock" attributes
+        element.setAttribute(
+            'pk',
+            (element.getAttribute('pk') || 'id')
+        );
+        element.setAttribute(
+            'lock',
+            (element.getAttribute('lock') || 'change_stamp')
+        );
+    }
+
+    // create internal structures and inner elements that persist through the
+    //      whole lifetime of the element
+    function prepareElement(element) {
+        // we want a place to store elements
+        element.elems = {};
+
+        // we want a place to look to for data
+        element.internalData = {
+            "records": [],
+            "columnNames": [],
+            "columnTypes": [],
+            "clearCache": false,
+            "timer": {},
+            "timerCount": 0,
+            "saveState": "saved",
+            "updateQueue": []
+        };
+
+        // we need a place to store event functions because, to unbind a
+        //      specific event javascript requires that you have the
+        //      original function that was bound to that event
+        element.internalEvents = {};
+
+        // Some events need persistent storage of a related variable. This
+        //      bucket will hold that info.
+        element.internalEventData = {
+            "defaultAttributes": {}
+        };
+
+        // we need a place to store our templates, so we'll create an
+        //      element.internalTemplates JSON object and store each
+        //      template under a unique name
+        element.internalTemplates = {
+            "row": "",
+            "rowIsSimple": false
+        };
+
+        // we need a place to store cell dimensions and other display
+        //      related info
+        // anything in here set to "undefined" is set that way because the dev
+        //      may set it to 0 or [] and we need to be able to tell that it
+        //      hasn't been set yet
+        element.internalDisplay = {};
+
+        // we need a place to store selection information
+        element.internalSelection = {};
+
+        // There are no persistent elements
+    }
+
+    // get attributes and templates and extract all necessary information
+    function siphonElement(element) {
+        var rowTemplate;
+        var i;
+        var len;
+        var jsnAttr;
+
+        // get each template element and save them to each their own variable,
+        //      for easy access
+        rowTemplate = qryKids(element, 'template')[0];
+
+        // remove all templates from the dom to prevent reflows
+        if (rowTemplate) {
+            element.removeChild(rowTemplate);
+        }
+
+        // check for greater-than and less-than operators that will mess with
+        //      the templating.
+        if (
+            rowTemplate &&
+            (
+                rowTemplate.innerHTML.indexOf('&gt;') > -1 ||
+                rowTemplate.innerHTML.indexOf('&lt;') > -1
+            )
+        ) {
+            console.warn(
+                'GS-FORM WARNING: &gt; or &lt; detected in ' +
+                'row template, this can have undesired ' +
+                'effects on doT.js. Please use gt(x,y), gte(x,y), ' +
+                'lt(x,y), or lte(x,y) to silence this warning.'
+            );
+        }
+
+        // we want to use the least invasive templating possible, because its
+        //      easier to maintain browser-maintained states (like focus, text
+        //      selection, event paths) if we don't replace the html every
+        //      update. So, if this is a "simple" template, meaning that it
+        //      only uses "column" attributes to fill controls, mark it as
+        //      "simple" so that we know to use the renderPartial function
+        //      instead of the renderSingleRow function after an update.
+        if (
+            rowTemplate &&
+            // no special Dot.js notation in template
+            (
+                rowTemplate.innerHTML.indexOf('{{') === -1 ||
+                element.getAttribute('force-simple-template') === 'true'
+            )
+        ) {
+            element.internalTemplates.rowIsSimple = true;
+        }
+
+        // pull in record template (for backwards compatibility, we need to be
+        //      able to accept a template without a "for" attribute as the
+        //      record template. Additionally, we need to be able to take a
+        //      TABLE element here and convert it to gs-cell. Unless it's a
+        //      static combobox. In which case, we convert it to static data
+        //      and gs-cells.
+        if (rowTemplate) {
+            // add a doT.js coded "value" attribute to any element with a
+            //      "column" attribute but no "value" attribute
+            element.internalTemplates.row = GS.templateColumnToValue(
+                rowTemplate.innerHTML
+            );
+        }
+
+        // if we haven't found a template and there is no datasource to create
+        //      a template from, error
+        if (!element.internalTemplates.row && !element.hasAttribute('src')) {
+            throw 'GS-FORM Error: No template provided.';
+        }
+
+        // we need to store the defaults of the attributes in case of QS
+        //      binding. Because we'll need to retemplate the initial attribute
+        //      setting every time.
+        i = 0;
+        len = element.attributes.length;
+        while (i < len) {
+            jsnAttr = element.attributes[i];
+
+            element.internalEventData.defaultAttributes[jsnAttr.nodeName] = (
+                jsnAttr.value ||
+                ''
+            );
+            i += 1;
+        }
+    }
+
+// #############################################################################
+// ############################# RENDER FUNCTIONS ##############################
+// #############################################################################
+
+    // builds entire html of records from scratch
+    function renderFull(element) {
+        var jsnTemplate;
+        var strTemplate;
+        var strRet;
+        var strStyle = '';
+        var internalData;
+        var strColPK;
+        var strColLock;
+        var data;
+
+        var target;
+        var parentForm;
+        var parentRecord;
+        var parentColumn;
+        var intRowNumber;
+        var strFocusColumn;
+        var jsnSelection;
+
+        // get column to focus back into
+        target = document.activeElement;
+        parentForm = GS.findParentTag(target, 'gs-form');
+        parentRecord = GS.findParentElement(target, '.form-record');
+        parentColumn = GS.findParentElement(target, '[column]');
+
+        if (
+            parentForm === element &&
+            parentColumn
+        ) {
+            strFocusColumn = parentColumn.getAttribute('column');
+            jsnSelection = GS.getInputSelection(target);
+            intRowNumber = parentRecord.getAttribute('data-row');
+        }
+
+        // shortcut variables
+        strTemplate = element.internalTemplates.row;
+        internalData = element.internalData;
+
+        // column attributes
+        strColPK = element.getAttribute('pk');
+        strColLock = element.getAttribute('lock');
+
+        // if single record, take the full height of the form element
+        if (internalData.records.length === 1) {
+            strStyle = 'style="height: 100%;" ';
+        }
+
+        // convert data into something we can use
+        data = convertWSFormattoAjax(element);
+
+        // we don't want to template templates for inner elements (like
+        //      comboboxes), so we hide the templates from Dot.
+        jsnTemplate = GS.templateHideSubTemplates(strTemplate);
+
+        // template
+        strRet = GS.templateWithEnvelopeData(
+            (
+                '<div ' +
+                    'class="form-record" ' +
+                    strStyle +
+                    'data-row="{{! i }}" ' +
+                    'data-pk="{{! row.' + strColPK + ' }}" ' +
+                  //'data-' + strColLock + '="{{! row.' + strColLock + ' }}" ' +
+                    'gs-dynamic ' +
+                '>' +
+                    jsnTemplate.templateHTML +
+                '</div>'
+            ),
+            data
+        );
+
+        // show the templates we hid earlier, and put HTML into the form
+        element.innerHTML = GS.templateShowSubTemplates(strRet, jsnTemplate);
+
+        // restore focus and text selection if possible
+        if (strFocusColumn) {
+            parentRecord = qryKids(
+                element,
+                '.form-record[data-row="' + intRowNumber + '"]'
+            )[0];
+
+            if (parentRecord) {
+                refocusElement(parentRecord, strFocusColumn, jsnSelection);
+            }
+        }
+    }
+
+    // replaces html of a single record, used if we can't resolve the changes
+    //      reliably (used after updates with non-simple templates)
+    function renderSingleRow(element, intRow) {
+        var row;
+        //var strLockColumn;
+        //var strLockValue;
+        var data;
+        var jsnTemplate;
+        var strHTML;
+
+        var strFocusColumn;
+        var jsnSelection;
+        var target;
+        var parentForm;
+        var parentRecord;
+        var parentColumn;
+
+        // get new lock value
+        //strLockColumn = element.getAttribute('lock');
+        //strLockValue = element.column(strLockColumn, intRow);
+
+        // get the row we are going to rerender
+        row = qryKids(element, '.form-record[data-row="' + intRow + '"]')[0];
+
+        // get column to focus back into
+        target = document.activeElement;
+        parentForm = GS.findParentTag(target, 'gs-form');
+        parentRecord = GS.findParentElement(target, '.form-record');
+        parentColumn = GS.findParentElement(target, '[column]');
+
+        if (
+            parentForm === element &&
+            parentRecord === row &&
+            parentColumn
+        ) {
+            strFocusColumn = parentColumn.getAttribute('column');
+            jsnSelection = GS.getInputSelection(target);
+        }
+
+        // update lock column
+        //row.setAttribute('data-' + strLockColumn, strLockValue);
+
+        // convert data into something we can use
+        data = convertWSFormattoAjax(element);
+
+        // we don't want to template templates for inner elements (like
+        //      comboboxes), so we hide the templates from Dot.
+        jsnTemplate = GS.templateHideSubTemplates(
+            element.internalTemplates.row
+        );
+
+        // template row contents
+        strHTML = GS.templateWithEnvelopeData(
+            jsnTemplate.templateHTML,
+            data,
+            intRow
+        );
+
+        // set row contents
+        row.innerHTML = GS.templateShowSubTemplates(strHTML, jsnTemplate);
+
+        // restore focus and text selection if possible
+        if (strFocusColumn) {
+            refocusElement(row, strFocusColumn, jsnSelection);
+        }
+    }
+
+    // replace values in controls that have been updated (for simple templates)
+    function renderPartial(element, intRow) {
+        var data;
+        var arrElement;
+        var i;
+        var len;
+        var strColumn;
+        var strControlValue;
+        var strDataValue;
+        var parentDataElement;
+
+        // convert data into something we can use
+        data = convertWSFormattoAjax(element);
+
+        // update all values that have changed
+        arrElement = qryKids(
+            element,
+            '.form-record[data-row="' + intRow + '"] [column]'
+        );
+        i = 0;
+        len = arrElement.length;
+        while (i < len) {
+            strColumn = arrElement[i].getAttribute('column');
+            parentDataElement = GS.findParentElement(arrElement[i], '[src]');
+            if (parentDataElement === element) {
+                strControlValue = arrElement[i].value;
+                strDataValue = GS.envGetCell(data, intRow, strColumn);
+
+                if (strControlValue === null || strControlValue === undefined) {
+                    strControlValue = '';
+                }
+                if (strDataValue === null || strDataValue === undefined) {
+                    strDataValue = '';
+                }
+
+                if (
+                    // if the value is different and
+                    strControlValue !== strDataValue &&
+                    // if the control is not focussed and
+                    arrElement[i] !== document.activeElement &&
+                    arrElement[i].control !== document.activeElement &&
+                    // if there are no saves pending
+                    element.internalData.timerCount === 0 &&
+                    element.internalData.updateQueue.length === 0 &&
+                    element.internalData.saveState !== 'saving'
+                ) {
+                    //if (arrElement[i].nodeName !== 'GS-ACE') {
+                    arrElement[i].value = strDataValue;
+                    //} else {
+                        console.log('#############################################');
+                        console.log('WOULDVE CAUSED FULL TEXT ERROR');
+                        console.log(JSON.stringify(element.internalData, null, 4));
+                        console.log(JSON.stringify(element.internalDisplay, null, 4));
+                        console.log('#############################################');
+                    //}
+                }
+            }
+
+            i += 1;
+        }
+    }
+
+
+// ############################################################################
+// ############################## DATA FUNCTIONS ##############################
+// ############################################################################
+
+    function dataSELECTcallback(element) {
+        var templateElement;
+
+        element.internalData.loaded = true;
+
+        if (
+            element.internalData.records.length === 0 &&
+            !element.hasAttribute('limit') &&
+            !element.hasAttribute('suppress-no-record-found')
+        ) {
+            templateElement = document.createElement('template');
             templateElement.innerHTML = ml(function () {/*
                 <gs-page>
                     <gs-header><center><h3>Error</h3></center></gs-header>
@@ -37626,562 +38851,2827 @@ document.addEventListener('DOMContentLoaded', function () {
                     </gs-body>
                     <gs-footer>
                         <gs-grid>
-                            <gs-block><gs-button dialogclose>Cancel</gs-button></gs-block>
-                            <gs-block><gs-button dialogclose listen-for-return bg-primary>Try Again</gs-button></gs-block>
+                            <gs-block>
+                                <gs-button dialogclose>Cancel</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button dialogclose listen-for-return
+                                    bg-primary
+                                >
+                                    Try Again
+                                </gs-button>
+                            </gs-block>
                         </gs-grid>
                     </gs-footer>
-                </gs-page>
-            */});
-            
+                </gs-page>*/
+            });
+
             GS.openDialog(templateElement, '', function (ignore, strAnswer) {
                 if (strAnswer === 'Try Again') {
                     element.refresh();
                 }
             });
         }
-        
-        // if there was no error
-        if (!error) {
-            element.error = false;
-            
-            // save success data
-            element.lastSuccessData = data;
-            
-            if (GS.findParentElement(document.activeElement, 'gs-form') === element) {
-                //console.log('Hey');
-                arrElements = xtag.query(element, '[column]');
-                matchElement = GS.findParentElement(document.activeElement, '[column]');
-                
-                if (document.activeElement.nodeName === 'INPUT' || document.activeElement.nodeName === 'TEXTAREA') {
-                    jsnSelection = GS.getInputSelection(document.activeElement);
+
+        renderFull(element);
+
+        triggerEvent(element, 'after_select');
+    }
+
+    function dataUPDATEcallback(element, strMode, jsnUpdate) {
+        if (element.hasAttribute('save-while-typing')) {
+            renderPartial(element, jsnUpdate.data.recordNumber);
+        } else if (strMode === 'single-cell') {
+            // if the template is simple, we can just manually update the
+            //      controls that don't match
+            if (element.internalTemplates.rowIsSimple) {
+                renderPartial(element, jsnUpdate.data.recordNumber);
+            } else {
+                renderSingleRow(element, jsnUpdate.data.recordNumber);
+            }
+        } else {
+            renderFull(element);
+        }
+
+        // if there are updates queued, run the next one
+        if (element.internalData.updateQueue.length > 0) {
+            dataUPDATE(
+                element,
+                element.internalData.updateQueue[0].mode,
+                element.internalData.updateQueue[0].update
+            );
+
+            element.internalData.updateQueue.shift();
+        }
+    }
+
+
+    function databaseWSUPDATE(element, strMode, jsnUpdate) {
+        var i;
+        var len;
+        var col_i;
+        var col_len;
+
+        var updateStep;
+        var jsnCurrentData;
+
+        var strSchema;
+        var strObject;
+        var strReturn;
+        var strHashColumns;
+        var strUpdateData;
+
+        var intUpdateColumnIndex;
+        var arrPK;
+        var arrLock;
+        var startingIndex;
+        var arrRecordIndexes;
+
+        var strRow;
+        var jsnRow;
+        var cell_i;
+        var cell;
+        var char;
+
+        var strRoles;
+        var strColumns;
+        var arrColumnNames;
+        var strHashString;
+        var strTemp;
+        var clearWarningFunction;
+
+        // get schema and object attributes and get the return column list
+        strSchema = GS.templateWithQuerystring(
+            element.getAttribute('update-schema') || ''
+        );
+        strObject = GS.templateWithQuerystring(
+            element.getAttribute('update-object') || ''
+        );
+
+        // the return column list must be defined the same as the column list
+        //      that we store the data with, so we define strReturn using the
+        //      column list
+        strReturn = '';
+        col_i = 0;
+        col_len = element.internalData.columnNames.length;
+        while (col_i < col_len) {
+            strReturn += (
+                strReturn
+                    ? '\t'
+                    : ''
+            );
+            strReturn += (
+                element.internalData.columnNames[col_i].replace(/(\\)/g, '\\\\')
+            );
+            col_i += 1;
+        }
+
+        // save the column name array for speed and easy access
+        arrColumnNames = element.internalData.columnNames;
+
+        // if single cell update: we only need to gather the update info for
+        //      one record
+        if (strMode === 'single-cell') {
+            jsnCurrentData = {
+                "columnName": (
+                    jsnUpdate.data.columnName.replace(/(\\)/g, '\\\\')
+                ),
+                "recordNumber": jsnUpdate.data.recordNumber,
+                "oldValue": ""
+            };
+            strHashColumns = '';
+            strUpdateData = '';
+            startingIndex = '';
+
+            // turn the updated column name into a column index so that we can
+            //      fetch the old data from the data
+            intUpdateColumnIndex = (
+                element
+                    .internalData
+                    .columnNames
+                    .indexOf(jsnUpdate.data.columnName)
+            );
+
+            // get the index of the record that will be updated
+            startingIndex = jsnUpdate.data.recordNumber;
+
+            // if you refresh between the update start and end, you might have
+            //      an error here ##################
+
+            // get the cell's old value so that when we emit before_update
+            //      and after_update events we can provide the old data
+            jsnCurrentData.oldValue = GS.decodeFromTabDelimited(
+                (element.internalData
+                    .records[startingIndex]
+                    .split('\t')[intUpdateColumnIndex] || '')
+            );
+
+            // get primary key and lock column names into arrays so that we can
+            //      use them for getting the PK and LOCK data and so that we
+            //      can tell the websocket the names of the PK and LOCK columns
+            if (element.getAttribute('pk')) {
+                arrPK = (
+                    GS.templateWithQuerystring(
+                        element.getAttribute('pk') || ''
+                    )
+                ).split(/[\s]*,[\s]*/);
+            } else {
+                arrPK = [];
+            }
+            if (element.getAttribute('lock')) {
+                arrLock = (
+                    GS.templateWithQuerystring(
+                        element.getAttribute('lock') || ''
+                    )
+                ).split(/[\s]*,[\s]*/);
+            } else {
+                arrLock = [];
+            }
+
+            // define "strHashColumns", "strRoles" and strColumns as empty so
+            //      that we can append to them without worrying about an
+            //      "undefined" appearing
+            strHashColumns = '';
+            strHashString = '';
+            strRoles = '';
+            strColumns = '';
+            strUpdateData = '';
+
+            // create record json so that we can easily get column values
+            //      we need
+            strRow = element.internalData.records[startingIndex];
+            jsnRow = {};
+
+            i = 0;
+            len = strRow.length;
+            cell_i = 0;
+            cell = "";
+            while (i < len) {
+                char = strRow[i];
+
+                if (char === "\t") {
+                    jsnRow[arrColumnNames[cell_i]] =
+                            GS.decodeFromTabDelimited(cell, '\\N');
+
+                    cell = "";
+                    cell_i += 1;
+                } else {
+                    cell += char;
                 }
-                
-                if (matchElement) {
+                i += 1;
+            }
+            jsnRow[arrColumnNames[cell_i]] =
+                    GS.decodeFromTabDelimited(cell, '\\N');
+
+            // build up column name/role list for websocket update headers
+            //      using the PK columns and append pk values
+            i = 0;
+            len = arrPK.length;
+            while (i < len) {
+                strRoles += (
+                    strRoles
+                        ? '\t'
+                        : ''
+                );
+                strRoles += 'pk';
+                strColumns += (
+                    strColumns
+                        ? '\t'
+                        : ''
+                );
+                strColumns += arrPK[i];
+                strUpdateData += (
+                    strUpdateData
+                        ? '\t'
+                        : ''
+                );
+                strUpdateData += jsnRow[arrPK[i]];
+                i += 1;
+            }
+
+            // build up hash column name list for websocket update headers
+            //      using the LOCK columns
+            i = 0;
+            len = arrLock.length;
+            while (i < len) {
+                strHashColumns += (
+                    strHashColumns
+                        ? '\t'
+                        : ''
+                );
+                strHashColumns += arrLock[i];
+
+                strHashString += (
+                    strHashString
+                        ? '\t'
+                        : ''
+                );
+                strTemp = jsnRow[arrLock[i]];
+
+                // the C encodes null values as empty string in the hash portion
+                strHashString += (
+                    strTemp === '\\N'
+                        ? ''
+                        : GS.encodeForTabDelimited(strTemp, '\\N')
+                );
+                i += 1;
+            }
+
+            if (strHashString) {
+                strRoles += (
+                    strRoles
+                        ? '\t'
+                        : ''
+                );
+                strRoles += 'hash';
+
+                strColumns += (
+                    strColumns
+                        ? '\t'
+                        : ''
+                );
+                strColumns += 'hash';
+
+                strUpdateData += (
+                    strUpdateData
+                        ? '\t'
+                        : ''
+                );
+                strUpdateData += GS.utfSafeMD5(strHashString).toString();
+            }
+
+            // build up column name/role list for websocket update headers
+            //      using the update column
+            strRoles += (
+                strRoles
+                    ? '\t'
+                    : ''
+            );
+            strRoles += 'set';
+            strColumns += (
+                strColumns
+                    ? '\t'
+                    : ''
+            );
+            strColumns += jsnUpdate.data.columnName.replace(/(\\)/g, '\\\\');
+
+            // append new value
+            strUpdateData += (
+                strUpdateData
+                    ? '\t'
+                    : ''
+            );
+            strUpdateData += GS.encodeForTabDelimited(jsnUpdate.data.newValue);
+
+            // append an extra return to the end so just in case the C needs it
+            strUpdateData += '\n';
+
+            // prepend columns and roles
+            strUpdateData = (
+                strRoles + '\n' +
+                strColumns + '\n' +
+                strUpdateData
+            );
+
+            // add record index to the array
+            arrRecordIndexes = [jsnUpdate.data.recordNumber];
+
+        // else: invalid update type: throw an error
+        } else {
+            throw 'GS-FORM Error: Invalid update type. Update type "' +
+                    strMode + '" is not valid, please use "single-cell" ' +
+                    'or "cell-range".';
+        }
+
+        // if the user prevents the default on the "before_update"
+        //      event, prevent the execution of the following update code
+        if (
+            !triggerEvent(
+                element,
+                'before_update',
+                {
+                    "schema": strSchema,
+                    "object": strObject,
+                    "updateMode": strMode,
+                    "oldData": jsnCurrentData,
+                    "newData": jsnUpdate.data
+                }
+            )
+        ) {
+            return;
+        }
+
+        // the update step is defined as a sub function because if there
+        //      are multiple cells involved in this update, we want to open
+        //      a dialog before we continue, else we want to immediatly
+        //      update
+        updateStep = function () {
+            var updatedRecords;
+
+            // define "updatedRecords" as empty so that we can append to it
+            //      without worrying about an "undefined" at the beginning of
+            //      the string
+            updatedRecords = '';
+
+            //// gotta let the user know that an update is in progress
+            //addLoader(element, 'data-update', 'Updating Data...');
+
+            element.internalData.saveState = 'saving';
+            console.log('UPDATE CODE: saving');
+            if (element.saveTimeout) {
+                clearTimeout(element.saveTimeout);
+            }
+
+            // wait five seconds to warn the user if the update is taking too
+            //      long.
+            element.saveTimeout = setTimeout(
+                function () {
+                    var arrParentElement;
+                    var parentElement;
+                    var warningElement;
+
+                    // we need to know if we've already opened a warning like
+                    //      this. So, we'll select for warnings that already
+                    //      exist.
+                    arrParentElement = qryKids(
+                        element,
+                        '.saving-warning-parent'
+                    );
+
+                    if (
+                        // if we haven't saved and
+                        element.internalData.saveState !== 'saved' &&
+                        // there isn't already a warning
+                        arrParentElement.length === 0
+                    ) {
+                        element.internalData.saveState = 'error';
+
+                        parentElement = document.createElement('center');
+                        parentElement.setAttribute(
+                            'class',
+                            'saving-warning-parent'
+                        );
+
+                        warningElement = document.createElement('div');
+                        warningElement.setAttribute(
+                            'class',
+                            'saving-warning'
+                        );
+
+                        warningElement.innerHTML = (
+                            'YOUR CHANGES ARE NOT SAVED<br />' +
+                            'WE HAVEN\'T HEARD BACK FROM THE SERVER<br />' +
+                            'EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR'
+                        );
+
+                        parentElement.appendChild(warningElement);
+                        element.insertBefore(
+                            parentElement,
+                            element.children[0]
+                        );
+                    }
+                },
+                //10         // Uncomment to test
+                (5 * 1000) // Uncomment for live
+            );
+
+            clearWarningFunction = function () {
+                var arrErrorElement;
+
+                // gather warning elements
+                arrErrorElement = qryKids(
+                    element,
+                    '.saving-warning-parent'
+                );
+
+                // if there is a warning element, remove it
+                if (arrErrorElement.length > 0) {
+                    element.removeChild(arrErrorElement[0]);
+                }
+            };
+
+            console.log('UPDATE CODE: START');
+            // begin the websocket update
+            GS.requestUpdateFromSocket(
+                getSocket(element),
+                strSchema,
+                strObject,
+                strReturn,
+                strHashColumns,
+                strUpdateData,
+                // transaction start callback
+                function (data, error) { //transID
+
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        return;
+                    }
+
+                    // update failed: remove loader, popup an error
+                    //      and reverse changes
+                    if (error) {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.internalData.saveState = 'error';
+
+                        clearWarningFunction();
+                        //removeLoader(element, 'data-update', 'Change Failed');
+                        GS.webSocketErrorDialog(data);
+
+                        // request fresh data
+                        //getData(element);
+                    }
+                },
+                // transaction ready for commit/rollback callback
+                // "ignore" is a placeholder for "transID" and it tells JSLINT
+                //      that it is an unused variable
+                function (data, error, ignore, commit, rollback) {
+                    if (!error) {
+                        // update made it through: commit the update
+                        if (data === 'TRANSACTION COMPLETED') {
+                            if (element.saveTimeout) {
+                                clearTimeout(element.saveTimeout);
+                            }
+                            console.log('UPDATE CODE: saved');
+
+                            clearWarningFunction();
+                            commit();
+
+                        // else: we've just received a data packet containing
+                        //      the updated records current version
+                        } else {
+                            // save this data so that we can use it to update
+                            //      the internal data if the update makes it
+                            //      through
+                            //  ,----- data already comes back with an extra \n
+                            // v
+                            //updatedRecords += (updatedRecords ? '\n' : '');
+                            updatedRecords += data;
+                        }
+
+                    // update failed: popup an error, rollback and
+                    //      reverse change
+                    } else {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.internalData.saveState = 'error';
+
+                        data.error_text = (
+                            '\n\n' +
+                            'Your unsaved value(s): ' +
+                            strUpdateData.substring(
+                                strUpdateData.indexOf('\n'),
+                                strUpdateData.length
+                            ) +
+                            '\n\n' +
+                            data.error_text
+                        );
+
+                        clearWarningFunction();
+                        GS.webSocketErrorDialog(data);
+                        rollback();
+                        dataSELECT(element);
+                    }
+                },
+                // transaction commit/rollback finished callback
+                function (strAnswer, data, error) {
+                    var arrRecords;
+
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        return;
+                    }
+
+                    //// the over-the-network part of the update has finished,
+                    ////      remove the loader now so that if there is an
+                    ////      execution error below, the loader wont be stuck
+                    ////      visible
+                    //removeLoader(
+                    //    element,
+                    //    'data-update',
+                    //    (
+                    //        error
+                    //            ? 'Change Failed'
+                    //            : 'Change Saved'
+                    //    )
+                    //);
+
+                    if (!error) {
+                        // update was successfully commited: update internal
+                        //      data and re-render
+                        if (strAnswer === 'COMMIT') {
+                            if (element.saveTimeout) {
+                                clearTimeout(element.saveTimeout);
+                            }
+                            element.internalData.saveState = 'saved';
+
+                            clearWarningFunction();
+
+                            // refresh internal data by replace each internal
+                            //      record that was affected with it's new
+                            //      version
+                            arrRecords = updatedRecords.split('\n');
+                            i = 0;
+                            len = arrRecords.length - 1; // the - 1 is because
+                                                         //   of the extra \n at
+                                                         //   the end of the
+                                                         //   returned records
+                            while (i < len) {
+                                element.internalData
+                                    .records[arrRecordIndexes[i]] = (
+                                        arrRecords[i]
+                                    );
+                                i += 1;
+                            }
+
+                            dataUPDATEcallback(element, strMode, jsnUpdate);
+
+                            // trigger an after update event
+                            triggerEvent(element, 'after_update', {
+                                "updateMode": strMode,
+                                "oldData": jsnCurrentData,
+                                "newData": jsnUpdate.data
+                            });
+
+                            // backwards compatibility
+                            triggerEvent(element, 'afterupdate', {
+                                "updateMode": strMode,
+                                "oldData": jsnCurrentData,
+                                "newData": jsnUpdate.data
+                            });
+
+                        // transaction was rolled back: reverse change
+                        } else {
+                            //getData(element);
+                        }
+                    // update failed: popup an error and reverse change
+                    } else {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        element.internalData.saveState = 'error';
+
+                        clearWarningFunction();
+                        GS.webSocketErrorDialog(data);
+                    }
+                }
+            );
+        };
+
+        // begin the update
+        updateStep();
+    }
+
+    function databaseWSSELECT(element) {
+        var templateQS = GS.templateWithQuerystring;
+        var arrRecords;
+        var arrCols;
+        var strCols;
+        var arrColNames;
+        var saveColumns;
+
+        // we need to get the column names and types
+        saveColumns = function (data) {
+            var i;
+            var len;
+            var strCol;
+            var strType;
+
+            element.internalData.columnNames = [];
+            element.internalData.columnTypes = [];
+            arrColNames = data.arrDecodedColumnNames;
+
+            i = 0;
+            len = arrColNames.length;
+            while (i < len) {
+                strCol = arrColNames[i];
+                strType = data.arrDecodedColumnTypes[i];
+
+                element.internalData.columnNames.push(strCol);
+                element.internalData.columnTypes.push(strType);
+                i += 1;
+            }
+        };
+
+        // limit column list
+        if (element.getAttribute('cols')) {
+            arrCols = templateQS(element.getAttribute('cols') || '').trim();
+            arrCols = arrCols.split(/[\s]*,[\s]*/);
+            strCols = arrCols.join('\t');
+        } else {
+            strCols = '*';
+        }
+
+        // we need to make sure that no old data persists across select calls,
+        //      so we'll clear out the internal data object
+        element.internalData.records = [];
+
+        // storing references to the arrays for faster access
+        arrRecords = element.internalData.records;
+
+        var returnCallback = function (data, error) {
+            var i;
+            var strRecord;
+            var strMessage;
+            var index;
+
+            // sometimes, elements get removed during the wait for a
+            //      callback
+            if (!element.internalData.columnNames) {
+                return false;
+            }
+
+            if (!error) {
+                // we need to get the column names and types
+                if (data.intCallback === 0) {
+                    saveColumns(data);
+                }
+
+                // if we see the last message of the select: render
+                if (data.strMessage === 'TRANSACTION COMPLETED') {
+                    element.classList.remove('error');
+                    dataSELECTcallback(element);
+
+                // we need to capture the records and columns and store
+                //      them in the internal data
+                } else {
+                    // we need to parse the TSV into records and push them
+                    //      to the internalData "records" array
+                    // with Envelope Websocket data all we have to is split
+                    //      on \n. Also, it always ends in \n so the loop
+                    //      doesn't need to do anything special to get the
+                    //      last record
+                    strMessage = data.strMessage;
+                    strRecord = '';
+
                     i = 0;
-                    len = arrElements.length;
-                    while (i < len) {
-                        if (arrElements[i] === matchElement) {
-                            intColumnElementFocusNumber = i;
+                    while (i < 15) {
+                        index = strMessage.indexOf('\n');
+                        strRecord = strMessage.substring(0, index);
+                        strMessage = strMessage.substring(index + 1);
+
+                        if (strRecord !== '' || strMessage !== '') {
+                            arrRecords.push(strRecord);
+                        } else {
                             break;
                         }
                         i += 1;
                     }
                 }
-            }
-            
-            //console.log(element.children);
-            element.innerHTML = dataTemplateRecords(element, data);
-            //console.log(element.children);
-            
-            // if template is not native: handle templates inside the form
-            if (shimmed.HTMLTemplateElement) {
-                HTMLTemplateElement.bootstrap(element);
-            }
-            
-            // handle autofocus
-            arrElements = xtag.query(element, '[autofocus]');
-            
-            if (arrElements.length > 0 && !evt.touchDevice) {
-                arrElements[0].focus();
-                
-                if (arrElements.length > 1) {
-                    console.warn('dialog Warning: Too many [autofocus] elements, defaulting to the first one. Please have only one [autofocus] element per form.');
-                }
-            }
-            
-            // if there is a intColumnElementFocusNumber: restore focus
-            if (intColumnElementFocusNumber) {
-                arrElements = xtag.query(element, '[column]');
 
-                if (arrElements.length > intColumnElementFocusNumber) {
-                    focusToElement = arrElements[intColumnElementFocusNumber];
-
-                    // if element registration is not shimmed, we can just focus into the target element
-                    if (shimmed.registerElement === false) {
-                        focusToElement.focus();
-                        if (jsnSelection) {
-                            GS.setInputSelection(document.activeElement, jsnSelection.start, jsnSelection.end);
-                        }
-
-                    // else, we have to check on a loop to see if the element has been upgraded,
-                    //      the reason I need to use a loop here is because there is no event for
-                    //      when an element is upgraded (if there was then 1000 custom elements
-                    //      would emit 1000 events, which is a lot and we don't want to bog the
-                    //      browser down)
-                    } else {
-                        timer_i = 0;
-                        focusTimerID = setInterval(function () {
-                            if (focusToElement['__upgraded__'] || timer_i >= 10) {
-                                clearTimeout(focusTimerID);
-                            }
-                            if (focusToElement['__upgraded__']) {
-                                focusToElement.focus();
-                                if (jsnSelection) {
-                                    GS.setInputSelection(document.activeElement, jsnSelection.start, jsnSelection.end);
-                                }
-                            }
-                            timer_i += 1;
-                        }, 5);
-                    }
-                }
+            // we need to make sure that the user knows that the select
+            //      failed and we need to prevent using any old select
+            //      info, so we'll re-render, remove the loader and pop
+            //      up an error
+            } else {
+                dataSELECTcallback(element);
+                //GS.webSocketErrorDialog(data);
+                element.internalData.errorData = data;
+                element.classList.add('error');
             }
-            
-            // trigger after_select
-            triggerAfterSelect(element);
-            //GS.triggerEvent(element, 'after_select');
-            
-        // else there was an error: add error class, title attribute
+        };
+
+
+
+        var socket = getSocket(element);
+        var strSchema = templateQS(element.getAttribute('select-schema') || '');
+        var strObject = templateQS(element.getAttribute('select-object') || '');
+        var strReturn = strCols;
+        var strWhere = templateQS(element.getAttribute('where') || '');
+        var strOrd = templateQS(element.getAttribute('ord') || '');
+        var strLimit = templateQS(element.getAttribute('limit') || '1');
+        var strOffset = templateQS(element.getAttribute('offset') || '0');
+        var strQuery = GS.templateWithQuerystring(
+            element.getAttribute('select-query') || ''
+        );
+
+        // we need the user to know that the envelope is re-fetching data,
+        //      so we'll put a loader on
+        if (strQuery) {
+            GS.requestArbitrarySelectFromSocket(
+                socket,
+                strQuery,
+                strWhere,
+                strOrd,
+                strLimit,
+                strOffset,
+                returnCallback
+            );
         } else {
-            element.error = true;
-            element.classList.add('error');
-            element.innerHTML = 'This form encountered an error.';
+            GS.requestSelectFromSocket(
+                socket,
+                strSchema,
+                strObject,
+                strReturn,
+                strWhere,
+                strOrd,
+                strLimit,
+                strOffset,
+                returnCallback
+            );
+        }
 
-            //GS.ajaxErrorDialog(event.detail.response);
-            GS.ajaxErrorDialog(data);
+        element.internalData.clearCache = false;
+    }
+
+
+    function dataSELECT(element) {
+        triggerEvent(element, 'before_select');
+
+        databaseWSSELECT(element);
+    }
+
+    function dataUPDATE(element, strMode, jsnUpdate) {
+        triggerEvent(element, 'before_update');
+
+        if (element.internalData.saveState === 'saving') {
+            element.internalData.updateQueue.push({
+                "mode": strMode,
+                "update": jsnUpdate
+            });
+        } else {
+            databaseWSUPDATE(element, strMode, jsnUpdate);
         }
     }
-    
-    // handles fetching the data
-    //      if bolInitalLoad === true then
-    //          use: initialize query COALESCE TO source query
-    //      else
-    //          use: source query
-    function getData(element) { //bolClearPrevious
-        var strSrc     = GS.templateWithQuerystring(element.getAttribute('src'));
-        var bolQuery   = strSrc[0] === '(';
-        var srcParts   = strSrc[0] === '(' ? [strSrc, ''] : strSrc.split('.');
-        var strSchema  = srcParts[0];
-        var strObject  = srcParts[1];
-        var strColumns = GS.templateWithQuerystring(element.getAttribute('cols') || '*').split(',').join('\t');
-        var strWhere   = GS.templateWithQuerystring(element.getAttribute('where') || '');
-        var strOrd     = GS.templateWithQuerystring(element.getAttribute('ord') || '');
-        var strLimit   = GS.templateWithQuerystring(element.getAttribute('limit') || '1');
-        var strOffset  = GS.templateWithQuerystring(element.getAttribute('offset') || '');
-        var arrTotalRecords = [];
-        
-        triggerBeforeSelect(element);
-        //GS.triggerEvent(element, 'before_select');
-        
-        GS.requestSelectFromSocket(getSocket(element), bolQuery ? '' : strSchema, bolQuery ? strSrc : strObject, strColumns
-                                 , strWhere, strOrd, strLimit, strOffset
-                                 , function (data, error) {
-            var arrRecords;
-            var arrCells;
+
+
+// #############################################################################
+// ############################## EVENT FUNCTIONS ##############################
+// #############################################################################
+
+    // ############# QS EVENTS #############
+    function unbindQuerystringEvents(element) {
+        window.removeEventListener('pushstate', element.internalEvents.qsR);
+        window.removeEventListener('replacestate', element.internalEvents.qsR);
+        window.removeEventListener('popstate', element.internalEvents.qsR);
+    }
+    function bindQuerystringEvents(element) {
+        //element.internalEvents.queryStringResolve
+        element.internalEvents.qsR = function () {
             var i;
             var len;
-            var cell_i;
-            var cell_len;
-            
-            if (!error) {
-                if (data.strMessage !== 'TRANSACTION COMPLETED') {
-                    arrRecords = GS.trim(data.strMessage, '\n').split('\n');
+            var strQS = GS.getQueryString();
+            var strQSCol = element.getAttribute('qs');
+            var strQSValue;
+            var strQSAttr;
+            var arrQSParts;
+            var arrAttrParts;
+            var arrPopKeys;
+            var currentValue;
+            var bolRefresh;
+            var strOperator;
+            var jsnDefaultAttr;
 
+            if (strQSCol) {
+                jsnDefaultAttr = element.internalEventData.defaultAttributes;
+
+                if (strQSCol.indexOf('=') !== -1) {
+                    arrAttrParts = strQSCol.split(',');
                     i = 0;
-                    len = arrRecords.length;
+                    len = arrAttrParts.length;
                     while (i < len) {
-                        arrCells = arrRecords[i].split('\t');
-                        
-                        cell_i = 0;
-                        cell_len = arrCells.length;
-                        while (cell_i < cell_len) {
-                            arrCells[cell_i] = arrCells[cell_i] === '\\N' ? null : GS.decodeFromTabDelimited(arrCells[cell_i]);
-                            cell_i += 1;
+                        strQSCol = arrAttrParts[i];
+
+                        if (strQSCol.indexOf('!=') !== -1) {
+                            strOperator = '!=';
+                            arrQSParts = strQSCol.split('!=');
+                        } else {
+                            strOperator = '=';
+                            arrQSParts = strQSCol.split('=');
                         }
-                        
-                        arrTotalRecords.push(arrCells);
+
+                        strQSCol = arrQSParts[0];
+                        strQSAttr = arrQSParts[1] || arrQSParts[0];
+
+                        // if the key is not present or we've got the negator:
+                        //      go to the attribute's default or remove it
+                        if (strOperator === '!=') {
+                            // if the key is not present: add the attribute
+                            if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
+                                element.setAttribute(strQSAttr, '');
+                            // else: remove the attribute
+                            } else {
+                                element.removeAttribute(strQSAttr);
+                            }
+                        } else {
+                            // if the key is not present:
+                            //      go to the attribute's default or remove it
+                            if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
+                                if (jsnDefaultAttr[strQSAttr] !== undefined) {
+                                    element.setAttribute(
+                                        strQSAttr,
+                                        (jsnDefaultAttr[strQSAttr] || '')
+                                    );
+                                } else {
+                                    element.removeAttribute(strQSAttr);
+                                }
+                            // else: set attribute to exact text from QS
+                            } else {
+                                element.setAttribute(strQSAttr, (
+                                    GS.qryGetVal(strQS, strQSCol) ||
+                                    jsnDefaultAttr[strQSAttr] ||
+                                    ''
+                                ));
+                            }
+                        }
                         i += 1;
                     }
-                } else {
-                    element.arrColumns = data.arrColumnNames;
+                } else if (GS.qryGetKeys(strQS).indexOf(strQSCol) > -1) {
+                    strQSValue = GS.qryGetVal(strQS, strQSCol);
 
-                    handleData(element, {
-                        "arr_column": data.arrColumnNames
-                      , "dat": arrTotalRecords
-                      , "row_count": arrTotalRecords.length
-                    }, '', 'load');
-                }
-            } else {
-                GS.webSocketErrorDialog(data);
-            }
-        });
-    }
-    
-    
-    
-    // #################################################################
-    // ########################### LIFECYCLE ###########################
-    // #################################################################
-    
-    // dont do anything that modifies the element here
-    function elementCreated(element) {
-        // if "created" hasn't been suspended: run created code
-        if (!element.hasAttribute('suspend-created')) {
-            
-        }
-    }
-    
-    function elementInserted(element) {
-        var firstChildElement;
-        var changeHandler;
-
-        // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
-        if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
-            if (element.children.length === 0) {
-                throw 'GS-Form Error: No template provided';
-            }
-            // if this is the first time inserted has been run: continue
-            if (!element.inserted) {
-                // #############################################################################################
-                // ###  ######################
-                // #############################################################################################
-
-                element.inserted = true;
-                element.internal = {};
-                saveDefaultAttributes(element);
-
-                firstChildElement = element.children[0];
-
-
-                // #############################################################################################
-                // ### PREVENT CHANGES FROM BEING LOST WHEN NAVIGATING AWAY FROM THE PAGE ######################
-                // #############################################################################################
-
-                // if this form has the "save-while-typing" attribute
-                if (element.hasAttribute('save-while-typing')) {
-                    GS.addBeforeUnloadEvent(function () {
-                        if (element.bolCurrentlySaving || element.saveTimerID) {
-                            return 'The page has not finished saving.';
+                    if (element.internalData.bolQSFirstRun !== true) {
+                        if (
+                            strQSValue !== '' ||
+                            !element.getAttribute('value')
+                        ) {
+                            element.setAttribute('value', strQSValue);
                         }
-                    });
-                } else {
-                    // this prevents the issue where you type in a change but then unload
-                    //      the page without causing a change event to fire, which means you lose your change
-                    GS.addBeforeUnloadEvent(function () {
-                        document.activeElement.blur();
-                    });
+                    } else {
+                        element.value = strQSValue;
+                    }
                 }
+            }
 
+            // handle
+            //      "refresh-on-querystring-values" and
+            //      "refresh-on-querystring-change" attributes
+            if (element.internalData.bolQSFirstRun === true) {
+                if (element.hasAttribute('refresh-on-querystring-values')) {
+                    arrPopKeys = (
+                        element.getAttribute('refresh-on-querystring-values')
+                            .split(/\s*,\s*/gim)
+                    );
 
-                // #############################################################################################
-                // ### DEFAULT #################################################################################
-                // #############################################################################################
+                    i = 0;
+                    len = arrPopKeys.length;
+                    while (i < len) {
+                        currentValue = GS.qryGetVal(strQS, arrPopKeys[i]);
 
-                // lock attribute and defaulting
-                element.lockColumn = element.getAttribute('lock') || 'change_stamp';
+                        if (element.popValues[arrPopKeys[i]] !== currentValue) {
+                            bolRefresh = true;
+                        }
 
+                        element.popValues[arrPopKeys[i]] = currentValue;
+                        i += 1;
+                    }
 
-                // #############################################################################################
-                // ### TEMPLATE SAVING #########################################################################
-                // #############################################################################################
-
-                // if the first child is a template element: save its HTML
-                if (firstChildElement.nodeName === 'TEMPLATE') {
-                    element.templateHTML = firstChildElement.innerHTML;
-
-                // else: save the innerHTML of the form and send a warning
-                } else {
-                    console.warn('Warning: gs-form is now built to use a template element. ' +
-                                 'Please use a template element to contain the template for this form. ' + // this warning was added: March 12th 2015
-                                 'A fix has been included so that it is not necessary to use the template element, but that code may be removed at a future date.');
-
-                    element.templateHTML = element.innerHTML;
-                }
-
-                // if there is no HTML: throw an error
-                if (!element.templateHTML.trim()) { throw 'GS-FORM error: no template HTML.'; }
-
-                if (element.templateHTML.indexOf('&gt;') > -1 || element.templateHTML.indexOf('&lt;') > -1) {
-                    console.warn('GS-FORM WARNING: &gt; or &lt; detected in record template, this can have undesired effects on doT.js. Please use gt(x,y), gte(x,y), lt(x,y), or lte(x,y) to silence this warning.');
-                }
-
-                // add a doT.js coded "value" attribute to any element with a "column" attribute but no "value" attribute
-                element.templateHTML = GS.templateColumnToValue(element.templateHTML);
-
-
-                // #############################################################################################
-                // ### "QS" ATTRIBUTE ##########################################################################
-                // #############################################################################################
-                
-                // handle "qs" attribute
-                if (
-                    element.getAttribute('qs') ||
-                    element.getAttribute('refresh-on-querystring-values') ||
+                } else if (
                     element.hasAttribute('refresh-on-querystring-change')
                 ) {
-                    element.popValues = {};
-                    pushReplacePopHandler(element);
-                    window.addEventListener('pushstate',    function () { pushReplacePopHandler(element); });
-                    window.addEventListener('replacestate', function () { pushReplacePopHandler(element); });
-                    window.addEventListener('popstate',     function () { pushReplacePopHandler(element); });
-                } else {
-                    getData(element);
+                    bolRefresh = true;
                 }
 
+                if (bolRefresh && element.hasAttribute('src')) {
+                    element.refresh();
 
-                // #############################################################################################
-                // ### ARROW FIELD NAVIGATION ##################################################################
-                // #############################################################################################
+                } else if (bolRefresh && !element.hasAttribute('src')) {
+                    console.warn(
+                        'gs-form Warning: ' +
+                                'element has "refresh-on-querystring-values" ' +
+                                'or "refresh-on-querystring-change", but no ' +
+                                '"src".',
+                        element
+                    );
+                }
+            } else {
+                if (element.hasAttribute('refresh-on-querystring-values')) {
+                    arrPopKeys = (
+                        element.getAttribute('refresh-on-querystring-values')
+                            .split(/\s*,\s*/gim)
+                    );
 
-                element.addEventListener('keydown', function (event) {
-                    var intKeyCode = (event.which || event.keyCode);
-                    var jsnSelection;
-                    var focusToElement;
-                    var i;
-                    var len;
-                    var arrElementsFocusable;
-                    var currentElement;
+                    i = 0;
+                    len = arrPopKeys.length;
+                    while (i < len) {
+                        element.popValues[arrPopKeys[i]] = (
+                            GS.qryGetVal(strQS, arrPopKeys[i])
+                        );
+                        i += 1;
+                    }
+                }
+            }
+
+            element.internalData.bolQSFirstRun = true;
+        };
+
+        if (
+            element.getAttribute('qs') ||
+            element.getAttribute('refresh-on-querystring-values') ||
+            element.hasAttribute('refresh-on-querystring-change')
+        ) {
+            element.popValues = {};
+            element.internalEvents.qsR();
+            window.addEventListener('pushstate', element.internalEvents.qsR);
+            window.addEventListener('replacestate', element.internalEvents.qsR);
+            window.addEventListener('popstate', element.internalEvents.qsR);
+        }
+    }
+
+    // ############# CHANGE EVENTS #############
+    function unbindChange(element) {
+        // unbind save while typing
+        element.removeEventListener('keydown', element.internalEvents.timed);
+        element.removeEventListener('keyup', element.internalEvents.timed);
+        element.removeEventListener('change', element.internalEvents.timed);
+
+        // unbind regular save if bound
+        element.removeEventListener('change', element.internalEvents.change);
+    }
+    function bindChange(element) {
+        element.internalEvents.change = function (event) {
+            var target = event.target;
+            var columnParent = (
+                target.hasAttribute('column')
+                    ? target
+                    : GS.findParentElement(target, '[column]')
+            );
+            var strColumn = columnParent.getAttribute('column');
+            var newValue;
+            var parentForm = GS.findParentTag(columnParent, 'gs-form');
+            var parentRecord = GS.findParentElement(columnParent, '.form-record');
+            var intRow;
+
+            if (columnParent.value !== null) {
+                // changed on 2022-06-11 by Nunzio
+                // this is the behaviour of Microsoft Access, and Cross expected it
+                newValue = columnParent.value === '' ? '\\N' : columnParent.value;
+                // newValue = columnParent.value;
+            } else {
+                newValue = columnParent.checked;
+            }
+
+            if (parentRecord) {
+                intRow = parseInt(parentRecord.getAttribute('data-row'), 10);
+            }
+
+            if (
+                strColumn &&
+                columnParentsUntilForm(element, columnParent) === 0 &&
+                parentForm === element &&
+                element.column(strColumn, intRow) !== newValue
+            ) {
+                //event.stopPropagation();
+
+                // call the update function
+                dataUPDATE(element, 'single-cell', {
+                    "data": {
+                        "columnName": strColumn,
+                        "recordNumber": intRow,
+                        "newValue": newValue
+                    }
+                });
+            }
+        };
+
+        element.internalEvents.timed = function (event) {
+            var target = event.target;
+            var columnParent = (
+                target.hasAttribute('column')
+                    ? target
+                    : GS.findParentElement(target, '[column]')
+            );
+            var strColumn = columnParent.getAttribute('column');
+            var parentForm = GS.findParentTag(target, 'gs-form');
+            var parentRecord = GS.findParentElement(target, '.form-record');
+            var intRow = parseInt(parentRecord.getAttribute('data-row'), 10);
+            var newValue = (
+                columnParent.value !== null
+                    // changed on 2022-06-11 by Nunzio
+                    // this is the behaviour of Microsoft Access, and Cross expected it
+                    ? (columnParent.value === '' ? '\\N' : columnParent.value)
+                    // ? columnParent.value;
+                    : columnParent.checked
+            );
+            
+            console.log('triggered:', event.type, event.keyCode);
+
+            if (
+                strColumn &&
+                columnParentsUntilForm(element, columnParent) === 0 &&
+                parentForm === element &&
+                // we don't want to send extra updates, but if someone was to
+                //      delete and then undelete, we want it to count. So, if
+                //      there is an update in the queue, run no matter what. If
+                //      this is the only update, only run if it's actually
+                //      different
+                !(
+                    element.internalData.timerCount === 0 &&
+                    element.internalData.updateQueue.length === 0 &&
+                    element.internalData.saveState !== 'saving' &&
+                    element.column(strColumn, intRow) === newValue
+                )
+            ) {
+                // cancel save timer if another update comes in before time runs
+                //      out
+                if (element.internalData.timer[strColumn]) {
+                    clearTimeout(element.internalData.timer[strColumn]);
+                    element.internalData.timerCount -= 1;
+                    element.internalData.timer[strColumn] = null;
+                }
+
+                // if no more updates come in within the time allotted, commit
+                element.internalData.timerCount += 1;
+                element.internalData.timer[strColumn] = setTimeout(function () {
+                    element.internalData.timerCount -= 1;
+                    element.internalData.timer[strColumn] = null;
+                    dataUPDATE(element, 'single-cell', {
+                        "data": {
+                            "columnName": strColumn,
+                            "recordNumber": intRow,
+                            "newValue": newValue
+                        }
+                    });
+                }, 600);// used to be 300, but if you held a key down, then held
+                //      a second key down at the same time, it would take enough
+                //      time to switch letters to cause a save (but letters
+                //      would still be being put in) hence, it would cause a
+                //      partial rerender (because the value of the control is
+                //      different from the database)
+            }
+        };
+
+        // bind save code
+        if (element.hasAttribute('save-while-typing')) {
+            element.addEventListener('keydown', element.internalEvents.timed);
+            element.addEventListener('keyup', element.internalEvents.timed);
+            element.addEventListener('change', element.internalEvents.timed);
+        } else {
+            element.addEventListener('change', element.internalEvents.change);
+        }
+    }
+
+    // ############# KEY EVENTS #############
+    function unbindKey(element) {
+        element.removeEventListener('keydown', element.internalEvents.keyNav);
+    }
+    function bindKey(element) {
+        element.internalEvents.keyNav = function (event) {
+            var target = event.target;
+            var keyCode = (event.which || event.keyCode);
+            var jsnSelection;
+            var focusToElement;
+            var i;
+            var len;
+            var arrElementsFocusable;
+            var currentElement;
+
+            if (
+                document.activeElement.nodeName === 'INPUT' ||
+                document.activeElement.nodeName === 'TEXTAREA'
+            ) {
+                jsnSelection = GS.getInputSelection(target);
+            }
+
+            if (
+                // Left arrow
+                (
+                    keyCode === 37 &&
+                    (!jsnSelection || jsnSelection.start === 0)
+                ) ||
+                // Right arrow
+                (
+                    keyCode === 39 &&
+                    (!jsnSelection || jsnSelection.end === target.value.length)
+                )
+            ) {
+                arrElementsFocusable = xtag.query(
+                    document,
+                    (
+                        'input:not([disabled]), ' +
+                        'select:not([disabled]), ' +
+                        'memo:not([disabled]), ' +
+                        'button:not([disabled]), ' +
+                        '[tabindex]:not([disabled]), ' +
+                        '[column]'
+                    )
+                );
+
+                // Left arrow
+                if (keyCode === 37) {
+                    i = 0;
+                    len = arrElementsFocusable.length;
+                    while (i < len) {
+                        currentElement = arrElementsFocusable[i];
+
+                        if (
+                            currentElement === target ||
+                            (
+                                (
+                                    target.nodeName === 'INPUT' ||
+                                    target.nodeName === 'TEXTAREA'
+                                ) &&
+                                currentElement === target.parentNode
+                            )
+                        ) {
+                            if (i === 0) {
+                                focusToElement = currentElement;
+                            } else {
+                                focusToElement = arrElementsFocusable[i - 1];
+                            }
+                            break;
+                        }
+
+                        i += 1;
+                    }
+
+                // Right arrow
+                } else if (keyCode === 39) {
+                    i = 0;
+                    len = arrElementsFocusable.length;
+                    while (i < len) {
+                        currentElement = arrElementsFocusable[i];
+                        if (currentElement === target) {
+                            if (i === len) {
+                                focusToElement = currentElement;
+                            } else {
+                                focusToElement = arrElementsFocusable[i + 1];
+                            }
+                            break;
+                        }
+
+                        i += 1;
+                    }
+                }
+
+                if (
+                    focusToElement &&
+                    GS.isElementFocusable(focusToElement)
+                ) {
+                    event.preventDefault();
+                    focusToElement.focus();
 
                     if (
                         document.activeElement.nodeName === 'INPUT' ||
                         document.activeElement.nodeName === 'TEXTAREA'
                     ) {
-                        jsnSelection = GS.getInputSelection(event.target);
+                        GS.setInputSelection(
+                            document.activeElement,
+                            0,
+                            document.activeElement.value.length
+                        );
                     }
-
-                    if (
-                        // Left arrow
-                        (
-                            intKeyCode === 37 &&
-                            (!jsnSelection || jsnSelection.start === 0)
-                        ) ||
-                        // Right arrow
-                        (
-                            intKeyCode === 39 &&
-                            (!jsnSelection || jsnSelection.end === event.target.value.length)
-                        )
-                    ) {
-                        // Left arrow
-                        if (
-                            intKeyCode === 37 &&
-                            (!jsnSelection || jsnSelection.start === 0)
-                        ) {
-                            arrElementsFocusable = xtag.query(
-                                document,
-                                'input:not([disabled]), ' +
-                                'select:not([disabled]), ' +
-                                'memo:not([disabled]), ' +
-                                'button:not([disabled]), ' +
-                                '[tabindex]:not([disabled]), ' +
-                                '[column]'
-                            );
-
-                            i = 0;
-                            len = arrElementsFocusable.length;
-                            while (i < len) {
-                                currentElement = arrElementsFocusable[i];
-
-                                if (
-                                    currentElement === event.target ||
-                                    (
-                                        (
-                                            event.target.nodeName === 'INPUT' ||
-                                            event.target.nodeName === 'TEXTAREA'
-                                        ) &&
-                                        currentElement === event.target.parentNode
-                                    )
-                                ) {
-                                    if (i === 0) {
-                                        focusToElement = currentElement;
-                                    } else {
-                                        focusToElement = arrElementsFocusable[i - 1];
-                                    }
-                                    break;
-                                }
-
-                                i += 1;
-                            }
-
-                        // Right arrow
-                        } else if (
-                            intKeyCode === 39 &&
-                            (!jsnSelection || jsnSelection.end === event.target.value.length)
-                        ) {
-                            arrElementsFocusable = xtag.query(
-                                document,
-                                'input:not([disabled]), ' +
-                                'select:not([disabled]), ' +
-                                'memo:not([disabled]), ' +
-                                'button:not([disabled]), ' +
-                                '[tabindex]:not([disabled]), ' +
-                                '[column]'
-                            );
-                            
-                            i = 0;
-                            len = arrElementsFocusable.length;
-                            while (i < len) {
-                                currentElement = arrElementsFocusable[i];
-                                if (currentElement === event.target) {
-                                    if (i === len) {
-                                        focusToElement = currentElement;
-                                    } else {
-                                        focusToElement = arrElementsFocusable[i + 1];
-                                    }
-                                    break;
-                                }
-
-                                i += 1;
-                            }
-                        }
-                        
-                        if (
-                            focusToElement &&
-                            GS.isElementFocusable(focusToElement)
-                        ) {
-                            event.preventDefault();
-                            focusToElement.focus();
-
-                            if (
-                                document.activeElement.nodeName === 'INPUT' ||
-                                document.activeElement.nodeName === 'TEXTAREA'
-                            ) {
-                                GS.setInputSelection(document.activeElement, 0, document.activeElement.value.length);
-                            }
-                        }
-                    }
-                });
-                
-                // bind save code
-                if (element.hasAttribute('save-while-typing')) {
-                    element.bolCurrentlySaving = false;
-                    element.jsnUpdate = {};
-                    element.state = 'saved';
-                    //element.currentSaveAjax = false;
-                    
-                    // possible states:
-                    //      'saved'
-                    //      'waiting to save'
-                    //      'saving'
-                    
-                    // JSON object for holding columns to update
-                    // on keydown, keyup, change add to JSON object
-                    // keep updating until all columns have been saved (undefined marks an empty column)
-                    
-                    changeHandler = function (event) {
-                        var newValue;
-                        var targetColumnParent = GS.findParentElement(event.target, '[column]');
-                        var parentRecordElement;
-                        var strID;
-
-                        if (targetColumnParent.getAttribute('column') && columnParentsUntilForm(element, targetColumnParent) === 0 &&
-                            element.column(targetColumnParent.getAttribute('column')) !== targetColumnParent.value) {
-                            
-                            //event.stopPropagation();
-                            if (element.saveTimerID) {
-                                clearTimeout(element.saveTimerID);
-                                element.saveTimerID = null;
-                            }
-                            
-                            addMessage(element, 'waiting');
-                            element.state = 'waiting to save';
-                            
-                            if (
-                                targetColumnParent.value !== null &&
-                                targetColumnParent.value !== null
-                            ) {
-                                newValue = targetColumnParent.value;
-                            } else {
-                                newValue = targetColumnParent.checked;
-                            }
-                            
-                            parentRecordElement = GS.findParentElement(targetColumnParent, '.form-record[data-id]');
-                            strID = parentRecordElement.getAttribute('data-id');
-                            
-                            if (!element.jsnUpdate[strID]) {
-                                element.jsnUpdate[strID] = element.jsnUpdate[strID] = {};
-                            }
-                            element.jsnUpdate[strID][targetColumnParent.getAttribute('column')] = newValue;
-                            
-                            element.saveTimerID = setTimeout(function () {
-                                updateDataWithoutTemplate(element);
-                                element.saveTimerID = null;
-                            }, 300);
-                        }
-                    };
-
-                    element.addEventListener('keydown', changeHandler);
-                    element.addEventListener('keyup', changeHandler);
-                    element.addEventListener('change', changeHandler);
-                    
-                } else {
-                    element.addEventListener('change', function (event) {
-                        var newValue;
-                        
-                        if (event.target.getAttribute('column')
-                                && columnParentsUntilForm(element, event.target) === 0
-                                && GS.findParentTag(event.target, 'gs-form') === element) {
-                            //event.stopPropagation();
-                            
-                            if (event.target.value !== null) {
-                                newValue = event.target.value;
-                            } else {
-                                newValue = event.target.checked;
-                            }
-                            
-                            updateData(element, event.target, event.target.getAttribute('column'), newValue);
-                        }
-                    });
                 }
             }
+        };
+
+        element.addEventListener('keydown', element.internalEvents.keyNav);
+    }
+
+    // ############# DEVELOPER EVENTS #############
+    function unbindDeveloper(element) {
+        element.removeEventListener(
+            evt.mousedown,
+            element.internalEvents.developerMouseDown
+        );
+    }
+    function bindDeveloper(element) {
+        element.internalEvents.developerMouseDown = function (event) {
+            var bolCMDorCTRL = (event.ctrlKey || event.metaKey);
+            var bolShift = (event.shiftKey);
+            var strHTML;
+            var arrAttr;
+            var jsnAttr;
+            var i;
+            var len;
+
+            if (bolCMDorCTRL && bolShift) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                strHTML = '';
+                arrAttr = element.attributes;
+                i = 0;
+                len = arrAttr.length;
+                while (i < len) {
+                    jsnAttr = arrAttr[i];
+
+                    strHTML += (
+                        '<b>Attribute "' + encodeHTML(jsnAttr.name) + '":</b>' +
+                        '<pre>' + encodeHTML(jsnAttr.value) + '</pre>'
+                    );
+
+                    i += 1;
+                }
+
+                GS.msgbox('Developer Info', strHTML, ['Ok']);
+            }
+        };
+
+        element.addEventListener(
+            evt.mousedown,
+            element.internalEvents.developerMouseDown
+        );
+    }
+
+
+    // ############# HIGH LEVEL BINDING #############
+    function unbindElement(element) {
+        unbindQuerystringEvents(element);
+        unbindChange(element);
+        unbindKey(element);
+        unbindDeveloper(element);
+    }
+    function bindElement(element) {
+        bindQuerystringEvents(element);
+        bindChange(element);
+        bindKey(element);
+        bindDeveloper(element);
+    }
+
+
+// #############################################################################
+// ############################## XTAG DEFINITION ##############################
+// #############################################################################
+
+    function elementInserted(element) {
+        if (
+            // if "created"/"inserted" are not suspended: continue
+            !element.hasAttribute('suspend-created') &&
+            !element.hasAttribute('suspend-inserted') &&
+            // if this is the first time inserted has been run: continue
+            !element.inserted
+        ) {
+            element.inserted = true;
+
+            resolveElementAttributes(element);
+            prepareElement(element);
+            siphonElement(element);
+            bindElement(element);
+            renderFull(element);
+            dataSELECT(element);
+            triggerEvent(element, 'initialized');
         }
     }
-    
+
     xtag.register('gs-form', {
+
+// #############################################################################
+// ############################# ELEMENT LIFECYCLE #############################
+// #############################################################################
+
         lifecycle: {
-            created: function () {
-                elementCreated(this);
-            },
-            
-            inserted: function () {
+            'inserted': function () {
                 elementInserted(this);
             },
-            
-            attributeChanged: function (strAttrName, ignore, newValue) {//oldValue
-                // if "suspend-created" has been removed: run created and inserted code
-                if (strAttrName === 'suspend-created' && newValue === null) {
-                    elementCreated(this);
-                    elementInserted(this);
-                    
-                // if "suspend-inserted" has been removed: run inserted code
-                } else if (strAttrName === 'suspend-inserted' && newValue === null) {
-                    elementInserted(this);
-                    
-                } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
-                    // attribute code
-                }
+
+            'removed': function () {
+                this.destroy();
             },
-            
-            removed: function () {
-                if (this.hasAttribute('save-while-typing') && this.saveTimerID) {
-                    clearTimeout(this.saveTimerID);
-                    emergencyUpdate(this);
+
+            'attributeChanged': function (attr) {//, oldValue, newValue
+                var element = this;
+
+                // if suspend attribute: run inserted event
+                if (attr === 'suspend-created' || attr === 'suspend-inserted') {
+                    elementInserted(element);
+
+                // if the element is not suspended: handle attribute changes
+                } else if (
+                    !element.hasAttribute('suspend-created') &&
+                    !element.hasAttribute('suspend-inserted')
+                ) {
+                    var arrAttributes = [];
+                    if (attr === 'value' || arrAttributes.indexOf(attr) > -1) {
+
+                    }
                 }
             }
         },
-        events: {},
+
+// #############################################################################
+// ############################# ELEMENT ACCESSORS #############################
+// #############################################################################
+
         accessors: {},
+
+// #############################################################################
+// ############################## ELEMENT METHODS ##############################
+// #############################################################################
+
         methods: {
-            refresh: function () {
-                getData(this);
+            // we don't want a bunch of data hanging in memory, so this allows
+            //      the browser to forget everything and use that memory for
+            //      other things. This is especially important if the combo has
+            //      a boatload of data.
+            'destroy': function () {
+                var element = this;
+
+                // sometimes, the element is destroyed before it's initialized
+                // sometimes, the element gets destroyed multiple times.
+                //      we don't want to cause any errors when this happens.
+                if (element.elems && element.elems.control) {
+                    // prevent the element from recieving any events
+                    unbindElement(element);
+
+                    // this is the fastest way to destroy all of the data
+                    element.internalData = {};
+                    element.internalEvents = {};
+                    element.internalEventData = {};
+                    element.internalTemplates = {};
+                    element.internalDisplay = {};
+                    element.internalSelection = {};
+
+                    // destroy element store
+                    element.elems = {};
+
+                    // empty innerHTML
+                    element.innerHTML = '';
+                }
             },
-            
-            save: function () {
-                updateDataWithoutTemplate(this, false);
+
+            // allow the user to take columns related to the single record
+            'column': function (strColumn, intRow) {
+                var element = this;
+                var jsnRecord;
+                var templateFunc;
+
+                intRow = intRow || 0;
+
+                if (typeof intRow === 'number') {
+                    jsnRecord = recordToJSON(
+                        element,
+                        element.internalData.records[intRow]
+                    );
+                    templateFunc = doT.template(
+                        '{{var row = jo;}}' +
+                        '{{! row[\'' + strColumn + '\'] }}'
+                    );
+
+                    return templateFunc(jsnRecord);
+                }
+                return null;
             },
-            
-            column: function (strColumn) {
-                //console.log(this.lastSuccessData);
-                return GS.envGetCell(this.lastSuccessData, 0, strColumn);
+
+            'refresh': function () {
+                dataSELECT(this);
             },
-            
-            addMessage: function (strMessageName) {
-                return addMessage(this, strMessageName);
+
+            'save': function () {
+                //updateDataWithoutTemplate(this, false);
             },
-            removeMessage: function (strMessageName) {
-                return removeMessage(this, strMessageName);
+
+            'addMessage': function (/*strMessageName*/) {
+                //return addMessage(this, strMessageName);
+            },
+
+            'removeMessage': function (/*strMessageName*/) {
+                //return removeMessage(this, strMessageName);
             }
         }
     });
-});//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+});
+
+
+
+
+
+
+// //global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
+// //global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
+// //global addControlProps, addFlexContainerProps, addProp
+// //global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
+// //global addIconProps, shimmed, HTMLTemplateElement, addDataAttributes
+// //global addDataEvents
+// //jslint browser:true, white:false, this:true
+// //, maxlen:80
+
+// window.addEventListener('design-register-element', function () {
+//     'use strict';
+//     addSnippet(
+//         '<gs-form>',
+//         '<gs-form>',
+//         (
+//             'gs-form src="${1:test.tpeople}">\n' +
+//             '    <template>\n' +
+//             '        ${2}\n' +
+//             '    </template>\n' +
+//             '</gs-form>'
+//         )
+//     );
+
+//     addElement('gs-form', '#record_form');
+
+//     window.designElementProperty_GSFORM = function () {
+//         addDataAttributes('select,update');
+//         addCheck('D', 'Save&nbsp;While&nbsp;Typing', 'save-while-typing');
+//         addCheck('D', 'Suppress<br />"No&nbsp;Record&nbsp;Found"<br />Error', 'suppress-no-record-found');
+//         addDataEvents('select,update');
+//         addText('O', 'Column In QS', 'qs');
+//         addText('O', 'Refresh On QS Columns', 'refresh-on-querystring-values');
+//         addText('O', 'Refresh On QS Change', 'refresh-on-querystring-change');
+//         addFlexContainerProps();
+//         addFlexProps();
+//     };
+// });
+
+// document.addEventListener('DOMContentLoaded', function () {
+//     'use strict';
+//     // #################################################################
+//     // ########################### UTILITIES ###########################
+//     // #################################################################
+
+//     function removeMessage(element, strMessageName) {
+//         if (strMessageName === 'saving' && element.savingMessage) {
+//             element.removeChild(element.savingMessage);
+//             element.savingMessage = null;
+
+//         } else if (strMessageName === 'waiting' && element.waitingMessage) {
+//             element.removeChild(element.waitingMessage);
+//             element.waitingMessage = null;
+//         }
+//     }
+
+//     function addMessage(element, strMessageName) {
+//         if (strMessageName === 'saving') {
+//             if (element.savingMessage) {
+//                 removeMessage(element, 'saving');
+//             }
+//             element.savingMessage = document.createElement('div');
+//             element.savingMessage.classList.add('message');
+//             element.savingMessage.innerHTML = 'Saving...';
+
+//             element.appendChild(element.savingMessage);
+
+//         } else if (strMessageName === 'waiting') {
+//             if (element.waitingMessage) {
+//                 removeMessage(element, 'waiting');
+//             }
+//             element.waitingMessage = document.createElement('div');
+//             element.waitingMessage.classList.add('message');
+//             element.waitingMessage.innerHTML = 'Waiting<br />to save...';
+
+//             element.appendChild(element.waitingMessage);
+//         }
+//     }
+
+//     function columnParentsUntilForm(form, element) {
+//         var intColumnParents = 0;
+//         var currentElement = element;
+//         var maxLoops = 50;
+//         var i = 0;
+
+//         while (currentElement.parentNode !== form && currentElement.parentNode && i < maxLoops) {
+//             if (
+//                 //If something with a column attribute
+//                 currentElement.parentNode.hasAttribute('column') === true ||
+//                 //or something with a src attribute
+//                 currentElement.parentNode.hasAttribute('src') === true
+//             ) {
+//                 intColumnParents += 1;
+//             }
+
+//             currentElement = currentElement.parentNode;
+//             i += 1;
+//         }
+
+//         return intColumnParents;
+//     }
+
+//     function saveDefaultAttributes(element) {
+//         var i;
+//         var len;
+//         var arrAttr;
+//         var jsnAttr;
+
+//         // we need a place to store the attributes
+//         element.internal.defaultAttributes = {};
+
+//         // loop through attributes and store them in the internal defaultAttributes object
+//         arrAttr = element.attributes;
+//         i = 0;
+//         len = arrAttr.length;
+//         while (i < len) {
+//             jsnAttr = arrAttr[i];
+
+//             element.internal.defaultAttributes[jsnAttr.nodeName] = (jsnAttr.value || '');
+
+//             i += 1;
+//         }
+//     }
+
+//     function pushReplacePopHandler(element) {
+//         var i;
+//         var len;
+//         var strQS = GS.getQueryString();
+//         var strQSCol = element.getAttribute('qs');
+//         var strQSValue;
+//         var strQSAttr;
+//         var arrQSParts;
+//         var arrAttrParts;
+//         var arrPopKeys;
+//         var currentValue;
+//         var bolRefresh;
+//         var strOperator;
+
+//         if (strQSCol) {
+//             if (strQSCol.indexOf('=') !== -1) {
+//                 arrAttrParts = strQSCol.split(',');
+//                 i = 0;
+//                 len = arrAttrParts.length;
+//                 while (i < len) {
+//                     strQSCol = arrAttrParts[i];
+
+//                     if (strQSCol.indexOf('!=') !== -1) {
+//                         strOperator = '!=';
+//                         arrQSParts = strQSCol.split('!=');
+//                     } else {
+//                         strOperator = '=';
+//                         arrQSParts = strQSCol.split('=');
+//                     }
+
+//                     strQSCol = arrQSParts[0];
+//                     strQSAttr = arrQSParts[1] || arrQSParts[0];
+
+//                     // if the key is not present or we've got the negator: go to the attribute's default or remove it
+//                     if (strOperator === '!=') {
+//                         // if the key is not present: add the attribute
+//                         if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
+//                             element.setAttribute(strQSAttr, '');
+//                         // else: remove the attribute
+//                         } else {
+//                             element.removeAttribute(strQSAttr);
+//                         }
+//                     } else {
+//                         // if the key is not present: go to the attribute's default or remove it
+//                         if (GS.qryGetKeys(strQS).indexOf(strQSCol) === -1) {
+//                             if (element.internal.defaultAttributes[strQSAttr] !== undefined) {
+//                                 element.setAttribute(strQSAttr, (element.internal.defaultAttributes[strQSAttr] || ''));
+//                             } else {
+//                                 element.removeAttribute(strQSAttr);
+//                             }
+//                         // else: set attribute to exact text from QS
+//                         } else {
+//                             element.setAttribute(strQSAttr, (
+//                                 GS.qryGetVal(strQS, strQSCol) ||
+//                                 element.internal.defaultAttributes[strQSAttr] ||
+//                                 ''
+//                             ));
+//                         }
+//                     }
+//                     i += 1;
+//                 }
+//             } else if (GS.qryGetKeys(strQS).indexOf(strQSCol) > -1) {
+//                 strQSValue = GS.qryGetVal(strQS, strQSCol);
+
+//                 if (element.internal.bolQSFirstRun !== true) {
+//                   //console.log(element.getAttribute('value'));
+//                     if (strQSValue !== '' || !element.getAttribute('value')) {
+//                         element.setAttribute(
+//                             'where',
+//                             (
+//                                 (element.getAttribute('pk') || 'id') + '=' +
+//                                 (
+//                                     isNaN(strQSValue)
+//                                         ? '$WHEREQuoTE$' + strQSValue + '$WHEREQuoTE$'
+//                                         : strQSValue
+//                                 )
+//                             )
+//                         );
+//                         bolRefresh = true;
+//                     }
+//                 } else {
+//                     element.setAttribute(
+//                         'where',
+//                         (
+//                             (element.getAttribute('pk') || 'id') + '=' +
+//                             (
+//                                 isNaN(strQSValue)
+//                                     ? '$WHEREQuoTE$' + strQSValue + '$WHEREQuoTE$'
+//                                     : strQSValue
+//                             )
+//                         )
+//                     );
+//                     bolRefresh = true;
+//                 }
+//             }
+//         }
+
+//         // handle "refresh-on-querystring-values" and "refresh-on-querystring-change" attributes
+//         if (element.internal.bolQSFirstRun === true) {
+//             if (element.hasAttribute('refresh-on-querystring-values')) {
+//                 arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
+
+//                 i = 0;
+//                 len = arrPopKeys.length;
+//                 while (i < len) {
+//                     currentValue = GS.qryGetVal(strQS, arrPopKeys[i]);
+
+//                     if (element.popValues[arrPopKeys[i]] !== currentValue) {
+//                         bolRefresh = true;
+//                     }
+
+//                     element.popValues[arrPopKeys[i]] = currentValue;
+//                     i += 1;
+//                 }
+//             } else if (element.hasAttribute('refresh-on-querystring-change')) {
+//                 bolRefresh = true;
+//             }
+//         } else {
+//             if (element.hasAttribute('refresh-on-querystring-values')) {
+//                 arrPopKeys = element.getAttribute('refresh-on-querystring-values').split(/\s*,\s*/gim);
+
+//                 i = 0;
+//                 len = arrPopKeys.length;
+//                 while (i < len) {
+//                     element.popValues[arrPopKeys[i]] = GS.qryGetVal(strQS, arrPopKeys[i]);
+//                     i += 1;
+//                 }
+//             }
+
+//             if (GS.getQueryString() || element.hasAttribute('refresh-on-querystring-change') || element.hasAttribute('src')) {
+//                 bolRefresh = true;
+//             }
+//         }
+
+//         if (bolRefresh && element.hasAttribute('src')) {
+//             getData(element);
+//         } else if (bolRefresh && !element.hasAttribute('src')) {
+//             console.warn('gs-combo Warning: element has "refresh-on-querystring-values" or "refresh-on-querystring-change", but no "src".', element);
+//         }
+
+//         element.internal.bolQSFirstRun = true;
+//     }
+
+//     function triggerBeforeSelect(element) {
+//         GS.triggerEvent(element, 'before_select');
+//         if (element.hasAttribute('onbefore_select')) {
+//             new Function(element.getAttribute('onbefore_select')).apply(element);
+//         }
+//     }
+
+//     function triggerAfterSelect(element) {
+//         GS.triggerEvent(element, 'after_select');
+//         if (element.hasAttribute('onafter_select')) {
+//             new Function(element.getAttribute('onafter_select')).apply(element);
+//         }
+//     }
+
+//     function triggerAfterSelectError(element) {
+//         GS.triggerEvent(element, 'after_select_error');
+//         if (element.hasAttribute('onafter_select_error')) {
+//             new Function(element.getAttribute('onafter_select_error')).apply(element);
+//         }
+//     }
+
+//     //this one doesn't seem to be working properly
+//     function triggerBeforeUpdate(element) {
+//         GS.triggerEvent(element, 'before_update');
+//         if (element.hasAttribute('onbefore_update')) {
+//             new Function(element.getAttribute('onbefore_update')).apply(element);
+//         }
+//     }
+
+//     function triggerAfterUpdate(element) {
+//         GS.triggerEvent(element, 'after_update');
+//         if (element.hasAttribute('onafter_update')) {
+//             new Function(element.getAttribute('onafter_update')).apply(element);
+//         } else if (element.hasAttribute('afterupdate')) {
+//             new Function(element.getAttribute('afterupdate')).apply(element);
+//         }
+//     }
+
+//     // the user needs to be able to set a custom websocket for this element,
+//     //      so this function will use an attribute to find out what socket to
+//     //      use (and it'll default to "GS.envSocket")
+//     function getSocket(element) {
+//         if (element.getAttribute('socket')) {
+//             return GS[element.getAttribute('socket')];
+//         }
+//         return GS.envSocket;
+//     }
+
+//     // ##################################################################
+//     // ######################## UPDATE FUNCTIONS ########################
+//     // ##################################################################
+
+//     function emergencyUpdate(element) {
+//         if (element.currentSaveAjax) {
+//             element.currentSaveAjax.abort();
+//         }
+//         element.bolCurrentlySaving = false;
+//         updateDataWithoutTemplate(element, false);
+//     }
+
+//     function updateData(element, updateElement, strColumn, newValue) {
+//         var parentRecord;
+//         var strID;
+//         var strHash;
+//         var srcParts = GS.templateWithQuerystring(element.getAttribute('update-src') || element.getAttribute('src')).split('.');
+//         var strSchema = srcParts[0];
+//         var strObject = srcParts[1];
+//         var strReturnCols = element.arrColumns.join('\t');
+//         var strHashCols = element.lockColumn;
+//         var strPk;
+//         var updateFrameData;
+//         var strRoles;
+//         var strColumns;
+//         var arrTotalRecords = [];
+
+//         console.log(strColumn, newValue);
+
+//         parentRecord = GS.findParentElement(updateElement, '.form-record');
+
+//         strPk = element.getAttribute('pk') || 'id';
+//         strID = parentRecord.getAttribute('data-pk');
+//         strHash = CryptoJS.MD5(parentRecord.getAttribute('data-' + element.lockColumn)).toString();
+
+//         strRoles = 'pk\thash\tset';
+//         strColumns = strPk + '\thash\t' + GS.encodeForTabDelimited(strColumn);
+//         updateFrameData = strID + '\t' + strHash + '\t' + GS.encodeForTabDelimited(newValue);
+
+//         updateFrameData = (strRoles + '\n' + strColumns + '\n' + updateFrameData);
+
+//         triggerBeforeUpdate(element);
+//         //GS.triggerEvent(element, 'before_update');
+
+//         element.saveState = 'saving';
+//         if (element.saveTimeout) {
+//             clearTimeout(element.saveTimeout);
+//         }
+//         element.saveTimeout = setTimeout(function () {
+//             if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
+//                 element.saveState = 'error';
+//                 var parentElement = document.createElement('center');
+//                 parentElement.setAttribute('class', 'saving-warning-parent');
+
+//                 var warningElement = document.createElement('div');
+//                 warningElement.setAttribute('class', 'saving-warning');
+
+//                 // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
+//                 warningElement.innerHTML = (
+//                     'YOUR CHANGES ARE NOT SAVED<br />' +
+//                     'WE HAVEN\'T HEARD BACK FROM THE SERVER<br />' +
+//                     'EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR'
+//                 );
+
+//                 parentElement.appendChild(warningElement);
+//                 element.insertBefore(parentElement, element.children[0]);
+
+//                 // element.appendChild(parentElement);
+//                 /*
+//                 warningElement.addEventListener('click', function () {
+//                     saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
+//                 });
+//                 */
+//             }
+//         }, /*30*/ 5 * 1000);
+
+//         GS.requestUpdateFromSocket(
+//             getSocket(element),
+//             strSchema,
+//             strObject,
+//             strReturnCols,
+//             strHashCols,
+//             updateFrameData,
+//             function (data, error) { //, transactionID
+//                 if (error) {
+//                     if (element.saveTimeout) {
+//                         clearTimeout(element.saveTimeout);
+//                     }
+//                     element.saveState = 'error';
+
+//                     getData(element);
+//                     GS.removeLoader(element);
+//                     GS.webSocketErrorDialog(data);
+//                 }
+//             },
+//             function (data, error, ignore, commitFunction, rollbackFunction) { //transactionID
+//                 // removed by Nunzio on 2019-07-31 because there is no loader
+//                 //GS.removeLoader(element);
+
+//                 if (!error) {
+//                     if (data === 'TRANSACTION COMPLETED') {
+//                         if (element.saveTimeout) {
+//                             clearTimeout(element.saveTimeout);
+//                         }
+//                         element.saveState = 'saved';
+
+//                         commitFunction();
+//                     } else {
+//                         var arrRecords;
+//                         var arrCells;
+//                         var i;
+//                         var len;
+//                         var cell_i;
+//                         var cell_len;
+
+//                         arrRecords = GS.trim(data, '\n').split('\n');
+
+//                         i = 0;
+//                         len = arrRecords.length;
+//                         while (i < len) {
+//                             arrCells = arrRecords[i].split('\t');
+
+//                             cell_i = 0;
+//                             cell_len = arrCells.length;
+//                             while (cell_i < cell_len) {
+//                                 arrCells[cell_i] = (
+//                                     arrCells[cell_i] === '\\N'
+//                                         ? null
+//                                         : GS.decodeFromTabDelimited(arrCells[cell_i])
+//                                 );
+//                                 cell_i += 1;
+//                             }
+
+//                             arrTotalRecords.push(arrCells);
+//                             i += 1;
+//                         }
+//                     }
+
+//                 } else {
+//                     if (element.saveTimeout) {
+//                         clearTimeout(element.saveTimeout);
+//                     }
+//                     element.saveState = 'error';
+
+//                     rollbackFunction();
+//                     getData(element);
+//                     GS.webSocketErrorDialog(data);
+//                 }
+//             },
+//             function (strAnswer, data, error) {
+//                 var idIndex;
+//                 var i;
+//                 var len;
+
+//                 //GS.removeLoader(element);
+
+//                 if (!error) {
+//                     if (strAnswer === 'COMMIT') {
+//                         if (element.saveTimeout) {
+//                             clearTimeout(element.saveTimeout);
+//                         }
+//                         element.saveState = 'saved';
+
+//                         idIndex = element.lastSuccessData.arr_column.indexOf(element.getAttribute('pk') || 'id');
+//                         i = 0;
+//                         len = element.lastSuccessData.dat.length;
+//                         while (i < len) {
+//                             if (String(element.lastSuccessData.dat[i][idIndex]) === strID) {
+//                                 element.lastSuccessData.dat[i] = arrTotalRecords[0];
+//                                 break;
+//                             }
+//                             i += 1;
+//                         }
+
+//                         handleData(element, element.lastSuccessData);
+
+//                         triggerAfterUpdate(element);
+//                         //GS.triggerEvent(element, 'after_update');
+//                     } else {
+//                         getData(element);
+//                     }
+//                 } else {
+//                     if (element.saveTimeout) {
+//                         clearTimeout(element.saveTimeout);
+//                     }
+//                     element.saveState = 'error';
+
+//                     getData(element);
+//                     GS.webSocketErrorDialog(data);
+//                 }
+//             }
+//         );
+//     }
+
+//     function updateDataWithoutTemplate(element) {
+
+//         console.log(strColumn, newValue);
+//         if (element.bolCurrentlySaving === false && !element.bolErrorOpen) {
+//             var strID;
+//             var strHash;
+//             var srcParts = GS.templateWithQuerystring(element.getAttribute('src')).split('.');
+//             var strSchema = srcParts[0];
+//             var strObject = srcParts[1];
+//             var strReturnCols = element.arrColumns.join('\t');
+//             var strHashCols = element.lockColumn;
+//             var updateFrameData;
+//             var strRoles;
+//             var strColumns;
+//             var arrTotalRecords = [];
+//             var functionUpdateRecord;
+//             var col_key;
+//             var key;
+//             var strColumn;
+//             var newValue;
+//             var idIndex;
+//             var i;
+//             var len;
+
+//             functionUpdateRecord = function (strID, strColumn, recordIndex, strParameters) {
+//                 var strWhere;
+//                 var strChangeStamp;
+//                 var strValue;
+//                 var strPk;
+
+//                 element.bolCurrentlySaving = true;
+//                 element.jsnUpdate[strID][strColumn] = undefined;
+
+//                 // run ajax
+//                 removeMessage(element, 'waiting');
+//                 addMessage(element, 'saving');
+//                 element.state = 'saving';
+
+//                 element.saveTimeout = setTimeout(function () {
+//                     if (element.saveState !== 'saved' && xtag.query(element, '.saving-warning-parent').length === 0) {
+//                         element.saveState = 'error';
+//                         var parentElement = document.createElement('center');
+//                         parentElement.setAttribute('class', 'saving-warning-parent');
+
+//                         var warningElement = document.createElement('div');
+//                         warningElement.setAttribute('class', 'saving-warning');
+
+//                         // warningElement.innerHTML = 'CHANGES ARE NOT SAVED<br />CLICK HERE TO TRY AGAIN';
+//                         warningElement.innerHTML = (
+//                             'YOUR CHANGES ARE NOT SAVED<br />' +
+//                             'WE HAVEN\'T HEARD BACK FROM THE SERVER<br />' +
+//                             'EITHER THE SAVING IS SLOW OR THERE\'S AN ERROR'
+//                         );
+
+//                         parentElement.appendChild(warningElement);
+//                         element.insertBefore(parentElement, element.children[0]);
+
+//                         // element.appendChild(parentElement);
+//                         /*
+//                         warningElement.addEventListener('click', function () {
+//                             saveFile(element, strPath, changeStamp, strContent, callbackSuccess, callbackFail);
+//                         });
+//                         */
+//                     }
+//                 }, /*30*/ 5 * 1000);
+
+//                 strWhere = GS.qryGetVal(strParameters, 'where');
+//                 strColumn = GS.qryGetVal(strParameters, 'column');
+//                 strValue = GS.qryGetVal(strParameters, 'value');
+//                 strID = GS.qryGetVal(strWhere, 'pk');
+//                 strChangeStamp = GS.qryGetVal(strWhere, element.lockColumn);
+//                 strHash = CryptoJS.MD5(strChangeStamp).toString();
+//                 strPk = element.getAttribute('pk') || 'id';
+
+//                 strRoles = 'pk\thash\tset';
+//                 strColumns = strPk + '\thash\t' + GS.encodeForTabDelimited(strColumn);
+//                 updateFrameData = strID + '\t' + strHash + '\t' + GS.encodeForTabDelimited(strValue);
+//                 updateFrameData = (strRoles + '\n' + strColumns + '\n' + updateFrameData);
+
+//                 GS.requestUpdateFromSocket(
+//                     getSocket(element),
+//                     strSchema,
+//                     strObject,
+//                     strReturnCols,
+//                     strHashCols,
+//                     updateFrameData,
+//                     function (data, error) { // , transactionID
+//                         if (error) {
+//                             getData(element);
+//                             GS.webSocketErrorDialog(data);
+//                         }
+//                     },
+//                     function (data, error, ignore, commitFunction, rollbackFunction) { //transactionID
+//                         if (!error) {
+//                             if (data === 'TRANSACTION COMPLETED') {
+//                                 commitFunction();
+//                             } else {
+//                                 var arrRecords;
+//                                 var arrCells;
+//                                 var rec_i;
+//                                 var rec_len;
+//                                 var cell_i;
+//                                 var cell_len;
+
+//                                 arrRecords = GS.trim(data, '\n').split('\n');
+
+//                                 rec_i = 0;
+//                                 rec_len = arrRecords.length;
+//                                 while (rec_i < rec_len) {
+//                                     arrCells = arrRecords[rec_i].split('\t');
+
+//                                     cell_i = 0;
+//                                     cell_len = arrCells.length;
+//                                     while (cell_i < cell_len) {
+//                                         arrCells[cell_i] = (
+//                                             arrCells[cell_i] === '\\N'
+//                                                 ? null
+//                                                 : GS.decodeFromTabDelimited(arrCells[cell_i])
+//                                         );
+//                                         cell_i += 1;
+//                                     }
+
+//                                     arrTotalRecords.push(arrCells);
+//                                     rec_i += 1;
+//                                 }
+//                             }
+
+//                         } else {
+//                             rollbackFunction();
+//                             getData(element);
+//                             GS.webSocketErrorDialog(data);
+//                         }
+//                     },
+//                     function (strAnswer, data, error) {
+//                         var col_key;
+//                         var key;
+//                         var bolSaveWaiting;
+
+//                         removeMessage(element, 'saving');
+//                         element.state = 'saved';
+//                         if (element.saveTimeout) {
+//                             clearTimeout(element.saveTimeout);
+//                         }
+
+//                         GS.removeLoader(element);
+
+//                         if (!error) {
+//                             if (strAnswer === 'COMMIT') {
+//                                 element.lastSuccessData.dat[recordIndex] = arrTotalRecords[0];
+//                                 element.bolCurrentlySaving = false;
+
+//                                 // if there is another save in the pipeline: bolSaveWaiting = true
+//                                 for (key in element.jsnUpdate) {
+//                                     for (col_key in element.jsnUpdate[key]) {
+//                                         if (element.jsnUpdate[key][col_key] !== undefined) {
+//                                             bolSaveWaiting = true;
+//                                             break;
+//                                         }
+//                                     }
+//                                 }
+
+//                                 // if there is a save waiting: update again
+//                                 if (bolSaveWaiting) {
+//                                     updateDataWithoutTemplate(element);
+
+//                                 } else {
+//                                     triggerAfterUpdate(element);
+//                                 }
+//                             } else {
+//                                 getData(element);
+//                             }
+//                         } else {
+//                             GS.webSocketErrorDialog(data);
+//                         }
+//                     }
+//                 );
+//             };
+
+//             // loop through the jsnUpdate variable and make one update for every record that needs an update
+//             for (key in element.jsnUpdate) {
+//                 for (col_key in element.jsnUpdate[key]) {
+//                     if (element.jsnUpdate[key][col_key] !== undefined) {
+//                         strID = key;
+//                         strColumn = col_key;
+//                         newValue = element.jsnUpdate[key][col_key];
+//                         idIndex = element.lastSuccessData.arr_column.indexOf(element.getAttribute('pk') || 'id');
+
+//                         i = 0;
+//                         len = element.lastSuccessData.dat.length;
+//                         while (i < len) {
+//                             if (String(element.lastSuccessData.dat[i][idIndex]) === strID) {
+//                                 functionUpdateRecord(
+//                                     strID,
+//                                     strColumn,
+//                                     i,
+//                                     (
+//                                         'where=' + encodeURIComponent(
+//                                             'pk=' + strID +
+//                                             '&' + element.lockColumn + '=' + GS.envGetCell(element.lastSuccessData, i, element.lockColumn)
+//                                         ) +
+//                                         '&column=' + strColumn +
+//                                         '&value=' + encodeURIComponent(newValue)
+//                                     )
+//                                 );
+
+//                                 break;
+//                             }
+//                             i += 1;
+//                         }
+
+//                         break;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+
+//     // #################################################################
+//     // ######################### DATA HANDLING #########################
+//     // #################################################################
+
+//     function dataTemplateRecords(element, data) {
+//         var jsnTemplate;
+//         var strRet;
+//         var strStyle = '';
+
+//         if (data.dat.length === 1) {
+//             strStyle = 'style="height: 100%;" ';
+//         }
+
+//         jsnTemplate = GS.templateHideSubTemplates(element.templateHTML);
+
+//         strRet = GS.templateWithEnvelopeData(
+//             (
+//                 '<div ' +
+//                     'class="form-record" ' + strStyle +
+//                     'data-pk="{{! row.' + (element.getAttribute('pk') || 'id') + ' }}" ' +
+//                     'data-' + element.lockColumn + '="{{! row.' + element.lockColumn + ' }}" ' +
+//                     'gs-dynamic' +
+//                 '>' +
+//                     jsnTemplate.templateHTML +
+//                 '</div>'
+//             ),
+//             data
+//         );
+//         strRet = GS.templateShowSubTemplates(strRet, jsnTemplate);
+
+//         return strRet;
+//     }
+
+//     // handles data result from method function: getData
+//     //      success:  template
+//     //      error:    add error classes
+//     function handleData(element, data, error) {
+//         var arrElements;
+//         var i;
+//         var len;
+//         var intColumnElementFocusNumber;
+//         var jsnSelection;
+//         var matchElement;
+//         var templateElement = document.createElement('template');
+//         var focusTimerID;
+//         var focusToElement;
+//         var timer_i;
+
+//         // clear any old error status
+//         element.classList.remove('error');
+
+//         if (!error && data.dat.length === 0 && !element.hasAttribute('limit') && !element.hasAttribute('suppress-no-record-found')) {
+//             templateElement.setAttribute('data-theme', 'error');
+//             templateElement.innerHTML = ml(function () {/*
+//                 <gs-page>
+//                     <gs-header><center><h3>Error</h3></center></gs-header>
+//                     <gs-body padded>
+//                         <center>No record found</center>
+//                     </gs-body>
+//                     <gs-footer>
+//                         <gs-grid>
+//                             <gs-block><gs-button dialogclose>Cancel</gs-button></gs-block>
+//                             <gs-block><gs-button dialogclose listen-for-return bg-primary>Try Again</gs-button></gs-block>
+//                         </gs-grid>
+//                     </gs-footer>
+//                 </gs-page>*/
+//             });
+
+//             GS.openDialog(templateElement, '', function (ignore, strAnswer) {
+//                 if (strAnswer === 'Try Again') {
+//                     element.refresh();
+//                 }
+//             });
+//         }
+
+//         // if there was no error
+//         if (!error) {
+//             element.error = false;
+
+//             // save success data
+//             element.lastSuccessData = data;
+
+//             if (GS.findParentElement(document.activeElement, 'gs-form') === element) {
+//                 //console.log('Hey');
+//                 arrElements = xtag.query(element, '[column]');
+//                 matchElement = GS.findParentElement(document.activeElement, '[column]');
+
+//                 if (document.activeElement.nodeName === 'INPUT' || document.activeElement.nodeName === 'TEXTAREA') {
+//                     jsnSelection = GS.getInputSelection(document.activeElement);
+//                 }
+
+//                 if (matchElement) {
+//                     i = 0;
+//                     len = arrElements.length;
+//                     while (i < len) {
+//                         if (arrElements[i] === matchElement) {
+//                             intColumnElementFocusNumber = i;
+//                             break;
+//                         }
+//                         i += 1;
+//                     }
+//                 }
+//             }
+
+//             //console.log(element.children);
+//             element.innerHTML = dataTemplateRecords(element, data);
+//             //console.log(element.children);
+
+//             // if template is not native: handle templates inside the form
+//             if (shimmed.HTMLTemplateElement) {
+//                 HTMLTemplateElement.bootstrap(element);
+//             }
+
+//             // handle autofocus
+//             arrElements = xtag.query(element, '[autofocus]');
+
+//             if (arrElements.length > 0 && !evt.touchDevice) {
+//                 arrElements[0].focus();
+
+//                 if (arrElements.length > 1) {
+//                     console.warn('dialog Warning: Too many [autofocus] elements, defaulting to the first one. Please have only one [autofocus] element per form.');
+//                 }
+//             }
+
+//             // if there is a intColumnElementFocusNumber: restore focus
+//             if (intColumnElementFocusNumber) {
+//                 arrElements = xtag.query(element, '[column]');
+
+//                 if (arrElements.length > intColumnElementFocusNumber) {
+//                     focusToElement = arrElements[intColumnElementFocusNumber];
+
+//                     // if element registration is not shimmed, we can just focus into the target element
+//                     if (shimmed.customElements === false) {
+//                         focusToElement.focus();
+//                         if (jsnSelection) {
+//                             GS.setInputSelection(document.activeElement, jsnSelection.start, jsnSelection.end);
+//                         }
+
+//                     // else, we have to check on a loop to see if the element has been upgraded,
+//                     //      the reason I need to use a loop here is because there is no event for
+//                     //      when an element is upgraded (if there was then 1000 custom elements
+//                     //      would emit 1000 events, which is a lot and we don't want to bog the
+//                     //      browser down)
+//                     } else {
+//                         timer_i = 0;
+//                         focusTimerID = setInterval(function () {
+//                             if (focusToElement['__upgraded__'] || timer_i >= 10) {
+//                                 clearTimeout(focusTimerID);
+//                             }
+//                             if (focusToElement['__upgraded__']) {
+//                                 focusToElement.focus();
+//                                 if (jsnSelection) {
+//                                     GS.setInputSelection(document.activeElement, jsnSelection.start, jsnSelection.end);
+//                                 }
+//                             }
+//                             timer_i += 1;
+//                         }, 5);
+//                     }
+//                 }
+//             }
+
+//             // trigger after_select
+//             triggerAfterSelect(element);
+//             //GS.triggerEvent(element, 'after_select');
+
+//         // else there was an error: add error class, title attribute
+//         } else {
+//             element.error = true;
+//             element.classList.add('error');
+//             element.innerHTML = 'This form encountered an error.';
+
+//             //GS.ajaxErrorDialog(event.detail.response);
+//             GS.ajaxErrorDialog(data);
+
+//             // trigger after_select_error
+//             triggerAfterSelectError(element);
+//         }
+//     }
+
+//     // handles fetching the data
+//     //      if bolInitalLoad === true then
+//     //          use: initialize query COALESCE TO source query
+//     //      else
+//     //          use: source query
+//     function getData(element) { //bolClearPrevious
+//         var strSrc = GS.templateWithQuerystring(element.getAttribute('src'));
+//         var bolQuery = strSrc[0] === '(';
+//         var srcParts = (
+//             strSrc[0] === '('
+//                 ? [strSrc, '']
+//                 : strSrc.split('.')
+//         );
+//         var strSchema = srcParts[0];
+//         var strObject = srcParts[1];
+//         var strColumns = GS.templateWithQuerystring(element.getAttribute('cols') || '*').split(',').join('\t');
+//         var strWhere = GS.templateWithQuerystring(element.getAttribute('where') || '');
+//         var strOrd = GS.templateWithQuerystring(element.getAttribute('ord') || '');
+//         var strLimit = GS.templateWithQuerystring(element.getAttribute('limit') || '1');
+//         var strOffset = GS.templateWithQuerystring(element.getAttribute('offset') || '');
+//         var arrTotalRecords = [];
+
+//         triggerBeforeSelect(element);
+//         //GS.triggerEvent(element, 'before_select');
+
+//         GS.requestSelectFromSocket(
+//             getSocket(element),
+//             (
+//                 bolQuery
+//                     ? ''
+//                     : strSchema
+//             ),
+//             (
+//                 bolQuery
+//                     ? strSrc
+//                     : strObject
+//             ),
+//             strColumns,
+//             strWhere,
+//             strOrd,
+//             strLimit,
+//             strOffset,
+//             function (data, error) {
+//                 var arrRecords;
+//                 var arrCells;
+//                 var i;
+//                 var len;
+//                 var cell_i;
+//                 var cell_len;
+
+//                 if (!error) {
+//                     if (data.strMessage !== 'TRANSACTION COMPLETED') {
+//                         arrRecords = GS.trim(data.strMessage, '\n').split('\n');
+
+//                         i = 0;
+//                         len = arrRecords.length;
+//                         while (i < len) {
+//                             arrCells = arrRecords[i].split('\t');
+
+//                             cell_i = 0;
+//                             cell_len = arrCells.length;
+//                             while (cell_i < cell_len) {
+//                                 arrCells[cell_i] = (
+//                                     arrCells[cell_i] === '\\N'
+//                                         ? null
+//                                         : GS.decodeFromTabDelimited(arrCells[cell_i])
+//                                 );
+//                                 cell_i += 1;
+//                             }
+
+//                             arrTotalRecords.push(arrCells);
+//                             i += 1;
+//                         }
+//                     } else {
+//                         element.arrColumns = data.arrColumnNames;
+
+//                         handleData(
+//                             element,
+//                             {
+//                                 "arr_column": data.arrColumnNames,
+//                                 "dat": arrTotalRecords,
+//                                 "row_count": arrTotalRecords.length
+//                             },
+//                             '',
+//                             'load'
+//                         );
+//                     }
+//                 } else {
+//                     GS.webSocketErrorDialog(data);
+
+//                     // trigger after_select_error
+//                     triggerAfterSelectError(element);
+//                 }
+//             }
+//         );
+//     }
+
+
+
+//     // #################################################################
+//     // ########################### LIFECYCLE ###########################
+//     // #################################################################
+
+//     // dont do anything that modifies the element here
+//     function elementCreated(element) {
+//         // if "created" hasn't been suspended: run created code
+//         if (!element.hasAttribute('suspend-created')) {
+
+//         }
+//     }
+
+//     function elementInserted(element) {
+//         var firstChildElement;
+//         var changeHandler;
+
+//         // if "created" hasn't been suspended and "inserted" hasn't been suspended: run inserted code
+//         if (!element.hasAttribute('suspend-created') && !element.hasAttribute('suspend-inserted')) {
+//             if (element.children.length === 0) {
+//                 throw 'GS-Form Error: No template provided';
+//             }
+//             // if this is the first time inserted has been run: continue
+//             if (!element.inserted) {
+//                 // #############################################################################################
+//                 // ###  ######################
+//                 // #############################################################################################
+
+//                 element.inserted = true;
+//                 element.internal = {};
+//                 saveDefaultAttributes(element);
+
+//                 firstChildElement = element.children[0];
+
+
+//                 // #############################################################################################
+//                 // ### PREVENT CHANGES FROM BEING LOST WHEN NAVIGATING AWAY FROM THE PAGE ######################
+//                 // #############################################################################################
+
+//                 // if this form has the "save-while-typing" attribute
+//                 if (element.hasAttribute('save-while-typing')) {
+//                     GS.addBeforeUnloadEvent(function () {
+//                         if (
+//                             (
+//                                 element.bolCurrentlySaving ||
+//                                 element.saveTimerID
+//                             ) &&
+//                             document.body.contains(element)
+//                         ) {
+//                             return 'The page has not finished saving.';
+//                         }
+//                     });
+//                 } else {
+//                     // this prevents the issue where you type in a change but then unload
+//                     //      the page without causing a change event to fire, which means you lose your change
+//                     GS.addBeforeUnloadEvent(function () {
+//                         document.activeElement.blur();
+//                     });
+//                 }
+
+
+//                 // #############################################################################################
+//                 // ### DEFAULT #################################################################################
+//                 // #############################################################################################
+
+//                 // lock attribute and defaulting
+//                 element.lockColumn = element.getAttribute('lock') || 'change_stamp';
+
+
+//                 // #############################################################################################
+//                 // ### TEMPLATE SAVING #########################################################################
+//                 // #############################################################################################
+
+//                 // if the first child is a template element: save its HTML
+//                 if (firstChildElement.nodeName === 'TEMPLATE') {
+//                     element.templateHTML = firstChildElement.innerHTML;
+
+//                 // else: save the innerHTML of the form and send a warning
+//                 } else {
+//                     console.warn(
+//                         'Warning: gs-form is now built to use a template element. ' +
+//                         'Please use a template element to contain the template for this form. ' + // this warning was added: March 12th 2015
+//                         'A fix has been included so that it is not necessary to use the template element, but that code may be removed at a future date.'
+//                     );
+
+//                     element.templateHTML = element.innerHTML;
+//                 }
+
+//                 // if there is no HTML: throw an error
+//                 if (!element.templateHTML.trim()) {
+//                     throw 'GS-FORM error: no template HTML.';
+//                 }
+
+//                 if (element.templateHTML.indexOf('&gt;') > -1 || element.templateHTML.indexOf('&lt;') > -1) {
+//                     console.warn('GS-FORM WARNING: &gt; or &lt; detected in record template, this can have undesired effects on doT.js. Please use gt(x,y), gte(x,y), lt(x,y), or lte(x,y) to silence this warning.');
+//                 }
+
+//                 // add a doT.js coded "value" attribute to any element with a "column" attribute but no "value" attribute
+//                 element.templateHTML = GS.templateColumnToValue(element.templateHTML);
+
+
+//                 // #############################################################################################
+//                 // ### "QS" ATTRIBUTE ##########################################################################
+//                 // #############################################################################################
+
+//                 // handle "qs" attribute
+//                 if (
+//                     element.getAttribute('qs') ||
+//                     element.getAttribute('refresh-on-querystring-values') ||
+//                     element.hasAttribute('refresh-on-querystring-change')
+//                 ) {
+//                     element.popValues = {};
+//                     pushReplacePopHandler(element);
+//                     window.addEventListener('pushstate', function () {
+//                         pushReplacePopHandler(element);
+//                     });
+//                     window.addEventListener('replacestate', function () {
+//                         pushReplacePopHandler(element);
+//                     });
+//                     window.addEventListener('popstate', function () {
+//                         pushReplacePopHandler(element);
+//                     });
+//                 } else {
+//                     getData(element);
+//                 }
+
+
+//                 // #############################################################################################
+//                 // ### ARROW FIELD NAVIGATION ##################################################################
+//                 // #############################################################################################
+
+//                 element.addEventListener('keydown', function (event) {
+//                     var intKeyCode = (event.which || event.keyCode);
+//                     var jsnSelection;
+//                     var focusToElement;
+//                     var i;
+//                     var len;
+//                     var arrElementsFocusable;
+//                     var currentElement;
+
+//                     if (
+//                         document.activeElement.nodeName === 'INPUT' ||
+//                         document.activeElement.nodeName === 'TEXTAREA'
+//                     ) {
+//                         jsnSelection = GS.getInputSelection(event.target);
+//                     }
+
+//                     if (
+//                         // Left arrow
+//                         (
+//                             intKeyCode === 37 &&
+//                             (!jsnSelection || jsnSelection.start === 0)
+//                         ) ||
+//                         // Right arrow
+//                         (
+//                             intKeyCode === 39 &&
+//                             (!jsnSelection || jsnSelection.end === event.target.value.length)
+//                         )
+//                     ) {
+//                         // Left arrow
+//                         if (
+//                             intKeyCode === 37 &&
+//                             (!jsnSelection || jsnSelection.start === 0)
+//                         ) {
+//                             arrElementsFocusable = xtag.query(
+//                                 document,
+//                                 (
+//                                     'input:not([disabled]), ' +
+//                                     'select:not([disabled]), ' +
+//                                     'memo:not([disabled]), ' +
+//                                     'button:not([disabled]), ' +
+//                                     '[tabindex]:not([disabled]), ' +
+//                                     '[column]'
+//                                 )
+//                             );
+
+//                             i = 0;
+//                             len = arrElementsFocusable.length;
+//                             while (i < len) {
+//                                 currentElement = arrElementsFocusable[i];
+
+//                                 if (
+//                                     currentElement === event.target ||
+//                                     (
+//                                         (
+//                                             event.target.nodeName === 'INPUT' ||
+//                                             event.target.nodeName === 'TEXTAREA'
+//                                         ) &&
+//                                         currentElement === event.target.parentNode
+//                                     )
+//                                 ) {
+//                                     if (i === 0) {
+//                                         focusToElement = currentElement;
+//                                     } else {
+//                                         focusToElement = arrElementsFocusable[i - 1];
+//                                     }
+//                                     break;
+//                                 }
+
+//                                 i += 1;
+//                             }
+
+//                         // Right arrow
+//                         } else if (
+//                             intKeyCode === 39 &&
+//                             (!jsnSelection || jsnSelection.end === event.target.value.length)
+//                         ) {
+//                             arrElementsFocusable = xtag.query(
+//                                 document,
+//                                 (
+//                                     'input:not([disabled]), ' +
+//                                     'select:not([disabled]), ' +
+//                                     'memo:not([disabled]), ' +
+//                                     'button:not([disabled]), ' +
+//                                     '[tabindex]:not([disabled]), ' +
+//                                     '[column]'
+//                                 )
+//                             );
+
+//                             i = 0;
+//                             len = arrElementsFocusable.length;
+//                             while (i < len) {
+//                                 currentElement = arrElementsFocusable[i];
+//                                 if (currentElement === event.target) {
+//                                     if (i === len) {
+//                                         focusToElement = currentElement;
+//                                     } else {
+//                                         focusToElement = arrElementsFocusable[i + 1];
+//                                     }
+//                                     break;
+//                                 }
+
+//                                 i += 1;
+//                             }
+//                         }
+
+//                         if (
+//                             focusToElement &&
+//                             GS.isElementFocusable(focusToElement)
+//                         ) {
+//                             event.preventDefault();
+//                             focusToElement.focus();
+
+//                             if (
+//                                 document.activeElement.nodeName === 'INPUT' ||
+//                                 document.activeElement.nodeName === 'TEXTAREA'
+//                             ) {
+//                                 GS.setInputSelection(document.activeElement, 0, document.activeElement.value.length);
+//                             }
+//                         }
+//                     }
+//                 });
+
+//                 // bind save code
+//                 if (element.hasAttribute('save-while-typing')) {
+//                     element.bolCurrentlySaving = false;
+//                     element.jsnUpdate = {};
+//                     element.state = 'saved';
+//                     //element.currentSaveAjax = false;
+
+//                     // possible states:
+//                     //      'saved'
+//                     //      'waiting to save'
+//                     //      'saving'
+
+//                     // JSON object for holding columns to update
+//                     // on keydown, keyup, change add to JSON object
+//                     // keep updating until all columns have been saved (undefined marks an empty column)
+
+//                     changeHandler = function (event) {
+//                         var newValue;
+//                         var targetColumnParent = GS.findParentElement(event.target, '[column]');
+//                         var parentRecordElement;
+//                         var strID;
+
+//                         if (
+//                             targetColumnParent.getAttribute('column') &&
+//                             columnParentsUntilForm(element, targetColumnParent) === 0 &&
+//                             element.column(targetColumnParent.getAttribute('column')) !== targetColumnParent.value
+//                         ) {
+//                             //event.stopPropagation();
+//                             if (element.saveTimerID) {
+//                                 clearTimeout(element.saveTimerID);
+//                                 element.saveTimerID = null;
+//                             }
+
+//                             addMessage(element, 'waiting');
+//                             element.state = 'waiting to save';
+
+//                             if (targetColumnParent.value !== null) {
+//                                 newValue = targetColumnParent.value;
+//                             } else {
+//                                 newValue = targetColumnParent.checked;
+//                             }
+
+//                             parentRecordElement = GS.findParentElement(targetColumnParent, '.form-record[data-pk]');
+//                             strID = parentRecordElement.getAttribute('data-pk');
+
+//                             if (!element.jsnUpdate[strID]) {
+//                                 element.jsnUpdate[strID] = {};
+//                             }
+//                             element.jsnUpdate[strID][targetColumnParent.getAttribute('column')] = newValue;
+
+//                             element.saveTimerID = setTimeout(function () {
+//                                 updateDataWithoutTemplate(element);
+//                                 element.saveTimerID = null;
+//                             }, 300);
+//                         }
+//                     };
+
+//                     element.addEventListener('keydown', changeHandler);
+//                     element.addEventListener('keyup', changeHandler);
+//                     element.addEventListener('change', changeHandler);
+
+//                 } else {
+//                     element.addEventListener('change', function (event) {
+//                         var newValue;
+
+//                         if (
+//                             event.target.getAttribute('column') &&
+//                             columnParentsUntilForm(element, event.target) === 0 &&
+//                             GS.findParentTag(event.target, 'gs-form') === element
+//                         ) {
+//                             //event.stopPropagation();
+
+//                             if (event.target.value !== null) {
+//                                 newValue = event.target.value;
+//                             } else {
+//                                 newValue = event.target.checked;
+//                             }
+
+//                             updateData(element, event.target, event.target.getAttribute('column'), newValue);
+//                         }
+//                     });
+//                 }
+//             }
+//         }
+//     }
+
+//     xtag.register('gs-form', {
+//         lifecycle: {
+//             created: function () {
+//                 elementCreated(this);
+//             },
+//             inserted: function () {
+//                 elementInserted(this);
+//             },
+
+//             attributeChanged: function (strAttrName, ignore, newValue) {//oldValue
+//                 // if "suspend-created" has been removed: run created and inserted code
+//                 if (strAttrName === 'suspend-created' && newValue === null) {
+//                     elementCreated(this);
+//                     elementInserted(this);
+
+//                 // if "suspend-inserted" has been removed: run inserted code
+//                 } else if (strAttrName === 'suspend-inserted' && newValue === null) {
+//                     elementInserted(this);
+
+//                 } else if (!this.hasAttribute('suspend-created') && !this.hasAttribute('suspend-inserted')) {
+//                     // attribute code
+//                 }
+//             },
+
+//             removed: function () {
+//                 if (this.hasAttribute('save-while-typing') && this.saveTimerID) {
+//                     clearTimeout(this.saveTimerID);
+//                     emergencyUpdate(this);
+//                 }
+//             }
+//         },
+//         events: {},
+//         accessors: {},
+//         methods: {
+//             refresh: function () {
+//                 getData(this);
+//             },
+
+//             save: function () {
+//                 updateDataWithoutTemplate(this, false);
+//             },
+
+//             column: function (strColumn) {
+//                 return GS.envGetCell(this.lastSuccessData, 0, strColumn);
+//             },
+
+//             addMessage: function (strMessageName) {
+//                 return addMessage(this, strMessageName);
+//             },
+
+//             removeMessage: function (strMessageName) {
+//                 return removeMessage(this, strMessageName);
+//             }
+//         }
+//     });
+// });//global window, GS, ml, xtag, evt, ace, doT, CryptoJS, encodeHTML, Worker
 //global addSnippet, addElement, addFlexProps, addCheck, addText, addSelect
 //global addControlProps, addFlexContainerProps, addProp
 //global addAttributeSwitcherProp, addGSControlProps, addCornerRoundProps
@@ -39320,6 +42810,8 @@ document.addEventListener('DOMContentLoaded', function () {
         methods: {
             submit: function (callback) {
                 var element = this;
+                if (element.inProgress) { return; }
+                element.inProgress = true;
 
                 GS.triggerEvent(element, 'before_insert');
                 GS.triggerEvent(element, 'onbefore_insert');
@@ -39445,6 +42937,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 callback(GS.decodeFromTabDelimited(arrCells[0]), jsnRow);
                             }
                         }
+                        element.inProgress = false;
                     }
                 );
             }
@@ -40838,7 +44331,7 @@ document.addEventListener('DOMContentLoaded', function () {
             toggle: function () {
                 var element = this;
 
-                if (element.innerState === 'open') {
+                if (element.innerState === 'open' || element.hasAttribute('readonly') || element.hasAttribute('disabled')) {
                     element.close();
                 } else {
                     element.open();
@@ -41016,9 +44509,16 @@ document.addEventListener('DOMContentLoaded', function () {
             // #######################################################################################################################
             // #######################################################################################################################
             // #######################################################################################################################
-            // if (arrTrs[0].children[0].nodeName.toUpperCase() === 'TH') {
-            //     arrTrs.splice(0,1);
-            // }
+            // uncommented on 2022-02-02 by Nunzio
+            // FTA was having an issue on a search screen that uses a Listbox
+            // allegedly this was made redundant by using a thead, but it seems to still be necessary
+            // looking at the page in question, there is a thead, but the first row of the tbody
+            // still has the headers
+            if (arrTrs[0]
+                && arrTrs[0].children[0]
+                && arrTrs[0].children[0].nodeName.toUpperCase() === 'TH') {
+                arrTrs.splice(0,1);
+            }
             // search exact text and search both the value attribute (if present) and the first td text
             i = 0;
             len = arrTrs.length;
@@ -41398,6 +44898,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 //highlightRecord(element, record);
                 element.triggerChange();
+            } else if (!record && handle === '\\N') {
+                element.setAttribute('value', '\\N');
+                
             }
 
             if (element.originTR) {
@@ -41421,13 +44924,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // handle behaviours on keydown
     function handleKeyDown(event) {
-        var element = event.target.parentNode;
+        var element = event.target;
         var intKeyCode = event.keyCode || event.which;
         var selectedTr;
         var trs;
         var i;
         var len;
         var selectedRecordIndex;
+
+        if (element.tagName.toUpperCase() !== 'GS-LISTBOX') {
+            element = GS.findParentTag(event.target, 'gs-listbox');
+        }
 
         if (!element.hasAttribute('disabled')) {
             if (!element.hasAttribute('no-select')) {
@@ -41542,6 +45049,12 @@ document.addEventListener('DOMContentLoaded', function () {
         var response_i = 0;
         var response_len = 0;
         var arrTotalRecords = [];
+
+        GS.triggerEvent(element, 'before_select');
+        GS.triggerEvent(element, 'onbefore_select');
+        if (element.hasAttribute('onbefore_select')) {
+            new Function(element.getAttribute('onbefore_select')).apply(element);
+        }
 
         GS.addLoader(element, 'Loading...');
         GS.requestSelectFromSocket(
@@ -42282,7 +45795,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (element.tableElement) {
                         var arrRecords = xtag.queryChildren(xtag.queryChildren(element.tableElement, 'tbody')[0], 'tr[selected]');//:not(.divider)
-
+                        if (element.getAttribute('value') === '\\N') {
+                            return '\\N';
+                        }
                         if (element.hasAttribute('multi-select')) {
                             if (element.internalData.records) {
                                 i = 0;
@@ -42921,7 +46436,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             element.removeEventListener('focus', focusFunction);
             element.classList.add('focus');
-            element.addControl();
+            element.appendChild(multiLineTemplate.cloneNode(true));
             if (element.control.value && element.control.value.length > 0) {
                 if (element.bolSelect) {
                     element.control.setSelectionRange(0, element.control.value.length);
@@ -42963,7 +46478,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function keydownFunction(event) {
         var element = event.target;
         if (!element.hasAttribute('readonly')) {
-            if (element.getAttribute('disabled') !== null && !(event.keyCode === 122 && event.metaKey)) {
+            if (element.hasAttribute('disabled') && !(event.keyCode === 122 && event.metaKey)) {
                 event.preventDefault();
                 event.stopPropagation();
             } else if (event.keyCode === 9 && element.parentNode.hasAttribute('allow-tab-char') === true) {
@@ -43025,7 +46540,6 @@ document.addEventListener('DOMContentLoaded', function () {
     //}
     
     function saveDefaultAttributes(element) {
-                                
         var i;
         var len;
         var arrAttr;
@@ -43048,7 +46562,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function createPushReplacePopHandler(element) {
-                                
         var i;
         var len;
         var strQS = GS.getQueryString();
@@ -43222,7 +46735,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         element.syncGetters();
                     }
-                    element.style.height = ((element.getAttribute('rows') || 2) * 1.2) + 'em';
+                    if (!element.hasAttribute('autoresize')) {
+                        element.style.height = ((element.getAttribute('rows') || 2) * 1.2) + 'em';
+                    }
                     if (element.control) {
                         element.control.lastWidth = element.control.clientWidth;
                         element.control.lastHeight = element.control.clientHeight;
@@ -43317,18 +46832,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (element.hasAttribute('title')) {
                         element.control.setAttribute('title', element.getAttribute('title'));
                     }
-    
+                    // console.log(element, element.getAttribute('rows'));
+                    if (!element.hasAttribute('autoresize')) {
+                        element.style.height = ((element.getAttribute('rows') || 2) * 1.2) + 'em';
+                    }
+                    // console.log(element, element.style.height);
+
                     element.control.lastWidth = element.control.clientWidth;
                     element.control.lastHeight = element.control.clientHeight;
                     element.syncView();
-    
+
                     if (element.getAttribute('qs')) {
                         //strQSValue = GS.qryGetVal(GS.getQueryString(), element.getAttribute('qs'));
                         //
                         //if (strQSValue !== '' || !element.getAttribute('value')) {
                         //    element.value = strQSValue;
                         //}
-    
+
                         createPushReplacePopHandler(element);
                         window.addEventListener('pushstate',    function () { createPushReplacePopHandler(element); });
                         window.addEventListener('replacestate', function () { createPushReplacePopHandler(element); });
@@ -43347,11 +46867,11 @@ document.addEventListener('DOMContentLoaded', function () {
             created: function () {
                 elementCreated(this);
             },
-            
+
             inserted: function () {
                 elementInserted(this);
             },
-            
+
             attributeChanged: function (strAttrName, oldValue, newValue) {
                 // if "suspend-created" has been removed: run created and inserted code
                 if (strAttrName === 'value' && this.initalized && oldValue !== newValue) {
@@ -43359,6 +46879,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     var newCryptedValue = newValue;
                     // if there is a difference between the new value in the
                     //      attribute and the valued in the front end: refresh the front end
+                    newCryptedValue = this.hasAttribute('uppercase') ? newCryptedValue.toUpperCase() : newCryptedValue;
+                    currentValue = this.hasAttribute('uppercase') ? currentValue.toUpperCase() : currentValue;
                     if (newCryptedValue !== currentValue) {
                         this.setAttribute('value', newCryptedValue);
                         if (this.hasAttribute('encrypted')) {
@@ -43423,17 +46945,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 set: function (strNewValue) {
                     if (this.hasAttribute('defer-insert')) {
                         if (this.hasAttribute('encrypted')) {
-                            if (CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) === '') {
-                                this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
+                            if (CryptoJS.AES.decrypt(this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) === '') {
+                                this.setAttribute('value', CryptoJS.AES.encrypt(this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue, (window[this.getAttribute('encrypted')] || '')));
                             } else {
-                                this.setAttribute('value', strNewValue);
+                                this.setAttribute('value', this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue);
                             }
                         } else {
-                            this.setAttribute('value', strNewValue);
+                            this.setAttribute('value', this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue);
                             this.syncView();
                         }
                     } else {
-                        this.setAttribute('value', strNewValue);
+                        this.setAttribute('value', this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue);
                     }
                 }
             },
@@ -43442,15 +46964,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 get: function () {
                     if (this.hasAttribute('defer-insert')) {
                         if (this.control) {
-                            return this.control.value;
+                            return this.hasAttribute('uppercase') ? this.control.value.toUpperCase() : this.control.value;
                         } else {
                             return '';
                         }
                     } else {
                         if (this.control) {
-                            return this.control.value;
+                            return this.hasAttribute('uppercase') ? this.control.value.toUpperCase() : this.control.value;
                         } else {
-                            return this.innerHTML;
+                            return this.hasAttribute('uppercase') ? this.innerHTML.toUpperCase() : this.innerHTML;
                         }
                     }
                 },
@@ -43461,9 +46983,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     // this.value = newValue;
                 
                     if (this.control) {
-                        this.control.value = newValue;
+                        this.control.value = this.hasAttribute('uppercase') ? newValue.toUpperCase() : newValue;
                     } else {
-                        this.innerHTML = newValue;
+                        this.innerHTML = this.hasAttribute('uppercase') ? newValue.toUpperCase() : newValue;
                     }
                 }
             }
@@ -43538,8 +47060,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 ];
                 var i;
                 var len;
-                var elementValue = element.textContent || element.value;
-                if (element.children[0].classList.contains('placeholder')) {
+                var elementValue = element.textContent || element.value || '';
+                if (element.children[0] && element.children[0].classList.contains('placeholder')) {
                     elementValue = '';
                 }
                 // if the gs-text element has a tabindex: save the tabindex and remove the attribute
@@ -43578,13 +47100,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 i = 0;
                 len = arrPassThroughAttributes.length;
                 while (i < len) {
+                    // console.log(arrPassThroughAttributes[i]);
                     if (element.hasAttribute(arrPassThroughAttributes[i])) {
+                        // console.log('found', arrPassThroughAttributes[i]);
                         if (arrPassThroughAttributes[i] === 'disabled') {
+                        // console.log('setting', 'readonly');
                             element.control.setAttribute(
                                 'readonly',
                                 element.getAttribute(arrPassThroughAttributes[i]) || ''
                             );
                         } else {
+                            // console.log('setting', arrPassThroughAttributes[i]);
                             element.control.setAttribute(
                                 arrPassThroughAttributes[i],
                                 element.getAttribute(arrPassThroughAttributes[i]) || ''
@@ -43717,10 +47243,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (this.control) {
                     if (this.hasAttribute('encrypted')) {
                         if (window[this.getAttribute('encrypted')]) {
-                            this.setAttribute('value', CryptoJS.AES.encrypt(this.control.value, (window[this.getAttribute('encrypted')] || '')));
+                            this.setAttribute('value', CryptoJS.AES.encrypt(this.hasAttribute('uppercase') ? this.control.value.toUpperCase() : this.control.value, (window[this.getAttribute('encrypted')] || '')));
                         }
                     } else {
-                        this.setAttribute('value', this.control.value);
+                        this.setAttribute('value', this.hasAttribute('uppercase') ? this.control.value.toUpperCase() : this.control.value);
                     }
                     
                 }
@@ -43737,13 +47263,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         element.control.style.height = ''; // '0';
                         
                         if (element.control.scrollHeight > intMinHeight) {
-                            element.control.style.height = element.control.scrollHeight + 'px';
+                            element.control.style.height = (element.control.scrollHeight + 1) + 'px';
                         } else {
-                            element.control.style.height = intMinHeight + 'px';
+                            element.control.style.height = (intMinHeight + 1) + 'px';
                         }
                         
                         if (element.hasAttribute('defer-insert')) {
-                            element.style.height = element.control.style.height;
+                            element.style.height = (parseInt(element.control.style.height.replace('px','')) + 2) + 'px';
                         }
                     }
                     
@@ -44752,7 +48278,9 @@ document.addEventListener('DOMContentLoaded', function () {
         len = arrSelectedOptions.length;
         while (i < len) {
             arrSelectedOptions[i].removeAttribute('selected');
-            arrSelectedOptions[i].setAttribute('tabindex', '-1');
+            if (!arrSelectedOptions[i].hasAttribute('no-focus')) {
+                arrSelectedOptions[i].setAttribute('tabindex', '-1');
+            }
             i += 1;
         }
 
@@ -44766,10 +48294,13 @@ document.addEventListener('DOMContentLoaded', function () {
         // select/highlight the record that was provided
         if (option) {
             option.setAttribute('selected', '');
-            option.setAttribute('tabindex', '0');
             option.setAttribute('aria-checked', 'true');
-            if (bolFocus) {
-                option.focus();
+
+            if (!option.hasAttribute('no-focus')) {
+                option.setAttribute('tabindex', '0');
+                if (bolFocus) {
+                    option.focus();
+                }
             }
         }
     }
@@ -45044,10 +48575,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             arrElement[i].setAttribute('icon', '');
             arrElement[i].setAttribute('role', 'radio');
-            arrElement[i].setAttribute('tabindex', '-1');
-            // arrElement[i].addEventListener('focus', function () {
-            //     selectOption(element, this, true);
-            // });
+            if (!arrElement[i].hasAttribute('no-focus')) {
+                arrElement[i].setAttribute('tabindex', '-1');
+                // arrElement[i].addEventListener('focus', function () {
+                //     selectOption(element, this, true);
+                // });
+            }
             i += 1;
         }
     }
@@ -45239,7 +48772,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (parentOption && !parentOption.hasAttribute('selected')) {
                         selectOption(element, parentOption, true);
                     } else if (parentOption && parentOption.hasAttribute('selected') && element.hasAttribute('clearable')) {
-                        selectOption(element, undefined);
+                        selectOption(element, (element.getAttribute('empty-value') || undefined), (element.getAttribute('empty-value') ? true : undefined));
                     }
                 }
             }
@@ -48787,10 +52320,14 @@ window.addEventListener('design-register-element', function () {
     // DEFINE PROPERTIES
     window.designElementProperty_GSTABLE = function () {
         addDataAttributes('select,insert,update,delete,parent-child');
+        addText('D', 'Insert Source', 'insert-src');
+        addText('D', 'Update Source', 'update-src');
+        addText('D', 'Delete Source', 'delete-src');
         addText('D', 'Session Filter', 'session-filter');
         addDataEvents('select,insert,update,delete');
         addText('D', 'Null Display', 'null-string');
         addText('D', 'Null Set', 'null-set-string');
+        addCheck('D', 'Suppress Select Error', 'suppress-select-error');
         addCheck('V', 'No Record Selector', 'no-record-selector');
         addCheck('V', 'No Resize Record', 'no-resize-record');
         addCheck('V', 'No Resize Column', 'no-resize-column');
@@ -49082,8 +52619,8 @@ document.addEventListener('DOMContentLoaded', function () {
         //      just all whitespace, if it is: we're setting the insert record
         //      to visibility=false
         if (
-            !element.internalTemplates.insertRecord ||
-            !element.internalTemplates.insertRecord.trim()
+            !element.internalTemplates.originalInsertRecord ||
+            !element.internalTemplates.originalInsertRecord.trim()
         ) {
             element.internalDisplay.insertRecordVisible = false;
         }
@@ -50573,7 +54110,197 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // sometimes, we need to know what cell the mouse is over
+    // returns JSON: {"row": row, "column": column}
+    //      possible "column" values: NUMBER|"selector"
+    //      possible "row"    values: NUMBER|"header"|"insert"
     function getCellFromMouseEvent(element, event) {
+        var cell;
+        var row;
+        var column;
+
+        // if we can't extract from cell
+        var jsnMousePos;
+        var jsnElementPos;
+        var intMouseX;
+        var intMouseY;
+        var jsnRange;
+        var arrColumnWidths;
+        var arrRecordHeights;
+        var i;
+        var len;
+        var intLeft;
+        var intTop;
+        var intColBorderWidth;
+        var intRowBorderHeight;
+        var intRowSelectorWidth;
+        var intHeaderHeight;
+        var bolHeader;
+        var bolInsertRecord;
+        var bolRecordSelector;
+
+        // get cell element from mouse event
+        cell = event.target;
+        if (cell.nodeName !== 'GS-CELL') {
+            cell = GS.findParentTag(cell, 'gs-cell');
+        }
+
+        // if we have a cell, get row/column number from it
+        if (cell) {
+            // the only cells that don't have a row number are header cells
+            row = (cell.getAttribute('data-row-number') || 'header');
+
+            // record selectors are [data-col]="selector",
+            //      everything else is [data-col-number]="NUMBER"
+            column = (
+                cell.getAttribute('data-col') ||
+                cell.getAttribute('data-col-number')
+            );
+
+            // return number if possible, else string
+            if (!isNaN(row)) {
+                row = parseInt(row, 10);
+            }
+
+            // return number if possible, else string
+            if (!isNaN(column)) {
+                column = parseInt(column, 10);
+            }
+
+        // if we don't have a cell, use the old method
+        //      we take the mouse position and try to find the column/row
+        //      POSSIBLY STILL GOING TO RETURN INCORRECTLY ON PAGE SCROLL
+        //      after some testing, it seems that scrolling is only an issue if
+        //      the browser doesn't have ".getBoundingClientRect" built in,
+        //      which is used by GS.getElementOffset. If it isn't present,
+        //      GS.getElementOffset polyfills with our own solution, which is
+        //      likely inaccurate in some circumstances.
+        } else {
+            // gather display variables
+            jsnRange = element.internalDisplay.currentRange;
+
+            bolHeader = element.internalDisplay.headerVisible;
+            bolInsertRecord = (
+                element.internalDisplay.insertRecordVisible &&
+                jsnRange.insertRecord
+            );
+            bolRecordSelector = element.internalDisplay.recordSelectorVisible;
+
+            arrColumnWidths = element.internalDisplay.columnWidths;
+            arrRecordHeights = element.internalDisplay.recordHeights;
+            intColBorderWidth = element.internalDisplay.columnBorderWidth;
+            intRowBorderHeight = element.internalDisplay.recordBorderHeight;
+            intRowSelectorWidth = (
+                bolRecordSelector
+                    ? (
+                        element.internalDisplay.recordSelectorWidth +
+                        element.internalDisplay.recordSelectorBorderWidth
+                    )
+                    : 0
+            );
+            intHeaderHeight = (
+                bolHeader
+                    ? (
+                        element.internalDisplay.headerHeight +
+                        element.internalDisplay.headerBorderHeight
+                    )
+                    : 0
+            );
+
+            // we need the mouse position and the element position
+            jsnMousePos = GS.mousePosition(event);
+            jsnElementPos = GS.getElementOffset(
+                element.elems.dataViewport
+            );
+
+            // we need the mouse X to be relative to the dataViewport
+            intMouseX = (jsnMousePos.left - jsnElementPos.left);
+
+            // we need the mouse Y to be relative to the dataViewport
+            intMouseY = (jsnMousePos.top - jsnElementPos.top);
+
+            // get column. careful, it could be the record selector
+
+            // if record selector is visible and the mouse is above it
+            if (bolRecordSelector && intMouseX <= intRowSelectorWidth) {
+                column = 'selector';
+
+            } else {
+                intLeft = jsnRange.originLeft;//intRowSelectorWidth;
+                i = jsnRange.fromColumn;
+                len = jsnRange.toColumn;
+                while (i < len) {
+                    if (intMouseX >= intLeft) {
+                        column = i;
+                    } else {
+                        break;
+                    }
+
+                    intLeft += arrColumnWidths[i];
+                    intLeft += intColBorderWidth;
+                    i += 1;
+                }
+            }
+
+            // get record. careful, it could be the header or the insert record
+
+            // if header is visible
+            if (bolHeader && intMouseY <= intHeaderHeight) {
+                row = 'header';
+
+            } else {
+                intTop = intHeaderHeight;
+                i = jsnRange.fromRecord;
+                len = jsnRange.toRecord;
+                while (i < len) {
+                    if (intMouseY >= intTop) {
+                        row = i;
+                    } else {
+                        break;
+                    }
+
+                    intTop += arrRecordHeights[i];
+                    intTop += intRowBorderHeight;
+                    i += 1;
+                }
+
+                if (bolInsertRecord && intMouseY >= intTop) {
+                    row = 'insert';
+                }
+            }
+        }
+
+        // default row/column to first row/column (LAST RESORT, AVOID)
+        row = row || 0;
+        column = column || 0;
+
+        // return cell row and column
+        return {"row": row, "column": column};
+
+
+        // changed by Michael on 12/27/2021
+        // this code prevented insert, selector, and header cells from being
+        //      selected, because it "parseInt"ed all results
+/*
+        var cell = event.target;
+        if (cell.tagName.toLowerCase() !== 'gs-cell') {
+            cell = GS.findParentTag(event.target, 'gs-cell');
+        }
+        var row = cell.getAttribute('data-row-number');
+        var column = (
+            cell.getAttribute('data-col') === 'selector'
+                ? -1
+                : cell.getAttribute('data-col-number')
+        );
+
+        return {
+            "row": parseInt(row, 10),
+            "column": parseInt(column, 10)
+        };
+*/
+
+        // changed on 2021-10-12 by Nunzio
+        // This code breaks when the page is scrolled
+/*
         var jsnMousePos;
         var jsnElementPos;
         var intMouseX;
@@ -50598,6 +54325,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // gather display variables
         jsnRange = element.internalDisplay.currentRange;
+        console.log(jsnRange);
 
         bolHeader = element.internalDisplay.headerVisible;
         bolInsertRecord = (
@@ -50640,12 +54368,14 @@ document.addEventListener('DOMContentLoaded', function () {
         jsnElementPos = GS.getElementOffset(
             element.elems.dataViewport
         );
+        console.log(jsnMousePos, jsnElementPos);
 
         // we need the mouse X to be relative to the dataViewport
         intMouseX = (jsnMousePos.left - jsnElementPos.left);
 
         // we need the mouse Y to be relative to the dataViewport
         intMouseY = (jsnMousePos.top - jsnElementPos.top);
+        console.log(intMouseX, intMouseY);
 
         // get column. careful, it could be the record selector
 
@@ -50700,11 +54430,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-
         return {
             "row": row,
             "column": column
         };
+*/
     }
 
     // we need a way to compare the selection ranges, this function turns a
@@ -50775,11 +54505,15 @@ document.addEventListener('DOMContentLoaded', function () {
         len = element.internalDisplay.columnWidths.length;
         while (i < len) {
             if (
-                element.internalDisplay.setMinColumnWidths[i] ||
                 (
-                    !element.internalDisplay.setMinColumnWidths[i] &&
-                    !element.internalDisplay.setColumnWidths[i]
-                )
+                    element.internalDisplay.setMinColumnWidths[i] ||
+                    (
+                        !element.internalDisplay.setMinColumnWidths[i] &&
+                        !element.internalDisplay.setColumnWidths[i]
+                    )
+                ) &&
+                // prevent hidden columns from getting a ratio
+                element.internalDisplay.columnWidths[i] !== 0
             ) {
                 intTotalWidth += (
                     element.internalDisplay.setMinColumnWidths[i] ||
@@ -50803,11 +54537,15 @@ document.addEventListener('DOMContentLoaded', function () {
             //      nothing set at all. In which case, we use our detected
             //      width.
             if (
-                element.internalDisplay.setMinColumnWidths[i] ||
                 (
-                    !element.internalDisplay.setMinColumnWidths[i] &&
-                    !element.internalDisplay.setColumnWidths[i]
-                )
+                    element.internalDisplay.setMinColumnWidths[i] ||
+                    (
+                        !element.internalDisplay.setMinColumnWidths[i] &&
+                        !element.internalDisplay.setColumnWidths[i]
+                    )
+                ) &&
+                // prevent hidden columns from getting a ratio
+                element.internalDisplay.columnWidths[i] !== 0
             ) {
                 element.internalDisplay.columnRatios[i] = (
                     (
@@ -50818,6 +54556,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         intTotalWidth
                     ) * 100
                 );
+            } else {
+                element.internalDisplay.columnRatios[i] = 0;
             }
 
             i += 1;
@@ -50882,6 +54622,52 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function clearInsertRetainedValues(element) {
+        // we clear the retained values and columns here because
+        //      if the user decides to override the insert with
+        //      their own thing, we don't want to still be showing
+        //      the old values.
+        element.internalData.insertRecord = {};
+        element.internalData.insertRecordRetainedColumns = [];
+
+        // re-render so that the insert controls clear out in the DOM
+        element.internalDisplay.fullRenderRequired = true;
+        //renderLocation(element);
+        //element.goToLine('last');
+    }
+
+    // we need to split object names into schema and object
+    function splitObjectName(strObject) {
+        var arrParts;
+
+        // split "src" into "schema" and "object" attributes
+        arrParts = strObject.split('.');
+
+        // I don't know who added this. I don't inderstand why someone
+        //      would put something like "biz.bar.foo" in the "src"
+        //      attribute. That's the case that this code handles. If
+        //      you added this code: PUT A COMMENT!!!! We have comments
+        //      for a reason. Don't ruin this beautiful code. Only YOU
+        //      can prevent spaghetti code.
+        //  ~Michael
+        // It appears to be a solution to quote idented object names
+        //      that contain a period like this: test."test.asdf"
+        //      The problem with this (other than being unclear) is that
+        //      it wont work for schema names that contain a period.
+        //      We need a better solution for this. Perhaps it's time to
+        //      create a function that understands ident quoted names
+        //      for real, using actual parsing.
+        //  ~Also Michael
+        if (arrParts[2]) {
+            arrParts[1] = arrParts[1] + '.' + arrParts[2];
+        }
+
+        return {
+            "schema": arrParts[0],
+            "object": arrParts[1]
+        };
+    }
+
 
 // #############################################################################
 // ############################# ELEMENT FUNCTIONS #############################
@@ -50893,39 +54679,117 @@ document.addEventListener('DOMContentLoaded', function () {
     //      this function translates those attributes to their final formats
     // some attributes need to be defaulted, even if they're not present
     function resolveElementAttributes(element) {
-        var arrParts;
+        var jsnParts;
+        var strSrc;
 
         // GS-TABLE elements that are connected to Envelope need to have "pk"
         //      and "lock" attributes
         if (element.getAttribute('src')) {
-            // split "src" into "schema" and "object" attributes
-            arrParts = GS.templateWithQuerystring(
-                element.getAttribute('src')
-            ).split('.');
+            strSrc = GS.templateWithQuerystring(element.getAttribute('src'));
 
-            // I don't know who added this. I don't inderstand why someone
-            //      would put something like "biz.bar.foo" in the "src"
-            //      attribute. That's the case that this code handles. If
-            //      you added this code: PUT A COMMENT!!!! We have comments
-            //      for a reason. Don't ruin this beautiful code. Only YOU
-            //      can prevent spaghetti code.
-            //  ~Michael
-            // It appears to be a solution to quote idented object names that
-            //      contain a period like this: test."test.asdf"
-            //      The problem with this solution (other than being unclear)
-            //      is that it wont work for schema names that contain a period.
-            //      We need a better solution for this. Perhaps it's time to
-            //      create a function that understands ident quoted names for
-            //      real, using actual parsing.
-            //  ~Also Michael
-            if (arrParts[2]) {
-                arrParts[1] = arrParts[1] + '.' + arrParts[2];
+            // if arbituary query
+            if (strSrc.replace(/\s*/gi, '').indexOf('(SELECT') === 0) {
+                // save query as is
+                element.setAttribute('select-query', strSrc);
+
+            // else, it's just a table/view name
+            } else {
+                // split "src" into "schema" and "object" attributes
+                jsnParts = splitObjectName(strSrc);
+
+                // put the split sections of the object name into separate
+                //      attributes
+                element.setAttribute('select-schema', jsnParts.schema);
+                element.setAttribute('select-object', jsnParts.object);
+
+                element.setAttribute('insert-schema', jsnParts.schema);
+                element.setAttribute('insert-object', jsnParts.object);
+
+                element.setAttribute('update-schema', jsnParts.schema);
+                element.setAttribute('update-object', jsnParts.object);
+
+                element.setAttribute('delete-schema', jsnParts.schema);
+                element.setAttribute('delete-object', jsnParts.object);
             }
 
-            // put the split sections of the object name into separate
-            //      attributes
-            element.setAttribute('schema', arrParts[0]);
-            element.setAttribute('object', arrParts[1]);
+            // "insert-src" should always be a table or a view
+            if (element.getAttribute('insert-src')) {
+                // split into "schema" and "object" attributes
+                jsnParts = splitObjectName(element.getAttribute('insert-src'));
+
+                element.setAttribute('insert-schema', jsnParts.schema);
+                element.setAttribute('insert-object', jsnParts.object);
+            }
+
+            // "update-src" should always be a table or a view
+            if (element.getAttribute('update-src')) {
+                // split into "schema" and "object" attributes
+                jsnParts = splitObjectName(element.getAttribute('update-src'));
+
+                element.setAttribute('update-schema', jsnParts.schema);
+                element.setAttribute('update-object', jsnParts.object);
+            }
+
+            // "delete-src" should always be a table or a view
+            if (element.getAttribute('delete-src')) {
+                // split into "schema" and "object" attributes
+                jsnParts = splitObjectName(element.getAttribute('delete-src'));
+
+                element.setAttribute('delete-schema', jsnParts.schema);
+                element.setAttribute('delete-object', jsnParts.object);
+            }
+
+            // default insert, update, and delete
+            if (jsnParts) {
+                if (!element.hasAttribute('insert-schema')) {
+                    element.setAttribute('insert-schema', jsnParts.schema);
+                    element.setAttribute('insert-object', jsnParts.object);
+                }
+                if (!element.hasAttribute('update-schema')) {
+                    element.setAttribute('update-schema', jsnParts.schema);
+                    element.setAttribute('update-object', jsnParts.object);
+                }
+                if (!element.hasAttribute('delete-schema')) {
+                    element.setAttribute('delete-schema', jsnParts.schema);
+                    element.setAttribute('delete-object', jsnParts.object);
+                }
+            }
+
+            // if we're missing insert details, warn the developer
+            if (
+                !element.hasAttribute('insert-schema') ||
+                !element.hasAttribute('insert-object')
+            ) {
+                console.warn(
+                    'GS-TABLE Warning: Cannot figure out what object to ' +
+                    'insert to, please add an "insert-src" attribute with the' +
+                    ' view that needs to receive the insert commands.'
+                );
+            }
+
+            // if we're missing update details, warn the developer
+            if (
+                !element.hasAttribute('update-schema') ||
+                !element.hasAttribute('update-object')
+            ) {
+                console.warn(
+                    'GS-TABLE Warning: Cannot figure out what object to ' +
+                    'update, please add an "update-src" attribute with the' +
+                    ' view that needs to receive the update commands.'
+                );
+            }
+
+            // if we're missing delete details, warn the developer
+            if (
+                !element.hasAttribute('delete-schema') ||
+                !element.hasAttribute('delete-object')
+            ) {
+                console.warn(
+                    'GS-TABLE Warning: Cannot figure out what object to ' +
+                    'delete from, please add a "delete-src" attribute with' +
+                    ' the view that needs to receive the delete commands.'
+                );
+            }
 
             // default "pk" and "lock" attributes
             element.setAttribute(
@@ -51375,6 +55239,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var buttonElement;
         var i;
         var len;
+        var strWidth;
 
         // get each template element and save them to each their own variable,
         //      for easy access
@@ -51614,8 +55479,14 @@ document.addEventListener('DOMContentLoaded', function () {
             i = 0;
             len = arrColumnElements.length;
             while (i < len) {
+                strWidth = arrColumnElements[i].style.width;
+
                 element.internalDisplay.columnWidths.push(
-                    parseInt(arrColumnElements[i].style.width, 10) ||
+                    (
+                        arrColumnElements[i].style.width
+                            ? GS.sizeToPx(element, strWidth)
+                            : NaN
+                    ) ||
                     intColumnWidth
                 );
 
@@ -51623,7 +55494,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      user resizes them, so this array contains the column
                 //      widths and cannot be updated by column resizing
                 element.internalDisplay.defaultColumnWidths.push(
-                    parseInt(arrColumnElements[i].style.width, 10) ||
+                    (
+                        arrColumnElements[i].style.width
+                            ? GS.sizeToPx(element, strWidth)
+                            : NaN
+                    ) ||
                     intColumnWidth
                 );
 
@@ -51632,13 +55507,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // we want to retain the developer's declared width settings
                 element.internalDisplay.setColumnWidths.push(
-                    parseInt(arrColumnElements[i].style.width, 10)
+                    arrColumnElements[i].style.width
+                        ? GS.sizeToPx(element, strWidth)
+                        : NaN
                 );
                 element.internalDisplay.setMinColumnWidths.push(
-                    parseInt(arrColumnElements[i].style.minWidth, 10)
+                    (
+                        arrColumnElements[i].style.minWidth
+                            ? GS.sizeToPx(element, arrColumnElements[i].style.minWidth)
+                            : NaN
+                    )
                 );
                 element.internalDisplay.setMaxColumnWidths.push(
-                    parseInt(arrColumnElements[i].style.maxWidth, 10)
+                    (
+                        arrColumnElements[i].style.maxWidth
+                            ? GS.sizeToPx(element, arrColumnElements[i].style.maxWidth)
+                            : NaN
+                    )
                 );
 
                 // fill the minimum column widths with the default. If there's a
@@ -52152,9 +56037,18 @@ document.addEventListener('DOMContentLoaded', function () {
             //      and determine that it's an "insert" type cell
             templateCellAddRowNumber(insertRWTemplate, 'insert');
 
-            // save the template
+            // get HTML
+            strHTML = insertRWTemplate.innerHTML.trim();
+
+            // let's save the original record template text so that we can
+            //      modify it in the future
+            element.internalTemplates.originalInsertRecord = strHTML;
+
+            // we're going run the record template through a function to prep it
+            //      for templating (so we don't mess up inner templates, like
+            //      comboboxes and such)
             element.internalTemplates.insertRecord = (
-                insertRWTemplate.innerHTML.trim()
+                GS.templateHideSubTemplates(strHTML, false)
             );
 
             //// remove the template element now that it's been siphoned
@@ -53693,12 +57587,15 @@ document.addEventListener('DOMContentLoaded', function () {
             //      the first cell, select the first cell
             //console.log(element.internalSelection.ranges);
             jsnRange = element.internalSelection.ranges[0];
-
+            // console.log('ranges:', element.internalSelection.ranges.length);
+            // console.log('rows:', element.internalSelection.rows);
+            // console.log('columns:', element.internalSelection.columns);
             if (
                 !element.hasAttribute('no-force-select') &&
                 element.internalData.records.length > 0 && (
                     element.internalSelection.ranges &&
                     (
+                        // element.internalSelection.ranges.length !== 1 ||
                         element.internalSelection.ranges.length !== 1 ||
                         jsnRange.start.row !== 0 ||
                         jsnRange.start.column !== 0 ||
@@ -53947,10 +57844,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 toColumn
             );
         }
-        if (element.internalTemplates.insertRecord.trim()) {
+        if (
+            element.internalTemplates.insertRecord.templateHTML &&
+            element.internalTemplates.insertRecord.templateHTML.trim()
+        ) {
             strInsertTemplate = templateExtractVisibleCellRange(
                 element,
-                element.internalTemplates.insertRecord,
+                element.internalTemplates.insertRecord.templateHTML,
                 fromColumn,
                 toColumn
             );
@@ -54159,6 +58059,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // if there's a insert record: build it and append to HTML
         if (strInsertTemplate) {
             strRecord = strInsertTemplate;
+
+            // template insert record with querystring
+            strRecord = GS.templateWithQuerystring(strInsertTemplate);
+
+            strRecord = GS.templateShowSubTemplates(
+                strRecord,
+                element.internalTemplates.insertRecord
+            );
 
             //col_i = fromColumn;
             //col_len = toColumn;
@@ -54697,7 +58605,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return strRecord;
         };
 
-        var createNonDataCells = function (strTemplate) {
+        var createNonDataCells = function (strTemplate, jsnTemplate) {
             var strRecord;
 
             //// replace the css tokens so the cells are in the right place
@@ -54710,6 +58618,9 @@ document.addEventListener('DOMContentLoaded', function () {
             strRecord = '{{ var qs = jo.qs; }}' + strRecord;
 
             strRecord = doT.template(strRecord)({'qs': jsnQS});
+            if (jsnTemplate) {
+                strRecord = GS.templateShowSubTemplates(strRecord, jsnTemplate);
+            }
 
             //console.log(strRecord);
 
@@ -54903,13 +58814,13 @@ document.addEventListener('DOMContentLoaded', function () {
             // insert cells
             if (
                 // if there is an insert template
-                element.internalTemplates.insertRecord.trim() &&
+                element.internalTemplates.insertRecord.templateHTML.trim() &&
                 // if the insert record has already been added
                 !bolInsert
             ) {
                 strLeftInsertTemplate = templateExtractVisibleCellRange(
                     element,
-                    element.internalTemplates.insertRecord,
+                    element.internalTemplates.insertRecord.templateHTML,
                     jsnRange.fromColumn,
                     jsnOldRange.fromColumn
                 );
@@ -54972,13 +58883,13 @@ document.addEventListener('DOMContentLoaded', function () {
             // insert cells
             if (
                 // if there is an insert template
-                element.internalTemplates.insertRecord.trim() &&
+                element.internalTemplates.insertRecord.templateHTML.trim() &&
                 // if the insert record has already been added
                 !bolInsert
             ) {
                 strRightInsertTemplate = templateExtractVisibleCellRange(
                     element,
-                    element.internalTemplates.insertRecord,
+                    element.internalTemplates.insertRecord.templateHTML,
                     jsnOldRange.toColumn,
                     jsnRange.toColumn
                 );
@@ -55047,7 +58958,7 @@ document.addEventListener('DOMContentLoaded', function () {
             strInsertTemplate += (
                 templateExtractVisibleCellRange(
                     element,
-                    element.internalTemplates.insertRecord,
+                    element.internalTemplates.insertRecord.templateHTML,
                     jsnRange.fromColumn,
                     jsnRange.toColumn
                 )
@@ -55059,7 +58970,7 @@ document.addEventListener('DOMContentLoaded', function () {
             //        .replace(/\$\$CSSREPLACETOKEN\$\$/gi, '')
             //);
 
-            strHTML += createNonDataCells(strInsertTemplate);
+            strHTML += createNonDataCells(strInsertTemplate, element.internalTemplates.insertRecord);
         }
 
         // if we need to add cells to the left of the old visible range
@@ -55097,7 +59008,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // insert cells
             if (strLeftInsertTemplate) {
-                strHTML += createNonDataCells(strLeftInsertTemplate);
+                strHTML += createNonDataCells(strLeftInsertTemplate, element.internalTemplates.insertRecord);
             }
         }
 
@@ -55136,7 +59047,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // insert cells
             if (strRightInsertTemplate) {
-                strHTML += createNonDataCells(strRightInsertTemplate);
+                strHTML += createNonDataCells(strRightInsertTemplate, element.internalTemplates.insertRecord);
             }
         }
 
@@ -55791,7 +59702,14 @@ document.addEventListener('DOMContentLoaded', function () {
             if (focusElement) {
                 focusElement.focus();
 
-                if (element.internalDisplay.focus.selectionRange) {
+                if (
+                    element.internalDisplay.focus.selectionRange &&
+                    (
+                        focusElement.nodeName === 'INPUT' ||
+                        focusElement.nodeName === 'TEXTAREA'
+                    ) &&
+                    focusElement.getAttribute('type') !== 'file'
+                ) {
                     GS.setInputSelection(
                         focusElement,
                         element.internalDisplay.focus.selectionRange.start,
@@ -56568,6 +60486,11 @@ document.addEventListener('DOMContentLoaded', function () {
         var fadeOut;
         var removeFunction;
 
+        // if we can't find the loaders, we're too early, exit function
+        if (!element.internalLoaders.loaderIDs) {
+            return false;
+        }
+
         // get index of loader in loader array
         loaderIndex = element.internalLoaders.loaderIDs.indexOf(strID);
 
@@ -56740,7 +60663,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     function dataINSERTcallback(element) {
+        // clear retained values
+        clearInsertRetainedValues(element);
+
         element.internalData.bolInserting = false;
+
         // re-render scroll location because adding records changes scroll
         //      heights, and so that we can show the new data
         element.internalDisplay.fullRenderRequired = true;
@@ -57063,6 +60990,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function databaseWSSELECT(element) {
         var socket;
+        var strQuery;
         var strSchema;
         var strObject;
         var strWhere;
@@ -57089,13 +61017,17 @@ document.addEventListener('DOMContentLoaded', function () {
         var arrCols;
         var arrRecords;
         var arrRecordHeights;
+        var returnCallback;
 
         socket = getSocket(element);
+        strQuery = GS.templateWithQuerystring(
+            element.getAttribute('select-query') || ''
+        );
         strSchema = GS.templateWithQuerystring(
-            element.getAttribute('schema') || ''
+            element.getAttribute('select-schema') || ''
         );
         strObject = GS.templateWithQuerystring(
-            element.getAttribute('object') || ''
+            element.getAttribute('select-object') || ''
         );
         strWhere = getWhereClause(element);
         strOrd = GS.templateWithQuerystring(
@@ -57212,109 +61144,124 @@ document.addEventListener('DOMContentLoaded', function () {
                 .apply(element);
         }
 
-        // we need the user to know that the envelope is re-fetching data,
-        //      so we'll put a loader on
-        addLoader(element, 'data-select', 'Loading Data...');
-        GS.requestSelectFromSocket(
-            socket,
-            strSchema,
-            strObject,
-            strReturn,
-            strWhere,
-            strOrd,
-            strLimit,
-            strOffset,
-            function (data, error) {
-                //var i;
-                //var len;
-                var col_i;
-                var col_len;
-                var strCol;
-                //var index;
-                var strRecord;
-                var strMessage;
-                //var strChar;
+        // if the table element has been destroyed, we must stop execution
+        if (!element.internalData.columnNames) {
+            return;
+        }
 
-                if (!error) {
-                    // if this is the first callback, we need to save
-                    //      the column names and types and we need to
-                    //      re-link the filters, sorts and filter statuses
-                    //
-                    // this was below in the else, but requestSelectFromSocket
-                    //      will only callback once if there are no records
-                    //      - Nunzio 5/29/2017
-                    if (data.intCallback === 0) {
-                        // clear old column arrays to make remove for any
-                        //      changes to the column list
-                        element.internalData.columnNames = [];
-                        element.internalData.columnTypes = [];
-                        element.internalData.columnFilterStatuses = [];
-                        element.internalData.columnFilters = [];
-                        element.internalData.columnListFilters = [];
-                        element.internalData.columnOrders = [];
+        // because we use both arbitrary and named selects, we want this
+        //      callback to be a variable, so that we don't have to duplicate it
+        returnCallback = function (data, error) {
+            //var i;
+            //var len;
+            var col_i;
+            var col_len;
+            var strCol;
+            //var index;
+            var strRecord;
+            var strMessage;
+            //var strChar;
 
-                        // future mike, you need to make is so that the
-                        //      column name, filter and sort arrays are
-                        //      retained across select calls.
-                        // past mike, sounds good, I'll use the old column
-                        //      list to get the old sorts filters, and
-                        //      filter statuses
-                        col_i = 0;
-                        col_len = data.arrDecodedColumnNames.length;
-                        while (col_i < col_len) {
-                            strCol = data.arrDecodedColumnNames[col_i];
-                            index = arrOldColumnNames.indexOf(strCol);
+            // if the table element has been destroyed, we must stop execution
+            if (!element.internalData.columnNames) {
+                return;
+            }
 
-                            element.internalData.columnNames.push(
-                                strCol
+            if (!error) {
+                // if this is the first callback, we need to save
+                //      the column names and types and we need to
+                //      re-link the filters, sorts and filter statuses
+                //
+                // this was below in the else, but requestSelectFromSocket
+                //      will only callback once if there are no records
+                //      - Nunzio 5/29/2017
+                if (data.intCallback === 0) {
+                    // clear old column arrays to make remove for any
+                    //      changes to the column list
+                    element.internalData.columnNames = [];
+                    element.internalData.columnTypes = [];
+                    element.internalData.columnFilterStatuses = [];
+                    element.internalData.columnFilters = [];
+                    element.internalData.columnListFilters = [];
+                    element.internalData.columnOrders = [];
+
+                    // future mike, you need to make is so that the
+                    //      column name, filter and sort arrays are
+                    //      retained across select calls.
+                    // past mike, sounds good, I'll use the old column
+                    //      list to get the old sorts filters, and
+                    //      filter statuses
+                    col_i = 0;
+                    col_len = data.arrDecodedColumnNames.length;
+                    while (col_i < col_len) {
+                        strCol = data.arrDecodedColumnNames[col_i];
+                        index = arrOldColumnNames.indexOf(strCol);
+
+                        element.internalData.columnNames.push(
+                            strCol
+                        );
+                        element.internalData.columnTypes.push(
+                            data.arrDecodedColumnTypes[col_i]
+                        );
+
+                        // if we've got old values from the select,
+                        //      bring them over to the new arrays
+                        if (index > -1) {
+                            element.internalData.columnFilterStatuses.push(
+                                arrOldColumnFilterStatuses[index]
                             );
-                            element.internalData.columnTypes.push(
-                                data.arrDecodedColumnTypes[col_i]
+                            element.internalData.columnFilters.push(
+                                arrOldColumnFilters[index]
+                            );
+                            element.internalData.columnListFilters.push(
+                                arrOldColumnListFilters[index]
+                            );
+                            element.internalData.columnOrders.push(
+                                arrOldColumnOrders[index]
                             );
 
-                            // if we've got old values from the select,
-                            //      bring them over to the new arrays
-                            if (index > -1) {
-                                element.internalData
-                                    .columnFilterStatuses.push(
-                                        arrOldColumnFilterStatuses[index]
-                                    );
-                                element.internalData
-                                    .columnFilters.push(
-                                        arrOldColumnFilters[index]
-                                    );
-                                element.internalData
-                                    .columnListFilters.push(
-                                        arrOldColumnListFilters[
-                                            index
-                                        ]
-                                    );
-                                element.internalData
-                                    .columnOrders.push(
-                                        arrOldColumnOrders[index]
-                                    );
-
-                            // else, add empty sort, filter and filter
-                            //      status
-                            } else {
-                                element.internalData
-                                    .columnFilterStatuses.push('on');
-                                element.internalData
-                                    .columnFilters.push([]);
-                                element.internalData
-                                    .columnListFilters.push({});
-                                element.internalData
-                                    .columnOrders.push('neutral');
-                            }
-
-                            col_i += 1;
+                        // else, add empty sort, filter and filter
+                        //      status
+                        } else {
+                            element.internalData
+                                .columnFilterStatuses.push('on');
+                            element.internalData.columnFilters.push([]);
+                            element.internalData.columnListFilters.push({});
+                            element.internalData.columnOrders.push('neutral');
                         }
-                    }
 
-                    // we need to remove the loader at some point, if we see
-                    //      the last message of the select: remove loader and
-                    //      render
-                    if (data.strMessage === 'TRANSACTION COMPLETED') {
+                        col_i += 1;
+                    }
+                }
+
+                // we need to remove the loader at some point, if we see
+                //      the last message of the select: remove loader and
+                //      render
+                if (data.strMessage === 'TRANSACTION COMPLETED') {
+                    //// required for v3 test#1
+                    //element.internalData.records = (
+                    //    arrRecords
+                    //);
+                    //element.internalDisplay.recordHeights = (
+                    //    arrRecordHeights
+                    //);
+
+                    // back to non-test code
+                    //console.timeEnd('data load');
+                    //console.log(
+                    //    'record count:',
+                    //    element.internalData.records.length
+                    //);
+                    removeLoader(element, 'data-select', 'Data Loaded');
+                    dataSELECTcallback(element);
+
+                // we need to capture the records and columns and store
+                //      them in the internal data
+                } else {
+                    if (
+                        data.intCallback === 3 &&
+                        element.internalData.bolFirstLoadFinished === false
+                    ) {
                         //// required for v3 test#1
                         //element.internalData.records = (
                         //    arrRecords
@@ -57323,130 +61270,121 @@ document.addEventListener('DOMContentLoaded', function () {
                         //    arrRecordHeights
                         //);
 
-                        // back to non-test code
-                        //console.timeEnd('data load');
-                        //console.log(
-                        //    'record count:',
-                        //    element.internalData.records.length
-                        //);
-                        removeLoader(element, 'data-select', 'Data Loaded');
-                        dataSELECTcallback(element);
-
-                    // we need to capture the records and columns and store
-                    //      them in the internal data
-                    } else {
-                        if (
-                            data.intCallback === 3 &&
-                            element.internalData.bolFirstLoadFinished === false
-                        ) {
-                            //// required for v3 test#1
-                            //element.internalData.records = (
-                            //    arrRecords
-                            //);
-                            //element.internalDisplay.recordHeights = (
-                            //    arrRecordHeights
-                            //);
-
-                            // re-render scroll location because adding records
-                            //      changes scroll heights, and so that we can
-                            //      show the new data
-                            element.internalDisplay.fullRenderRequired = true;
-                            renderScrollDimensions(element);
-                        }
-
-                        // we need to parse the TSV into records and push them
-                        //      to the internalData "records" array
-                        // now, we have an advantage in that Envelope Websocket
-                        //      data is already encoded in the correct format
-                        //      and all we have to is split on \n
-                        // also, Envelope Websocket data always ends in \n so
-                        //      the loop doesn't need to do anything special
-                        //      to get the last record
-                        strMessage = data.strMessage;
-                        strRecord = '';
-
-                        //// splitter test#1 v3, slower than v2
-                        //var arrRecord = strMessage.split('\n');
-                        //arrRecord.pop();
-                        //arrRecords = arrRecords.concat(arrRecord);
-                        //if (bolLoadNewRecordHeights) {
-                        //    i = 0;
-                        //    len = (
-                        //        (
-                        //            arrRecords.length -
-                        //            arrRecordHeights.length
-                        //        ) +
-                        //        1
-                        //    );
-                        //    while (i < len) {
-                        //        arrRecordHeights.push(intRecordHeight);
-                        //        i += 1;
-                        //    }
-                        //}
-
-                        // splitter v2, faster than v1 by 1 third
-                        //if (window.asdfasdf === true) {
-                        //    //console.log(strMessage);
-                        //}
-                        i = 0;
-                        while (i < 15) {
-                            index = strMessage.indexOf('\n');
-                            strRecord = strMessage.substring(0, index);
-                            strMessage = strMessage.substring(index + 1);
-
-                            if (strRecord !== '' || strMessage !== '') {
-                                arrRecords.push(strRecord);
-
-                                //if (window.asdfasdfasdf === true) {
-                                //    //console.log(strRecord);
-                                //}
-                                if (bolLoadNewRecordHeights) {
-                                    arrRecordHeights.push(intRecordHeight);
-                                }
-                            } else {
-                                break;
-                            }
-
-                            i += 1;
-                        }
-
-                        //// splitter v1, replaced because it was slow
-                        //strMessage = data.strMessage;
-                        //strRecord = '';
-                        //i = 0;
-                        //len = strMessage.length;
-                        //while (i < len) {
-                        //    strChar = strMessage[i];
-
-                        //    if (strChar === '\n') {
-                        //        element.internalData.records.push(strRecord);
-
-                        //        if (bolLoadNewRecordHeights) {
-                        //            element.internalDisplay
-                        //                .recordHeights
-                        //                .push(intRecordHeight);
-                        //        }
-
-                        //        strRecord = '';
-                        //    } else {
-                        //        strRecord += strChar;
-                        //    }
-
-                        //    i += 1;
-                        //}
+                        // re-render scroll location because adding records
+                        //      changes scroll heights, and so that we can
+                        //      show the new data
+                        element.internalDisplay.fullRenderRequired = true;
+                        renderScrollDimensions(element);
                     }
 
-                // we need to make sure that the user knows that the select
-                //      failed and we need to prevent using any old select
-                //      info, so we'll re-render, remove the loader and pop
-                //      up an error
-                } else {
-                    dataSELECTcallback(element);
-                    removeLoader(element, 'data-select', 'Data Failed To Load');
+                    // we need to parse the TSV into records and push them
+                    //      to the internalData "records" array
+                    // now, we have an advantage in that Envelope Websocket
+                    //      data is already encoded in the correct format
+                    //      and all we have to is split on \n
+                    // also, Envelope Websocket data always ends in \n so
+                    //      the loop doesn't need to do anything special
+                    //      to get the last record
+                    strMessage = data.strMessage;
+                    strRecord = '';
+
+                    //// splitter test#1 v3, slower than v2
+                    //var arrRecord = strMessage.split('\n');
+                    //arrRecord.pop();
+                    //arrRecords = arrRecords.concat(arrRecord);
+                    //if (bolLoadNewRecordHeights) {
+                    //    i = 0;
+                    //    len = (
+                    //        (arrRecords.length - arrRecordHeights.length) + 1
+                    //    );
+                    //    while (i < len) {
+                    //        arrRecordHeights.push(intRecordHeight);
+                    //        i += 1;
+                    //    }
+                    //}
+
+                    // splitter v2, faster than v1 by 1 third
+                    i = 0;
+                    while (i < 15) {
+                        index = strMessage.indexOf('\n');
+                        strRecord = strMessage.substring(0, index);
+                        strMessage = strMessage.substring(index + 1);
+
+                        if (strRecord !== '' || strMessage !== '') {
+                            arrRecords.push(strRecord);
+
+                            if (bolLoadNewRecordHeights) {
+                                arrRecordHeights.push(intRecordHeight);
+                            }
+                        } else {
+                            break;
+                        }
+
+                        i += 1;
+                    }
+
+                    //// splitter v1, replaced because it was slow
+                    //strMessage = data.strMessage;
+                    //strRecord = '';
+                    //i = 0;
+                    //len = strMessage.length;
+                    //while (i < len) {
+                    //    strChar = strMessage[i];
+                    //    if (strChar === '\n') {
+                    //        element.internalData.records.push(strRecord);
+                    //        if (bolLoadNewRecordHeights) {
+                    //            element.internalDisplay
+                    //                .recordHeights
+                    //                .push(intRecordHeight);
+                    //        }
+                    //        strRecord = '';
+                    //    } else {
+                    //        strRecord += strChar;
+                    //    }
+                    //    i += 1;
+                    //}
+                }
+
+            // we need to make sure that the user knows that the select
+            //      failed and we need to prevent using any old select
+            //      info, so we'll re-render, remove the loader and pop
+            //      up an error
+            } else {
+                dataSELECTcallback(element);
+                removeLoader(element, 'data-select', 'Data Failed To Load');
+                if (!element.hasAttribute('suppress-select-error')) {
                     GS.webSocketErrorDialog(data);
                 }
             }
-        );
+        };
+
+        // we need the user to know that the envelope is re-fetching data,
+        //      so we'll put a loader on
+        if (strQuery) {
+            addLoader(element, 'data-select', 'Loading Data...');
+            GS.requestArbitrarySelectFromSocket(
+                socket,
+                strQuery,
+                strWhere,
+                strOrd,
+                strLimit,
+                strOffset,
+                returnCallback
+            );
+        } else {
+            addLoader(element, 'data-select', 'Loading Data...');
+            GS.requestSelectFromSocket(
+                socket,
+                strSchema,
+                strObject,
+                strReturn,
+                strWhere,
+                strOrd,
+                strLimit,
+                strOffset,
+                returnCallback
+            );
+        }
     }
     function databaseWSINSERT(element, strMode, jsnInsert) {
         var rec_i;
@@ -57474,10 +61412,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // get schema and object attributes and get the return column list
         strSchema = GS.templateWithQuerystring(
-            element.getAttribute('schema') || ''
+            element.getAttribute('insert-schema') || ''
         );
         strObject = GS.templateWithQuerystring(
-            element.getAttribute('object') || ''
+            element.getAttribute('insert-object') || ''
         );
 
         // the return column list must be defined the same as the column list
@@ -57756,6 +61694,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 strInsertData,
                 // transaction start callback
                 function (data, error) {
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        return;
+                    }
+
                     // insert failed, remove loader and popup error dialog
                     if (error) {
                         removeLoader(element, 'data-insert', 'Insert Failed');
@@ -57793,6 +61736,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     var arrRecords;
                     var i;
                     var len;
+
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        return;
+                    }
 
                     // the over-the-network part of the update has finished,
                     //      remove the loader now so that if there is an
@@ -57946,10 +61894,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // get schema and object attributes and get the return column list
         strSchema = GS.templateWithQuerystring(
-            element.getAttribute('schema') || ''
+            element.getAttribute('update-schema') || ''
         );
         strObject = GS.templateWithQuerystring(
-            element.getAttribute('object') || ''
+            element.getAttribute('update-object') || ''
         );
 
         // the return column list must be defined the same as the column list
@@ -58515,6 +62463,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 strUpdateData,
                 // transaction start callback
                 function (data, error) { //transID
+
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        return;
+                    }
+
                     // update failed: remove loader, popup an error
                     //      and reverse changes
                     if (error) {
@@ -58604,6 +62561,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     var arrRecords;
                     //var i;
                     //var len;
+
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        if (element.saveTimeout) {
+                            clearTimeout(element.saveTimeout);
+                        }
+                        return;
+                    }
 
                     // the over-the-network part of the update has finished,
                     //      remove the loader now so that if there is an
@@ -58777,10 +62742,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // get schema and object attributes and get the return column list
         strSchema = GS.templateWithQuerystring(
-            element.getAttribute("schema") || ""
+            element.getAttribute('delete-schema') || ''
         );
         strObject = GS.templateWithQuerystring(
-            element.getAttribute("object") || ""
+            element.getAttribute('delete-object') || ''
         );
 
         // we want the null string to be configurable, so we'll read the
@@ -59005,6 +62970,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 strDeleteData,
                 // transaction start callback
                 function (data, error) { //transID
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        return;
+                    }
+
                     // delete failed: remove loader, popup an error
                     if (error) {
                         removeLoader(element, 'data-delete', 'Delete Failed');
@@ -59015,6 +62985,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 // "ignore" is a placeholder for "transID" and it tells JSLINT
                 //      that it is an unused variable
                 function (data, error, ignore, commit, rollback) {
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        rollback();
+                        return;
+                    }
+
                     if (!error) {
                         // delete made it through: commit the delete
                         if (data === 'TRANSACTION COMPLETED') {
@@ -59030,6 +63006,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 function (strAnswer, data, error) {
                     var arrRecords;
                     var arrRecordHeights;
+
+                    // if the table element has been destroyed, stop execution
+                    if (!element.internalData.columnNames) {
+                        return;
+                    }
 
                     // the over-the-network part of the delete has finished,
                     //      remove the loader now so that if there is an
@@ -59182,7 +63163,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             // we'll check the insertRecord template for column names
-            templateElement.innerHTML = element.internalTemplates.insertRecord;
+            templateElement.innerHTML = (
+                element.internalTemplates.insertRecord.templateHTML
+            );
             arrColumns = templateGetColumnList(templateElement);
             arrColumns.forEach(function (strColumn) {
                 if (
@@ -59198,7 +63181,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             // we'll check the record template for column names
-            templateElement.innerHTML = element.internalTemplates.record;
+            templateElement.innerHTML = (
+                element.internalTemplates.record.templateHTML
+            );
             arrColumns = templateGetColumnList(templateElement);
             arrColumns.forEach(function (strColumn) {
                 if (
@@ -59979,15 +63964,19 @@ document.addEventListener('DOMContentLoaded', function () {
         strColumn
     ) {
         var socket = getSocket(element);
+        var strQuery;
         var strSchema;
         var strObject;
         var strWhere;
 
+        strQuery = GS.templateWithQuerystring(
+            element.getAttribute('select-query') || ''
+        );
         strSchema = GS.templateWithQuerystring(
-            element.getAttribute('schema') || ''
+            element.getAttribute('select-schema') || ''
         );
         strObject = GS.templateWithQuerystring(
-            element.getAttribute('object') || ''
+            element.getAttribute('select-object') || ''
         );
         strWhere = element.getAttribute('where') || '1=1';
         // This way other filters apply to the current filter
@@ -60002,7 +63991,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             NULLIF(CAST("{{COLUMN}}" AS text), ''),
                             '(blanks)'
                        ) AS unique_value
-                  FROM {{SCHEMA}}.{{OBJECT}}
+                  FROM {{OBJECT}}
                   WHERE {{WHERE}}
               GROUP BY NULLIF(CAST("{{COLUMN}}" AS text), '')
               ORDER BY NULLIF(CAST("{{COLUMN}}" AS text), '') ASC NULLS FIRST
@@ -60010,8 +63999,10 @@ document.addEventListener('DOMContentLoaded', function () {
             })
                 .replace(/\{\{WHERE\}\}/gi, strWhere)
                 .replace(/\{\{COLUMN\}\}/gi, strColumn)
-                .replace(/\{\{SCHEMA\}\}/gi, strSchema)
-                .replace(/\{\{OBJECT\}\}/gi, strObject)
+                .replace(
+                    /\{\{OBJECT\}\}/gi,
+                    (strQuery || (strSchema + '.' + strObject))
+                )
         );
 
         var bolUncheckedFound = false;
@@ -60382,6 +64373,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     function dataSELECT(element) {
+        resolveElementAttributes(element);
         if (element.hasAttribute('src')) {
             databaseWSSELECT(element);
         } else {
@@ -60389,7 +64381,55 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     function dataINSERT(element, strMode, jsnInsert) {
+        var i;
+        var len;
+        var arrControls;
+        var templateElement;
+        var strColumn;
+        var strValue;
+        var arrRetained;
+        var jsnInsertRecord;
+
         element.internalData.bolInserting = true;
+
+        // because we allow the insert record to be templated, we need to
+        //      extract the templated values and use them as defaults in the
+        //      retained insert values
+        if (
+            element.internalTemplates.originalInsertRecord &&
+            element.internalTemplates.originalInsertRecord.trim()
+        ) {
+            templateElement = document.createElement('template');
+            templateElement.innerHTML = (
+                GS.templateWithQuerystring(
+                    element.internalTemplates.insertRecord.templateHTML
+                )
+            );
+            arrControls = tblQry(templateElement.content, 'gs-cell [column]');
+            arrRetained = element.internalData.insertRecordRetainedColumns;
+            jsnInsertRecord = element.internalData.insertRecord;
+
+            i = 0;
+            len = arrControls.length;
+            while (i < len) {
+                strColumn = arrControls[i].getAttribute('column');
+                strValue = arrControls[i].getAttribute('value');
+
+                // if the column hasn't already been typed in by the user,
+                //      add templated value to retained columns
+                if (
+                    strColumn &&
+                    strValue &&
+                    arrRetained.indexOf(strColumn) === -1
+                ) {
+                    arrRetained.push(strColumn);
+                    jsnInsertRecord[strColumn] = strValue;
+                }
+
+                i += 1;
+            }
+        }
+
         if (element.hasAttribute('src')) {
             databaseWSINSERT(element, strMode, jsnInsert);
         } else {
@@ -60433,35 +64473,20 @@ document.addEventListener('DOMContentLoaded', function () {
 // #############################################################################
 // ####################### POST-RENDER UTILITY FUNCTIONS #######################
 // #############################################################################
+
     function triggerRecordInsert(element) {
         dataINSERT(element, 'single-record', {
             "data": {
-                "values": (
-                    element
-                        .internalData
-                        .insertRecord
-                ),
-                "columns": (
-                    element
-                        .internalData
-                        .insertRecordRetainedColumns
-                ),
+                "values": (element.internalData.insertRecord),
+                "columns": (element.internalData.insertRecordRetainedColumns),
                 "addin": getInsertAddin(element)
             },
             "insertConfirmed": true
         });
 
-        // we clear the retained values and columns here because
-        //      if the user decides to override the insert with
-        //      their own thing, we don't want to still be showing
-        //      the old values.
-        element.internalData.insertRecord = {};
-        element.internalData.insertRecordRetainedColumns = [];
-
-        // re-render so that the insert controls clear out in the DOM
-        element.internalDisplay.fullRenderRequired = true;
+        // clear retained values
+        clearInsertRetainedValues(element);
         renderLocation(element);
-        //element.goToLine('last');
     }
 
     // sometimes you need to know what records are selected, this function
@@ -61368,7 +65393,7 @@ document.addEventListener('DOMContentLoaded', function () {
         search_div = document.createElement('div');
         search_div.innerHTML = templateExtractVisibleCellRange(
             element,
-            element.internalTemplates.insertRecord,
+            element.internalTemplates.insertRecord.templateHTML,
             intStart,
             (intEnd + 1)
             // the plus one is because the template extract function
@@ -61507,7 +65532,7 @@ document.addEventListener('DOMContentLoaded', function () {
         templateElement = document.createElement('template');
         templateElement.innerHTML = templateExtractVisibleCellRange(
             element,
-            element.internalTemplates.insertRecord,
+            element.internalTemplates.insertRecord.templateHTML,
             intStart,
             (intEnd + 1)
             // the plus one is because the template extract function
@@ -61653,7 +65678,7 @@ document.addEventListener('DOMContentLoaded', function () {
         templateElement = document.createElement('template');
 
         templateElement.innerHTML = (
-            element.internalTemplates.insertRecord
+            element.internalTemplates.insertRecord.templateHTML
         );
         arrInsertCellElements = tblQry(
             templateElement.content,
@@ -62149,30 +66174,35 @@ document.addEventListener('DOMContentLoaded', function () {
         //      the dialog function
         templateElement = document.createElement("template");
 
-        // fill template element
-        templateElement.innerHTML = ml(function () {/*
-            <gs-page gs-dynamic>
-                <gs-header>
-                    <center><h3>Create</h3></center>
-                </gs-header>
-                <gs-body padded>
-                    {{HTML}}
-                </gs-body>
-                <gs-footer>
-                    <gs-grid gutter>
-                        <gs-block>
-                            <gs-button dialogclose>Cancel</gs-button>
-                        </gs-block>
-                        <gs-block>
-                            <gs-button dialogclose
-                                       listen-for-return
-                                       bg-primary>Create</gs-button>
-                        </gs-block>
-                    </gs-grid>
-                </gs-footer>
-            </gs-page>
-        */
-        }).replace("{{HTML}}", strTemplate);
+        if (strTemplate.indexOf('<gs-page') > -1) {
+            // fill template element
+            templateElement.innerHTML = strTemplate;
+        } else {
+            // fill template element
+            templateElement.innerHTML = ml(function () {/*
+                <gs-page gs-dynamic>
+                    <gs-header>
+                        <center><h3>Create</h3></center>
+                    </gs-header>
+                    <gs-body padded>
+                        {{HTML}}
+                    </gs-body>
+                    <gs-footer>
+                        <gs-grid gutter>
+                            <gs-block>
+                                <gs-button dialogclose>Cancel</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button dialogclose
+                                           listen-for-return
+                                           bg-primary>Create</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </gs-footer>
+                </gs-page>
+            */
+            }).replace("{{HTML}}", strTemplate);
+        }
 
         // send out a before insert dialog open event, so that the developer
         //      can cancel it
@@ -62315,6 +66345,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 // else, re-render so that the internal storage is used to fill
                 //      the insert controls
                 } else {
+                    // added by Nunzio on 2022-01-14
+                    // if there is no insert record, clear out the internal
+                    // storage, otherwise you get errors about unsaved changes
+                    if (!element.internalTemplates.insertRecord) {
+                        element.internalData.insertRecord = {};
+                        element.internalData.insertRecordRetainedColumns = [];
+                    }
                     element.internalDisplay.fullRenderRequired = true;
                     renderLocation(element);
                 }
@@ -63596,9 +67633,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 var intDeltaY;
                 var intDeltaX;
                 var intRecordHeight;
+                var intViewportHeight;
 
                 // helper variable to help shorten the code
                 jsnScroll = element.internalScroll;
+
+                // when using the logitech smooth scrolling
+                // addon there are extra scroll events
+                // - Nunzio on 2021-09-21
+                if (event.deltaX === undefined || event.deltaY === undefined) {
+                    return;
+                }
 
                 // we don't want to intercept overscrolling
                 if (
@@ -63632,6 +67677,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      point
                 event.preventDefault();
 
+                // shortcut for viewport height
+                intViewportHeight = (
+                    element.elems.dataViewport.clientHeight - (
+                        element.internalDisplay.headerBorderHeight +
+                        element.internalDisplay.headerHeight
+                    )
+                );
+
                 // we need to save the original top and left so that we can have
                 //      the element rerender only if the scroll actually changed
                 originalTop = jsnScroll.top;
@@ -63651,6 +67704,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 //      in that direction
                 intDeltaY = Math.round(event.deltaY);
                 intDeltaX = Math.round(event.deltaX);
+
+                // We don't want to scroll more than the height of the viewport
+                //intViewportHeight
+
+                if (Math.abs(intDeltaY) > intViewportHeight) {
+                    if (intDeltaY < 0) {
+                        intDeltaY = -(intViewportHeight / 2);
+                    } else {
+                        intDeltaY = (intViewportHeight / 2);
+                    }
+                }
 
                 intRecordHeight = (
                     (
@@ -64096,6 +68160,7 @@ document.addEventListener('DOMContentLoaded', function () {
             element.internalEvents.selectRowStart = function (event) {
                 // find out the cell location based on the mouse event
                 jsnStartCell = getCellFromMouseEvent(element, event);
+                console.log(jsnStartCell);
                 jsnCurrentCell = jsnStartCell;
                 intStartScrollTop = element.internalScroll.displayTop;
                 intStartScrollLeft = element.internalScroll.displayLeft;
@@ -64389,14 +68454,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             element.internalEvents.selectDragMove = function (event) {
                 var intOldEndRow;
-                var intOldEndColumn;
+                var intOldEndCol;
                 var currentRange;
                 var jsnCurrentSelection;
+                var focusedElement;
+                var parentTable;
 
-                jsnCurrentSelection =
-                        GS.getInputSelection(document.activeElement);
-
-                getCellFromMouseEvent(element, event);
+                focusedElement = document.activeElement;
+                parentTable = GS.findParentTag(focusedElement, 'gs-table');
+                jsnCurrentSelection = GS.getInputSelection(focusedElement);
 
                 // if mouse is moving but no mouse button is down: finalize
                 //      selection, unbind selectDragMove and unbind
@@ -64428,7 +68494,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     //      a change was actually made (that way we only
                     //      re-render if the selection has changed)
                     intOldEndRow = currentRange.end.row;
-                    intOldEndColumn = currentRange.end.column;
+                    intOldEndCol = currentRange.end.column;
 
                     currentRange.end.row = jsnLocation.row;
                     currentRange.end.column = jsnLocation.column;
@@ -64452,10 +68518,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     //      if the currently focused element is not a child
                     //          of this gs-table element
                     if (
-                        document.activeElement !==
-                            element.elems.hiddenFocusControl
-                    ) {
-                        if (
+                        focusedElement !== element.elems.hiddenFocusControl &&
+                        (
                             // if the current range encompasses more than one
                             //      cell
                             (
@@ -64466,28 +68530,23 @@ document.addEventListener('DOMContentLoaded', function () {
                                             currentRange.end.column
                                 ) &&
                                 (
-                                    currentRange.start.row ===
-                                            intOldEndRow &&
-                                    currentRange.start.column ===
-                                            intOldEndColumn
+                                    currentRange.start.row === intOldEndRow &&
+                                    currentRange.start.column === intOldEndCol
                                 )
                             ) ||
                             // if the selection is not inside the gs-table
-                            GS.findParentTag(
-                                document.activeElement,
-                                'gs-table'
-                            ) !== element ||
+                            parentTable !== element ||
                             // if there is more than one selection
                             element.internalSelection.ranges.length > 1
-                        ) {
-                            focusHiddenControl(element);
-                        }
+                        )
+                    ) {
+                        focusHiddenControl(element);
                     }
 
                     // re-render selection if selection ranges have been changed
                     if (
                         currentRange.end.row !== intOldEndRow ||
-                        currentRange.end.column !== intOldEndColumn
+                        currentRange.end.column !== intOldEndCol
                     ) {
                         renderSelection(element);
                         GS.triggerEvent(element, 'selection_change');
@@ -64608,6 +68667,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         var intPoint;
                         var i;
                         var len;
+
+                        // the table might be taken out of the DOM before this
+                        //      code is run (in which case, there's nothing to
+                        //      do), so let's check
+                        if (!element.elems.dataViewport) {
+                            return false;
+                        }
 
                         jsnElementPos = GS.getElementOffset(
                             element.elems.dataViewport
@@ -66889,10 +70955,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         );
                     }
 
-                    if (element.internalTemplates.insertRecord) {
+                    if (element.internalTemplates.originalInsertRecord) {
                         insertTemplate = document.createElement('template');
                         insertTemplate.innerHTML = (
-                            element.internalTemplates.insertRecord
+                            element.internalTemplates.originalInsertRecord
                         );
                         arrOldInsertTemplate = (
                             tblQry(insertTemplate.content, 'gs-cell')
@@ -67159,10 +71225,23 @@ document.addEventListener('DOMContentLoaded', function () {
                         templateCellAddColumnNumber(insertTemplate);
                         strNewInsertTemplate = insertTemplate.innerHTML;
 
-                        // save the new insert template so that the render
-                        //      function uses it
-                        element.internalTemplates.insertRecord = (
+                        // let's save the original insert record template text
+                        //      so that we can modify it in the future
+                        element.internalTemplates.originalInsertRecord = (
                             strNewInsertTemplate
+                        );
+
+                        // save the new record template so that the render
+                        //      function uses it
+                        // we're going run the record template through a
+                        //      function to turn all of the "column"
+                        //      attributes into "value" attributes with
+                        //      the proper templating
+                        element.internalTemplates.InsertRecord = (
+                            GS.templateHideSubTemplates(
+                                strNewInsertTemplate,
+                                false // not a TR element
+                            )
                         );
                     }
 
@@ -67334,7 +71413,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         columnElement.value !== null &&
                         columnElement.value !== undefined
                     ) {
-                        newValue = columnElement.value;
+                        // changed on 2022-06-11 by Nunzio
+                        // this is the behaviour of Microsoft Access, and Cross expected it
+                        newValue = columnElement.value === '' ? '\\N' : columnElement.value;
+                        // newValue = columnElement.value;
 
                     // else if the "target" has a "value" accessor we'll use
                     //      that to get the value
@@ -67342,7 +71424,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         target.value !== null &&
                         target.value !== undefined
                     ) {
-                        newValue = target.value;
+                        // changed on 2022-06-11 by Nunzio
+                        // this is the behaviour of Microsoft Access, and Cross expected it
+                        newValue = target.value === '' ? '\\N' : target.value;
+                        // newValue = target.value;
 
                     // else if the "columnElement" has a "checked" accessor
                     //      we'll use that to get the value
@@ -67654,78 +71739,81 @@ document.addEventListener('DOMContentLoaded', function () {
                 parentCell.classList.contains('table-insert') &&
                 keyCode === 13
             ) {
-                // triggerRecordInsert(element);
+                triggerRecordInsert(element);
                 // don't trigger an insert, fire a blur instead
                 // clearSelection stops it from reverting the focus
                 element.clearSelection();
                 focusHiddenControl(element);
             }
         };
-        element.internalEvents.insertRecordBlur = function (event) {
-            setTimeout(
-                function () {
-                    var parentCell = GS.findParentTag(event.target, 'gs-cell');
-                    var newParentCell = GS.findParentTag(
-                        document.activeElement,
-                        'gs-cell'
-                    );
-                    var totalValues;
-                    var insertElements;
-                    var i;
-                    var len;
+        // COMMENTED 12/18/2021
+        //element.internalEvents.insertRecordBlur = function (event) {
+        //    // who put this timeout in here, and why? - Michael
+        //    setTimeout(
+        //        function () {
+        //            var parentCell =GS.findParentTag(event.target, 'gs-cell');
+        //            var newParentCell = GS.findParentTag(
+        //                document.activeElement,
+        //                'gs-cell'
+        //            );
+        //            var totalValues;
+        //            var insertElements;
+        //            var i;
+        //            var len;
 
-                    // element.internalEvents.insertRecordValueRetain(event);
+        //            // element.internalEvents.insertRecordValueRetain(event);
 
-                    // we only want return to insert if the return occured
-                    //      inside an insert cell
-                    if (
-                        parentCell &&
-                        (
-                            (
-                                parentCell.classList.contains('table-insert') &&
-                                !newParentCell
-                            ) ||
-                            (
-                                parentCell.classList.contains('table-insert') &&
-                                !newParentCell
-                                    .classList.contains('table-insert')
-                            )
-                        )
-                    ) {
-                        totalValues = false;
-                        insertElements = tblQry(
-                            element,
-                            '.table-insert input'
-                        );
+        //            // we only want return to insert if the return occured
+        //            //      inside an insert cell
+        //            if (
+        //                parentCell &&
+        //                (
+        //                    (
+        //                      parentCell.classList.contains('table-insert') &&
+        //                        !newParentCell
+        //                    ) ||
+        //                    (
+        //                      parentCell.classList.contains('table-insert') &&
+        //                        !newParentCell
+        //                            .classList.contains('table-insert')
+        //                    )
+        //                )
+        //            ) {
+        //                totalValues = false;
+        //              insertElements = tblQry(element, '.table-insert input');
 
-                        i = 0;
-                        len = insertElements.length;
-                        while (i < len) {
-                            totalValues += insertElements[i].value;
-                            i += 1;
-                        }
+        //                i = 0;
+        //                len = insertElements.length;
+        //                while (i < len) {
+        //                    totalValues += insertElements[i].value;
+        //                    i += 1;
+        //                }
 
-                        if (totalValues && totalValues !== 'false') {
-                            element.internalEvents
-                                .insertRecordValueRetain(event);
-                            triggerRecordInsert(element);
-                        }
-                    }
-                },
-                1
-            );
+        //                if (totalValues && totalValues !== 'false') {
+        //                    element.internalEvents
+        //                        .insertRecordValueRetain(event);
+        //                    triggerRecordInsert(element);
+        //                }
+        //            }
+        //        },
+        //        1
+        //    );
 
-        };
+        //};
 
         element.elems.dataViewport.addEventListener(
             'keydown',
             element.internalEvents.insertRecordReturn
         );
-        element.elems.dataViewport.addEventListener(
-            'blur',
-            element.internalEvents.insertRecordBlur,
-            true
-        );
+        // COMMENTED 12/18/2021, the standard we follow doesn't use blur to
+        //      insert, it's only on "return". Leaving it here for future
+        //      reference. Also, the code was buggy to boot, so removing this
+        //      will make the insert record more stable.
+        //element.elems.dataViewport.addEventListener(
+        //    'blur',
+        //    element.internalEvents.insertRecordBlur,
+        //    true
+        //);
 
         // we want to be able to fill in some insert cells, scroll away,
         //      scroll back, and not lose the values that have been typed in
@@ -67802,11 +71890,20 @@ document.addEventListener('DOMContentLoaded', function () {
         };
         // this was getting run every time you inserted causing it
         // to save the last edited value
-        // element.elems.dataViewport.addEventListener(
-        //     'change',
-        //     element.internalEvents.insertRecordValueRetain,
-        //     true
-        // );
+        // DECOMMENTED 12/14/2021 - I've made the insert function clear the
+        //      retained values before and after insert in order to get the
+        //      immediate clear, and prevent the last "change" value from
+        //      sticking.
+        //      The only weakness of this approach is if a user is able to start
+        //      typing before the insert is complete, we're prolly gonna clear
+        //      it out. However, I'm willing to take that risk for now and see
+        //      what happens. If we run into this issue for real, we will find
+        //      some way to determine what values to clear.
+        element.elems.dataViewport.addEventListener(
+            'change',
+            element.internalEvents.insertRecordValueRetain,
+            true
+        );
         element.elems.dataViewport.addEventListener(
             'keyup',
             element.internalEvents.insertRecordValueRetain
@@ -68464,6 +72561,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // convert the new record and column to special values
                     //      (if needed)
+
                     var intHeaderIndex;
                     var intSelectorIndex;
                     var intInsertIndex;
@@ -70267,8 +74365,6 @@ document.addEventListener('DOMContentLoaded', function () {
 // #############################################################################
 
     function elementInserted(element) {
-        var arrRetainedColumns;
-
         // if "created"/"inserted" are not suspended: run inserted code
         if (
             !element.hasAttribute('suspend-created') &&
@@ -70286,16 +74382,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderHUD(element);
                 bindElement(element);
 
-                arrRetainedColumns = (
-                    element
-                        .internalData
-                        .insertRecordRetainedColumns
-                );
-
                 GS.addBeforeUnloadEvent(function () {
+                    var arrRetainedColumns = (
+                        element
+                            .internalData
+                            .insertRecordRetainedColumns
+                    );
                     if (
                         arrRetainedColumns &&
-                        arrRetainedColumns.length > 0
+                        arrRetainedColumns.length > 0 &&
+                        document.body.contains(element)
                     ) {
                         return 'There is data in the insert record.';
                     }
@@ -70393,9 +74489,10 @@ document.addEventListener('DOMContentLoaded', function () {
             'destroy': function () {
                 var element = this;
 
+                // sometimes, the element is destroyed before it's initialized
                 // sometimes, the gs-table gets destroyed multiple times.
                 //      we don't want to cause any errors when this happens.
-                if (element.elems.dataViewport) {
+                if (element.elems && element.elems.dataViewport) {
                     // prevent the element from recieving any events
                     unbindElement(element);
 
@@ -70428,28 +74525,64 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             },
             'refresh': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 dataSELECT(this);
             },
             'triggerRecordInsert': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 triggerRecordInsert(this);
             },
             'selectData': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 dataSELECT(this);
             },
             'insertData': function (strMode, jsnInsert) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 dataINSERT(this, strMode, jsnInsert);
             },
             'updateData': function (strMode, jsnUpdate) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 dataUPDATE(this, strMode, jsnUpdate);
             },
             'deleteData': function (jsnDeleteData) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 dataDELETE(this, jsnDeleteData);
             },
             'render': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 if (
                     !this.hasAttribute('suspend-created') &&
                     !this.hasAttribute('suspend-inserted')
                 ) {
+                    this.internalDisplay.fullRenderRequired = true;
                     renderScrollDimensions(this);
                     renderHUD(this);
                 }
@@ -70457,6 +74590,11 @@ document.addEventListener('DOMContentLoaded', function () {
             'toggleFullContainer': function (container, target) {
                 var element = this;
                 var containerElement;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 containerElement = tblElemByID(container);
 
@@ -70478,6 +74616,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 var element = this;
                 var containerElement;
 
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 containerElement = tblElemByID(container);
 
                 if (!element.classList.contains('absolute')) {
@@ -70492,6 +74635,11 @@ document.addEventListener('DOMContentLoaded', function () {
             'closeFullContainer': function (container, target) {
                 var element = this;
                 var containerElement;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 containerElement = tblElemByID(container);
 
@@ -70511,11 +74659,21 @@ document.addEventListener('DOMContentLoaded', function () {
             //'scrollToCell': function (rowNumber, columnNumber) {
             //},
             'deleteSelected': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 deleteSelectedRecords(this);
             },
             'clearFilter': function () {
                 var filter_i;
                 var filter_len;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 filter_i = 0;
                 filter_len = this.internalData.columnFilters.length;
@@ -70531,6 +74689,11 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             'toggleFullscreen': function (target) {
                 var element = this;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 // using a class like this doesn't work on iOS (other things
                 //      z-index over it), we need to move the element to the
@@ -70556,6 +74719,11 @@ document.addEventListener('DOMContentLoaded', function () {
             'openFullscreen': function (target) {
                 var element = this;
 
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 if (!element.classList.contains('table-fullscreen')) {
                     GS.triggerEvent(element, 'openFullscreen');
                     element.classList.add('table-fullscreen');
@@ -70568,6 +74736,11 @@ document.addEventListener('DOMContentLoaded', function () {
             'closeFullscreen': function (target) {
                 var element = this;
 
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 if (element.classList.contains('table-fullscreen')) {
                     GS.triggerEvent(element, 'closeFullScreen');
                     element.classList.remove('table-fullscreen');
@@ -70579,10 +74752,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderScrollDimensions(element);
             },
             'openPrefs': function (target) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 openSettingsDialog(this, target);
             },
             'sort': function (action) {
                 var strNewSort;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 if (action === 'asc') {
                     strNewSort = 'asc';
                 } else if (action === 'desc') {
@@ -70614,9 +74798,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 dataSELECT(this);
             },
             'openInsertDialog': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 openInsertDialog(this);
             },
             'goToLine': function (action) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 var intCurrentRecord = (
                     this.internalSelection.originRecord || 0
                 );
@@ -70694,6 +74888,11 @@ document.addEventListener('DOMContentLoaded', function () {
             'clearSelection': function () {
                 var element = this;
 
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 // empty selection array
                 element.internalSelection.ranges = [];
 
@@ -70702,6 +74901,12 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             'renderSelection': function () {
                 var element = this;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 // re-render selection
                 renderSelection(element);
             },
@@ -70713,6 +74918,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 bolNegate
             ) {
                 var element = this;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 // bolNegate must be true or false, default to false
                 if (
@@ -70739,12 +74949,157 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderSelection(element);
             },
             'getCopyStrings': function () {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 return getCopyStrings(this);
             },
             'updateDialog': function (event) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 this.internalEvents.updateDialog(event);
             },
+            // need to refactor hide/show column, too much duplicated code
+            // ### NEED CODING ###
+            'hideColumn': function (indexOrName) {
+                var element = this;
+                var columnIndex = null;
+                var i;
+                var len;
+                var arrDataCols;
+                var arrColNames;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
+                // if we have a number, we can use that as the index
+                if (
+                    typeof indexOrName === 'number' ||
+                    !isNaN(parseInt(indexOrName, 10))
+                ) {
+                    columnIndex = parseInt(indexOrName, 10);
+
+                // if the given value is a string, we need to find the column
+                //      index based on that name
+                } else if (typeof indexOrName === 'string') {
+                    arrDataCols = element.internalDisplay.dataColumnName;
+                    arrColNames = element.internalDisplay.columnPlainTextNames;
+                    i = 0;
+                    len = arrDataCols.length;
+                    while (i < len) {
+                        if (
+                            arrDataCols[i] === indexOrName ||
+                            arrColNames[i] === indexOrName
+                        ) {
+                            columnIndex = i;
+                            break;
+                        }
+
+                        i += 1;
+                    }
+
+                    // if we didn't find the column, error
+                    if (columnIndex === null) {
+                        throw 'GS-TABLE Error: hideColumn method error. ' +
+                                'Unable to find a column with the name "' +
+                                indexOrName + '". We only check the text ' +
+                                'from the header and the [column] attribute ' +
+                                'from inside the row cells.';
+                    }
+
+                // else, error
+                } else {
+                    throw 'GS-TABLE Error: hideColumn method error. The ' +
+                            'first parameter must be a column index or a ' +
+                            'column name';
+                }
+
+                // set width to zero to hide
+                element.internalDisplay.columnWidths[columnIndex] = 0;
+
+                // render
+                element.internalDisplay.fullRenderRequired = true;
+                renderScrollDimensions(element);
+                //renderLocation(element);
+            },
+            'showColumn': function (indexOrName) {
+                var element = this;
+                var columnIndex = null;
+                var i;
+                var len;
+                var arrDataCols;
+                var arrColNames;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
+                // if we have a number, we can use that as the index
+                if (
+                    typeof indexOrName === 'number' ||
+                    !isNaN(parseInt(indexOrName, 10))
+                ) {
+                    columnIndex = parseInt(indexOrName, 10);
+
+                // if the given value is a string, we need to find the column
+                //      index based on that name
+                } else if (typeof indexOrName === 'string') {
+                    arrDataCols = element.internalDisplay.dataColumnName;
+                    arrColNames = element.internalDisplay.columnPlainTextNames;
+                    i = 0;
+                    len = arrDataCols.length;
+                    while (i < len) {
+                        if (
+                            arrDataCols[i] === indexOrName ||
+                            arrColNames[i] === indexOrName
+                        ) {
+                            columnIndex = i;
+                            break;
+                        }
+
+                        i += 1;
+                    }
+
+                    // if we didn't find the column, error
+                    if (columnIndex === null) {
+                        throw 'GS-TABLE Error: showColumn method error. ' +
+                                'Unable to find a column with the name "' +
+                                indexOrName + '". We only check the text ' +
+                                'from the header and the [column] attribute ' +
+                                'from inside the row cells.';
+                    }
+
+                // else, error
+                } else {
+                    throw 'GS-TABLE Error: showColumn method error. The ' +
+                            'first parameter must be a column index or a ' +
+                            'column name';
+                }
+
+                // set width to zero to hide
+                element.internalDisplay.columnWidths[columnIndex] = (
+                    element.internalDisplay.defaultColumnWidths[columnIndex]
+                );
+
+                // render
+                element.internalDisplay.fullRenderRequired = true;
+                renderScrollDimensions(element);
+                //renderLocation(element);
+            },
             'paste': function (strPasteString) {
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
+
                 usePasteString(this, strPasteString);
             },
             'resizeAllColumns': function () {
@@ -70752,6 +75107,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 var arrIndexes = [];
                 var i;
                 var len;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 i = 0;
                 len = element.internalDisplay.columnPlainTextNames.length;
@@ -70767,6 +75127,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 var columnIndex;
                 var strWhere;
                 var strName;
+
+                // if the table element has been destroyed, stop execution
+                if (!this.internalData || !this.internalData.columnNames) {
+                    return;
+                }
 
                 // filterType must be one of these values: (defaults to equals)
                 //      'contains', 'notcontains',
@@ -71269,6 +75634,7 @@ window.addEventListener('design-register-element', function () {
         addText('V', 'Placeholder', 'placeholder');
         addText('D', 'Encrypted', 'encrypted');
         addText('D', 'Max-length', 'max-length');
+        addCheck('V', 'Disable Max-length auto-tab', 'no-auto-tab', 'true');
         addAutocompleteProps();
         addCheck('V', 'Show Caps Lock', 'show-caps', 'false');
         addFocusEvents();
@@ -71342,10 +75708,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (element.value.length > element.getAttribute('max-length')) {
                 element.value = element.value.substring(0,element.getAttribute('max-length'));
             }
-            if (element.control.hasAttribute('tabindex') && xtag.query(document, '[tabindex="' + (parseInt(element.control.getAttribute('tabindex'), 10) + 1) + '"]').length > 0) {
+            if (!element.hasAttribute('no-auto-tab') && element.control.hasAttribute('tabindex') && xtag.query(document, '[tabindex="' + (parseInt(element.control.getAttribute('tabindex'), 10) + 1) + '"]').length > 0) {
                 xtag.query(document, '[tabindex="' + (parseInt(element.control.getAttribute('tabindex'), 10) + 1) + '"]')[0].focus();
             // find next focusable element
-            } else {
+            } else if (!element.hasAttribute('no-auto-tab')) {
                 focusNextElement();
             }
         }
@@ -71778,6 +76144,8 @@ document.addEventListener('DOMContentLoaded', function () {
     
                                 // if there is a difference between the new value in the
                                 //      attribute and the valued in the front end: refresh the front end
+                                newValue = this.hasAttribute('uppercase') ? newValue.toUpperCase() : newValue;
+                                currentValue = this.hasAttribute('uppercase') ? currentValue.toUpperCase() : currentValue;
                                 if (newValue !== currentValue) {
                                     element.syncView();
                                 }
@@ -71828,6 +76196,8 @@ document.addEventListener('DOMContentLoaded', function () {
     
                             // if there is a difference between the new value in the
                             //      attribute and the valued in the front end: refresh the front end
+                            newValue = this.hasAttribute('uppercase') ? newValue.toUpperCase() : newValue;
+                            currentValue = this.hasAttribute('uppercase') ? currentValue.toUpperCase() : currentValue;
                             if (newValue !== currentValue) {
                                 element.syncView();
                             }
@@ -71854,7 +76224,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'keydown': function (event) {
                 var element = this;
                 if (!element.hasAttribute('readonly') && !element.hasAttribute('disabled')) {
-                        element.syncGetters();
+                    element.syncGetters();
                 }
             },
             'keyup': function () {
@@ -71867,35 +76237,62 @@ document.addEventListener('DOMContentLoaded', function () {
         accessors: {
             value: {
                 // get value straight from the input
+                // I (Nunzio) changed this on 2022-02-26
+                // when it was all usint the attribute it was inconsistently not working in onchange event attributes
+                // see below getter for full discussion with Michael
                 get: function () {
-                    var element = this;
-                    if (this.hasAttribute('defer-insert')) {
-			            if (this.hasAttribute('encrypted')) {            
-                            // return CryptoJS.AES.decrypt(this.getAttribute('value'), (window[element.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
-                            return this.getAttribute('value');
-                        } else {
-                            return this.getAttribute('value');
-                        }
-                    } else {
+                    if (this.hasAttribute('encrypted')) {
                         return this.getAttribute('value');
+                    } else {
+                        return this.control.value;
                     }
+            //         var element = this;
+            //         if (this.hasAttribute('defer-insert')) {
+			         //   if (this.hasAttribute('encrypted')) {            
+            //                 // return CryptoJS.AES.decrypt(this.getAttribute('value'), (window[element.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+            //                 return this.getAttribute('value');
+            //             } else {
+            //                 return this.getAttribute('value');
+            //             }
+            //         } else {
+            //             return this.getAttribute('value');
+            //         }
                 },
+                // Nunzio: gs-text keyup ".value" is inconsistent
+                // Nunzio: one page it worked as expected
+                // Nunzio: another one it didn't get the new value
+                // Nunzio: .control.value worked
+                // Michael: interesting, what are the different circumstances?
+                // Michael: attributes / containers
+                // Nunzio: the one that didn't work was in a gs-switch but I don't think that should do anything
+                // Nunzio: attributes were identical
+                // Nunzio: I suspect it's because the value accessor reads the attribute instead of the control value
+                // Nunzio: *********getter code***********
+                // Nunzio: why is that?
+                // Michael: wouldn't be surprised if that was because of some Firefox issue where the polyfill too time to get to the point where the element was sufficiently instantiated.
+                // Michael: In dialogs, firefox has issues instantiating in time
+                // Nunzio: firefox isn't polyfilled anymore (except my shim to get the old api to work)
+                // Michael: interesting, might be a non-issue at this point.
+                // Michael: If you decide to switch it, make sure to comment out the old way and leave a summary of our discussion, date, and your name
+                // Nunzio: I'll add it to the list but I'm not dealing with it right now
+                // Michael: k
+
 
                 // set the value of the input and set the value attribute
                 set: function (strNewValue) {
                     if (this.hasAttribute('defer-insert')) {
                         if (this.hasAttribute('encrypted')) {
-                            if (CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) === '') {
-                                this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
+                            if (CryptoJS.AES.decrypt(this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) === '') {
+                                this.setAttribute('value', CryptoJS.AES.encrypt(this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue, (window[this.getAttribute('encrypted')] || '')));
                             } else {
-                                this.setAttribute('value', strNewValue);
+                                this.setAttribute('value', this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue);
                             }
                         } else {
-                            this.setAttribute('value', strNewValue);
+                            this.setAttribute('value', this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue);
                             this.syncView();
                         }
                     } else {
-                        this.setAttribute('value', strNewValue);
+                        this.setAttribute('value', this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue);
                         this.syncView();
                     }
                 }
@@ -72174,16 +76571,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.hasAttribute('defer-insert')) {
                     if (element.control) {
                         if (element.hasAttribute('encrypted')) {
-                            element.control.setAttribute('value', CryptoJS.AES.encrypt(element.value, (window[element.getAttribute('encrypted')] || '')));
+                            element.control.setAttribute('value', CryptoJS.AES.encrypt(element.hasAttribute('uppercase') ? element.control.value.toUpperCase() : element.control.value, (window[element.getAttribute('encrypted')] || '')));
                         } else {
-                            element.setAttribute('value', element.control.value);
+                            element.setAttribute('value', element.hasAttribute('uppercase') ? element.control.value.toUpperCase() : element.control.value);
                         }
                     }
                 } else {
                     if (element.hasAttribute('encrypted')) {
-                        element.setAttribute('value', CryptoJS.AES.encrypt(element.control.value, (window[element.getAttribute('encrypted')] || '')));
+                        element.setAttribute('value', CryptoJS.AES.encrypt(element.hasAttribute('uppercase') ? element.control.value.toUpperCase() : element.control.value, (window[element.getAttribute('encrypted')] || '')));
                     } else {
-                        element.setAttribute('value', element.control.value);
+                        element.setAttribute('value', element.hasAttribute('uppercase') ? element.control.value.toUpperCase() : element.control.value);
                     }
                 }
                 

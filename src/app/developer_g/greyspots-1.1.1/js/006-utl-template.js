@@ -125,6 +125,16 @@ GS.templateWithQuerystring = function (templateText) {
     return doT.template(strWrapperTemplate, null, {'template': templateText})(GS.qryToJSON(GS.getQueryString())).trim();
 };
 
+GS.templateWithJSON = function (templateText, jsnJSON) {
+    'use strict';
+    var strWrapperTemplate = '{{ var qs = jo.qs; var jsnData = jo.data; }} ' + templateText;
+
+    return doT.template(strWrapperTemplate)({
+        "qs": GS.qryToJSON(GS.getQueryString()),
+        "data": jsnJSON
+    }).trim();
+};
+
 
 GS.templateHideSubTemplates = function (templateHTML, bolRecord) {
     'use strict';

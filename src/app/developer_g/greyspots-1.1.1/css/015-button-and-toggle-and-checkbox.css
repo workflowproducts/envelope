@@ -157,11 +157,6 @@ gs-dialog-button.blue {
     color: #1266AB;
 }
 
-/* override normal selection */
-gs-option[selected] {
-    background-color: white !important;
-}
-
 /* #################################################################################### */
 /* ######################### PHONE BUTTON NOT SUPPORTED STATE ######################### */
 /* #################################################################################### */
@@ -965,7 +960,7 @@ gs-tracking-button[iconright]:after,
 gs-delete-button[iconright]:after,
 gs-option[iconright]:after,
 gs-dialog-button[iconright]:after {
-    top: 0.25em;
+    top: 0.1em;
     right: 0; /* 0.1em; */
 }
 /*gs-button[mini][iconright]:after,

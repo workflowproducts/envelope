@@ -307,7 +307,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (
                     !this.hasAttribute('suspend-created') &&
                     !this.hasAttribute('suspend-inserted') &&
-                    !this.hasAttribute('readonly')
+                    !this.hasAttribute('readonly') &&
+                    !this.hasAttribute('disabled')
                 ) {
                     this.classList.add('down');
                 }
@@ -327,7 +328,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (
                     !this.hasAttribute('suspend-created') &&
                     !this.hasAttribute('suspend-inserted') &&
-                    !this.hasAttribute('readonly')
+                    !this.hasAttribute('readonly') &&
+                    !this.hasAttribute('disabled')
                 ) {
                     bolTripleState = this.hasAttribute('triplestate');
                     strValue = this.getAttribute('value').trim().toLowerCase();
@@ -408,7 +410,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (
                     !this.hasAttribute('suspend-created') &&
                     !this.hasAttribute('suspend-inserted') &&
-                    !this.hasAttribute('readonly')
+                    !this.hasAttribute('readonly') &&
+                    !this.hasAttribute('disabled')
                 ) {
                     // if we pressed return (13) or space (32)
                     if (event.keyCode === 13 || event.keyCode === 32) {

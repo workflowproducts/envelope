@@ -3673,6 +3673,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     ? '\t'
                     : ''
             ) + GS.encodeForTabDelimited(target.value, element.nullString);
+            console.log(target.value, element.nullString, GS.encodeForTabDelimited(target.value, element.nullString));
 
             strUpdateData = (strRoles + '\n' + strColumns + '\n' + strRecord + '\n');
             updateRecords(element, strHashColumns, strUpdateData, [updateRecord], false);
@@ -4051,7 +4052,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.hasAttribute('null-string')) {
                     element.nullString = element.getAttribute('null-string') || '';
                 } else {
-                    element.nullString = 'NULL';
+                    element.nullString = '';
                 }
 
                 prepareElement(element);

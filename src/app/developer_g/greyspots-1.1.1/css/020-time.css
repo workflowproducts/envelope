@@ -35,7 +35,7 @@ gs-time[no-picker] {
 /* ###################################################################################### */
 /* ################################ ATTRIBUTE: "no-picker" ############################## */
 /* ###################################################################################### */
-
+/*
 gs-time[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
@@ -43,11 +43,11 @@ gs-time[readonly] {
     cursor: default;
     padding: 0.2em;
 }
-
+*/
 gs-time[readonly] .time-picker-button {
-    display: none;
+    /*display: none;*/
     cursor: default;
-    opacity: 0.9;
+    /*opacity: 0.9;*/
     pointer-events: none;
 }
 

@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>
         */});
-        
+
         timeHTML = ml(function () {/*
             <div class="time-section">
                 <div class="adjust-section time-adjust-section centered">
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (element.hasDate) {
                 var dialog = this;
-                
+
                 var calendar = xtag.query(dialog, '.calendar')[0];
                 var dateAdjustSection = xtag.query(dialog, '.date-adjust-section')[0];
                 var dateInput = xtag.query(dateAdjustSection, '.date-input')[0];
@@ -259,6 +259,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 var arrMonth = [
                     'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
                 ];
+                
+                if (element.hasAttribute('spanish')) {
+                    var arrMonth = [
+                        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                    ];
+                } else {
+                    var arrMonth = [
+                        'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
+                    ];
+                }
 
                 refreshDateInputs = function () {
                     dayInput.value = GS.leftPad(dteValue.getDate(), '0', 2);
@@ -298,7 +308,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         if (dteCurrent.getMonth() === dteToday.getMonth() && dteCurrent.getFullYear() === dteToday.getFullYear() && dteCurrent.getDate() === dteToday.getDate()) {
                             day.classList.add('today');
-                            day.innerText = 'T';
+                            if (!element.hasAttribute('show-today')) {
+                                day.innerText = 'T';
+                            }
                         }
                         if (dteCurrent.getMonth() === dteValue.getMonth() && dteCurrent.getFullYear() === dteValue.getFullYear() && dteCurrent.getDate() === dteValue.getDate()) {
                             day.classList.add('selected');
@@ -761,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var i;
         var len;
         var arrFormat = element.getAttribute('format').split(/\b/);
-        var arrDate = element.value ? element.value.split(/\b/) : formatDate(new Date(), getFormatString(element)).split(/\b/);
+        var arrDate = element.value ? element.value.split(/\b/) : formatDate(element, new Date(), getFormatString(element)).split(/\b/);
         if (arrFormat.indexOf('\'') > -1) {
             var arrTempDate = [];
             for (i = 0, len = arrDate.length; i < len; i += 1) {
@@ -786,8 +798,14 @@ document.addEventListener('DOMContentLoaded', function () {
         var label = element.hasAttribute('id') ? xtag.query(document, '[for="' + element.id + '"]')[0] : null;
         var labelHTML = label ? '<center><h3>' + label.innerHTML.replace(/:$/, '') + '</h3></center>' : '';
         var dialogTemplate = document.createElement('template');
-        var monthsFull   = ['January','February','March','April','May','June', 'July','August','September','October','November','December'];
-        var monthsShort  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        
+        if (element.hasAttribute('spanish')) {
+            var monthsFull   = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            var monthsShort  = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        } else {
+            var monthsFull   = ['January','February','March','April','May','June', 'July','August','September','October','November','December'];
+            var monthsShort  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        }
 
         var wheelHTML = function () {
             var strRet = '';
@@ -826,29 +844,56 @@ document.addEventListener('DOMContentLoaded', function () {
             return strRet;
         };
 
-        dialogHTML = ml(function () {/*
-            <gs-page id="wheel-dialog">
-                <gs-header>
-                    {{LABELHTML}}
-                    <gs-grid widths="1,1,1">
-                        <gs-block>
-                            <gs-button dialogclose>Cancel</gs-button>
-                        </gs-block>
-                        <gs-block>
-                            <gs-button class="now-button">Now</gs-button>
-                        </gs-block>
-                        <gs-block>
-                            <gs-button dialogclose bg-primary>Done</gs-button>
-                        </gs-block>
-                    </gs-grid>
-                </gs-header>
-                <gs-body class="gs-datetime-wheel-dialog">
-                    <div class="root">
-                        {{WHEELS}}
-                    </div>
-                </gs-body>
-            </gs-page>
-        */}).replace('{{LABELHTML}}', labelHTML).replace('{{WHEELS}}', wheelHTML());
+        if (element.hasAttribute('spanish')) {
+            dialogHTML = ml(function () {/*
+                <gs-page id="wheel-dialog">
+                    <gs-header>
+                        {{LABELHTML}}
+                        <gs-grid widths="1,1,1">
+                            <gs-block>
+                                <gs-button dialogclose>Cancelar</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button class="now-button">Ahora</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button dialogclose bg-primary>Hecho</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </gs-header>
+                    <gs-body class="gs-datetime-wheel-dialog">
+                        <div class="root">
+                            {{WHEELS}}
+                        </div>
+                    </gs-body>
+                </gs-page>
+            */}).replace('{{LABELHTML}}', labelHTML).replace('{{WHEELS}}', wheelHTML());
+        } else {
+            dialogHTML = ml(function () {/*
+                <gs-page id="wheel-dialog">
+                    <gs-header>
+                        {{LABELHTML}}
+                        <gs-grid widths="1,1,1">
+                            <gs-block>
+                                <gs-button dialogclose>Cancel</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button class="now-button">Now</gs-button>
+                            </gs-block>
+                            <gs-block>
+                                <gs-button dialogclose bg-primary>Done</gs-button>
+                            </gs-block>
+                        </gs-grid>
+                    </gs-header>
+                    <gs-body class="gs-datetime-wheel-dialog">
+                        <div class="root">
+                            {{WHEELS}}
+                        </div>
+                    </gs-body>
+                </gs-page>
+            */}).replace('{{LABELHTML}}', labelHTML).replace('{{WHEELS}}', wheelHTML());
+        }
+        
         dialogTemplate.innerHTML = dialogHTML;
         dialogTemplate.setAttribute('data-mode', evt.touchDevice ? 'full' : 'detect');
         GS.openDialog(dialogTemplate, function () {
@@ -882,7 +927,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
         }, function (event, strAnswer) {
-            if (strAnswer === 'Done') {
+            if (strAnswer === 'Done' || strAnswer === 'Hecho') {
                 var dialog = xtag.query(document, 'gs-dialog')[0];
                 //console.log(dialog);
 
@@ -957,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return strFormat;
     }
 
-    function formatDate(dteValue, strFormat) {
+    function formatDate(element, dteValue, strFormat) {
         /* (this function contains a (modified) substantial portion of code from another source
             here is the copyright for sake of legality) (Uses code by Matt Kruse)
         Copyright (c) 2006-2009 Rostislav Hristov, Asual DZZD
@@ -993,15 +1038,28 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     return n;
                 }
-            },
-            locale = {
-                monthsFull:   ['January','February','March','April','May','June', 'July','August','September','October','November','December'],
-                monthsShort:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-                daysFull:     ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-                daysShort:    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
-                shortDateFormat: 'M/d/yyyy h:mm a',
-                longDateFormat: 'EEEE, MMMM dd, yyyy h:mm:ss a'
             };
+            
+            if (element.hasAttribute('spanish')) {
+                var locale = {
+                        monthsFull:   ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                        monthsShort:  ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+                        daysFull:     ['Domingo', 'Lune', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+                        daysShort:    ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+                        shortDateFormat: 'M/d/yyyy h:mm a',
+                        longDateFormat: 'EEEE, MMMM dd, yyyy h:mm:ss a'
+                    };
+                    
+            } else {
+                var locale = {
+                    monthsFull:   ['January','February','March','April','May','June', 'July','August','September','October','November','December'],
+                    monthsShort:  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                    daysFull:     ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+                    daysShort:    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+                    shortDateFormat: 'M/d/yyyy h:mm a',
+                    longDateFormat: 'EEEE, MMMM dd, yyyy h:mm:ss a'
+                };
+            }
 
         y = dteValue.getFullYear();
         // Nunzio commented this out on Monday, October 19, 2015
@@ -1152,7 +1210,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 element.setAttribute('format', getFormatString(element));
                 /*if (element.hasAttribute('format')) {
-                    var d1 = new Date(), d2 = new Date(formatDate(d1, element.getAttribute('format')));
+                    var d1 = new Date(), d2 = new Date(formatDate(element, d1, element.getAttribute('format')));
                     if (d1.getTime() !== d2.getTime()) {
                         element.timezoneOffset = d2.getTime() - d1.getTime();
                     }
@@ -1160,7 +1218,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 //console.log(element.getAttribute('value'));
                 // if (element.getAttribute('value') === 'now' || element.getAttribute('value') === 'today') {
-                //     element.setAttribute('value', formatDate(new Date(), element.getAttribute('format')));
+                //     element.setAttribute('value', formatDate(element, new Date(), element.getAttribute('format')));
                 // }
                 //console.log(element.getAttribute('value'));
 
@@ -1268,13 +1326,13 @@ document.addEventListener('DOMContentLoaded', function () {
         accessors: {
             value: {
                 get: function () {
-                    return this.hasAttribute('value') && this.getAttribute('value') ? formatDate(new Date(this.getAttribute('value')), this.getAttribute('format')) : '';
+                    return this.hasAttribute('value') && this.getAttribute('value') ? formatDate(this, new Date(this.getAttribute('value')), this.getAttribute('format')) : '';
                 },
                 set: function (newValue) {
                     if (newValue != null) {
                         var newerValue = GS.newDate(newValue);
                         this.setAttribute('value', newerValue);
-                        this.innerText = formatDate(new Date(this.getAttribute('value')), this.getAttribute('format'));
+                        this.innerText = formatDate(this, new Date(this.getAttribute('value')), this.getAttribute('format'));
                     } else {
                         this.setAttribute('value', newValue || '');
                         this.innerText = '';
@@ -1293,7 +1351,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // if (this.hasAttribute('format')) {
                         this.value = newerValue;
                     // } else {
-                    //     this.value = formatDate(newerValue, (this.hasDate ? 'yyyy/MM/dd' : '') + ' ' + (this.hasTime ? 'HH:mm:ss' : '').trim());
+                    //     this.value = formatDate(element, newerValue, (this.hasDate ? 'yyyy/MM/dd' : '') + ' ' + (this.hasTime ? 'HH:mm:ss' : '').trim());
                     // }
                 }
             }

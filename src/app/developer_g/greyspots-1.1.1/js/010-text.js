@@ -24,6 +24,7 @@ window.addEventListener('design-register-element', function () {
         addText('V', 'Placeholder', 'placeholder');
         addText('D', 'Encrypted', 'encrypted');
         addText('D', 'Max-length', 'max-length');
+        addCheck('V', 'Disable Max-length auto-tab', 'no-auto-tab', 'true');
         addAutocompleteProps();
         addCheck('V', 'Show Caps Lock', 'show-caps', 'false');
         addFocusEvents();
@@ -97,10 +98,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (element.value.length > element.getAttribute('max-length')) {
                 element.value = element.value.substring(0,element.getAttribute('max-length'));
             }
-            if (element.control.hasAttribute('tabindex') && xtag.query(document, '[tabindex="' + (parseInt(element.control.getAttribute('tabindex'), 10) + 1) + '"]').length > 0) {
+            if (!element.hasAttribute('no-auto-tab') && element.control.hasAttribute('tabindex') && xtag.query(document, '[tabindex="' + (parseInt(element.control.getAttribute('tabindex'), 10) + 1) + '"]').length > 0) {
                 xtag.query(document, '[tabindex="' + (parseInt(element.control.getAttribute('tabindex'), 10) + 1) + '"]')[0].focus();
             // find next focusable element
-            } else {
+            } else if (!element.hasAttribute('no-auto-tab')) {
                 focusNextElement();
             }
         }
@@ -533,6 +534,8 @@ document.addEventListener('DOMContentLoaded', function () {
     
                                 // if there is a difference between the new value in the
                                 //      attribute and the valued in the front end: refresh the front end
+                                newValue = this.hasAttribute('uppercase') ? newValue.toUpperCase() : newValue;
+                                currentValue = this.hasAttribute('uppercase') ? currentValue.toUpperCase() : currentValue;
                                 if (newValue !== currentValue) {
                                     element.syncView();
                                 }
@@ -583,6 +586,8 @@ document.addEventListener('DOMContentLoaded', function () {
     
                             // if there is a difference between the new value in the
                             //      attribute and the valued in the front end: refresh the front end
+                            newValue = this.hasAttribute('uppercase') ? newValue.toUpperCase() : newValue;
+                            currentValue = this.hasAttribute('uppercase') ? currentValue.toUpperCase() : currentValue;
                             if (newValue !== currentValue) {
                                 element.syncView();
                             }
@@ -609,7 +614,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'keydown': function (event) {
                 var element = this;
                 if (!element.hasAttribute('readonly') && !element.hasAttribute('disabled')) {
-                        element.syncGetters();
+                    element.syncGetters();
                 }
             },
             'keyup': function () {
@@ -622,35 +627,62 @@ document.addEventListener('DOMContentLoaded', function () {
         accessors: {
             value: {
                 // get value straight from the input
+                // I (Nunzio) changed this on 2022-02-26
+                // when it was all usint the attribute it was inconsistently not working in onchange event attributes
+                // see below getter for full discussion with Michael
                 get: function () {
-                    var element = this;
-                    if (this.hasAttribute('defer-insert')) {
-			            if (this.hasAttribute('encrypted')) {            
-                            // return CryptoJS.AES.decrypt(this.getAttribute('value'), (window[element.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
-                            return this.getAttribute('value');
-                        } else {
-                            return this.getAttribute('value');
-                        }
-                    } else {
+                    if (this.hasAttribute('encrypted')) {
                         return this.getAttribute('value');
+                    } else {
+                        return this.control.value;
                     }
+            //         var element = this;
+            //         if (this.hasAttribute('defer-insert')) {
+			         //   if (this.hasAttribute('encrypted')) {            
+            //                 // return CryptoJS.AES.decrypt(this.getAttribute('value'), (window[element.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8);
+            //                 return this.getAttribute('value');
+            //             } else {
+            //                 return this.getAttribute('value');
+            //             }
+            //         } else {
+            //             return this.getAttribute('value');
+            //         }
                 },
+                // Nunzio: gs-text keyup ".value" is inconsistent
+                // Nunzio: one page it worked as expected
+                // Nunzio: another one it didn't get the new value
+                // Nunzio: .control.value worked
+                // Michael: interesting, what are the different circumstances?
+                // Michael: attributes / containers
+                // Nunzio: the one that didn't work was in a gs-switch but I don't think that should do anything
+                // Nunzio: attributes were identical
+                // Nunzio: I suspect it's because the value accessor reads the attribute instead of the control value
+                // Nunzio: *********getter code***********
+                // Nunzio: why is that?
+                // Michael: wouldn't be surprised if that was because of some Firefox issue where the polyfill too time to get to the point where the element was sufficiently instantiated.
+                // Michael: In dialogs, firefox has issues instantiating in time
+                // Nunzio: firefox isn't polyfilled anymore (except my shim to get the old api to work)
+                // Michael: interesting, might be a non-issue at this point.
+                // Michael: If you decide to switch it, make sure to comment out the old way and leave a summary of our discussion, date, and your name
+                // Nunzio: I'll add it to the list but I'm not dealing with it right now
+                // Michael: k
+
 
                 // set the value of the input and set the value attribute
                 set: function (strNewValue) {
                     if (this.hasAttribute('defer-insert')) {
                         if (this.hasAttribute('encrypted')) {
-                            if (CryptoJS.AES.decrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) === '') {
-                                this.setAttribute('value', CryptoJS.AES.encrypt(strNewValue, (window[this.getAttribute('encrypted')] || '')));
+                            if (CryptoJS.AES.decrypt(this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue, (window[this.getAttribute('encrypted')] || '')).toString(CryptoJS.enc.Utf8) === '') {
+                                this.setAttribute('value', CryptoJS.AES.encrypt(this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue, (window[this.getAttribute('encrypted')] || '')));
                             } else {
-                                this.setAttribute('value', strNewValue);
+                                this.setAttribute('value', this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue);
                             }
                         } else {
-                            this.setAttribute('value', strNewValue);
+                            this.setAttribute('value', this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue);
                             this.syncView();
                         }
                     } else {
-                        this.setAttribute('value', strNewValue);
+                        this.setAttribute('value', this.hasAttribute('uppercase') ? strNewValue.toUpperCase() : strNewValue);
                         this.syncView();
                     }
                 }
@@ -929,16 +961,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (element.hasAttribute('defer-insert')) {
                     if (element.control) {
                         if (element.hasAttribute('encrypted')) {
-                            element.control.setAttribute('value', CryptoJS.AES.encrypt(element.value, (window[element.getAttribute('encrypted')] || '')));
+                            element.control.setAttribute('value', CryptoJS.AES.encrypt(element.hasAttribute('uppercase') ? element.control.value.toUpperCase() : element.control.value, (window[element.getAttribute('encrypted')] || '')));
                         } else {
-                            element.setAttribute('value', element.control.value);
+                            element.setAttribute('value', element.hasAttribute('uppercase') ? element.control.value.toUpperCase() : element.control.value);
                         }
                     }
                 } else {
                     if (element.hasAttribute('encrypted')) {
-                        element.setAttribute('value', CryptoJS.AES.encrypt(element.control.value, (window[element.getAttribute('encrypted')] || '')));
+                        element.setAttribute('value', CryptoJS.AES.encrypt(element.hasAttribute('uppercase') ? element.control.value.toUpperCase() : element.control.value, (window[element.getAttribute('encrypted')] || '')));
                     } else {
-                        element.setAttribute('value', element.control.value);
+                        element.setAttribute('value', element.hasAttribute('uppercase') ? element.control.value.toUpperCase() : element.control.value);
                     }
                 }
                 

@@ -187,9 +187,11 @@ if (GS.qryGetVal(strQueryString, 'token')) {
     });
 } else {
     var request = new XMLHttpRequest();
+
     request.onreadystatechange = function() {
         var strQueryString = GS.getQueryString();
         var normalizedError;
+
         // if expired cookie: go to login page
         if (request.readyState === 4) {
             if (request.status === 200) {

@@ -1290,6 +1290,11 @@ body {
                 be made taller. */
 }
 
+/* ######### prevent element from shrinking ######### */
+[flex-noshrink] {
+    flex-shrink: 0;
+}
+
 /*
 [flex-vertical] > *:not([flex]),
 [flex-horizontal] > *:not([flex]) {
@@ -2077,11 +2082,6 @@ gs-dialog-button.blue {
     /*border-color: #3B99BE;*/
     /*color: #3B99BE;*/
     color: #1266AB;
-}
-
-/* override normal selection */
-gs-option[selected] {
-    background-color: white !important;
 }
 
 /* #################################################################################### */
@@ -2887,7 +2887,7 @@ gs-tracking-button[iconright]:after,
 gs-delete-button[iconright]:after,
 gs-option[iconright]:after,
 gs-dialog-button[iconright]:after {
-    top: 0.25em;
+    top: 0.1em;
     right: 0; /* 0.1em; */
 }
 /*gs-button[mini][iconright]:after,
@@ -12509,11 +12509,11 @@ gs-checkbox {
     /*min-height: 1.2em;*/
 }
 
-gs-checkbox[readonly] {
+/*gs-checkbox[readonly] {
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
-}
+}*/
 
 
 
@@ -12617,7 +12617,7 @@ gs-combo[mini] input {
 /* ##################### READONLY STATE ##################### */
 /* ########################################################## */
 
-gs-combo[readonly] {
+/*gs-combo[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
     border-color: #E6E6E6;
@@ -12627,13 +12627,13 @@ gs-combo[readonly] {
 gs-combo[disabled] > .root,
 gs-combo[readonly] > .root {
     padding-right: 0;
-}
+}*/
 
 gs-combo[disabled] .drop_down_button,
 gs-combo[readonly] .drop_down_button {
-    display: none;
+    /*display: none;*/
     cursor: default;
-    opacity: 0.9;
+    /*opacity: 0.9;*/
     pointer-events: none;
 }
 
@@ -13364,18 +13364,18 @@ gs-date[mini] input {
 /* ##################### READONLY STATE ##################### */
 /* ########################################################## */
 
-gs-date[readonly] {
+/*gs-date[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
     padding: 0.2em;
-}
+}*/
 
 gs-date[readonly] .date-picker-button {
-    display: none;
+    /*display: none;*/
     cursor: default;
-    opacity: 0.9;
+    /*opacity: 0.9;*/
     pointer-events: none;
 }
 
@@ -14121,13 +14121,13 @@ gs-dt {
     display: inline-block;
 }
 
-gs-dt[readonly] {
+/*gs-dt[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
     padding: 0.2em;
-}
+}*/
 
 
 @media print {
@@ -15487,7 +15487,7 @@ gs-interval[no-picker] {
 /* ###################################################################################### */
 /* ################################ ATTRIBUTE:  "readonly" ############################## */
 /* ###################################################################################### */
-
+/*
 gs-interval[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
@@ -15502,7 +15502,7 @@ gs-interval[readonly] {
 
 gs-interval[readonly] .time-picker-button {
     display: none;
-}
+}*/
 
 /* ###################################################################################### */
 /* ################################## ATTRIBUTE:  "mini" ################################ */
@@ -16107,6 +16107,20 @@ gs-memo .control-understudy.placeholder {
     color: #AAAAAA;
 }
 
+gs-memo[uppercase],
+gs-memo[uppercase] .control {
+    text-transform: uppercase;
+}
+
+
+/* ###################################################################################### */
+/* ################################### AUTORESIZE STATE ################################# */
+/* ###################################################################################### */
+
+gs-memo[autoresize] textarea {
+    overflow-y: hidden;
+}
+
 
 /* ###################################################################################### */
 /* #################################### NORESIZE STATE ################################## */
@@ -16137,14 +16151,14 @@ gs-memo[mini] input, gs-memo[mini] textarea {
 /* ###################################################################################### */
 /* #################################### READONLY STATE ################################## */
 /* ###################################################################################### */
-
+/*
 gs-memo[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
 }
-
+*/
 
 /* ###################################################################################### */
 /* ######################################## FLEXED ###################################### */
@@ -16218,14 +16232,14 @@ gs-number[mini] input {
 /* ###################################################################################### */
 /* #################################### READONLY STATE ################################## */
 /* ###################################################################################### */
-
+/*
 gs-number[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
     padding: 0.2em;
-}gs-optionbox {
+}*/gs-optionbox {
     display: block;
     /*border: 1px solid #AEAEAE;*/
     /*
@@ -16276,7 +16290,7 @@ gs-optionbox[disabled] {
     cursor: default;
     pointer-events: none;
 }
-
+/*
 gs-optionbox[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
@@ -16284,7 +16298,7 @@ gs-optionbox[readonly] {
     cursor: default;
     pointer-events: none;
 }
-
+*/
 
 
 
@@ -16567,13 +16581,13 @@ gs-search[mini] input {
 /* ###################################################################################### */
 /* #################################### READONLY STATE ################################## */
 /* ###################################################################################### */
-
+/*
 gs-search[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
-}gs-select > select {
+}*/gs-select > select {
     background-color: transparent;
 }
 
@@ -16619,7 +16633,7 @@ gs-select[mini] select {
 
 
 /* readonly: light border, not clickable, no chevron */
-gs-select[readonly] {
+/*gs-select[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
     border-color: #E6E6E6;
@@ -16628,7 +16642,7 @@ gs-select[readonly] {
 
 gs-select[readonly]:after {
     display: none;
-}gs-slide {
+}*/gs-slide {
     position: relative;
     display: block;
     height: 100%;
@@ -18047,16 +18061,21 @@ gs-text[mini] input {
 /* ###################################################################################### */
 /* #################################### READONLY STATE ################################## */
 /* ###################################################################################### */
-
+/*
 gs-text[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
     border-color: #E6E6E6;
     cursor: default;
 }
-
+*/
 gs-text {
     position: relative;
+}
+
+gs-text[uppercase],
+gs-text[uppercase] .control {
+    text-transform: uppercase;
 }
 
 gs-text[show-caps].caps::after {
@@ -18111,7 +18130,7 @@ gs-time[no-picker] {
 /* ###################################################################################### */
 /* ################################ ATTRIBUTE: "no-picker" ############################## */
 /* ###################################################################################### */
-
+/*
 gs-time[readonly] {
     box-shadow: 0 0 0 0 #000 inset;
     opacity: 0.9;
@@ -18119,11 +18138,11 @@ gs-time[readonly] {
     cursor: default;
     padding: 0.2em;
 }
-
+*/
 gs-time[readonly] .time-picker-button {
-    display: none;
+    /*display: none;*/
     cursor: default;
-    opacity: 0.9;
+    /*opacity: 0.9;*/
     pointer-events: none;
 }
 

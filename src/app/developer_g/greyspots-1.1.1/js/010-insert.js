@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', function () {
         methods: {
             submit: function (callback) {
                 var element = this;
+                if (element.inProgress) { return; }
+                element.inProgress = true;
 
                 GS.triggerEvent(element, 'before_insert');
                 GS.triggerEvent(element, 'onbefore_insert');
@@ -168,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 callback(GS.decodeFromTabDelimited(arrCells[0]), jsnRow);
                             }
                         }
+                        element.inProgress = false;
                     }
                 );
             }

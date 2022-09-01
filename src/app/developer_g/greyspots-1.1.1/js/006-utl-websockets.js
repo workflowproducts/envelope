@@ -330,6 +330,7 @@
         if (relinkSessionID) {
             socket.GSSessionID = relinkSessionID;
             socket.oldSessionID = relinkSessionID;
+            socket.greyspotsProvidedSession = false;
         }
         if (relinkSessionNotifications) {
             socket.notifications = relinkSessionNotifications;
@@ -337,7 +338,17 @@
             socket.notifications = [];
         }
         socket.onmessage = function (event) {
-            var message = event.data, messageID, responseNumber, key, strError, arrLines, i, len, jsnMessage, startFrom;
+            var message = event.data;
+            var messageID;
+            var responseNumber;
+            var key;
+            var strError;
+            var arrLines;
+            var i;
+            var len;
+            var jsnMessage;
+            var startFrom;
+            var bolDuplicate;
 
             if (typeof (message) === 'object') {
                 //window.binaryTestTEST = message;
@@ -351,6 +362,7 @@
             // if sessionid
             if (message.indexOf('sessionid = ') === 0) {
                 socket.GSSessionID = message.substring('sessionid = '.length, message.indexOf('\n'));
+                socket.greyspotsProvidedSession = true;
                 GS.triggerEvent(window, 'socket-connect', {"socket": socket});
 
                 for (key in jsnMessages) {
@@ -364,7 +376,6 @@
                         ) &&
                         jsnMessage.bolFinished === false
                     ) {
-
                         jsnMessage.session = socket.GSSessionID;
 
                         startFrom = 1;
@@ -390,6 +401,7 @@
             } else {
                 messageID = message.substring('messageid = '.length, message.indexOf('\n'));
                 message = message.substring(message.indexOf('\n') + 1);
+                bolDuplicate = false;
 
                 jsnMessage = jsnMessages[messageID];
 
@@ -416,8 +428,14 @@
                         message = message.substring(message.indexOf('\n') + 1);
 
                         // append message number and message content to arrays
-                        jsnMessage.arrResponseNumbers.push(parseInt(responseNumber, 10));
-                        jsnMessage.arrResponses.push(message);
+                        if (jsnMessage.arrResponseNumbers.indexOf(parseInt(responseNumber, 10)) === -1) {
+                            jsnMessage.arrResponseNumbers.push(parseInt(responseNumber, 10));
+                            jsnMessage.arrResponses.push(message);
+                        } else {
+                            bolDuplicate = true;
+                        }
+
+                        //console.log(relinkSessionID, jsnMessage.arrResponseNumbers, responseNumber);
 
                         // send confirm signal
                         GS.requestFromSocket(socket, 'CONFIRM\t' + responseNumber, '', messageID);
@@ -453,7 +471,10 @@
 
                     // else: call callback with message
                     } else {
-                        jsnMessage.callback.apply(null, [message]);
+                        // don't callback with duplicate data packages
+                        if (!bolDuplicate) {
+                            jsnMessage.callback.apply(null, [message]);
+                        }
                     }
 
                     if (jsnMessage.bolFinished === true) {
@@ -511,14 +532,17 @@
                 setTimeout(function() {
                     console.warn('ATTEMPTING SOCKET RE-OPEN', socket);
                     var event = GS.triggerEvent(window, 'socket-reconnect', {"socket": socket});
+                    var strURL;
                     if (! event.defaultPrevented) {
                         if (socketname) {
+                            strURL = GS.websockets[socketname].url;
                             GS.closeSocket(GS.websockets[socketname]);
-                            GS.websockets[socketname] = GS.openSocket('env', GS.websockets[socketname].GSSessionID, GS.websockets[socketname].notifications);
+                            GS.websockets[socketname] = GS.openSocket(strURL, GS.websockets[socketname].GSSessionID, GS.websockets[socketname].notifications);
 
                         } else {
+                            strURL = GS.envSocket.url;
                             GS.closeSocket(GS.envSocket);
-                            GS.envSocket = GS.openSocket('env', GS.envSocket.GSSessionID, GS.envSocket.notifications);
+                            GS.envSocket = GS.openSocket(strURL, GS.envSocket.GSSessionID, GS.envSocket.notifications);
                         }
                     }
                 }, 1000);
@@ -546,8 +570,12 @@
         }
 
         // if the socket is open: register callback and send request
-        if (socket.readyState === socket.OPEN && socket.GSSessionID) {
-
+        if (
+            socket.readyState === socket.OPEN &&
+            socket.GSSessionID &&
+            // we don't want to send a request until greyspots has sent us a session id
+            socket.greyspotsProvidedSession
+        ) {
             if (!forceMessageID) {
                 sequence += 1;
                 messageID = socket.GSSessionID + '_' + sequence;
@@ -1368,7 +1396,7 @@ window.addEventListener('socket-reconnect', function (event) {
     if (event.socket && event.socket.isGSSocket) {
         reconnectNumber -= 1;
 
-        if (reconnectNumber <= -6) {
+        if (reconnectNumber <= -6 * (GS.websockets.length)) {
             window.location = '/' + (window.location.toString().match(/postage|env/g)[0]) + '/auth?action=logout&error=Connection%20timed%20out';
         }
     }
