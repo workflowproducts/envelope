@@ -239,7 +239,7 @@ gdb-set-user: test-common
 
 lldb: test-common
 	echo "run" > temp_lldb_commands
-	lldb -s temp_lldb_commands -- ./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function || \
+	lldb -s temp_lldb_commands -- ./$(BINARY) $(CONFIGS) -p unix:/opt/jails_ssl/envelope.socket -d config/envelope-connections-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function || \
 	{ kill `cat postgres.pid`; rm postgres.pid; rm -rf data_test; exit 1; }
 	rm temp_lldb_commands
 
@@ -254,5 +254,5 @@ valgrind-set-user: test-common
 	{ kill `cat postgres.pid`; rm postgres.pid; rm -rf data_test; exit 1; }
 
 valgrind: test-common
-	valgrind --leak-check=full --track-fds=yes --track-origins=yes --show-reachable=yes --suppressions=../valgrind/mac_suppressions.txt --num-callers=100 ./$(BINARY) $(CONFIGS) -d config/envelope-connections-test.conf $(WEBROOTS) -l error -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -2 public.token_2fa || \
+	valgrind --leak-check=full --track-fds=yes --track-origins=yes --show-reachable=yes --suppressions=../valgrind/mac_suppressions.txt --num-callers=100 ./$(BINARY) $(CONFIGS) -p unix:/opt/jails_ssl/envelope.socket -d config/envelope-connections-test.conf $(WEBROOTS) -l info -u public_user -w youwontguessthispasswordwillyou1lk2j43k1lj3h4k3j4h56k324j5bnoiusdfyg08 -a test_long_query_function || \
 	{ kill `cat postgres.pid`; rm postgres.pid; rm -rf data_test; exit 1; }

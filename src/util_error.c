@@ -13,6 +13,7 @@ void info_root(char *str_file, int int_line_no, char *str_function, char *str_er
 	va_start(va_arg1, str_error);
 
 	sunlogf_root(str_file, int_line_no, str_function, 6, str_error, va_arg1);
+	va_end(va_arg1);
 }
 
 void notice_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...) {
@@ -20,6 +21,7 @@ void notice_root(char *str_file, int int_line_no, char *str_function, char *str_
 	va_start(va_arg1, str_error);
 
 	sunlogf_root(str_file, int_line_no, str_function, 5, str_error, va_arg1);
+	va_end(va_arg1);
 }
 
 void always_log_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...) {
@@ -97,6 +99,7 @@ void debug_root(char *str_file, int int_line_no, char *str_function, char *str_e
 	va_start(va_arg1, str_error);
 
 	sunlogf_root(str_file, int_line_no, str_function, 3, str_error, va_arg1);
+	va_end(va_arg1);
 }
 
 void var_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...) {
@@ -104,6 +107,7 @@ void var_root(char *str_file, int int_line_no, char *str_function, char *str_err
 	va_start(va_arg1, str_error);
 
 	sunlogf_root(str_file, int_line_no, str_function, 2, str_error, va_arg1);
+	va_end(va_arg1);
 }
 
 void error_noresponse_root(char *str_file, int int_line_no, char *str_function, char *str_error, ...) {
@@ -133,10 +137,12 @@ void error_noresponse_root(char *str_file, int int_line_no, char *str_function, 
 		"\n", (size_t)1);
 
 	sunlogf_root(str_file, int_line_no, str_function, 1, str_error, va_arg1);
+	va_end(va_arg1);
 	SFREE_PWORD(str_response);
 	return;
 error:
 	perror("TOTAL FAILURE! CANNOT EVEN ERROR CORRECTLY!");
+	va_end(va_arg1);
 	SFREE_PWORD(str_response);
 	return;
 }
@@ -179,9 +185,11 @@ char *error_response_root(char *str_file, int int_line_no, char *str_function, c
 	SDEBUG("str_function >%s<", str_function);
 	SDEBUG("str_error >%s<", str_error);
 	sunlogf_root(str_file, int_line_no, str_function, 1, str_error, va_arg1);
+	va_end(va_arg1);
 	return str_response;
 error:
 	perror("TOTAL FAILURE! CANNOT EVEN ERROR CORRECTLY!");
+	va_end(va_arg1);
 	SFREE_PWORD(str_response);
 	return NULL;
 }
@@ -224,9 +232,11 @@ char *warn_response_root(char *str_file, int int_line_no, char *str_function, ch
 	SDEBUG("str_function >%s<", str_function);
 	SDEBUG("str_error >%s<", str_error);
 	sunlogf_root(str_file, int_line_no, str_function, 4, str_error, va_arg1);
+	va_end(va_arg1);
 	return str_response;
 error:
 	perror("TOTAL FAILURE! CANNOT EVEN ERROR CORRECTLY!");
+	va_end(va_arg1);
 	SFREE_PWORD(str_response);
 	return NULL;
 }
