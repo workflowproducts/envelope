@@ -315,6 +315,9 @@ void sig_cb(EV_P, ev_signal *w, int revents) {
     exit(0);
 }
 
+// Necessary for libev
+struct ev_loop *ev_default_loop_ptr = 0;
+
 /*
 Program entry point
 */
