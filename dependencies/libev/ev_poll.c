@@ -108,7 +108,8 @@ poll_poll (EV_P_ ev_tstamp timeout)
   else
     for (p = polls; res; ++p)
       {
-        assert (("libev: poll() returned illegal result, broken BSD kernel?", p < polls + pollcnt));
+        //assert (("libev: poll() returned illegal result, broken BSD kernel?", p < polls + pollcnt));
+        ev_assert(p < polls + pollcnt, "libev: poll() returned illegal result, broken BSD kernel?");
 
         if (expect_false (p->revents)) /* this expect is debatable */
           {

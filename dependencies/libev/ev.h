@@ -37,6 +37,12 @@
  * either the BSD or the GPL.
  */
 
+#define STRINGIZE(x) STRINGIZE2(x)
+#define STRINGIZE2(x) #x
+#define __LINE_STRING__ STRINGIZE(__LINE__)
+
+#define ev_assert(A, B) if (! (A)) { ev_syserr(__FILE__ ":" __LINE_STRING__ " assert failed: " B); }
+
 #ifndef EV_H_
 #define EV_H_
 

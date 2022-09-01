@@ -2,7 +2,8 @@ temp_gdb_commands
 temp_lldb_commands
 vgcore.*
 
-/cppcheck_build
+/cppcheck_build_bsd
+/cppcheck_build_win
 
 *.dSYM
 
