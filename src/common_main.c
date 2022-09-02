@@ -17,9 +17,7 @@
 #ifdef _WIN32
 #include <direct.h>
 #include <stdlib.h>
-#endif
 
-#ifdef _WIN32
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "../lib/x86/libpq.lib")
 #pragma comment(lib, "../lib/x86/ssl-45.lib")
@@ -125,12 +123,9 @@ void program_exit() {
 }
 
 void free_last_activity(EV_P, ev_periodic *w, int revents) {
-	if (EV_A != NULL) {
-	} // get rid of unused parameter warning
-	if (w != NULL) {
-	} // get rid of unused parameter warning
-	if (revents != 0) {
-	} // get rid of unused parameter warning
+	if (EV_A != NULL) {} // get rid of unused parameter warning
+	if (w != NULL) {} // get rid of unused parameter warning
+	if (revents != 0) {} // get rid of unused parameter warning
 	struct sock_ev_client_last_activity *client_last_activity = NULL;
 	struct sock_ev_client *client = NULL;
 	bool bol_no_clients, bol_skip = false;
@@ -197,8 +192,7 @@ void free_last_activity(EV_P, ev_periodic *w, int revents) {
 
 static const char *str_postgres_timestamp_format = "%Y/%m/%d %H:%M:%S";
 void connect_cb_log_queries_over(EV_P, void *cb_data, DB_conn *conn) {
-	if (cb_data != NULL) {
-	} // get rid of unused parameter warning
+	if (cb_data != NULL) {} // get rid of unused parameter warning
 	SERROR_CHECK(conn->int_status == 1, "%s", conn->str_response);
 	
 	return;
@@ -226,12 +220,9 @@ error:
 }
 
 void check_running_queries(EV_P, ev_periodic *w, int revents) {
-	if (loop != NULL) {
-	} // get rid of unused parameter warning
-	if (w != NULL) {
-	} // get rid of unused parameter warning
-	if (revents != 0) {
-	} // get rid of unused parameter warning
+	if (loop != NULL) {} // get rid of unused parameter warning
+	if (w != NULL) {} // get rid of unused parameter warning
+	if (revents != 0) {} // get rid of unused parameter warning
 	QueryInfo *query_info = NULL;
 	char *str_sql = NULL;
 	char *str_qs = NULL;
@@ -305,12 +296,9 @@ error:
 }
 
 void sig_cb(EV_P, ev_signal *w, int revents) {
-	if (loop != NULL) {
-	} // get rid of unused parameter warning
-	if (w != NULL) {
-	} // get rid of unused parameter warning
-	if (revents != 0) {
-	} // get rid of unused parameter warning
+	if (loop != NULL) {} // get rid of unused parameter warning
+	if (w != NULL) {} // get rid of unused parameter warning
+	if (revents != 0) {} // get rid of unused parameter warning
     program_exit();
     exit(0);
 }

@@ -24,27 +24,35 @@ void http_accept_step1(EV_P, struct sock_ev_client *client) {
 
 	str_args = query(client->str_request, client->int_request_len, &int_args_len);
 	if (str_args == NULL) {
-		SFINISH_SNCAT(str_args, &int_args_len,
-			"", (size_t)0);
+		SFINISH_SNCAT(
+			str_args, &int_args_len
+			, "", (size_t)0
+		);
 	}
 
 
 	SDEBUG("str_args: %s", str_args);
 
-	SFINISH_SNCAT(str_action_name, &int_action_name_len,
-		str_uri + strlen("/env/"), strlen(str_uri + strlen("/env/")));
+	SFINISH_SNCAT(
+		str_action_name, &int_action_name_len
+		, str_uri + strlen("/env/"), strlen(str_uri + strlen("/env/"))
+	);
 	char *ptr_end_action_name = strchr(str_action_name, '/');
 	if (ptr_end_action_name != NULL) {
 		int_action_name_len = (size_t)(ptr_end_action_name - str_action_name);
 		*ptr_end_action_name = 0;
-		SFINISH_SNCAT(str_temp, &int_temp_len,
-			"/", (size_t)1,
-			ptr_end_action_name + 1, strlen(ptr_end_action_name + 1));
+		SFINISH_SNCAT(
+			str_temp, &int_temp_len
+			, "/", (size_t)1
+			, ptr_end_action_name + 1, strlen(ptr_end_action_name + 1)
+		);
 		str_uri_temp = snuri(str_temp, int_temp_len, &int_temp_len);
 		SFINISH_CHECK(str_uri_temp != NULL, "snuri failed");
-		SFINISH_SNFCAT(str_args, &int_args_len,
-			"&path=", (size_t)6,
-			str_uri_temp, int_temp_len);
+		SFINISH_SNFCAT(
+			str_args, &int_args_len
+			, "&path=", (size_t)6
+			, str_uri_temp, int_temp_len
+		);
 		SFREE(str_temp);
 	}
 
@@ -56,19 +64,23 @@ void http_accept_step1(EV_P, struct sock_ev_client *client) {
 	SDEBUG("str_args: %s", str_args);
 
 	if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
-		SFINISH_SNCAT(str_sql, &int_sql_len,
-			"SELECT ", (size_t)7,
-			str_action_name, int_action_name_len,
-			"(", (size_t)1,
-			str_args, int_args_len,
-			");", (size_t)2);
+		SFINISH_SNCAT(
+			str_sql, &int_sql_len
+			, "SELECT ", (size_t)7
+			, str_action_name, int_action_name_len
+			, "(", (size_t)1
+			, str_args, int_args_len
+			, ");", (size_t)2
+		);
 	} else {
-		SFINISH_SNCAT(str_sql, &int_sql_len,
-			"EXECUTE ", (size_t)8,
-			str_action_name, int_action_name_len,
-			" ", (size_t)1,
-			str_args, int_args_len,
-			";", (size_t)1);
+		SFINISH_SNCAT(
+			str_sql, &int_sql_len
+			, "EXECUTE ", (size_t)8
+			, str_action_name, int_action_name_len
+			, " ", (size_t)1
+			, str_args, int_args_len
+			, ";", (size_t)1
+		);
 	}
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, http_accept_step2), "DB_exec failed");
@@ -81,13 +93,16 @@ finish:
 		bol_error_state = false;
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
@@ -121,7 +136,10 @@ bool http_accept_step2(EV_P, void *cb_data, DB_result *res) {
 
 	// Decode bytea return value
 	if (strncmp(client->str_http_response, "\\x", 2) == 0) {
-		SFINISH_CHECK(decode_bytea_in_place(client->str_http_response, &client->int_http_response_len), "Bytea decode failed!");
+		SFINISH_CHECK(
+			decode_bytea_in_place(client->str_http_response, &client->int_http_response_len)
+			, "Bytea decode failed!"
+		);
 	}
 
 	SFINISH_CHECK(strncmp(client->str_http_response, "HTTP", 4) == 0, "Bad accept_ output: %s", client->str_http_response);
@@ -142,21 +160,24 @@ finish:
 		char *_str_response1 = str_response;
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
-			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+			str_response, &int_response_len
+			, _str_response1, strlen(_str_response1 != NULL ? _str_response1 : "")
+			, ":\n", (size_t)2
+			, _str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
 
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
 	DB_free_result(res);
     SFREE(str_response);

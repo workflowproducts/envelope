@@ -36,22 +36,28 @@ void http_action_step1(EV_P, struct sock_ev_client *client) {
 
 	SDEBUG("str_args: %s", str_args);
 
-	SFINISH_SNCAT(str_action_name, &int_action_name_len,
-		str_uri + strlen("/env/"), strlen(str_uri + strlen("/env/")));
+	SFINISH_SNCAT(
+		str_action_name, &int_action_name_len
+		, str_uri + strlen("/env/"), strlen(str_uri + strlen("/env/"))
+	);
 	if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
-		SFINISH_SNCAT(str_sql, &int_sql_len,
-			"SELECT ", (size_t)7,
-			str_action_name, int_action_name_len,
-			"(", (size_t)1,
-			str_args, int_args_len,
-			");", (size_t)2);
+		SFINISH_SNCAT(
+			str_sql, &int_sql_len
+			, "SELECT ", (size_t)7
+			, str_action_name, int_action_name_len
+			, "(", (size_t)1
+			, str_args, int_args_len
+			, ");", (size_t)2
+		);
 	} else {
-		SFINISH_SNCAT(str_sql, &int_sql_len,
-			"EXECUTE ", (size_t)8,
-			str_action_name, int_action_name_len,
-			" ", (size_t)1,
-			str_args, int_args_len,
-			";", (size_t)1);
+		SFINISH_SNCAT(
+			str_sql, &int_sql_len
+			, "EXECUTE ", (size_t)8
+			, str_action_name, int_action_name_len
+			, " ", (size_t)1
+			, str_args, int_args_len
+			, ";", (size_t)1
+		);
 	}
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, http_action_step2), "DB_exec failed");
@@ -64,13 +70,16 @@ finish:
 		bol_error_state = false;
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
@@ -104,11 +113,13 @@ bool http_action_step2(EV_P, void *cb_data, DB_result *res) {
 	if (_str_response == NULL) {
 		SFINISH_SNCAT(_str_response, &_int_response_len, "null", 4);
 	}
-	SFINISH_SNCAT(str_response, &int_response_len,
-		"{\"stat\":true, \"dat\": ",
-		strlen("{\"stat\":true, \"dat\": "),
-		_str_response, _int_response_len,
-		"}", (size_t)1);
+	SFINISH_SNCAT(
+		str_response, &int_response_len
+		, "{\"stat\":true, \"dat\": "
+		, strlen("{\"stat\":true, \"dat\": ")
+		, _str_response, _int_response_len
+		, "}", (size_t)1
+	);
 	SFREE(_str_response);
 	SDEBUG("str_response: %s", str_response);
 
@@ -139,10 +150,10 @@ finish:
 		char *_str_response1 = str_response;
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
-			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+			str_response, &int_response_len
+			, _str_response1, strlen(_str_response1 != NULL ? _str_response1 : "")
+			, ":\n", (size_t)2
+			, _str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);

@@ -8,10 +8,13 @@ char *WS_handshakeResponse(char *str_websocket_key, size_t *int_response_len) {
 
 	SDEFINE_VAR_ALL(str_websocket_accept);
 
-	SERROR_SNCAT(str_response, int_response_len, "HTTP/1.1 101 Switching Protocols\015\012", (size_t)34,
-		"Upgrade: websocket\015\012", (size_t)20,
-		"Connection: Upgrade\015\012", (size_t)21,
-		"Sec-WebSocket-Accept: ", (size_t)22);
+	SERROR_SNCAT(
+		str_response, int_response_len
+		, "HTTP/1.1 101 Switching Protocols\015\012", (size_t)34
+		, "Upgrade: websocket\015\012", (size_t)20
+		, "Connection: Upgrade\015\012", (size_t)21
+		, "Sec-WebSocket-Accept: ", (size_t)22
+	);
 
 	// The Sec-WebSocket-Accept part is interesting.
 	// The server must derive it from the Sec-WebSocket-Key that the client sent.
@@ -24,7 +27,11 @@ char *WS_handshakeResponse(char *str_websocket_key, size_t *int_response_len) {
 	//		request that turns into a websocket while not breaking a normal HTTP server.
 
 	// Concat
-	SERROR_SNCAT(str_temp1, &int_temp1_len, str_websocket_key, strlen(str_websocket_key), "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", (size_t)36);
+	SERROR_SNCAT(
+		str_temp1, &int_temp1_len
+		, str_websocket_key, strlen(str_websocket_key)
+		, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", (size_t)36
+	);
 
 	// SHA and b64
 	SERROR_SALLOC(str_websocket_accept, 20);
@@ -37,8 +44,11 @@ char *WS_handshakeResponse(char *str_websocket_key, size_t *int_response_len) {
 	SFREE(str_temp1);
 
 	// Add it to the response
-	SERROR_SNFCAT(str_response, int_response_len, str_websocket_accept, int_len,
-		"\015\012Sec-WebSocket-Version: 13\015\012\015\012", (size_t)31);
+	SERROR_SNFCAT(
+		str_response, int_response_len
+		, str_websocket_accept, int_len
+		, "\015\012Sec-WebSocket-Version: 13\015\012\015\012", (size_t)31
+	);
 
 	SFREE_ALL();
 	bol_error_state = false;
@@ -402,11 +412,15 @@ void WS_sendFrame_step2(EV_P, ev_io *w, int revents) {
 	}
 
 	// Send and free
-	SDEBUG("attempting to write %d bytes at offset %d",
-		(client_message->int_message_header_length + client_message->int_length) - client_message->int_written,
-		client_message->int_written);
-	ssize_t int_len = write(frame->parent->int_sock, frame->str_message + client_message->int_written,
-		(client_message->int_message_header_length + client_message->int_length) - client_message->int_written);
+	SDEBUG(
+		"attempting to write %d bytes at offset %d"
+		, (client_message->int_message_header_length + client_message->int_length) - client_message->int_written
+		, client_message->int_written
+	);
+	ssize_t int_len = write(
+		frame->parent->int_sock, frame->str_message + client_message->int_written
+		, (client_message->int_message_header_length + client_message->int_length) - client_message->int_written
+	);
 	if (int_len < 0) {
 		SERROR("write() failed");
 	}
