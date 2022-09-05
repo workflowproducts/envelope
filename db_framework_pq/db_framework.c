@@ -1237,7 +1237,10 @@ finish:
 		conn->int_status = -1;
 		SFREE(conn->str_response);
         // +/-6 is to cut off FATAL\012
-        SFINISH_SNCAT(conn->str_response, &conn->int_response_len, str_response + 6, int_response_len - 6);
+        SFINISH_SNCAT(
+			conn->str_response, &conn->int_response_len
+			, str_response + 6, int_response_len - 6
+		);
 		SFREE(str_response);
 		conn->conn_poll = NULL;
 		conn_poll->connect_cb(EV_A, conn_poll->cb_data, conn);
