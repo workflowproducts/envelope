@@ -5,12 +5,9 @@ int int_temp = 0;
 ev_idle idle_watcher;
 
 void idle_cb(EV_P, ev_idle *w, int revents) {
-	if (EV_A != NULL) {
-	} // get rid of unused parameter warning
-	if (w != NULL) {
-	} // get rid of unused parameter warning
-	if (revents != 0) {
-	} // get rid of unused parameter warning
+	if (EV_A != NULL) {} // get rid of unused parameter warning
+	if (w != NULL) {} // get rid of unused parameter warning
+	if (revents != 0) {} // get rid of unused parameter warning
 	int_temp += 1;
 	int_temp *= int_temp;
 	int_temp /= int_temp;

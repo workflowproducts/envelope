@@ -47,10 +47,12 @@ void ws_action_step1(EV_P, struct sock_ev_client_request *client_request) {
 
 
 	SFINISH_CHECK(
-		(strncmp(ptr_action_name, "action_", 7) == 0 && client_request->parent->bol_public == false) ||
-		strncmp(ptr_action_name, "actionnc_", 9) == 0,
-		client_request->parent->bol_public == false ? "Invalid action name, action function names must begin with \"action_\" or \"actionnc_\"" :
-		"Invalid action name, action function names must begin with \"actionnc_\" for public users");
+		(strncmp(ptr_action_name, "action_", 7) == 0 && client_request->parent->bol_public == false)
+		|| strncmp(ptr_action_name, "actionnc_", 9) == 0
+		, client_request->parent->bol_public == false
+			? "Invalid action name, action function names must begin with \"action_\" or \"actionnc_\""
+			: "Invalid action name, action function names must begin with \"actionnc_\" for public users"
+	);
 
 	if (ptr_schema != NULL) {
 		str_schema = DB_escape_identifier(client_request->parent->conn, ptr_schema, (size_t)(ptr_action_name - ptr_schema));
@@ -64,52 +66,54 @@ void ws_action_step1(EV_P, struct sock_ev_client_request *client_request) {
 
 	if (str_schema != NULL) {
 		SFINISH_SNCAT(
-			str_action_full_name, &int_action_full_name_len,
-			str_schema, strlen(str_schema),
-			".", (size_t)1,
-			str_action_name, strlen(str_action_name)
+			str_action_full_name, &int_action_full_name_len
+			, str_schema, strlen(str_schema)
+			, ".", (size_t)1
+			, str_action_name, strlen(str_action_name)
 		);
 	} else {
 		SFINISH_SNCAT(
-			str_action_full_name, &int_action_full_name_len,
-			str_action_name, strlen(str_action_name)
+			str_action_full_name, &int_action_full_name_len
+			, str_action_name, strlen(str_action_name)
 		);
 	}
 
 #ifdef ENVELOPE_INTERFACE_LIBPQ
 	SFINISH_SNCAT(
-		str_sql, &int_sql_len,
-		"COPY (SELECT ", (size_t)13,
-		str_action_full_name, strlen(str_action_full_name),
-		"(", (size_t)1,
-		str_args, strlen(str_args),
-		")) TO STDOUT;", (size_t)13
+		str_sql, &int_sql_len
+		, "COPY (SELECT ", (size_t)13
+		, str_action_full_name, strlen(str_action_full_name)
+		, "(", (size_t)1
+		, str_args, strlen(str_args)
+		, ")) TO STDOUT;", (size_t)13
 	);
 #else
 	if (DB_connection_driver(client_request->parent->conn) == DB_DRIVER_POSTGRES) {
 		SFINISH_SNCAT(
-			str_sql, &int_sql_len,
-			"SELECT ", (size_t)7,
-			str_action_full_name, strlen(str_action_full_name),
-			"(", (size_t)1,
-			str_args, strlen(str_args),
-			");", (size_t)2
+			str_sql, &int_sql_len
+			, "SELECT ", (size_t)7
+			, str_action_full_name, strlen(str_action_full_name)
+			, "(", (size_t)1
+			, str_args, strlen(str_args)
+			, ");", (size_t)2
 		);
 	} else {
 		SFINISH_SNCAT(
-			str_sql, &int_sql_len,
-			"EXECUTE ", (size_t)8,
-			str_action_full_name, strlen(str_action_full_name),
-			" ", (size_t)1,
-			str_args, strlen(str_args),
-			";", (size_t)1
+			str_sql, &int_sql_len
+			, "EXECUTE ", (size_t)8
+			, str_action_full_name, strlen(str_action_full_name)
+			, " ", (size_t)1
+			, str_args, strlen(str_args)
+			, ";", (size_t)1
 		);
 	}
 #endif
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 	SFINISH_CHECK(
-		DB_copy_out(EV_A, client_request->parent->conn, client_request, str_sql, ws_copy_check_cb), "DB_copy_out failed");
+		DB_copy_out(EV_A, client_request->parent->conn, client_request, str_sql, ws_copy_check_cb)
+		, "DB_copy_out failed"
+	);
 	SDEBUG("str_sql: %s", str_sql);
 
 	bol_error_state = false;
@@ -122,20 +126,26 @@ finish:
 		snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 
 		char *_str_response = str_response;
-		SFINISH_SNCAT(str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012", (size_t)1);
+		SFINISH_SNCAT(
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012", (size_t)1
+		);
 		if (client_request->str_transaction_id != NULL) {
-			SFINISH_SNFCAT(str_response, &int_response_len,
-				"transactionid = ", (size_t)16,
-				client_request->str_transaction_id, client_request->int_transaction_id_len,
-				"\012", (size_t)1);
+			SFINISH_SNFCAT(
+				str_response, &int_response_len
+				, "transactionid = ", (size_t)16
+				, client_request->str_transaction_id, client_request->int_transaction_id_len
+				, "\012", (size_t)1
+			);
 		}
-		SFINISH_SNFCAT(str_response, &int_response_len,
-			_str_response, strlen(_str_response));
+		SFINISH_SNFCAT(
+			str_response, &int_response_len
+			, _str_response, strlen(_str_response)
+		);
 		SFREE(_str_response);
 
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, strlen(str_response));

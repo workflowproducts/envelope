@@ -67,15 +67,17 @@ DB_conn *DB_connect(EV_P, void *cb_data, char *str_connstring, char *str_user,
 		str_escape_username = escape_conninfo_value(str_user, &int_escape_username_len);
 		str_escape_password = escape_conninfo_value(str_password, &int_escape_password_len);
 
-		SFINISH_SNCAT(str_conn, &int_conn_len,
-			" fallback_application_name='", (size_t)28,
-			SUN_PROGRAM_WORD_NAME, strlen(SUN_PROGRAM_WORD_NAME),
-			"'", (size_t)1,
-			str_connstring, strlen(str_connstring),
-			" user=", (size_t)6,
-			str_escape_username, int_escape_username_len,
-			" password=", (size_t)10,
-			str_escape_password, int_escape_password_len);
+		SFINISH_SNCAT(
+			str_conn, &int_conn_len
+			, " fallback_application_name='", (size_t)28
+			, SUN_PROGRAM_WORD_NAME, strlen(SUN_PROGRAM_WORD_NAME)
+			, "'", (size_t)1
+			, str_connstring, strlen(str_connstring)
+			, " user=", (size_t)6
+			, str_escape_username, int_escape_username_len
+			, " password=", (size_t)10
+			, str_escape_password, int_escape_password_len
+		);
 
 		// **** WARNING ****
 		// DO NOT UNCOMMENT THE NEXT LINE! THAT WILL PUT THE PASSWORD IN THE
@@ -83,15 +85,25 @@ DB_conn *DB_connect(EV_P, void *cb_data, char *str_connstring, char *str_user,
 		// SDEBUG("str_conn>%s<", str_conn);
 		// **** WARNING ****
 	} else {
-		SFINISH_SNCAT(str_conn, &int_conn_len, str_connstring, strlen(str_connstring));
+		SFINISH_SNCAT(
+			str_conn, &int_conn_len
+			, str_connstring, strlen(str_connstring)
+		);
 	}
 
 	pg_conn = PQconnectStart(str_conn);
 
 
-	SFINISH_CHECK(PQstatus(pg_conn) != CONNECTION_BAD, "cannot start connect: %s\012", PQerrorMessage(pg_conn));
-	SFINISH_CHECK(PQsetnonblocking(pg_conn, 1) != -1, "could not set nonblocking connection: %i (%s), %s\012", errno,
-		strerror(errno), PQerrorMessage(pg_conn));
+	SFINISH_CHECK(
+		PQstatus(pg_conn) != CONNECTION_BAD
+		, "cannot start connect: %s\012"
+		, PQerrorMessage(pg_conn)
+	);
+	SFINISH_CHECK(
+		PQsetnonblocking(pg_conn, 1) != -1
+		, "could not set nonblocking connection: %i (%s), %s\012"
+		, errno, strerror(errno), PQerrorMessage(pg_conn)
+	);
 
 	conn->int_status = 0;
 	conn->conn = pg_conn;
@@ -122,7 +134,10 @@ finish:
 		conn->cb_data = cb_data;
 		conn->connect_cb = connect_cb;
         // +/-6 is to cut off FATAL\012
-        SFINISH_SNCAT(conn->str_response, &conn->int_response_len, str_response + 6, int_response_len - 6);
+        SFINISH_SNCAT(
+			conn->str_response, &conn->int_response_len
+			, str_response + 6, int_response_len - 6
+		);
 		ev_check_init(&conn->check, db_conn_error_cb);
 		ev_check_start(EV_A, &conn->check);
 		ev_idle_init(&conn->idle, idle_cb);
@@ -162,7 +177,10 @@ bool _DB_exec(
 
 	if (int_global_log_queries_over > 0) {
 		SERROR_SALLOC(query_info, sizeof(QueryInfo));
-		SERROR_SNCAT(query_info->str_query, &query_info->int_query_len, str_query, strlen(str_query));
+		SERROR_SNCAT(
+			query_info->str_query, &query_info->int_query_len
+			, str_query, strlen(str_query)
+		);
 		query_info->int_pid = PQbackendPID(conn->conn);
 		query_info->tim_start = ev_now(EV_A);
 		SERROR_CHECK(List_push(list_global_running_queries, query_info), "List_push failed");
@@ -196,8 +214,8 @@ DArray *DB_get_column_names(DB_result *res) {
 	for (i = 0; i < int_num_columns; i++) {
 		char *str_cell = PQfname(res->res, i);
 		SERROR_SNCAT(
-			str_temp, &int_temp_len,
-			str_cell, strlen(str_cell)
+			str_temp, &int_temp_len
+			, str_cell, strlen(str_cell)
 		);
 		SDEBUG("str_temp: %s", str_temp);
 		DArray_push(darr_ret, str_temp);
@@ -321,12 +339,16 @@ bool DB_get_column_types_for_query3(EV_P, void *cb_data, DB_result *res) {
 	SERROR_CHECK(res != NULL, "DB_get_column_types_for_query failed");
 	SERROR_CHECK(res->status == DB_RES_COMMAND_OK, "DB_get_column_types_for_query failed");
 
-	SERROR_SNCAT(str_sql, &int_sql_len,
-		"DEALLOCATE ", (size_t)11,
-		res_poll_child->str_query, strlen(res_poll_child->str_query));
+	SERROR_SNCAT(
+		str_sql, &int_sql_len
+		, "DEALLOCATE ", (size_t)11
+		, res_poll_child->str_query, strlen(res_poll_child->str_query)
+	);
 	// Run sql, callback the function the user specified, they will have a result with all the column types
 	SERROR_CHECK(
-		DB_exec(EV_A, res_poll_child->conn, res_poll_child, str_sql, DB_get_column_types_for_query4) == true, "DB_exec failed");
+		DB_exec(EV_A, res_poll_child->conn, res_poll_child, str_sql, DB_get_column_types_for_query4) == true
+		, "DB_exec failed"
+	);
 
 	SFREE_ALL();
 	return true;
@@ -344,8 +366,10 @@ bool DB_get_column_types_for_query4(EV_P, void *cb_data, DB_result *res) {
 	DB_result_poll *res_poll_child = cb_data;
 
 	// Get the column types, and send the original callback stuff
-	SERROR_CHECK(DB_get_column_types(EV_A, res_poll_child->res, res_poll_child->cb_data, res_poll_child->query_cb),
-		"DB_get_column_types failed");
+	SERROR_CHECK(
+		DB_get_column_types(EV_A, res_poll_child->res, res_poll_child->cb_data, res_poll_child->query_cb)
+		, "DB_get_column_types failed"
+	);
 
 	DB_free_result(res_poll_child->res);
 	DB_free_result(res);
@@ -373,8 +397,10 @@ bool DB_get_column_types(EV_P, DB_result *res, void *cb_data, query_cb_t column_
 	size_t int_sql_len = 0;
 
 	// Build sql for getting the full types
-	SERROR_SNCAT(str_sql, &int_sql_len,
-		"SELECT ", (size_t)7);
+	SERROR_SNCAT(
+		str_sql, &int_sql_len
+		, "SELECT ", (size_t)7
+	);
 	for (int_column = 0; int_column < int_num_columns; int_column += 1) {
 		// Turn the type oid into a string
 		SERROR_SALLOC(str_temp, 20);
@@ -392,14 +418,16 @@ bool DB_get_column_types(EV_P, DB_result *res, void *cb_data, query_cb_t column_
 		SERROR_CHECK(str_col_ident != NULL, "Could not escape column name for identifiers. (DB_escape_identifier failed)");
 		// Add them to the sql, note the "AS" clause so that the column name is
 		// available in the next function
-		SERROR_SNFCAT(str_sql, &int_sql_len,
-			"format_type(", (size_t)12,
-			str_oid_type, strlen(str_oid_type),
-			", ", (size_t)2,
-			str_int_mod, strlen(str_int_mod),
-			") AS ", (size_t)5,
-			str_col_ident, strlen(str_col_ident),
-			int_column < (int_num_columns - 1) ? "," : ";", (size_t)1);
+		SERROR_SNFCAT(
+			str_sql, &int_sql_len
+			, "format_type(", (size_t)12
+			, str_oid_type, strlen(str_oid_type)
+			, ", ", (size_t)2
+			, str_int_mod, strlen(str_int_mod)
+			, ") AS ", (size_t)5
+			, str_col_ident, strlen(str_col_ident)
+			, int_column < (int_num_columns - 1) ? "," : ";", (size_t)1
+		);
 		SFREE(str_col_ident);
 		PQfreemem(str_oid_type);
 		str_oid_type = NULL;
@@ -544,14 +572,16 @@ char *_DB_get_diagnostic(DB_conn *conn, PGresult *res) {
 	SFINISH_CHECK(return_context != NULL, "return_context failed");
 	SFINISH_CHECK(return_err_pos != NULL, "return_err_pos failed");
 
-	SDEBUG("postgres execute error\012\
+	SDEBUG(
+		"postgres execute error\012\
 error: %s\012\
 detail: %s\012\
 hint: %s\012\
 query: %s\012\
 context: %s\012\
-err_pos: %s\012",
-		return_error, return_detail, return_hint, return_query, return_context, return_err_pos);
+err_pos: %s\012"
+		, return_error, return_detail, return_hint, return_query, return_context, return_err_pos
+	);
 
 	str_temp = return_error;
 	int_temp_len = strlen(str_temp);
@@ -590,23 +620,27 @@ err_pos: %s\012",
 	SFREE(str_temp);
 
 	// build response
-	SFINISH_SNCAT(str_response, &int_response_len,
-		"", (size_t)0);
+	SFINISH_SNCAT(
+		str_response, &int_response_len
+		, "", (size_t)0
+	);
 	// clang-format off
-	SFINISH_SNFCAT(str_response, &int_response_len,
-		"FATAL\012error_text\t", (size_t)17,
-		return_error, strlen(return_error),
-		"\012error_detail\t", (size_t)14,
-		return_detail, strlen(return_detail),
-		"\012error_hint\t", (size_t)12,
-		return_hint, strlen(return_hint),
-		"\012error_query\t", (size_t)13,
-		return_query, strlen(return_query),
-		"\012error_context\t", (size_t)15,
-		return_context, strlen(return_context),
-		"\012error_position\t", (size_t)16,
-		return_err_pos, strlen(return_err_pos),
-		"\012", (size_t)1);
+	SFINISH_SNFCAT(
+		str_response, &int_response_len
+		, "FATAL\012error_text\t", (size_t)17
+		, return_error, strlen(return_error)
+		, "\012error_detail\t", (size_t)14
+		, return_detail, strlen(return_detail)
+		, "\012error_hint\t", (size_t)12
+		, return_hint, strlen(return_hint)
+		, "\012error_query\t", (size_t)13
+		, return_query, strlen(return_query)
+		, "\012error_context\t", (size_t)15
+		, return_context, strlen(return_context)
+		, "\012error_position\t", (size_t)16
+		, return_err_pos, strlen(return_err_pos)
+		, "\012", (size_t)1
+	);
 // clang-format on
 
 finish:
@@ -635,12 +669,16 @@ char *DB_escape_literal(DB_conn *conn, char *str, size_t int_len) {
 	if (check_to_escape(str, false)) {
 		str_temp = PQescapeLiteral(conn->conn, str, int_len);
 		SDEBUG("str_temp: %s", str_temp);
-		SERROR_SNCAT(str_output, &int_output_len,
-			str_temp, strlen(str_temp));
+		SERROR_SNCAT(
+			str_output, &int_output_len
+			, str_temp, strlen(str_temp)
+		);
 		PQfreemem(str_temp);
 	} else {
-		SERROR_SNCAT(str_output, &int_output_len,
-			str, strlen(str));
+		SERROR_SNCAT(
+			str_output, &int_output_len
+			, str, strlen(str)
+		);
 	}
 	SDEBUG("str_output: %s", str_output);
 	return str_output;
@@ -662,12 +700,16 @@ char *DB_escape_identifier(DB_conn *conn, char *str, size_t int_len) {
 	}
 	if (check_to_escape(str, true)) {
 		str_temp = PQescapeIdentifier(conn->conn, str, int_len);
-		SERROR_SNCAT(str_output, &int_output_len,
-			str_temp, strlen(str_temp));
+		SERROR_SNCAT(
+			str_output, &int_output_len
+			, str_temp, strlen(str_temp)
+		);
 		PQfreemem(str_temp);
 	} else {
-		SERROR_SNCAT(str_output, &int_output_len,
-			str, strlen(str));
+		SERROR_SNCAT(
+			str_output, &int_output_len
+			, str, strlen(str)
+		);
 	}
 	return str_output;
 error:
@@ -788,18 +830,19 @@ static void db_query_cb(EV_P, ev_io *w, int revents) {
 		int_j = 0;
 		res = PQgetResult(conn->conn);
 		result = PQresultStatus(res);
-		while (res != NULL
+		while (
+			res != NULL
 			// This is because if we keep calling
 			//		PQgetResult while we are in a COPY state,
 			//		we keep getting a COPY result
 			// Also note, this will only work if the COPY is the only query
 			&& (
-				   int_j == 0
+				int_j == 0
 				|| (
-					   result != PGRES_COPY_OUT
+					result != PGRES_COPY_OUT
 					&& result != PGRES_COPY_IN
-					)
 				)
+			)
 		) {
 			DArray_push(arr_res, res);
 			res = PQgetResult(conn->conn);
@@ -1015,8 +1058,10 @@ static void db_copy_out_check_cb(EV_P, ev_check *w, int revents) {
 			// client_request_free takes care of this
 			// SFREE(client_insert);
 
-			SFINISH_SNCAT(str_response, &int_response_len,
-				"TRANSACTION COMPLETED", (size_t)21);
+			SFINISH_SNCAT(
+				str_response, &int_response_len
+				, "TRANSACTION COMPLETED", (size_t)21
+			);
 			copy_cb(EV_A, true, true, cb_data, str_response, strlen(str_response));
 		}
 		int_i += 1;
@@ -1068,7 +1113,10 @@ finish:
 		conn->int_status = -1;
 		SFREE(conn->str_response);
         // +/-6 is to cut off FATAL\012
-        SFINISH_SNCAT(conn->str_response, &conn->int_response_len, str_response + 6, int_response_len - 6);
+        SFINISH_SNCAT(
+			conn->str_response, &conn->int_response_len
+			, str_response + 6, int_response_len - 6
+		);
 		SFREE(str_response);
 		conn->conn_poll = NULL;
 		conn_poll->connect_cb(EV_A, conn_poll->cb_data, conn);
@@ -1145,10 +1193,12 @@ static void db_cnxn_cb(EV_P, ev_io *w, int revents) {
 		//conn_poll->connect_cb(EV_A, conn_poll->cb_data, conn);
 		//SFREE(conn_poll);
 		if (conn->str_literal_context_data != NULL) {
-			SFINISH_SNCAT(str_sql, &int_sql_len,
-				"SET sunny.context_info = ", (size_t)25,
-				conn->str_literal_context_data, strlen(conn->str_literal_context_data),
-				";", (size_t)1);
+			SFINISH_SNCAT(
+				str_sql, &int_sql_len
+				, "SET sunny.context_info = ", (size_t)25
+				, conn->str_literal_context_data, strlen(conn->str_literal_context_data)
+				, ";", (size_t)1
+			);
 			SDEBUG("str_sql: %s", str_sql);
 			DB_exec(EV_A, conn, conn_poll, str_sql, db_conn_cb_context_data);
 		} else {

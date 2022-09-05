@@ -15,8 +15,11 @@ void http_insert_step1(EV_P, struct sock_ev_client *client) {
 	size_t int_query_len = 0;
 	size_t int_response_len = 0;
 
-	client->cur_request =
-		create_request(client, NULL, NULL, NULL, NULL, sizeof(struct sock_ev_client_insert), ENVELOPE_REQ_INSERT, ws_insert_free);
+	client->cur_request
+		= create_request(
+			client, NULL, NULL, NULL, NULL
+			, sizeof(struct sock_ev_client_insert), ENVELOPE_REQ_INSERT, ws_insert_free
+		);
 	SFINISH_CHECK(client->cur_request != NULL, "create_request failed!");
 	client_insert = (struct sock_ev_client_insert *)(client->cur_request->client_request_data);
 
@@ -43,11 +46,13 @@ void http_insert_step1(EV_P, struct sock_ev_client *client) {
 	client_insert->str_real_table_name = getpar(str_args, "src", int_query_len, &client_insert->int_real_table_name_len);
 	if (client_insert->str_real_table_name == NULL || client_insert->str_real_table_name[0] == 0) {
 		SFREE(client_insert->str_real_table_name);
-		client_insert->str_real_table_name =
-			getpar(str_args, "view", int_query_len, &client_insert->int_real_table_name_len);
+		client_insert->str_real_table_name
+			= getpar(str_args, "view", int_query_len, &client_insert->int_real_table_name_len);
 	}
-	SFINISH_ERROR_CHECK(client_insert->str_real_table_name != NULL && client_insert->str_real_table_name[0] != 0,
-		"Failed to get table name from query");
+	SFINISH_ERROR_CHECK(
+		client_insert->str_real_table_name != NULL && client_insert->str_real_table_name[0] != 0
+		, "Failed to get table name from query"
+	);
 
 	// Get sequence name
 	client_insert->str_sequence_name = getpar(str_args, "currval", int_query_len, &client_insert->int_currval_len);
@@ -55,8 +60,10 @@ void http_insert_step1(EV_P, struct sock_ev_client *client) {
 	// Get return columns
 	str_data = getpar(str_args, "data", int_query_len, &client_insert->int_data_len);
 	if (str_data != NULL && client_insert->int_data_len > 0) {
-		SFINISH_SNCAT(client_insert->str_return_columns, &client_insert->int_return_columns_len,
-			"", (size_t)0);
+		SFINISH_SNCAT(
+			client_insert->str_return_columns, &client_insert->int_return_columns_len
+			, "", (size_t)0
+		);
 		SDEBUG("str_data: %s", str_data);
 		ptr_loop = str_data;
 		client_insert->darr_column_values = DArray_create(sizeof(char *), 1);
@@ -82,9 +89,11 @@ void http_insert_step1(EV_P, struct sock_ev_client *client) {
 				SFREE(str_temp);
 			}
 
-			SFINISH_SNFCAT(client_insert->str_return_columns, &client_insert->int_return_columns_len,
-				str_one_col, int_one_col_len,
-				",", (size_t)1);
+			SFINISH_SNFCAT(
+				client_insert->str_return_columns, &client_insert->int_return_columns_len
+				, str_one_col, int_one_col_len
+				, ",", (size_t)1
+			);
 
 			// get vals
 			ptr_end = bstrstr(ptr_loop, client_insert->int_data_len, "&", 1);
@@ -121,12 +130,14 @@ void http_insert_step1(EV_P, struct sock_ev_client *client) {
 		SFINISH("No insert data");
 	}
 
-	SFINISH_SNCAT(client_insert->str_sql, &client_insert->int_sql_len,
-		"SELECT ", (size_t)7,
-		client_insert->str_return_columns, client_insert->int_return_columns_len,
-		"\012   FROM ", (size_t)9,
-		client_insert->str_real_table_name, client_insert->int_real_table_name_len,
-		";", (size_t)1);
+	SFINISH_SNCAT(
+		client_insert->str_sql, &client_insert->int_sql_len
+		, "SELECT ", (size_t)7
+		, client_insert->str_return_columns, client_insert->int_return_columns_len
+		, "\012   FROM ", (size_t)9
+		, client_insert->str_real_table_name, client_insert->int_real_table_name_len
+		, ";", (size_t)1
+	);
 
 	if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
 		SFINISH_CHECK(DB_exec(EV_A, client->conn, client, "BEGIN;", http_insert_step2), "DB_exec failed");
@@ -134,8 +145,10 @@ void http_insert_step1(EV_P, struct sock_ev_client *client) {
 		SFINISH_CHECK(DB_exec(EV_A, client->conn, client, "BEGIN TRANSACTION;", http_insert_step2), "DB_exec failed");
 	} else {
 		SFINISH_CHECK(query_is_safe(client_insert->str_sql), "SQL Injection detected");
-		SFINISH_CHECK(DB_get_column_types_for_query(EV_A, client->conn, client_insert->str_sql, client, http_insert_step3),
-			"DB_get_column_types_for_query failed");
+		SFINISH_CHECK(
+			DB_get_column_types_for_query(EV_A, client->conn, client_insert->str_sql, client, http_insert_step3)
+			, "DB_get_column_types_for_query failed"
+		);
 	}
 
 	// SFINISH("Only WHERE, ORDER BY, LIMIT and OFFSET are allowed in the SELECT request");
@@ -147,13 +160,16 @@ finish:
 		bol_error_state = false;
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
@@ -178,8 +194,10 @@ bool http_insert_step2(EV_P, void *cb_data, DB_result *res) {
 
 	SDEBUG("client_insert->str_sql: %s", client_insert->str_sql);
 	SFINISH_CHECK(query_is_safe(client_insert->str_sql), "SQL Injection detected");
-	SFINISH_CHECK(DB_get_column_types_for_query(EV_A, client->conn, client_insert->str_sql, client, http_insert_step3),
-		"DB_get_column_types_for_query failed");
+	SFINISH_CHECK(
+		DB_get_column_types_for_query(EV_A, client->conn, client_insert->str_sql, client, http_insert_step3)
+		, "DB_get_column_types_for_query failed"
+	);
 
 	SDEBUG("str_response: %s", str_response);
 
@@ -195,22 +213,25 @@ finish:
 		char *_str_response1 = str_response;
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
-			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+			str_response, &int_response_len
+			, _str_response1, strlen(_str_response1 != NULL ? _str_response1 : "")
+			, ":\n", (size_t)2
+			, _str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
 	DB_free_result(res);
     SFREE(str_response);
@@ -242,55 +263,71 @@ bool http_insert_step3(EV_P, void *cb_data, DB_result *res) {
 	SFREE(client_insert->str_sql);
 
 	if (strcmp(client_insert->str_return_columns, "*") == 0) {
-		SFINISH_SNCAT(client_insert->str_sql, &client_insert->int_sql_len,
-			"INSERT INTO ", (size_t)12,
-			client_insert->str_real_table_name, client_insert->int_real_table_name_len,
-			" VALUES (", (size_t)9);
+		SFINISH_SNCAT(
+			client_insert->str_sql, &client_insert->int_sql_len
+			, "INSERT INTO ", (size_t)12
+			, client_insert->str_real_table_name, client_insert->int_real_table_name_len
+			, " VALUES (", (size_t)9
+		);
 	} else {
-		SFINISH_SNCAT(client_insert->str_sql, &client_insert->int_sql_len,
-			"INSERT INTO ", (size_t)12,
-			client_insert->str_real_table_name, client_insert->int_real_table_name_len,
-			" (", (size_t)2,
-			client_insert->str_return_columns, client_insert->int_return_columns_len,
-			") VALUES (", (size_t)10);
+		SFINISH_SNCAT(
+			client_insert->str_sql, &client_insert->int_sql_len
+			, "INSERT INTO ", (size_t)12
+			, client_insert->str_real_table_name, client_insert->int_real_table_name_len
+			, " (", (size_t)2
+			, client_insert->str_return_columns, client_insert->int_return_columns_len
+			, ") VALUES (", (size_t)10
+		);
 	}
 
 	int_len = DArray_end(client_insert->darr_column_types);
 	for (i = 0; i < int_len; i += 1) {
-        str_temp = DB_escape_literal(client->conn, DArray_get(client_insert->darr_column_values, i),
-            strlen(DArray_get(client_insert->darr_column_values, i)));
+        str_temp = DB_escape_literal(
+			client->conn, DArray_get(client_insert->darr_column_values, i)
+			, strlen(DArray_get(client_insert->darr_column_values, i))
+		);
         SFINISH_CHECK(str_temp != NULL, "DB_escape_literal failed");
 		if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
             if (DArray_get(client_insert->darr_column_types, i) != NULL && strncmp(DArray_get(client_insert->darr_column_types, i), "character", 9) == 0) {
                 SFREE(client_insert->darr_column_types->contents[i]);
                 SFINISH_SNCAT(
-                    client_insert->darr_column_types->contents[i], &int_temp_len,
-                    "text", 4
+                    client_insert->darr_column_types->contents[i], &int_temp_len
+                    , "text", 4
                 );
             }
-            SFINISH_SNFCAT(client_insert->str_sql, &client_insert->int_sql_len,
-                str_temp, strlen(str_temp),
-                "::", (size_t)2,
-                DArray_get(client_insert->darr_column_types, i),
-                strlen(DArray_get(client_insert->darr_column_types, i)));
+            SFINISH_SNFCAT(
+				client_insert->str_sql, &client_insert->int_sql_len
+				, str_temp, strlen(str_temp)
+                , "::", (size_t)2
+                , DArray_get(client_insert->darr_column_types, i)
+                , strlen(DArray_get(client_insert->darr_column_types, i))
+			);
 		} else if (DB_connection_driver(client->conn) == DB_DRIVER_SQL_SERVER) {
-			SFINISH_SNFCAT(client_insert->str_sql, &client_insert->int_sql_len,
-				"CAST(", (size_t)5,
-				str_temp, strlen(str_temp),
-				" AS ", (size_t)4,
-				DArray_get(client_insert->darr_column_types, i), strlen(DArray_get(client_insert->darr_column_types, i)),
-				")", (size_t)1);
+			SFINISH_SNFCAT(
+				client_insert->str_sql, &client_insert->int_sql_len
+				, "CAST(", (size_t)5
+				, str_temp, strlen(str_temp)
+				, " AS ", (size_t)4
+				, DArray_get(client_insert->darr_column_types, i), strlen(DArray_get(client_insert->darr_column_types, i))
+				, ")", (size_t)1
+			);
 		} else {
-			SFINISH_SNFCAT(client_insert->str_sql, &client_insert->int_sql_len,
-				str_temp, strlen(str_temp));
+			SFINISH_SNFCAT(
+				client_insert->str_sql, &client_insert->int_sql_len
+				, str_temp, strlen(str_temp)
+			);
 		}
 		SFREE(str_temp);
 		if (i < (int_len - 1)) {
-			SFINISH_SNFCAT(client_insert->str_sql, &client_insert->int_sql_len,
-				",", (size_t)1);
+			SFINISH_SNFCAT(
+				client_insert->str_sql, &client_insert->int_sql_len
+				, ",", (size_t)1
+			);
 		} else {
-			SFINISH_SNFCAT(client_insert->str_sql, &client_insert->int_sql_len,
-				");", (size_t)2);
+			SFINISH_SNFCAT(
+				client_insert->str_sql, &client_insert->int_sql_len
+				, ");", (size_t)2
+			);
 		}
 	}
 	DArray_clear_destroy(client_insert->darr_column_types);
@@ -313,22 +350,25 @@ finish:
 		char *_str_response1 = str_response;
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
-			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+			str_response, &int_response_len
+			, _str_response1, strlen(_str_response1 != NULL ? _str_response1 : "")
+			, ":\n", (size_t)2
+			, _str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
 	DB_free_result(res);
     SFREE(str_response);
@@ -355,18 +395,24 @@ bool http_insert_step4(EV_P, void *cb_data, DB_result *res) {
 	SFREE(client_insert->str_sql);
 	if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
 		if (client_insert->bol_pk_provided) {
-			SFINISH_SNCAT(client_insert->str_sql, &client_insert->int_sql_len,
-				"SELECT ", (size_t)7,
-				client_insert->str_sequence_name, strlen(client_insert->str_sequence_name),
-				"::integer;", (size_t)10);
+			SFINISH_SNCAT(
+				client_insert->str_sql, &client_insert->int_sql_len
+				, "SELECT ", (size_t)7
+				, client_insert->str_sequence_name, strlen(client_insert->str_sequence_name)
+				, "::integer;", (size_t)10
+			);
 		} else if (client_insert->str_sequence_name != NULL && client_insert->str_sequence_name[0] != 0) {
-			SFINISH_SNCAT(client_insert->str_sql, &client_insert->int_sql_len,
-				"SELECT currval(", (size_t)15,
-				client_insert->str_sequence_name, strlen(client_insert->str_sequence_name),
-				");", (size_t)2);
+			SFINISH_SNCAT(
+				client_insert->str_sql, &client_insert->int_sql_len
+				, "SELECT currval(", (size_t)15
+				, client_insert->str_sequence_name, strlen(client_insert->str_sequence_name)
+				, ");", (size_t)2
+			);
 		} else {
-			SFINISH_SNCAT(client_insert->str_sql, &client_insert->int_sql_len,
-				"SELECT lastval();", (size_t)17);
+			SFINISH_SNCAT(
+				client_insert->str_sql, &client_insert->int_sql_len
+				, "SELECT lastval();", (size_t)17
+			);
 		}
 
 		SFINISH_CHECK(query_is_safe(client_insert->str_sql), "SQL Injection detected");
@@ -375,22 +421,28 @@ bool http_insert_step4(EV_P, void *cb_data, DB_result *res) {
 		if (client_insert->str_sequence_name != NULL && client_insert->str_sequence_name[0] != 0) {
 			str_col_seq = DB_escape_literal(client->conn, client_insert->str_sequence_name, strlen(client_insert->str_sequence_name));
 			SFINISH_CHECK(str_col_seq != NULL, "DB_escape_literal failed!");
-			SFINISH_SNCAT(client_insert->str_sql, &client_insert->int_sql_len,
-				"SELECT CAST(IDENT_CURRENT(", (size_t)26,
-				str_col_seq, strlen(str_col_seq),
-				") AS nvarchar(MAX));", (size_t)20);
+			SFINISH_SNCAT(
+				client_insert->str_sql, &client_insert->int_sql_len
+				, "SELECT CAST(IDENT_CURRENT(", (size_t)26
+				, str_col_seq, strlen(str_col_seq)
+				, ") AS nvarchar(MAX));", (size_t)20
+			);
 		} else {
-			SFINISH_SNCAT(client_insert->str_sql, &client_insert->int_sql_len,
-				"SELECT CAST(SCOPE_IDENTITY() AS nvarchar(MAX));", (size_t)47);
+			SFINISH_SNCAT(
+				client_insert->str_sql, &client_insert->int_sql_len
+				, "SELECT CAST(SCOPE_IDENTITY() AS nvarchar(MAX));", (size_t)47
+			);
 		}
 
 		SFINISH_CHECK(query_is_safe(client_insert->str_sql), "SQL Injection detected");
 		SFINISH_CHECK(DB_exec(EV_A, client->conn, client, client_insert->str_sql, http_insert_step5), "DB_exec failed");
 	} else {
-		SFINISH_SNCAT(client_insert->str_sql, &client_insert->int_sql_len,
-			" SELECT Cstr(id) As id2 FROM (SELECT TOP 1 @@IDENTITY AS id FROM ", (size_t)65,
-			client_insert->str_real_table_name, client_insert->int_real_table_name_len,
-			") em", (size_t)4);
+		SFINISH_SNCAT(
+			client_insert->str_sql, &client_insert->int_sql_len
+			, " SELECT Cstr(id) As id2 FROM (SELECT TOP 1 @@IDENTITY AS id FROM ", (size_t)65
+			, client_insert->str_real_table_name, client_insert->int_real_table_name_len
+			, ") em", (size_t)4
+		);
 		SFINISH_CHECK(query_is_safe(client_insert->str_sql), "SQL Injection detected");
 		SFINISH_CHECK(DB_exec(EV_A, client->conn, client, client_insert->str_sql, http_insert_step6), "DB_exec failed");
 	}
@@ -414,22 +466,25 @@ finish:
 		char *_str_response1 = str_response;
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
-			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+			str_response, &int_response_len
+			, _str_response1, strlen(_str_response1 != NULL ? _str_response1 : "")
+			, ":\n", (size_t)2
+			, _str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
 	DB_free_result(res);
     SFREE(str_response);
@@ -458,8 +513,10 @@ bool http_insert_step5(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(arr_row_values != NULL, "DB_get_row_values failed");
 	SFINISH_CHECK(DArray_get(arr_row_values, 0) != NULL, "DB_exec failed");
 
-	SFINISH_SNCAT(client_insert->str_result, &client_insert->int_result_len,
-		DArray_get(arr_row_values, 0), strlen(DArray_get(arr_row_values, 0)));
+	SFINISH_SNCAT(
+		client_insert->str_result, &client_insert->int_result_len
+		, DArray_get(arr_row_values, 0), strlen(DArray_get(arr_row_values, 0))
+	);
 	DArray_clear_destroy(arr_row_values);
 	arr_row_values = NULL;
 
@@ -485,22 +542,25 @@ finish:
 		char *_str_response1 = str_response;
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
-			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+			str_response, &int_response_len
+			, _str_response1, strlen(_str_response1 != NULL ? _str_response1 : "")
+			, ":\n", (size_t)2
+			, _str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
 	DB_free_result(res);
     SFREE(str_response);
@@ -530,8 +590,10 @@ bool http_insert_step6(EV_P, void *cb_data, DB_result *res) {
 		SFINISH_CHECK(arr_row_values != NULL, "DB_get_row_values failed");
 
 		SFREE(client_insert->str_result);
-		SFINISH_SNCAT(client_insert->str_result, &client_insert->int_result_len,
-			DArray_get(arr_row_values, 0), strlen(DArray_get(arr_row_values, 0)));
+		SFINISH_SNCAT(
+			client_insert->str_result, &client_insert->int_result_len
+			, DArray_get(arr_row_values, 0), strlen(DArray_get(arr_row_values, 0))
+		);
 		DArray_clear_destroy(arr_row_values);
 		arr_row_values = NULL;
 
@@ -540,17 +602,22 @@ bool http_insert_step6(EV_P, void *cb_data, DB_result *res) {
 		SFINISH_CHECK(res->status == DB_RES_COMMAND_OK, "DB_exec failed");
 	}
 
-	SFINISH_SNCAT(str_response, &int_response_len,
-		"{\"stat\": true, \"dat\": {\"lastval\": ", strlen("{\"stat\": true, \"dat\": {\"lastval\": "),
-		client_insert->str_result, client_insert->int_result_len,
-		"}}", (size_t)2);
-    SFINISH_CHECK(build_http_response(
+	SFINISH_SNCAT(
+		str_response, &int_response_len
+		, "{\"stat\": true, \"dat\": {\"lastval\": ", strlen("{\"stat\": true, \"dat\": {\"lastval\": ")
+		, client_insert->str_result, client_insert->int_result_len
+		, "}}", (size_t)2
+	);
+    SFINISH_CHECK(
+		build_http_response(
             "200 OK"
             , str_response, int_response_len
             , "application/json"
             , NULL
             , &client->str_http_response, &client->int_http_response_len
-        ), "build_http_response failed");
+        )
+		, "build_http_response failed"
+	);
 
 	SDEBUG("str_response: %s", str_response);
 
@@ -566,22 +633,25 @@ finish:
 		char *_str_response1 = str_response;
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
-			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+			str_response, &int_response_len
+			, _str_response1, strlen(_str_response1 != NULL ? _str_response1 : "")
+			, ":\n", (size_t)2
+			, _str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
 	DB_free_result(res);
     SFREE(str_response);

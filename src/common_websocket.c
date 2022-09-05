@@ -177,9 +177,9 @@ void WS_readFrame_step2(EV_P, ev_io *w, int revents) {
 		SDEBUG("int_request_len    : %d", int_request_len);
 		SERROR_CHECK(int_request_len == 8, "Could not read from client");
 
-		frame->int_length = (((uint64_t)buf[0]) << 56) | (((uint64_t)buf[1]) << 48) | (((uint64_t)buf[2]) << 40) |
-							(((uint64_t)buf[3]) << 32) | (((uint64_t)buf[4]) << 24) | (((uint64_t)buf[5]) << 16) |
-							(((uint64_t)buf[6]) << 8) | (((uint64_t)buf[7]) << 0);
+		frame->int_length = (((uint64_t)buf[0]) << 56) | (((uint64_t)buf[1]) << 48) | (((uint64_t)buf[2]) << 40)
+						  | (((uint64_t)buf[3]) << 32) | (((uint64_t)buf[4]) << 24) | (((uint64_t)buf[5]) << 16)
+						  | (((uint64_t)buf[6]) << 8) | (((uint64_t)buf[7]) << 0);
 	}
 
 	memset(buf, 0, BUF_LEN + 1);

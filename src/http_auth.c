@@ -185,10 +185,8 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 		// done encrypting
 
 		if (strncmp(str_uri, "/env/authnc", 12) == 0 || strncmp(str_uri, "/env/authnc/", 13) == 0) {
-			char *str_temp1 =
-				"envelope=";
-			char *str_temp2 =
-				"; HttpOnly;";
+			char *str_temp1 = "envelope=";
+			char *str_temp2 = "; HttpOnly;";
 			SFREE(str_expires);
 			str_expires = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
 			SFINISH_SNCAT(
@@ -270,9 +268,10 @@ void http_auth(EV_P, struct sock_ev_client_auth *client_auth) {
 				);
 
 			} else {
-				SFINISH_CHECK((client_auth->parent->conn = DB_connect(EV_A, client_auth, get_connection_info()
-					, client_auth->str_user, client_auth->int_user_length, client_auth->str_password
-					, client_auth->int_password_length, "", http_auth_login_step2)) != NULL
+				SFINISH_CHECK(
+					(client_auth->parent->conn = DB_connect(EV_A, client_auth, get_connection_info()
+						, client_auth->str_user, client_auth->int_user_length, client_auth->str_password
+						, client_auth->int_password_length, "", http_auth_login_step2)) != NULL
 					, "DB_connect failed"
 				);
 			}
@@ -753,22 +752,25 @@ finish:
 
     if (client_auth->parent->conn->str_response != NULL && client_auth->parent->conn->str_response[0] != 0) {
         SFINISH_SNFCAT(
-            str_response, &int_response_len,
-            ":\n", (size_t)2,
-            client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
+            str_response, &int_response_len
+            , ":\n", (size_t)2
+            , client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
         );
     }
     SFREE(client_auth->parent->conn->str_response);
 	if (bol_error_state) {
 		bol_error_state = false;
 
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
 	if (client_auth->parent->str_http_response != NULL) {
@@ -825,31 +827,31 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 			"WHERE pg_user.usename = ";
 		if (str_global_2fa_function != NULL) {
 			SFINISH_SNCAT(
-				str_sql, &int_temp,
-				str_temp1, strlen(str_temp1),
-				", ", (size_t)2,
-				str_global_2fa_function, strlen(str_global_2fa_function),
-				"(", (size_t)1,
-				str_user_literal, int_user_literal_len,
-				") ", (size_t)2,
-				str_temp2, strlen(str_temp2),
-				str_user_literal, int_user_literal_len,
-				str_temp3, strlen(str_temp3),
-				str_user_literal, int_user_literal_len,
-				" AND pg_roles.rolname = ", (size_t)24,
-				str_group_literal, int_group_literal_len
+				str_sql, &int_temp
+				, str_temp1, strlen(str_temp1)
+				, ", ", (size_t)2
+				, str_global_2fa_function, strlen(str_global_2fa_function)
+				, "(", (size_t)1
+				, str_user_literal, int_user_literal_len
+				, ") ", (size_t)2
+				, str_temp2, strlen(str_temp2)
+				, str_user_literal, int_user_literal_len
+				, str_temp3, strlen(str_temp3)
+				, str_user_literal, int_user_literal_len
+				, " AND pg_roles.rolname = ", (size_t)24
+				, str_group_literal, int_group_literal_len
 			);
 		} else {
 			SFINISH_SNCAT(
-				str_sql, &int_temp,
-				str_temp1, strlen(str_temp1),
-				", '' ", (size_t)5,
-				str_temp2, strlen(str_temp2),
-				str_user_literal, int_user_literal_len,
-				str_temp3, strlen(str_temp3),
-				str_user_literal, int_user_literal_len,
-				" AND pg_roles.rolname = ", (size_t)24,
-				str_group_literal, int_group_literal_len
+				str_sql, &int_temp
+				, str_temp1, strlen(str_temp1)
+				, ", '' ", (size_t)5
+				, str_temp2, strlen(str_temp2)
+				, str_user_literal, int_user_literal_len
+				, str_temp3, strlen(str_temp3)
+				, str_user_literal, int_user_literal_len
+				, " AND pg_roles.rolname = ", (size_t)24
+				, str_group_literal, int_group_literal_len
 			);
 		}
 	} else if (DB_connection_driver(client_auth->parent->conn) == DB_DRIVER_SQL_SERVER) {
@@ -862,40 +864,40 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 			") = 1 THEN 'TRUE' ELSE 'FALSE' END, '';";
 		if (str_global_2fa_function != NULL) {
 			SFINISH_SNCAT(
-				str_sql, &int_temp,
-				str_temp1, strlen(str_temp1),
-				", ", (size_t)2,
-				str_global_2fa_function, strlen(str_global_2fa_function),
-				"(", (size_t)1,
-				str_user_literal, int_user_literal_len,
-				") ", (size_t)2,
-				str_temp2, strlen(str_temp2),
-				str_user_literal, int_user_literal_len,
-				str_temp3, strlen(str_temp3),
-				str_user_literal, int_user_literal_len,
-				" AND pg_roles.rolname = ", (size_t)24,
-				str_group_literal, int_group_literal_len
+				str_sql, &int_temp
+				, str_temp1, strlen(str_temp1)
+				, ", ", (size_t)2
+				, str_global_2fa_function, strlen(str_global_2fa_function)
+				, "(", (size_t)1
+				, str_user_literal, int_user_literal_len
+				, ") ", (size_t)2
+				, str_temp2, strlen(str_temp2)
+				, str_user_literal, int_user_literal_len
+				, str_temp3, strlen(str_temp3)
+				, str_user_literal, int_user_literal_len
+				, " AND pg_roles.rolname = ", (size_t)24
+				, str_group_literal, int_group_literal_len
 			);
 			SFINISH_SNCAT(
-				str_sql, &int_temp,
-				str_temp1, strlen(str_temp1),
-				", ", (size_t)2,
-				str_global_2fa_function, strlen(str_global_2fa_function),
-				"(", (size_t)1,
-				str_user_literal, int_user_literal_len,
-				") ", (size_t)2,
-				str_temp2, strlen(str_temp2),
-				str_group_literal, int_group_literal_len,
-				str_temp3, strlen(str_temp3)
+				str_sql, &int_temp
+				, str_temp1, strlen(str_temp1)
+				, ", ", (size_t)2
+				, str_global_2fa_function, strlen(str_global_2fa_function)
+				, "(", (size_t)1
+				, str_user_literal, int_user_literal_len
+				, ") ", (size_t)2
+				, str_temp2, strlen(str_temp2)
+				, str_group_literal, int_group_literal_len
+				, str_temp3, strlen(str_temp3)
 			);
 		} else {
 			SFINISH_SNCAT(
-				str_sql, &int_temp,
-				str_temp1, strlen(str_temp1),
-				", '' ", (size_t)5,
-				str_temp2, strlen(str_temp2),
-				str_group_literal, int_group_literal_len,
-				str_temp3, strlen(str_temp3)
+				str_sql, &int_temp
+				, str_temp1, strlen(str_temp1)
+				, ", '' ", (size_t)5
+				, str_temp2, strlen(str_temp2)
+				, str_group_literal, int_group_literal_len
+				, str_temp3, strlen(str_temp3)
 			);
 		}
 	} else {
@@ -906,12 +908,12 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
 			"{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}";
 		str_expires = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
 		SFINISH_SNCAT(
-			str_temp, &int_temp_len,
-			str_temp1, strlen(str_temp1),
-			client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
-			"; path=/; expires=", (size_t)18,
-			str_expires, strlen(str_expires),
-			str_temp2, strlen(str_temp2)
+			str_temp, &int_temp_len
+			, str_temp1, strlen(str_temp1)
+			, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len
+			, "; path=/; expires=", (size_t)18
+			, str_expires, strlen(str_expires)
+			, str_temp2, strlen(str_temp2)
 		);
         darr_headers = DArray_from_strings(
             "Set-Cookie", str_temp
@@ -919,13 +921,16 @@ void http_auth_login_step2(EV_P, void *cb_data, DB_conn *conn) {
         SFREE(str_temp);
         SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
 
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "200 OK"
                 , "{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}", strlen("{\"stat\": true, \"dat\": \"/env/app/all/index.html\"}")
                 , "application/json"
                 , darr_headers
                 , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 
 		struct sock_ev_client *client = client_auth->parent;
 		size_t int_cookie_len;
@@ -961,13 +966,16 @@ finish:
         SERROR_NORESPONSE("Login failed from ip: %s", client_auth->parent->str_client_ip);
         SFREE(str_global_error);
 
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
 	if (client_auth->parent->str_http_response != NULL) {
@@ -1002,9 +1010,18 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 	arr_row_values = DB_get_row_values(res);
 	arr_row_lengths = DB_get_row_lengths(res);
 
-	SFINISH_SNCAT(str_rolsuper, &int_temp, DArray_get(arr_row_values, 0), *(size_t *)DArray_get(arr_row_lengths, 0));
-	SFINISH_SNCAT(str_2fa_token, &int_temp, DArray_get(arr_row_values, 1), *(size_t *)DArray_get(arr_row_lengths, 1));
-	SFINISH_SNCAT(str_real_cookie, &int_real_cookie_len, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
+	SFINISH_SNCAT(
+		str_rolsuper, &int_temp
+		, DArray_get(arr_row_values, 0), *(size_t *)DArray_get(arr_row_lengths, 0)
+	);
+	SFINISH_SNCAT(
+		str_2fa_token, &int_temp
+		, DArray_get(arr_row_values, 1), *(size_t *)DArray_get(arr_row_lengths, 1)
+	);
+	SFINISH_SNCAT(
+		str_real_cookie, &int_real_cookie_len
+		, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len
+	);
 	if (str_2fa_token != NULL && strncmp(str_2fa_token, "", 1) != 0) {
 		// int_cookie_temp_len = client_auth->int_cookie_encrypted_len;
 		str_cookie_encrypted_temp = cstr_to_uri(client_auth->str_cookie_encrypted, &client_auth->int_cookie_encrypted_len);
@@ -1048,13 +1065,16 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 	if (bol_global_super_only == true && strncmp(str_rolsuper, "FALSE", 5) == 0) {
 		char *str_temp1 = "{\"stat\": false, \"dat\": \"You must login as a super user to use Envelope. If you would like to use a non-superuser role, change the `super_only` parameter to false in envelope.conf\"}";
 		SFINISH_SNCAT(str_temp, &int_temp, str_temp1, strlen(str_temp1));
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "403 Forbidden"
                 , str_temp, strlen(str_temp)
                 , "application/json"
                 , darr_headers
                 , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 		SFREE(str_temp);
 
 	} else if (str_global_login_group != NULL && strncmp(str_rolgroup, "FALSE", 5) == 0) {
@@ -1064,18 +1084,21 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
 		char *str_temp2 =
 			"' to use Envelope\"}";
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			str_temp1, strlen(str_temp1),
-			str_global_login_group, strlen(str_global_login_group),
-			str_temp2, strlen(str_temp2)
+			str_response, &int_response_len
+			, str_temp1, strlen(str_temp1)
+			, str_global_login_group, strlen(str_global_login_group)
+			, str_temp2, strlen(str_temp2)
 		);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "403 Forbidden"
                 , str_response, int_response_len
                 , "application/json"
                 , darr_headers
                 , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 
 		SFREE(str_content_length);
 	} else {
@@ -1088,12 +1111,12 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
         SFREE(str_expires);
         str_expires = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
         SFINISH_SNCAT(
-            str_temp, &int_temp_len,
-            str_temp1, strlen(str_temp1),
-            client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
-            "; path=/; expires=", (size_t)18,
-            str_expires, strlen(str_expires),
-            str_temp2, strlen(str_temp2)
+            str_temp, &int_temp_len
+            , str_temp1, strlen(str_temp1)
+            , client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len
+            , "; path=/; expires=", (size_t)18
+            , str_expires, strlen(str_expires)
+            , str_temp2, strlen(str_temp2)
         );
         darr_headers = DArray_from_strings(
             "Set-Cookie", str_temp
@@ -1101,17 +1124,23 @@ bool http_auth_login_step3(EV_P, void *cb_data, DB_result *res) {
         );
 		SFREE(str_temp);
         SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "200 OK"
                 , str_temp3, strlen(str_temp3)
                 , "application/json"
                 , darr_headers
                 , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 
 		struct sock_ev_client *client = client_auth->parent;
 		size_t int_cookie_len;
-		SFINISH_SNCAT(client->str_cookie, &int_cookie_len, client_auth->str_cookie_encrypted, strlen(client_auth->str_cookie_encrypted));
+		SFINISH_SNCAT(
+			client->str_cookie, &int_cookie_len
+			, client_auth->str_cookie_encrypted, strlen(client_auth->str_cookie_encrypted)
+		);
 		find_last_activity(client);
 		if (client->client_last_activity == NULL) {
 			SFINISH_CHECK(add_last_activity(client), "add_last_activity failed");
@@ -1137,9 +1166,9 @@ finish:
 
     if (client_auth->parent->conn->str_response != NULL && client_auth->parent->conn->str_response[0] != 0) {
         SFINISH_SNFCAT(
-            str_response, &int_response_len,
-            ":\n", (size_t)2,
-            client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
+            str_response, &int_response_len
+			, ":\n", (size_t)2
+			, client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
         );
     }
     SFREE(client_auth->parent->conn->str_response);
@@ -1152,22 +1181,25 @@ finish:
 		char *_str_response1 = str_response;
 		char *_str_response2 = DB_get_diagnostic(client_auth->parent->conn, res);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
-			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+			str_response, &int_response_len
+			, _str_response1, strlen(_str_response1 != NULL ? _str_response1 : "")
+			, ":\n", (size_t)2
+			, _str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
 
 
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
 	DB_free_result(res);
     SFREE(str_response);
@@ -1198,8 +1230,10 @@ void http_auth_change_pw_step2(EV_P, void *cb_data, DB_conn *conn) {
 	// DEBUG("pw check>%s|%s|%i<", str_password_old, pword,
 	// strncmp(str_password_old, pword, strlen(pword)));
 	// **** WARNING ****
-	SFINISH_CHECK(strncmp(client_auth->str_old_check_password, client_auth->str_password, strlen(client_auth->str_password)) == 0,
-		"Old password does not match.");
+	SFINISH_CHECK(
+		strncmp(client_auth->str_old_check_password, client_auth->str_password, strlen(client_auth->str_password)) == 0
+		, "Old password does not match."
+	);
 	SFREE_PWORD(client_auth->str_password);
 
 	str_new_password_literal =
@@ -1207,25 +1241,25 @@ void http_auth_change_pw_step2(EV_P, void *cb_data, DB_conn *conn) {
 	SFREE_PWORD(client_auth->str_new_password);
 	if (DB_connection_driver(client_auth->parent->conn) == DB_DRIVER_POSTGRES) {
 		SFINISH_SNCAT(
-			str_sql, &int_temp,
-			"ALTER ROLE ", (size_t)11,
-			str_user_quote, strlen(str_user_quote),
-			" PASSWORD ", (size_t)10,
-			str_new_password_literal, strlen(str_new_password_literal),
-			";", (size_t)1
+			str_sql, &int_temp
+			, "ALTER ROLE ", (size_t)11
+			, str_user_quote, strlen(str_user_quote)
+			, " PASSWORD ", (size_t)10
+			, str_new_password_literal, strlen(str_new_password_literal)
+			, ";", (size_t)1
 		);
 	} else {
 		str_old_password_literal = DB_escape_literal(
 			client_auth->parent->conn, client_auth->str_old_check_password, strlen(client_auth->str_old_check_password));
 		SFINISH_SNCAT(
-			str_sql, &int_temp,
-			"ALTER LOGIN ", (size_t)12,
-			str_user_quote, strlen(str_user_quote),
-			" WITH PASSWORD = ", (size_t)17,
-			str_new_password_literal, strlen(str_new_password_literal),
-			" OLD_PASSWORD = ", (size_t)16,
-			str_old_password_literal, strlen(str_old_password_literal),
-			";", (size_t)1
+			str_sql, &int_temp
+			, "ALTER LOGIN ", (size_t)12
+			, str_user_quote, strlen(str_user_quote)
+			, " WITH PASSWORD = ", (size_t)17
+			, str_new_password_literal, strlen(str_new_password_literal)
+			, " OLD_PASSWORD = ", (size_t)16
+			, str_old_password_literal, strlen(str_old_password_literal)
+			, ";", (size_t)1
 		);
 		SDEBUG("str_sql: %s", str_sql);
 	}
@@ -1242,7 +1276,9 @@ void http_auth_change_pw_step2(EV_P, void *cb_data, DB_conn *conn) {
 
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 	SFINISH_CHECK(
-		DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, http_auth_change_pw_step3), "DB_exec failed");
+		DB_exec(EV_A, client_request->parent->conn, client_request, str_sql, http_auth_change_pw_step3)
+		, "DB_exec failed"
+	);
 	SFREE(str_sql);
 	/*
 	int int_status = PQsendQuery(client_auth->parent->cnxn, str_sql);
@@ -1257,9 +1293,9 @@ finish:
 
     if (client_auth->parent->conn->str_response != NULL && client_auth->parent->conn->str_response[0] != 0) {
         SFINISH_SNFCAT(
-            str_response, &int_response_len,
-            ":\n", (size_t)2,
-            client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
+            str_response, &int_response_len
+            , ":\n", (size_t)2
+            , client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
         );
     }
     SFREE(client_auth->parent->conn->str_response);
@@ -1268,13 +1304,16 @@ finish:
 		bol_error_state = false;
         SFREE(str_global_error);
 
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
 	if (client_auth->parent->str_http_response != NULL) {
@@ -1304,37 +1343,44 @@ bool http_auth_change_pw_step3(EV_P, void *cb_data, DB_result *res) {
 	SDEBUG("PASSWORD CHANGE");
 	str_expires = str_global_2fa_function != NULL ? str_expire_100_year() : str_expire_one_day();
 
-	char *str_temp2 =
-		"envelope=";
-	char *str_temp3 =
-		"; HttpOnly";
+	char *str_temp2 = "envelope=";
+	char *str_temp3 = "; HttpOnly";
 	SFINISH_SNFCAT(
-		str_temp1, &int_temp_len,
-		str_temp2, strlen(str_temp2),
-		client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len,
-		"; path=/; expires=", (size_t)18,
-		str_expires, strlen(str_expires),
-		str_temp3, strlen(str_temp3)
+		str_temp1, &int_temp_len
+		, str_temp2, strlen(str_temp2)
+		, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len
+		, "; path=/; expires=", (size_t)18
+		, str_expires, strlen(str_expires)
+		, str_temp3, strlen(str_temp3)
 	);
     darr_headers = DArray_from_strings(
         "Set-Cookie", str_temp1
     );
     SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
-    SFINISH_CHECK(build_http_response(
+    SFINISH_CHECK(
+		build_http_response(
             "200 OK"
             , "{\"stat\": true, \"dat\": \"OK\"}", strlen("{\"stat\": true, \"dat\": \"OK\"}")
             , "application/json"
             , darr_headers
             , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
-        ), "build_http_response failed");
+        )
+		, "build_http_response failed"
+	);
     SINFO("client_auth->parent->str_http_response: %s", client_auth->parent->str_http_response);
 
 	size_t int_cookie_len;
-	SFINISH_SNCAT(client_auth->parent->str_cookie, &int_cookie_len, client_auth->str_cookie_encrypted, strlen(client_auth->str_cookie_encrypted));
+	SFINISH_SNCAT(
+		client_auth->parent->str_cookie, &int_cookie_len
+		, client_auth->str_cookie_encrypted, strlen(client_auth->str_cookie_encrypted)
+	);
 	find_last_activity(client_auth->parent);
 	if (client_auth->parent->client_last_activity != NULL) {
 		SFREE(client_auth->parent->client_last_activity->str_cookie);
-		SFINISH_SNCAT(client_auth->parent->client_last_activity->str_cookie, &int_temp, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len);
+		SFINISH_SNCAT(
+			client_auth->parent->client_last_activity->str_cookie, &int_temp
+			, client_auth->str_cookie_encrypted, client_auth->int_cookie_encrypted_len
+		);
 		SDEBUG("New cookie is %s", client_auth->parent->client_last_activity->str_cookie);
 	} else {
 		SFINISH_CHECK(add_last_activity(client_auth->parent), "add_last_activity failed");
@@ -1349,9 +1395,9 @@ finish:
 
     if (client_auth->parent->conn->str_response != NULL && client_auth->parent->conn->str_response[0] != 0) {
         SFINISH_SNFCAT(
-            str_response, &int_response_len,
-            ":\n", (size_t)2,
-            client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
+            str_response, &int_response_len
+            , ":\n", (size_t)2
+            , client_auth->parent->conn->str_response, strlen(client_auth->parent->conn->str_response)
         );
     }
     SFREE(client_auth->parent->conn->str_response);
@@ -1360,13 +1406,16 @@ finish:
 		bol_error_state = false;
         SFREE(str_global_error);
 
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client_auth->parent->str_http_response, &client_auth->parent->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
 	if (client_auth->parent->str_http_response != NULL) {

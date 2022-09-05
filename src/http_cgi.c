@@ -23,20 +23,26 @@ void http_cgi_step1(EV_P, struct sock_ev_client *client) {
 		}
 	}
 
-	SFINISH_SNCAT(str_action_name, &int_action_name_len,
-		str_uri + strlen("/env/"), strlen(str_uri + strlen("/env/")));
+	SFINISH_SNCAT(
+		str_action_name, &int_action_name_len
+		, str_uri + strlen("/env/"), strlen(str_uri + strlen("/env/"))
+	);
 	char *ptr_end_action_name = strchr(str_action_name, '/');
 	if (ptr_end_action_name != NULL) {
 		int_action_name_len = (size_t)(ptr_end_action_name - str_action_name);
 		*ptr_end_action_name = 0;
-		SFINISH_SNCAT(str_uri_temp2, &int_temp_len,
-			"/", (size_t)1,
-			ptr_end_action_name + 1, strlen(ptr_end_action_name + 1));
+		SFINISH_SNCAT(
+			str_uri_temp2, &int_temp_len
+			, "/", (size_t)1
+			, ptr_end_action_name + 1, strlen(ptr_end_action_name + 1)
+		);
 		str_uri_temp = snuri(str_uri_temp2, int_temp_len, &int_temp_len);
 		SFINISH_CHECK(str_uri_temp != NULL, "snuri failed");
-		SFINISH_SNFCAT(str_args, &int_args_len,
-			"&path=", (size_t)6,
-			str_uri_temp, int_temp_len);
+		SFINISH_SNFCAT(
+			str_args, &int_args_len
+			, "&path=", (size_t)6
+			, str_uri_temp, int_temp_len
+		);
 		SFREE(str_uri_temp2);
 	}
 
@@ -49,19 +55,23 @@ void http_cgi_step1(EV_P, struct sock_ev_client *client) {
 	SDEBUG("str_args: %s", str_args);
 
 	if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
-		SFINISH_SNCAT(str_sql, &int_sql_len,
-			"SELECT ", (size_t)7,
-			str_action_name, int_action_name_len,
-			"(", (size_t)1,
-			str_args, int_args_len,
-			");", (size_t)2);
+		SFINISH_SNCAT(
+			str_sql, &int_sql_len
+			, "SELECT ", (size_t)7
+			, str_action_name, int_action_name_len
+			, "(", (size_t)1
+			, str_args, int_args_len
+			, ");", (size_t)2
+		);
 	} else {
-		SFINISH_SNCAT(str_sql, &int_sql_len,
-			"EXECUTE ", (size_t)8,
-			str_action_name, int_action_name_len,
-			" ", (size_t)1,
-			str_args, int_args_len,
-			";", (size_t)1);
+		SFINISH_SNCAT(
+			str_sql, &int_sql_len
+			, "EXECUTE ", (size_t)8
+			, str_action_name, int_action_name_len
+			, " ", (size_t)1
+			, str_args, int_args_len
+			, ";", (size_t)1
+		);
 	}
 	SFINISH_CHECK(query_is_safe(str_sql), "SQL Injection detected");
 	SFINISH_CHECK(DB_exec(EV_A, client->conn, client, str_sql, http_cgi_step2), "DB_exec failed");
@@ -74,13 +84,16 @@ finish:
 		bol_error_state = false;
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
@@ -134,13 +147,16 @@ finish:
 		bol_error_state = false;
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of

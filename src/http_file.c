@@ -73,12 +73,12 @@ void http_file_step1(EV_P, struct sock_ev_client *client) {
 		str_canonical_start = canonical_full_start("/app/");
 		SFINISH_CHECK(str_canonical_start != NULL, "canonical_full_start failed");
 		SFINISH_SNCAT(
-			str_uri_for_permission_check, &int_uri_for_permission_check_len,
-			str_uri_temp + 4, client_http_file->int_uri_part_len - 4
+			str_uri_for_permission_check, &int_uri_for_permission_check_len
+			, str_uri_temp + 4, client_http_file->int_uri_part_len - 4
 		);
 		SFINISH_SNCAT(
-			client_http_file->str_uri_part, &client_http_file->int_uri_part_len,
-			str_uri_temp + 9, client_http_file->int_uri_part_len - 9
+			client_http_file->str_uri_part, &client_http_file->int_uri_part_len
+			, str_uri_temp + 9, client_http_file->int_uri_part_len - 9
 		);
 		bol_permission_check = true;
 
@@ -86,12 +86,12 @@ void http_file_step1(EV_P, struct sock_ev_client *client) {
 		str_canonical_start = canonical_full_start("/role/");
 		SFINISH_CHECK(str_canonical_start != NULL, "canonical_full_start failed");
 		SFINISH_SNCAT(
-			str_uri_for_permission_check, &int_uri_for_permission_check_len,
-			str_uri_temp + 4, client_http_file->int_uri_part_len - 4
+			str_uri_for_permission_check, &int_uri_for_permission_check_len
+			, str_uri_temp + 4, client_http_file->int_uri_part_len - 4
 		);
 		SFINISH_SNCAT(
-			client_http_file->str_uri_part, &client_http_file->int_uri_part_len,
-			str_uri_temp + 10, client_http_file->int_uri_part_len - 10
+			client_http_file->str_uri_part, &client_http_file->int_uri_part_len
+			, str_uri_temp + 10, client_http_file->int_uri_part_len - 10
 		);
 		bol_permission_check = true;
 
@@ -99,8 +99,8 @@ void http_file_step1(EV_P, struct sock_ev_client *client) {
 		str_canonical_start = canonical_full_start("/web_root/");
 		SFINISH_CHECK(str_canonical_start != NULL, "canonical_full_start failed");
 		SFINISH_SNCAT(
-			client_http_file->str_uri_part, &client_http_file->int_uri_part_len,
-			str_uri_temp, client_http_file->int_uri_part_len
+			client_http_file->str_uri_part, &client_http_file->int_uri_part_len
+			, str_uri_temp, client_http_file->int_uri_part_len
 		);
 	}
 	SFREE(str_uri_temp);
@@ -113,19 +113,19 @@ void http_file_step1(EV_P, struct sock_ev_client *client) {
 	if (strncmp(str_uri_temp, "download/", 9) == 0) {
 		client_http_file->bol_download = true;
 		SFINISH_SNCAT(
-			client_http_file->str_uri_part, &client_http_file->int_uri_part_len,
-			str_uri_temp + 8, client_http_file->int_uri_part_len - 8
+			client_http_file->str_uri_part, &client_http_file->int_uri_part_len
+			, str_uri_temp + 8, client_http_file->int_uri_part_len - 8
 		);
 	} else if (strncmp(str_uri_temp, "/download/", 10) == 0) {
 		client_http_file->bol_download = true;
 		SFINISH_SNCAT(
-			client_http_file->str_uri_part, &client_http_file->int_uri_part_len,
-			str_uri_temp + 9, client_http_file->int_uri_part_len - 9
+			client_http_file->str_uri_part, &client_http_file->int_uri_part_len
+			, str_uri_temp + 9, client_http_file->int_uri_part_len - 9
 		);
 	} else {
 		SFINISH_SNCAT(
-			client_http_file->str_uri_part, &client_http_file->int_uri_part_len,
-			str_uri_temp, client_http_file->int_uri_part_len
+			client_http_file->str_uri_part, &client_http_file->int_uri_part_len
+			, str_uri_temp, client_http_file->int_uri_part_len
 		);
 	}
 	SFREE(str_uri_temp);
@@ -135,13 +135,13 @@ void http_file_step1(EV_P, struct sock_ev_client *client) {
 	if (strlen(client_http_file->str_uri_part) <= 1 || str_temp != NULL) {
 		if (*(client_http_file->str_uri_part + strlen(client_http_file->str_uri_part) - 1) == '/') {
 			SFINISH_SNFCAT(
-				client_http_file->str_uri_part, &client_http_file->int_uri_part_len,
-				"index.html", (size_t)10
+				client_http_file->str_uri_part, &client_http_file->int_uri_part_len
+				, "index.html", (size_t)10
 			);
 		} else {
 			SFINISH_SNFCAT(
-				client_http_file->str_uri_part, &client_http_file->int_uri_part_len,
-				"/index.html", (size_t)11
+				client_http_file->str_uri_part, &client_http_file->int_uri_part_len
+				, "/index.html", (size_t)11
 			);
 		}
 	}
@@ -157,9 +157,11 @@ void http_file_step1(EV_P, struct sock_ev_client *client) {
 
 	if (bol_permission_check == true) {
 		SINFO("client_http_file->str_uri_part: %s", client_http_file->str_uri_part);
-		SFINISH_CHECK(permissions_check(EV_A, client_http_file->parent->conn, str_uri_for_permission_check,
-			client_http_file, http_file_step15_envelope),
-			"permissions_check() failed");
+		SFINISH_CHECK(
+			permissions_check(EV_A, client_http_file->parent->conn, str_uri_for_permission_check
+				, client_http_file, http_file_step15_envelope)
+			, "permissions_check() failed"
+		);
 	} else {
 #ifdef _WIN32
 		SetLastError(0);
@@ -171,13 +173,16 @@ void http_file_step1(EV_P, struct sock_ev_client *client) {
 				SFREE(client->str_http_response);
 				SERROR_NORESPONSE("CreateFileA failed!");
 				SFREE(str_global_error);
-                SFINISH_CHECK(build_http_response(
+                SFINISH_CHECK(
+					build_http_response(
                         "404 Not Found"
                         , "The file you are requesting is not here.", strlen("The file you are requesting is not here.")
                         , "text/plain"
                         , NULL
                         , &client->str_http_response, &client->int_http_response_len
-                    ), "build_http_response failed");
+                    )
+					, "build_http_response failed"
+				);
 				bol_error_state = false;
 				goto finish;
 			}
@@ -194,13 +199,16 @@ void http_file_step1(EV_P, struct sock_ev_client *client) {
             SFREE(client->str_http_response);
             SERROR_NORESPONSE("open failed! %d (%s)", errno, strerror(errno));
             SFREE(str_global_error);
-            SFINISH_CHECK(build_http_response(
+            SFINISH_CHECK(
+				build_http_response(
                     "404 Not Found"
                     , "The file you are requesting is not here.", strlen("The file you are requesting is not here.")
                     , "text/plain"
                     , NULL
                     , &client->str_http_response, &client->int_http_response_len
-                ), "build_http_response failed");
+                )
+				, "build_http_response failed"
+			);
             bol_error_state = false;
             goto finish;
         }
@@ -228,13 +236,16 @@ finish:
 		http_file_free(client_http_file);
 		client_http_file = NULL;
 
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
 	if (client->str_http_response != NULL && client->io.events != EV_WRITE) {
@@ -269,13 +280,16 @@ bool http_file_step15_envelope(EV_P, void *cb_data, bool bol_group) {
 			SFREE(str_response);
 			SERROR_NORESPONSE("CreateFileA failed! (404)");
 			SFREE(str_global_error);
-            SFINISH_CHECK(build_http_response(
+            SFINISH_CHECK(
+				build_http_response(
                     "404 Not Found"
                     , "The file you are requesting is not here.", strlen("The file you are requesting is not here.")
                     , "text/plain"
                     , NULL
                     , &client->str_http_response, &client->int_http_response_len
-                ), "build_http_response failed");
+                )
+				, "build_http_response failed"
+			);
 			bol_error_state = false;
 			goto finish;
 		}
@@ -292,13 +306,16 @@ bool http_file_step15_envelope(EV_P, void *cb_data, bool bol_group) {
 		SFREE(str_response);
 		SERROR_NORESPONSE("open failed! %d (%s) (404)", errno, strerror(errno));
 		SFREE(str_global_error);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "404 Not Found"
                 , "The file you are requesting is not here.", strlen("The file you are requesting is not here.")
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 		bol_error_state = false;
 		goto finish;
 	}
@@ -323,13 +340,16 @@ finish:
 	if (bol_error_state) {
 		bol_error_state = false;
 
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 !bol_group ? "403 Forbidden" : "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
 	if (client->str_http_response != NULL) {
@@ -404,13 +424,16 @@ client_http_file->int_content_len = (size_t)client_http_file->int_read_len;
             , "Last-Modified", client_http_file->str_last_modified
         );
         SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "304 Not Modified"
                 , "", 0
                 , NULL
                 , darr_headers
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	} else {
 		client_http_file->int_read = 0;
 		client_http_file->int_response_header_len = client_http_file->int_response_len;
@@ -436,13 +459,16 @@ finish:
 	if (bol_error_state) {
 		bol_error_state = false;
 
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
 	if (client->str_http_response != NULL) {
@@ -505,13 +531,16 @@ void http_file_step3(EV_P, ev_check *w, int revents) {
         SFINISH_CHECK(str_content_type, "contenttype failed");
 		SINFO("str_content_type: %s", str_content_type);
 
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "200 OK"
                 , "", 0
                 , str_content_type
                 , darr_headers
                 , &client->str_http_header, &client->int_http_header_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
         client->str_http_response = client_http_file->str_content;
         client->int_http_response_len = client_http_file->int_content_len;
         client_http_file->str_content = NULL;
@@ -539,8 +568,10 @@ void http_file_step3(EV_P, ev_check *w, int revents) {
 			(DWORD)(client_http_file->int_read_len - client_http_file->int_read), &int_read, NULL);
 		if (bol_result == FALSE) {
 			int int_err = GetLastError();
-			FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
-				int_err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL);
+			FormatMessageA(
+				FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL
+				, int_err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL
+			);
 
 			if (strErrorText != NULL) {
 				SFINISH("ReadFile failed: 0x%X (%s)", int_err, strErrorText);
@@ -548,9 +579,11 @@ void http_file_step3(EV_P, ev_check *w, int revents) {
 		}
 #else
 		lseek(client_http_file->int_file_fd, (off_t)client_http_file->int_read, SEEK_SET);
-		ssize_t int_read = read(client_http_file->int_file_fd,
-			client_http_file->str_content + (off_t)client_http_file->int_read,
-			(size_t)(client_http_file->int_read_len - client_http_file->int_read));
+		ssize_t int_read = read(
+			client_http_file->int_file_fd
+			, client_http_file->str_content + (off_t)client_http_file->int_read
+			, (size_t)(client_http_file->int_read_len - client_http_file->int_read)
+		);
 		// SDEBUG("int_read: %d", int_read);
 		// SDEBUG("client->str_response +
 		// client_http_file->int_response_header_len +
@@ -572,13 +605,16 @@ finish:
 		bol_error_state = false;
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of

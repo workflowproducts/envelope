@@ -43,15 +43,25 @@ void http_upload_step1(EV_P, struct sock_ev_client *client) {
 	client_upload->ptr_content = client_upload->sun_current_upload->ptr_file_content;
 	//SDEBUG("upload contents: %p", client_upload->ptr_content);
 
-	SFINISH_SNCAT(client_upload->str_file_name, &client_upload->int_file_name_len,
-		client_upload->sun_current_upload->str_name, strlen(client_upload->sun_current_upload->str_name));
+	SFINISH_SNCAT(
+		client_upload->str_file_name, &client_upload->int_file_name_len
+		, client_upload->sun_current_upload->str_name, strlen(client_upload->sun_current_upload->str_name)
+	);
 
 	client_upload->str_canonical_start = canonical_full_start(client_upload->str_file_name);
-	SFINISH_CHECK(client_upload->str_canonical_start != NULL, "canonical_full_start() failed, %s", client_upload->str_canonical_start);
+	SFINISH_CHECK(
+		client_upload->str_canonical_start != NULL
+		, "canonical_full_start() failed, %s"
+		, client_upload->str_canonical_start
+	);
 
 	str_temp = client_upload->str_file_name;
 	client_upload->str_file_name = canonical_strip_start(str_temp);
-	SFINISH_CHECK(client_upload->str_file_name != NULL, "canonical_strip_start() failed, %s", str_temp);
+	SFINISH_CHECK(
+		client_upload->str_file_name != NULL
+		, "canonical_strip_start() failed, %s"
+		, str_temp
+	);
 
 	str_full_path = canonical(client_upload->str_canonical_start, client_upload->str_file_name, "valid_path");
 	SFINISH_CHECK(str_full_path != NULL, "invalid path: %s", client_upload->str_file_name);
@@ -72,13 +82,16 @@ finish:
 		bol_error_state = false;
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
@@ -115,8 +128,10 @@ bool http_upload_step2(EV_P, void *cb_data, bool bol_group) {
 	client_upload->h_file = CreateFileA(str_temp, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (client_upload->h_file == INVALID_HANDLE_VALUE) {
 		int int_err = GetLastError();
-		FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL);
+		FormatMessageA(
+			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err
+			, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL
+		);
 
 		if (strErrorText != NULL) {
 			SFINISH("CreateFile failed: 0x%X (%s)", int_err, strErrorText);
@@ -145,13 +160,16 @@ finish:
 		bol_error_state = false;
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
@@ -165,10 +183,8 @@ finish:
 }
 
 void http_upload_step3(EV_P, ev_check *w, int revents) {
-	if (loop != NULL) {
-	} // get rid of unused parameter warning
-	if (revents != 0) {
-	} // get rid of unused parameter warning
+	if (loop != NULL) {} // get rid of unused parameter warning
+	if (revents != 0) {} // get rid of unused parameter warning
 	struct sock_ev_client_upload *client_upload = (struct sock_ev_client_upload *)w;
 	struct sock_ev_client *client = client_upload->parent;
 	char *str_response = NULL;
@@ -179,12 +195,16 @@ void http_upload_step3(EV_P, ev_check *w, int revents) {
 
 #ifdef _WIN32
 	DWORD int_temp = 0;
-	BOOL bol_result = WriteFile(client_upload->h_file, client_upload->ptr_content + client_upload->int_written,
-		(DWORD)(client_upload->sun_current_upload->int_file_content_len - client_upload->int_written), &int_temp, NULL);
+	BOOL bol_result = WriteFile(
+		client_upload->h_file, client_upload->ptr_content + client_upload->int_written
+		, (DWORD)(client_upload->sun_current_upload->int_file_content_len - client_upload->int_written), &int_temp, NULL
+	);
 	if (bol_result == FALSE) {
 		int int_err = GetLastError();
-		FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL);
+		FormatMessageA(
+			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err
+			, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL
+		);
 
 		if (strErrorText != NULL) {
 			SFINISH("WriteFile failed: 0x%X (%s)", int_err, strErrorText);
@@ -192,20 +212,25 @@ void http_upload_step3(EV_P, ev_check *w, int revents) {
 	}
 #else
 	ssize_t int_temp = 0;
-	int_temp = write(client_upload->int_fd, client_upload->ptr_content + client_upload->int_written,
-		(size_t)((ssize_t)client_upload->sun_current_upload->int_file_content_len - client_upload->int_written));
+	int_temp = write(
+		client_upload->int_fd, client_upload->ptr_content + client_upload->int_written
+		, (size_t)((ssize_t)client_upload->sun_current_upload->int_file_content_len - client_upload->int_written)
+	);
 	SFINISH_CHECK(int_temp != -1, "write failed");
 #endif
 	client_upload->int_written += int_temp;
 
 	if (client_upload->int_written == (ssize_t)client_upload->sun_current_upload->int_file_content_len) {
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "200 OK"
                 , "Upload Succeeded\012", strlen("Upload Succeeded\012")
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
         ev_check_stop(EV_A, w);
 	}
 
@@ -215,13 +240,16 @@ finish:
 		bol_error_state = false;
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of

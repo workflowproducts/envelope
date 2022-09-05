@@ -42,8 +42,8 @@ void http_delete_step1(EV_P, struct sock_ev_client *client) {
 	client_delete->str_real_table_name = getpar(str_args, "src", int_query_len, &client_delete->int_real_table_name_len);
 	if (client_delete->str_real_table_name == NULL || client_delete->str_real_table_name[0] == 0) {
 		SFREE(client_delete->str_real_table_name);
-		client_delete->str_real_table_name =
-			getpar(str_args, "view", int_query_len, &client_delete->int_real_table_name_len);
+		client_delete->str_real_table_name
+			= getpar(str_args, "view", int_query_len, &client_delete->int_real_table_name_len);
 	}
 	SFINISH_ERROR_CHECK(client_delete->str_real_table_name != NULL && client_delete->str_real_table_name[0] != 0, "Failed to get table name from query");
 
@@ -53,20 +53,23 @@ void http_delete_step1(EV_P, struct sock_ev_client *client) {
 	ptr_data = str_data;
 	ptr_data_end = str_data + int_data_len;
 	while (ptr_data < ptr_data_end) {
-		if (*ptr_data != '0' && *ptr_data != '1' && *ptr_data != '2' && *ptr_data != '3' && *ptr_data != '4' &&
-			*ptr_data != '5' && *ptr_data != '6' && *ptr_data != '7' && *ptr_data != '8' && *ptr_data != '9' &&
-			*ptr_data != ',' && *ptr_data != ' ' && *ptr_data != '\t' && *ptr_data != '\n' && *ptr_data != '-') {
+		if (*ptr_data != '0' && *ptr_data != '1' && *ptr_data != '2' && *ptr_data != '3' && *ptr_data != '4'
+			&& *ptr_data != '5' && *ptr_data != '6' && *ptr_data != '7' && *ptr_data != '8' && *ptr_data != '9'
+			&& *ptr_data != ',' && *ptr_data != ' ' && *ptr_data != '\t' && *ptr_data != '\n' && *ptr_data != '-'
+		) {
 			SFINISH("The id argument can only have commas, numbers and whitespace");
 		}
 		ptr_data++;
 	}
 
-	SFINISH_SNCAT(client_delete->str_sql, &client_delete->int_sql_len,
-		"DELETE FROM ", (size_t)12,
-		client_delete->str_real_table_name, client_delete->int_real_table_name_len,
-		" WHERE id IN (", (size_t)14,
-		str_data, int_data_len,
-		");", (size_t)2);
+	SFINISH_SNCAT(
+		client_delete->str_sql, &client_delete->int_sql_len
+		, "DELETE FROM ", (size_t)12
+		, client_delete->str_real_table_name, client_delete->int_real_table_name_len
+		, " WHERE id IN (", (size_t)14
+		, str_data, int_data_len
+		, ");", (size_t)2
+	);
 
 	SDEBUG("client_delete->str_sql: %s", client_delete->str_sql);
 	if (DB_connection_driver(client->conn) == DB_DRIVER_POSTGRES) {
@@ -84,13 +87,16 @@ finish:
 		bol_error_state = false;
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of
@@ -128,22 +134,25 @@ finish:
 		char *_str_response1 = str_response;
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
-			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+			str_response, &int_response_len
+			, _str_response1, strlen(_str_response1 != NULL ? _str_response1 : "")
+			, ":\n", (size_t)2
+			, _str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
 	DB_free_result(res);
     SFREE(str_response);
@@ -184,22 +193,25 @@ finish:
 		char *_str_response1 = str_response;
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
-			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+			str_response, &int_response_len
+			, _str_response1, strlen(_str_response1 != NULL ? _str_response1 : "")
+			, ":\n", (size_t)2
+			, _str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
 	DB_free_result(res);
     SFREE(str_response);
@@ -221,13 +233,16 @@ bool http_delete_step4(EV_P, void *cb_data, DB_result *res) {
 	SFINISH_CHECK(res != NULL, "DB_exec failed");
 	SFINISH_CHECK(res->status == DB_RES_COMMAND_OK, "DB_exec failed");
 
-    SFINISH_CHECK(build_http_response(
+    SFINISH_CHECK(
+		build_http_response(
             "200 OK"
             , "{\"stat\": true, \"dat\": \"\"}", strlen("{\"stat\": true, \"dat\": \"\"}")
             , "application/json"
             , NULL
             , &client->str_http_response, &client->int_http_response_len
-        ), "build_http_response failed");
+        )
+		, "build_http_response failed"
+	);
 
 	SDEBUG("str_response: %s", str_response);
 
@@ -243,22 +258,25 @@ finish:
 		char *_str_response1 = str_response;
 		char *_str_response2 = DB_get_diagnostic(client->conn, res);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			_str_response1, strlen(_str_response1 != NULL ? _str_response1 : ""),
-			":\n", (size_t)2,
-			_str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
+			str_response, &int_response_len
+			, _str_response1, strlen(_str_response1 != NULL ? _str_response1 : "")
+			, ":\n", (size_t)2
+			, _str_response2, strlen(_str_response2 != NULL ? _str_response2 : "")
 		);
 		SFREE(_str_response1);
 		SFREE(_str_response2);
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
 	DB_free_result(res);
     SFREE(str_response);

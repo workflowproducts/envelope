@@ -58,16 +58,16 @@ void http_ev_step1(EV_P, struct sock_ev_client *client) {
         struct sock_ev_client *client = client_node->value;
 		snprintf(str_current_address, 255, "%p", client);
         SFINISH_SNFCAT(
-            str_response, &int_response_len,
-            "        ", (size_t)8,
-            client->str_client_ip, client->int_client_ip_len,
-			": ", (size_t)2,
-            client->str_username, client->int_username_len,
-			" at ", (size_t)4,
-			str_current_address, strlen(str_current_address),
-            client->str_websocket_key ? " (WS)" : " (HTTP)", (size_t)(client->str_websocket_key ? 5 : 7),
-            client->str_websocket_key && !client->bol_socket_is_open ? " (CLOSING)" : "", (size_t)(client->str_websocket_key && !client->bol_socket_is_open ? 10 : 0),
-            "\015\012", (size_t)2
+            str_response, &int_response_len
+            , "        ", (size_t)8
+            , client->str_client_ip, client->int_client_ip_len
+			, ": ", (size_t)2
+            , client->str_username, client->int_username_len
+			, " at ", (size_t)4
+			, str_current_address, strlen(str_current_address)
+            , client->str_websocket_key ? " (WS)" : " (HTTP)", (size_t)(client->str_websocket_key ? 5 : 7)
+            , client->str_websocket_key && !client->bol_socket_is_open ? " (CLOSING)" : "", (size_t)(client->str_websocket_key && !client->bol_socket_is_open ? 10 : 0)
+            , "\015\012", (size_t)2
         );
         if (client->str_websocket_key) {
             struct sock_ev_client_request *client_request = client->cur_request;
@@ -75,12 +75,12 @@ void http_ev_step1(EV_P, struct sock_ev_client *client) {
             if (client_request) {
                 str_request_type = request_type_string(client_request->int_req_type);
                 SFINISH_SNFCAT(
-                    str_response, &int_response_len,
-                    "        ", (size_t)8,
-                    "        ", (size_t)8,
-                    "current request: ", (size_t)17,
-                    str_request_type, strlen(str_request_type),
-                    "\015\012", (size_t)2
+                    str_response, &int_response_len
+                    , "        ", (size_t)8
+                    , "        ", (size_t)8
+                    , "current request: ", (size_t)17
+                    , str_request_type, strlen(str_request_type)
+                    , "\015\012", (size_t)2
                 );
             }
 
@@ -89,12 +89,12 @@ void http_ev_step1(EV_P, struct sock_ev_client *client) {
                 client_request = request_node->value;
                 str_request_type = request_type_string(client_request->int_req_type);
                 SFINISH_SNFCAT(
-                    str_response, &int_response_len,
-                    "        ", (size_t)8,
-                    "        ", (size_t)8,
-                    "queued request", (size_t)14,
-                    str_request_type, strlen(str_request_type),
-                "\015\012", (size_t)2
+                    str_response, &int_response_len
+                    , "        ", (size_t)8
+                    , "        ", (size_t)8
+                    , "queued request", (size_t)14
+                    , str_request_type, strlen(str_request_type)
+                	, "\015\012", (size_t)2
                 );
                 request_node = request_node->prev;
             }
@@ -102,24 +102,24 @@ void http_ev_step1(EV_P, struct sock_ev_client *client) {
             str_uri = str_uri_path(client->str_request, client->int_request_len, &int_uri_len);
             if (!str_uri) {
                 SFINISH_SNCAT(
-                    str_uri, &int_uri_len,
-                    "failed to get uri", (size_t)17
+                    str_uri, &int_uri_len
+                    , "failed to get uri", (size_t)17
                 );
             }
             SFINISH_SNFCAT(
-                str_response, &int_response_len,
-                "        ", (size_t)8,
-                "        ", (size_t)8,
-                str_uri, int_uri_len,
-                "\015\012", (size_t)2
+                str_response, &int_response_len
+                , "        ", (size_t)8
+                , "        ", (size_t)8
+                , str_uri, int_uri_len
+                , "\015\012", (size_t)2
             );
             SFREE(str_uri);
         }
         client_node = client_node->next;
     }
     SFINISH_SNFCAT(
-        str_response, &int_response_len,
-        "\015\012\015\012\015\012\015\012", (size_t)8
+        str_response, &int_response_len
+        , "\015\012\015\012\015\012\015\012", (size_t)8
     );
 
 	// idles
@@ -138,16 +138,16 @@ void http_ev_step1(EV_P, struct sock_ev_client *client) {
 
             char *ptr_cb_name = cb_to_name(current_idle->cb);
             SFINISH_SNFCAT(
-                str_response, &int_response_len,
-                "ev_idle watcher at ", (size_t)19,
-                str_current_address, strlen(str_current_address),
-                " with priority ", (size_t)15,
-                str_current_priority, strlen(str_current_priority),
-                " with callback ", (size_t)15,
-                ptr_cb_name, strlen(ptr_cb_name),
-                " initiator ", (size_t)11,
-                current_idle->initiator, strlen(current_idle->initiator),
-                "\n", (size_t)1
+                str_response, &int_response_len
+                , "ev_idle watcher at ", (size_t)19
+                , str_current_address, strlen(str_current_address)
+                , " with priority ", (size_t)15
+                , str_current_priority, strlen(str_current_priority)
+                , " with callback ", (size_t)15
+                , ptr_cb_name, strlen(ptr_cb_name)
+                , " initiator ", (size_t)11
+                , current_idle->initiator, strlen(current_idle->initiator)
+                , "\n", (size_t)1
             );
             int_current_idle = int_current_idle + 1;
         }
@@ -166,14 +166,14 @@ void http_ev_step1(EV_P, struct sock_ev_client *client) {
 
 		char *ptr_cb_name = cb_to_name(current_check->cb);
 		SFINISH_SNFCAT(
-			str_response, &int_response_len,
-			"ev_check watcher at ", (size_t)20,
-			str_current_address, strlen(str_current_address),
-			" with callback ", (size_t)15,
-			ptr_cb_name, strlen(ptr_cb_name),
-			" initiator ", (size_t)11,
-			current_check->initiator, strlen(current_check->initiator),
-			"\n", (size_t)1
+			str_response, &int_response_len
+			, "ev_check watcher at ", (size_t)20
+			, str_current_address, strlen(str_current_address)
+			, " with callback ", (size_t)15
+			, ptr_cb_name, strlen(ptr_cb_name)
+			, " initiator ", (size_t)11
+			, current_check->initiator, strlen(current_check->initiator)
+			, "\n", (size_t)1
 		);
 		int_current_check = int_current_check + 1;
 	}
@@ -190,14 +190,14 @@ void http_ev_step1(EV_P, struct sock_ev_client *client) {
 
 		char *ptr_cb_name = cb_to_name(current_prepare->cb);
 		SFINISH_SNFCAT(
-			str_response, &int_response_len,
-			"ev_prepare watcher at ", (size_t)22,
-			str_current_address, strlen(str_current_address),
-			" with callback ", (size_t)15,
-			ptr_cb_name, strlen(ptr_cb_name),
-			" initiator ", (size_t)11,
-			current_prepare->initiator, strlen(current_prepare->initiator),
-			"\n", (size_t)1
+			str_response, &int_response_len
+			, "ev_prepare watcher at ", (size_t)22
+			, str_current_address, strlen(str_current_address)
+			, " with callback ", (size_t)15
+			, ptr_cb_name, strlen(ptr_cb_name)
+			, " initiator ", (size_t)11
+			, current_prepare->initiator, strlen(current_prepare->initiator)
+			, "\n", (size_t)1
 		);
 		int_current_prepare = int_current_prepare + 1;
 	}
@@ -214,14 +214,14 @@ void http_ev_step1(EV_P, struct sock_ev_client *client) {
 
 		char *ptr_cb_name = cb_to_name(current_cleanup->cb);
 		SFINISH_SNFCAT(
-			str_response, &int_response_len,
-			"ev_cleanup watcher at ", (size_t)22,
-			str_current_address, strlen(str_current_address),
-			" with callback ", (size_t)15,
-			ptr_cb_name, strlen(ptr_cb_name),
-			" initiator ", (size_t)11,
-			current_cleanup->initiator, strlen(current_cleanup->initiator),
-			"\n", (size_t)1
+			str_response, &int_response_len
+			, "ev_cleanup watcher at ", (size_t)22
+			, str_current_address, strlen(str_current_address)
+			, " with callback ", (size_t)15
+			, ptr_cb_name, strlen(ptr_cb_name)
+			, " initiator ", (size_t)11
+			, current_cleanup->initiator, strlen(current_cleanup->initiator)
+			, "\n", (size_t)1
 		);
 		int_current_cleanup = int_current_cleanup + 1;
 	}
@@ -307,32 +307,32 @@ void http_ev_step1(EV_P, struct sock_ev_client *client) {
 
             char *ptr_cb_name = cb_to_name(node->cb);
             SFINISH_SNFCAT(
-                str_response, &int_response_len,
-                "ev_io watcher at ", (size_t)17,
-                str_current_address, strlen(str_current_address),
-                " on fd ", (size_t)7,
-                str_int_i, strlen(str_int_i),
-                " with callback ", (size_t)15,
-                ptr_cb_name, strlen(ptr_cb_name),
-				" initiator ", (size_t)11,
-				node->initiator, strlen(node->initiator),
-                ":\n", (size_t)2
+                str_response, &int_response_len
+                , "ev_io watcher at ", (size_t)17
+                , str_current_address, strlen(str_current_address)
+                , " on fd ", (size_t)7
+                , str_int_i, strlen(str_int_i)
+                , " with callback ", (size_t)15
+                , ptr_cb_name, strlen(ptr_cb_name)
+				, " initiator ", (size_t)11
+				, node->initiator, strlen(node->initiator)
+                , ":\n", (size_t)2
             );
             SFINISH_SNFCAT(
-                str_response, &int_response_len,
-                "		events: ", (size_t)10,
-                str_current_events, strlen(str_current_events),
-                "\n", (size_t)1
+                str_response, &int_response_len
+                , "		events: ", (size_t)10
+                , str_current_events, strlen(str_current_events)
+                , "\n", (size_t)1
             );
             SFINISH_SNFCAT(
-                str_response, &int_response_len,
-                "			EV_READ			: ", (size_t)15,
-                (node->events & EV_READ) == EV_READ ? "true\n" : "false\n", (size_t)((node->events & EV_READ) == EV_READ ? 5 : 6)
+                str_response, &int_response_len
+                , "			EV_READ			: ", (size_t)15
+                , (node->events & EV_READ) == EV_READ ? "true\n" : "false\n", (size_t)((node->events & EV_READ) == EV_READ ? 5 : 6)
             );
             SFINISH_SNFCAT(
-                str_response, &int_response_len,
-                "			EV_WRITE		: ", (size_t)15,
-                (node->events & EV_WRITE) == EV_WRITE ? "true\n" : "false\n", (size_t)((node->events & EV_WRITE) == EV_WRITE ? 5 : 6)
+                str_response, &int_response_len
+                , "			EV_WRITE		: ", (size_t)15
+                , (node->events & EV_WRITE) == EV_WRITE ? "true\n" : "false\n", (size_t)((node->events & EV_WRITE) == EV_WRITE ? 5 : 6)
             );
 
 			SDEBUG("str_response: %s", str_response);
@@ -349,13 +349,16 @@ void http_ev_step1(EV_P, struct sock_ev_client *client) {
     );
     SFINISH_CHECK(darr_headers != NULL, "DArray_from_strings failed");
 
-    SFINISH_CHECK(build_http_response(
+    SFINISH_CHECK(
+		build_http_response(
             "200 OK"
             , str_response, int_response_len
             , "text/plain"
             , darr_headers
             , &client->str_http_response, &client->int_http_response_len
-        ), "build_http_response failed");
+        )
+		, "build_http_response failed"
+	);
 
 	bol_error_state = false;
 finish:
@@ -367,13 +370,16 @@ finish:
 		bol_error_state = false;
 
         SFREE(client->str_http_header);
-        SFINISH_CHECK(build_http_response(
+        SFINISH_CHECK(
+			build_http_response(
                 "500 Internal Server Error"
                 , str_response, int_response_len
                 , "text/plain"
                 , NULL
                 , &client->str_http_response, &client->int_http_response_len
-            ), "build_http_response failed");
+            )
+			, "build_http_response failed"
+		);
 	}
     SFREE(str_response);
     // if client->str_http_header is non-empty, we are already taken care of

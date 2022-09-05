@@ -8,8 +8,10 @@ struct custom_check_callback {
 };
 
 void ws_file_step1(EV_P, struct sock_ev_client_request *client_request) {
-	SDEFINE_VAR_ALL(str_path_temp, str_path, str_local_path_root, str_temp_connstring, str_change_stamp,
-		str_query, str_search_temp);
+	SDEFINE_VAR_ALL(
+		str_path_temp, str_path, str_local_path_root, str_temp_connstring
+		, str_change_stamp, str_query, str_search_temp
+	);
 	struct sock_ev_client_file *client_file = (struct sock_ev_client_file *)(client_request->client_request_data);
 	char *str_response = NULL;
 	char *str_temp = NULL;
@@ -84,16 +86,24 @@ void ws_file_step1(EV_P, struct sock_ev_client_request *client_request) {
 			SFINISH_CHECK(client_file->str_partial_path != NULL, "canonical_strip_start failed");
 
 			client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "read_dir");
-			SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<",
-				client_file->str_canonical_start, client_file->str_partial_path);
+			SFINISH_CHECK(
+				client_file->str_path != NULL
+				, "Failed to get canonical path: >%s|%s<"
+				, client_file->str_canonical_start, client_file->str_partial_path
+			);
 
-			SFINISH_CHECK(permissions_check(EV_A, client_request->parent->conn, client_file->str_input_path,
-							  client_request, ws_file_list_step2),
-				"permissions_check() failed");
+			SFINISH_CHECK(
+				permissions_check(
+					EV_A, client_request->parent->conn, client_file->str_input_path
+					, client_request, ws_file_list_step2
+				)
+				, "permissions_check() failed"
+			);
 		} else {
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"/app/\tfolder\012/role/\tfolder\012/web_root/\tfolder\012", strlen("/app/\tfolder\012/role/\tfolder\012/web_root/\tfolder\012")
+				str_response, &int_response_len
+				, "/app/\tfolder\012/role/\tfolder\012/web_root/\tfolder\012"
+				, strlen("/app/\tfolder\012/role/\tfolder\012/web_root/\tfolder\012")
 			);
 		}
 
@@ -116,20 +126,27 @@ void ws_file_step1(EV_P, struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(client_file->str_partial_path != NULL, "canonical_strip_start failed");
 
 		client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "read_file");
-		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
-			client_file->str_partial_path);
+		SFINISH_CHECK(
+			client_file->str_path != NULL
+			, "Failed to get canonical path: >%s|%s<"
+			, client_file->str_canonical_start, client_file->str_partial_path
+		);
 
-		SFINISH_CHECK(permissions_check(EV_A, client_request->parent->conn, client_file->str_input_path, client_request,
-						  ws_file_read_step2),
-			"permissions_check() failed");
+		SFINISH_CHECK(
+			permissions_check(
+				EV_A, client_request->parent->conn, client_file->str_input_path
+				, client_request, ws_file_read_step2
+			)
+			, "permissions_check() failed"
+		);
 
 	} else if (strncmp(str_request_type, "WRITE", 6) == 0) {
 		client_file->file_type = ENVELOPE_FILE_WRITE;
 		SNOTICE("FILE WRITE");
 		client_file->ptr_content = strstr(ptr_query, "\012") + 1;
 		SFINISH_SNCAT(
-			str_query, &int_query_len,
-			ptr_query, (size_t)(client_request->frame->int_length - (size_t)(ptr_query - client_request->frame->str_message))
+			str_query, &int_query_len
+			, ptr_query, (size_t)(client_request->frame->int_length - (size_t)(ptr_query - client_request->frame->str_message))
 		);
 		ptr_query = strstr(str_query, "\t");
 		SFINISH_CHECK(ptr_query != NULL, "Invalid Request");
@@ -154,11 +171,19 @@ void ws_file_step1(EV_P, struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(client_file->str_partial_path != NULL, "canonical_strip_start failed");
 
 		client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "write_file");
-		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
-			client_file->str_partial_path);
+		SFINISH_CHECK(
+			client_file->str_path != NULL
+			, "Failed to get canonical path: >%s|%s<"
+			, client_file->str_canonical_start, client_file->str_partial_path
+		);
 
-		SFINISH_CHECK(permissions_write_check(EV_A, client_request->parent->conn, client_file->str_input_path, client_request, ws_file_write_step2),
-			"permissions_write_check() failed");
+		SFINISH_CHECK(
+			permissions_write_check(
+				EV_A, client_request->parent->conn, client_file->str_input_path
+				, client_request, ws_file_write_step2
+			)
+			, "permissions_write_check() failed"
+		);
 
 	} else if (strncmp(str_request_type, "MOVE", 5) == 0 || strncmp(str_request_type, "COPY", 5) == 0) {
 		client_file->file_type = strncmp(str_request_type, "MOVE", 5) == 0 ? ENVELOPE_FILE_MOVE : ENVELOPE_FILE_COPY;
@@ -200,19 +225,29 @@ void ws_file_step1(EV_P, struct sock_ev_client_request *client_request) {
 		if (client_file->str_path == NULL) {
 			SFREE(str_global_error);
 			client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "read_dir");
-			SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<",
-				client_file->str_canonical_start, client_file->str_partial_path);
+			SFINISH_CHECK(
+				client_file->str_path != NULL
+				, "Failed to get canonical path: >%s|%s<"
+				, client_file->str_canonical_start, client_file->str_partial_path
+			);
 		}
 
 		client_file->str_path_to = canonical(client_file->str_canonical_start_to, client_file->str_partial_path_to, "valid_path");
-		SFINISH_CHECK(client_file->str_path_to != NULL, "Failed to get canonical path: >%s|%s<",
-			client_file->str_canonical_start_to, client_file->str_partial_path_to);
+		SFINISH_CHECK(
+			client_file->str_path_to != NULL
+			, "Failed to get canonical path: >%s|%s<"
+			, client_file->str_canonical_start_to, client_file->str_partial_path_to
+		);
 		SFINISH_CHECK(access(client_file->str_path_to, F_OK) == -1, "File exists");
 		errno = 0;
 
-		SFINISH_CHECK(permissions_write_check(EV_A, client_request->parent->conn, client_file->str_input_path,
-			client_request, ws_file_move_step2),
-			"permissions_write_check() failed");
+		SFINISH_CHECK(
+			permissions_write_check(
+				EV_A, client_request->parent->conn, client_file->str_input_path
+				, client_request, ws_file_move_step2
+			)
+			, "permissions_write_check() failed"
+		);
 
 	} else if (strncmp(str_request_type, "DELETE", 7) == 0) {
 		client_file->file_type = ENVELOPE_FILE_DELETE;
@@ -234,16 +269,23 @@ void ws_file_step1(EV_P, struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(client_file->str_partial_path != NULL, "canonical_strip_start failed");
 
 		client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "valid_path");
-		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
-			client_file->str_partial_path);
+		SFINISH_CHECK(
+			client_file->str_path != NULL
+			, "Failed to get canonical path: >%s|%s<"
+			, client_file->str_canonical_start, client_file->str_partial_path
+		);
 
-		SFINISH_CHECK(permissions_write_check(EV_A, client_request->parent->conn, client_file->str_input_path,
-						  client_request, ws_file_delete_step2),
-			"permissions_write_check() failed");
+		SFINISH_CHECK(
+			permissions_write_check(
+				EV_A, client_request->parent->conn, client_file->str_input_path
+				, client_request, ws_file_delete_step2
+			)
+			, "permissions_write_check() failed"
+		);
 
 	} else if (strncmp(str_request_type, "CREATE_FOLDER", 14) == 0 || strncmp(str_request_type, "CREATE_FILE", 12) == 0) {
-		client_file->file_type =
-			strncmp(str_request_type, "CREATE_FOLDER", 14) == 0 ? ENVELOPE_FILE_CREATE_FOLDER : ENVELOPE_FILE_CREATE_FILE;
+		client_file->file_type
+			= strncmp(str_request_type, "CREATE_FOLDER", 14) == 0 ? ENVELOPE_FILE_CREATE_FOLDER : ENVELOPE_FILE_CREATE_FILE;
 		SNOTICE("FILE %s", client_file->file_type == ENVELOPE_FILE_CREATE_FOLDER ? "CREATE_FOLDER" : "CREATE_FILE");
 		SDEBUG("ptr_query: %s", ptr_query);
 		str_temp = ptr_query;
@@ -262,19 +304,30 @@ void ws_file_step1(EV_P, struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(client_file->str_partial_path != NULL, "canonical_strip_start failed");
 
 		client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "valid_path");
-		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
-			client_file->str_partial_path);
+		SFINISH_CHECK(
+			client_file->str_path != NULL
+			, "Failed to get canonical path: >%s|%s<"
+			, client_file->str_canonical_start, client_file->str_partial_path
+		);
 
 		SDEBUG("client_file->str_path: %s", client_file->str_path);
 		if (client_file->file_type == ENVELOPE_FILE_CREATE_FOLDER) {
-			SFINISH_CHECK(permissions_write_check(EV_A, client_request->parent->conn, client_file->str_input_path,
-							  client_request, ws_file_create_step2),
-				"permissions_write_check() failed");
+			SFINISH_CHECK(
+				permissions_write_check(
+					EV_A, client_request->parent->conn, client_file->str_input_path
+					, client_request, ws_file_create_step2
+				)
+				, "permissions_write_check() failed"
+			);
 		} else {
 			client_file->ptr_content = "";
-			SFINISH_CHECK(permissions_write_check(EV_A, client_request->parent->conn, client_file->str_input_path,
-							  client_request, ws_file_write_step2),
-				"permissions_write_check() failed");
+			SFINISH_CHECK(
+				permissions_write_check(
+					EV_A, client_request->parent->conn, client_file->str_input_path
+					, client_request, ws_file_write_step2
+				)
+				, "permissions_write_check() failed"
+			);
 		}
 
 	} else if (strncmp(str_request_type, "SEARCH", 7) == 0) {
@@ -297,8 +350,11 @@ void ws_file_step1(EV_P, struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(client_file->str_partial_path != NULL, "canonical_strip_start failed");
 
 		client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "read_dir");
-		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
-			client_file->str_partial_path);
+		SFINISH_CHECK(
+			client_file->str_path != NULL
+			, "Failed to get canonical path: >%s|%s<"
+			, client_file->str_canonical_start, client_file->str_partial_path
+		);
 
 		SDEBUG("ptr_query: %s", ptr_query);
 		str_temp = ptr_query;
@@ -313,8 +369,8 @@ void ws_file_step1(EV_P, struct sock_ev_client_request *client_request) {
 		SFINISH_CHECK(str_search_temp != NULL, "bunescape_value failed");
 
 		SFINISH_SNCAT(
-			client_file->str_search, &client_file->int_search_len,
-			str_search_temp, strlen(str_search_temp)
+			client_file->str_search, &client_file->int_search_len
+			, str_search_temp, strlen(str_search_temp)
 		);
 
 		SDEBUG("ptr_query: %s", ptr_query);
@@ -342,9 +398,13 @@ void ws_file_step1(EV_P, struct sock_ev_client_request *client_request) {
 			}
 		}
 
-		SFINISH_CHECK(permissions_check(EV_A, client_request->parent->conn, client_file->str_input_path,
-						  client_request, ws_file_search_step2),
-			"permissions_check() failed");
+		SFINISH_CHECK(
+			permissions_check(
+				EV_A, client_request->parent->conn, client_file->str_input_path
+				, client_request, ws_file_search_step2
+			)
+			, "permissions_check() failed"
+		);
 
 	} else {
 		SFINISH("Unknown FILE request type %s", str_request_type);
@@ -362,13 +422,13 @@ finish:
 		char str_temp1[101] = {0};
 		snprintf(str_temp1, 100, "%zd", client_request->int_response_id);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp1, strlen(str_temp1),
-			"\012", (size_t)1,
-			_str_response, strlen(_str_response)
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp1, strlen(str_temp1)
+			, "\012", (size_t)1
+			, _str_response, strlen(_str_response)
 		);
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 		DArray_push(client_request->arr_response, str_response);
@@ -379,12 +439,12 @@ finish:
 			memset(str_temp1, 0, 101);
 			snprintf(str_temp1, 100, "%zd", client_request->int_response_id);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp1, strlen(str_temp1),
-				"\012TRANSACTION COMPLETED", (size_t)22
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp1, strlen(str_temp1)
+				, "\012TRANSACTION COMPLETED", (size_t)22
 			);
 			WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 			DArray_push(client_request->arr_response, str_response);
@@ -445,8 +505,10 @@ bool ws_file_list_step2(EV_P, void *cb_data, bool bol_group) {
 				stat(str_canonical_name, statdata);
 
 #ifndef _WIN32
-				SFINISH_CHECK(S_ISREG(statdata->st_mode) != 0 || S_ISDIR(statdata->st_mode) != 0,
-					"Only regular files and folders allowed.");
+				SFINISH_CHECK(
+					S_ISREG(statdata->st_mode) != 0 || S_ISDIR(statdata->st_mode) != 0
+					, "Only regular files and folders allowed."
+				);
 #endif
 				// TODO: add check watcher
 
@@ -484,12 +546,12 @@ bool ws_file_list_step2(EV_P, void *cb_data, bool bol_group) {
 	client_request->int_response_id += 1;
 	snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 	SFINISH_SNCAT(
-		str_response, &int_response_len,
-		"messageid = ", (size_t)12,
-		client_request->str_message_id, client_request->int_message_id_len,
-		"\012responsenumber = ", (size_t)18,
-		str_temp, strlen(str_temp),
-		"\012", (size_t)1
+		str_response, &int_response_len
+		, "messageid = ", (size_t)12
+		, client_request->str_message_id, client_request->int_message_id_len
+		, "\012responsenumber = ", (size_t)18
+		, str_temp, strlen(str_temp)
+		, "\012", (size_t)1
 	);
 	int_len = DArray_end(client_file->arr_contents);
 	for (int_i = 0; int_i < int_len; int_i += 1) {
@@ -498,11 +560,11 @@ bool ws_file_list_step2(EV_P, void *cb_data, bool bol_group) {
 		SDEBUG("%p->arr_contents[%d]->int_change_stamp: %d", client_file, int_i, ent->int_change_stamp);
 		SDEBUG("%p->arr_contents[%d]->str_type        : %s", client_file, int_i, ent->str_type);
 		SFINISH_SNFCAT(
-			str_response, &int_response_len,
-			ent->str_name, strlen(ent->str_name),
-			"\t", (size_t)1,
-			ent->str_type, strlen(ent->str_type),
-			"\012", (size_t)1
+			str_response, &int_response_len
+			, ent->str_name, strlen(ent->str_name)
+			, "\t", (size_t)1
+			, ent->str_type, strlen(ent->str_type)
+			, "\012", (size_t)1
 		);
 		ent = NULL;
 	}
@@ -513,12 +575,12 @@ bool ws_file_list_step2(EV_P, void *cb_data, bool bol_group) {
 	memset(str_temp, 0, 101);
 	snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 	SFINISH_SNCAT(
-		str_response, &int_response_len,
-		"messageid = ", (size_t)12,
-		client_request->str_message_id, client_request->int_message_id_len,
-		"\012responsenumber = ", (size_t)18,
-		str_temp, strlen(str_temp),
-		"\012TRANSACTION COMPLETED", (size_t)22
+		str_response, &int_response_len
+		, "messageid = ", (size_t)12
+		, client_request->str_message_id, client_request->int_message_id_len
+		, "\012responsenumber = ", (size_t)18
+		, str_temp, strlen(str_temp)
+		, "\012TRANSACTION COMPLETED", (size_t)22
 	);
 	WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 	DArray_push(client_request->arr_response, str_response);
@@ -541,27 +603,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to list directory ", (size_t)25,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to list directory ", (size_t)25
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -620,16 +682,19 @@ bool ws_file_read_step2(EV_P, void *cb_data, bool bol_group) {
 
 	SFINISH_SALLOC(client_file->str_change_stamp, 101);
 	SFINISH_CHECK(
-		snprintf(client_file->str_change_stamp, 100, "%d-%d-%d %d:%d:%d.%d",
-			st_last_write_time.wYear,
-			st_last_write_time.wMonth,
-			st_last_write_time.wDay,
-			st_last_write_time.wHour,
-			st_last_write_time.wMinute,
-			st_last_write_time.wSecond,
-			st_last_write_time.wMilliseconds
-		) > 0,
-		"snprintf() failed"
+		snprintf(
+			client_file->str_change_stamp
+			, 100
+			, "%d-%d-%d %d:%d:%d.%d"
+			, st_last_write_time.wYear
+			, st_last_write_time.wMonth
+			, st_last_write_time.wDay
+			, st_last_write_time.wHour
+			, st_last_write_time.wMinute
+			, st_last_write_time.wSecond
+			, st_last_write_time.wMilliseconds
+		) > 0
+		, "snprintf() failed"
 	);
 	client_file->str_change_stamp[100] = 0;
 #else
@@ -663,9 +728,9 @@ bool ws_file_read_step2(EV_P, void *cb_data, bool bol_group) {
 
 	size_t int_temp = strlen(client_file->str_change_stamp);
 	SFINISH_SNFCAT(
-		client_file->str_change_stamp, &int_temp,
-		".", (size_t)1,
-		str_nanoseconds, strlen(str_nanoseconds)
+		client_file->str_change_stamp, &int_temp
+		, ".", (size_t)1
+		, str_nanoseconds, strlen(str_nanoseconds)
 	);
 #endif
 #endif
@@ -698,27 +763,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to open file ", (size_t)16,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to open file ", (size_t)16
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -746,16 +811,21 @@ void ws_file_read_step3(EV_P, ev_check *w, int revents) {
 		(DWORD)(client_file->int_length - client_file->int_read), &int_temp, NULL);
 	if (bol_result == FALSE) {
 		int int_err = GetLastError();
-		FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL);
+		FormatMessageA(
+			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err
+			, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL
+		);
 
 		if (strErrorText != NULL) {
 			SFINISH("ReadFile failed: 0x%X (%s)", int_err, strErrorText);
 		}
 	}
 #else
-	ssize_t int_temp = read(client_file->int_fd, client_file->str_content + client_file->int_read,
-		(size_t)(client_file->int_length - client_file->int_read));
+	ssize_t int_temp
+		= read(
+			client_file->int_fd, client_file->str_content + client_file->int_read
+			, (size_t)(client_file->int_length - client_file->int_read)
+		);
 	SFINISH_ERROR_CHECK(int_temp >= 0, "read failed");
 #endif
 	client_file->int_read += int_temp;
@@ -782,27 +852,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to read file ", (size_t)16,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to read file ", (size_t)16
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -821,15 +891,15 @@ void ws_file_read_step4(EV_P, struct sock_ev_client_request *client_request) {
 	char str_temp[101] = {0};
 	snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 	SFINISH_SNCAT(
-		str_response, &int_response_len,
-		"messageid = ", (size_t)12,
-		client_request->str_message_id, client_request->int_message_id_len,
-		"\012responsenumber = ", (size_t)18,
-		str_temp, strlen(str_temp),
-		"\012", (size_t)1,
-		client_file->str_change_stamp, strlen(client_file->str_change_stamp),
-		"\012", (size_t)1,
-		client_file->str_content, client_file->int_length
+		str_response, &int_response_len
+		, "messageid = ", (size_t)12
+		, client_request->str_message_id, client_request->int_message_id_len
+		, "\012responsenumber = ", (size_t)18
+		, str_temp, strlen(str_temp)
+		, "\012", (size_t)1
+		, client_file->str_change_stamp, strlen(client_file->str_change_stamp)
+		, "\012", (size_t)1
+		, client_file->str_content, client_file->int_length
 	);
 	WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 	DArray_push(client_request->arr_response, str_response);
@@ -838,12 +908,12 @@ void ws_file_read_step4(EV_P, struct sock_ev_client_request *client_request) {
 	memset(str_temp, 0, 101);
 	snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 	SFINISH_SNCAT(
-		str_response, &int_response_len,
-		"messageid = ", (size_t)12,
-		client_request->str_message_id, client_request->int_message_id_len,
-		"\012responsenumber = ", (size_t)18,
-		str_temp, strlen(str_temp),
-		"\012TRANSACTION COMPLETED", (size_t)22
+		str_response, &int_response_len
+		, "messageid = ", (size_t)12
+		, client_request->str_message_id, client_request->int_message_id_len
+		, "\012responsenumber = ", (size_t)18
+		, str_temp, strlen(str_temp)
+		, "\012TRANSACTION COMPLETED", (size_t)22
 	);
 	WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 	DArray_push(client_request->arr_response, str_response);
@@ -868,27 +938,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to read file ", (size_t)16,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to read file ", (size_t)16
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -927,8 +997,10 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 		if (client_file->h_file == INVALID_HANDLE_VALUE) {
 			int int_err = GetLastError();
 			if (int_err != 2) {
-				FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err,
-					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL);
+				FormatMessageA(
+					FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err
+					, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL
+				);
 
 				if (strErrorText != NULL) {
 					SFINISH("CreateFile failed: 0x%X (%s)", int_err, strErrorText);
@@ -944,16 +1016,19 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 
 			SFINISH_SALLOC(str_change_stamp, 101);
 			SFINISH_CHECK(
-				snprintf(str_change_stamp, 100, "%d-%d-%d %d:%d:%d.%d",
-					st_last_write_time.wYear,
-					st_last_write_time.wMonth,
-					st_last_write_time.wDay,
-					st_last_write_time.wHour,
-					st_last_write_time.wMinute,
-					st_last_write_time.wSecond,
-					st_last_write_time.wMilliseconds
-				) > 0,
-				"snprintf() failed"
+				snprintf(
+					str_change_stamp
+					, 100
+					, "%d-%d-%d %d:%d:%d.%d"
+					, st_last_write_time.wYear
+					, st_last_write_time.wMonth
+					, st_last_write_time.wDay
+					, st_last_write_time.wHour
+					, st_last_write_time.wMinute
+					, st_last_write_time.wSecond
+					, st_last_write_time.wMilliseconds
+				) > 0
+				, "snprintf() failed"
 			);
 			str_change_stamp[100] = 0;
 
@@ -969,8 +1044,11 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 	} else if (client_file->file_type == ENVELOPE_FILE_CREATE_FILE) {
 		SFREE(client_file->str_path);
 		client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "write_file");
-		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
-			client_file->str_partial_path);
+		SFINISH_CHECK(
+			client_file->str_path != NULL
+			, "Failed to get canonical path: >%s|%s<"
+			, client_file->str_canonical_start, client_file->str_partial_path
+		);
 	}
 #else
 	SFINISH_SALLOC(statdata, sizeof(struct stat));
@@ -993,9 +1071,9 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 
 			size_t int_temp = strlen(client_file->str_change_stamp);
 			SFINISH_SNFCAT(
-				client_file->str_change_stamp, &int_temp,
-				".", (size_t)1,
-				str_nanoseconds, strlen(str_nanoseconds)
+				client_file->str_change_stamp, &int_temp
+				, ".", (size_t)1
+				, str_nanoseconds, strlen(str_nanoseconds)
 			);
 #endif
 
@@ -1008,8 +1086,11 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 
 		SFREE(client_file->str_path);
 		client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "write_file");
-		SFINISH_CHECK(client_file->str_path != NULL, "Failed to get canonical path: >%s|%s<", client_file->str_canonical_start,
-			client_file->str_partial_path);
+		SFINISH_CHECK(
+			client_file->str_path != NULL
+			, "Failed to get canonical path: >%s|%s<"
+			, client_file->str_canonical_start, client_file->str_partial_path
+		);
 	}
 #endif
 
@@ -1023,13 +1104,15 @@ bool ws_file_write_step2(EV_P, void *cb_data, bool bol_group) {
 			// the file already there
 			// In this case, we need to truncate the existing file
 			SetLastError(0);
-			client_file->h_file =
-				CreateFileA(client_file->str_path, GENERIC_WRITE, 0, NULL, TRUNCATE_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+			client_file->h_file
+				= CreateFileA(client_file->str_path, GENERIC_WRITE, 0, NULL, TRUNCATE_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		}
 		if (client_file->h_file == INVALID_HANDLE_VALUE) {
 			int_err = GetLastError();
-			FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
-				int_err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL);
+			FormatMessageA(
+				FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL
+				, int_err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL
+			);
 
 			if (strErrorText != NULL) {
 				SFINISH("CreateFile failed: 0x%X (%s)", int_err, strErrorText);
@@ -1066,27 +1149,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to open file for writing ", (size_t)32,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to open file for writing ", (size_t)32
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -1111,20 +1194,28 @@ void ws_file_write_step3(EV_P, ev_check *w, int revents) {
 
 #ifdef _WIN32
 	int int_temp = 0;
-	BOOL bol_result = WriteFile(client_file->h_file, client_file->ptr_content + client_file->int_written,
-		(DWORD)(strlen(client_file->ptr_content) - client_file->int_written), &int_temp, NULL);
+	BOOL bol_result
+		= WriteFile(
+			client_file->h_file, client_file->ptr_content + client_file->int_written
+			, (DWORD)(strlen(client_file->ptr_content) - client_file->int_written), &int_temp, NULL
+		);
 	if (bol_result == FALSE) {
 		int int_err = GetLastError();
-		FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL);
+		FormatMessageA(
+			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err
+			, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL
+		);
 
 		if (strErrorText != NULL) {
 			SFINISH("WriteFile failed: 0x%X (%s)", int_err, strErrorText);
 		}
 	}
 #else
-	ssize_t int_temp = write(client_file->int_fd, client_file->ptr_content + client_file->int_written,
-		strlen(client_file->ptr_content) - (size_t)client_file->int_written);
+	ssize_t int_temp
+		= write(
+			client_file->int_fd, client_file->ptr_content + client_file->int_written
+			, strlen(client_file->ptr_content) - (size_t)client_file->int_written
+		);
 	SFINISH_CHECK(int_temp != -1, "write failed");
 #endif
 	client_file->int_written += int_temp;
@@ -1151,27 +1242,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to write to file ", (size_t)20,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to write to file ", (size_t)20
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -1196,12 +1287,17 @@ void ws_file_write_step4(EV_P, struct sock_ev_client_request *client_request) {
 #ifdef _WIN32
 	CloseHandle(client_file->h_file);
 	SetLastError(0);
-	client_file->h_file =
-		CreateFileA(client_file->str_path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	client_file->h_file
+		= CreateFileA(
+			client_file->str_path, GENERIC_READ, FILE_SHARE_READ
+			, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+		);
 	if (client_file->h_file == INVALID_HANDLE_VALUE) {
 		int int_err = GetLastError();
-		FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL);
+		FormatMessageA(
+			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err
+			, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL
+		);
 
 		if (strErrorText != NULL) {
 			SFINISH("CreateFile failed: 0x%X (%s)", int_err, strErrorText);
@@ -1215,14 +1311,17 @@ void ws_file_write_step4(EV_P, struct sock_ev_client_request *client_request) {
 	SFINISH_CHECK(FileTimeToSystemTime(&ft_last_write_time, &st_last_write_time) != 0, "FileTimeToSystemTime failed");
 
 	SFINISH_CHECK(
-		snprintf(str_response, 100, "%d-%d-%d %d:%d:%d.%d",
-			st_last_write_time.wYear,
-			st_last_write_time.wMonth,
-			st_last_write_time.wDay,
-			st_last_write_time.wHour,
-			st_last_write_time.wMinute,
-			st_last_write_time.wSecond,
-			st_last_write_time.wMilliseconds
+		snprintf(
+			str_response
+			, 100
+			, "%d-%d-%d %d:%d:%d.%d"
+			, st_last_write_time.wYear
+			, st_last_write_time.wMonth
+			, st_last_write_time.wDay
+			, st_last_write_time.wHour
+			, st_last_write_time.wMinute
+			, st_last_write_time.wSecond
+			, st_last_write_time.wMilliseconds
 		) > 0,
 		"snprintf() failed"
 	);
@@ -1247,9 +1346,9 @@ void ws_file_write_step4(EV_P, struct sock_ev_client_request *client_request) {
 		int_response_len = strlen(str_response);
 		SINFO("int_response_len: %zu", int_response_len);
 		SFINISH_SNFCAT(
-			str_response, &int_response_len,
-			".", (size_t)1,
-			str_nanoseconds, strlen(str_nanoseconds)
+			str_response, &int_response_len
+			, ".", (size_t)1
+			, str_nanoseconds, strlen(str_nanoseconds)
 		);
 		SINFO("int_response_len: %zu", int_response_len);
 #endif
@@ -1278,27 +1377,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to stat file ", (size_t)16,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to stat file ", (size_t)16
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -1315,13 +1414,13 @@ finish:
 		char *_str_response = str_response;
 		SINFO("int_response_len: %zu", int_response_len);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012", (size_t)1,
-			_str_response, int_response_len
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012", (size_t)1
+			, _str_response, int_response_len
 		);
 		SINFO("_str_response: %s", _str_response);
 		SINFO("str_response: %s", str_response);
@@ -1333,12 +1432,12 @@ finish:
 		memset(str_temp, 0, 101);
 		snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012TRANSACTION COMPLETED", (size_t)22
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012TRANSACTION COMPLETED", (size_t)22
 		);
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 		DArray_push(client_request->arr_response, str_response);
@@ -1363,9 +1462,13 @@ bool ws_file_move_step2(EV_P, void *cb_data, bool bol_group) {
 	SFINISH_CHECK(bol_group, "You don't have the necessary permissions for this folder.");
 
 	SDEBUG("client_file->str_path: %s", client_file->str_path);
-	SFINISH_CHECK(permissions_write_check(
-					  EV_A, client_request->parent->conn, client_file->str_input_path_to, client_request, ws_file_move_step3),
-		"permissions_write_check() failed");
+	SFINISH_CHECK(
+		permissions_write_check(
+			EV_A, client_request->parent->conn, client_file->str_input_path_to
+			, client_request, ws_file_move_step3
+		)
+		, "permissions_write_check() failed"
+	);
 
 	bol_error_state = false;
 finish:
@@ -1376,13 +1479,13 @@ finish:
 		snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 		char *_str_response = str_response;
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012", (size_t)1,
-			_str_response, strlen(_str_response)
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012", (size_t)1
+			, _str_response, strlen(_str_response)
 		);
 		SFREE(_str_response);
 
@@ -1409,18 +1512,25 @@ bool ws_file_move_step3(EV_P, void *cb_data, bool bol_group) {
 
 	if (client_file->file_type == ENVELOPE_FILE_MOVE) {
 		SFINISH_CHECK(
-			rename(client_file->str_path, client_file->str_path_to) == 0, "rename failed (%d): %s", errno, strerror(errno));
+			rename(client_file->str_path, client_file->str_path_to) == 0
+			, "rename failed (%d): %s", errno, strerror(errno)
+		);
 
 		SFINISH_SALLOC(str_response, 101);
 #ifdef _WIN32
 		CloseHandle(client_file->h_file);
 		SetLastError(0);
-		client_file->h_file =
-			CreateFileA(client_file->str_path_to, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		client_file->h_file
+			= CreateFileA(
+				client_file->str_path_to, GENERIC_READ, FILE_SHARE_READ, NULL
+				, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+			);
 		if (client_file->h_file == INVALID_HANDLE_VALUE) {
 			int int_err = GetLastError();
-			FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err,
-				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL);
+			FormatMessageA(
+				FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err
+				, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL
+			);
 
 			if (strErrorText != NULL) {
 				SFINISH("CreateFile failed: 0x%X (%s)", int_err, strErrorText);
@@ -1428,20 +1538,29 @@ bool ws_file_move_step3(EV_P, void *cb_data, bool bol_group) {
 		}
 
 		FILETIME ft_last_write_time;
-		SFINISH_CHECK(GetFileTime(client_file->h_file, NULL, NULL, &ft_last_write_time) != 0, "GetFileTime failed");
+		SFINISH_CHECK(
+			GetFileTime(client_file->h_file, NULL, NULL, &ft_last_write_time) != 0
+			, "GetFileTime failed"
+		);
 
 		SYSTEMTIME st_last_write_time;
-		SFINISH_CHECK(FileTimeToSystemTime(&ft_last_write_time, &st_last_write_time) != 0, "FileTimeToSystemTime failed");
+		SFINISH_CHECK(
+			FileTimeToSystemTime(&ft_last_write_time, &st_last_write_time) != 0
+			, "FileTimeToSystemTime failed"
+		);
 
 		SFINISH_CHECK(
-			snprintf(str_response, 100, "%d-%d-%d %d:%d:%d.%d",
-				st_last_write_time.wYear,
-				st_last_write_time.wMonth,
-				st_last_write_time.wDay,
-				st_last_write_time.wHour,
-				st_last_write_time.wMinute,
-				st_last_write_time.wSecond,
-				st_last_write_time.wMilliseconds
+			snprintf(
+				str_response
+				, 100
+				, "%d-%d-%d %d:%d:%d.%d"
+				, st_last_write_time.wYear
+				, st_last_write_time.wMonth
+				, st_last_write_time.wDay
+				, st_last_write_time.wHour
+				, st_last_write_time.wMinute
+				, st_last_write_time.wSecond
+				, st_last_write_time.wMilliseconds
 			) > 0,
 			"snprintf() failed"
 		);
@@ -1465,9 +1584,9 @@ bool ws_file_move_step3(EV_P, void *cb_data, bool bol_group) {
 
 			int_response_len = strlen(str_response);
 			SFINISH_SNFCAT(
-				str_response, &int_response_len,
-				".", (size_t)1,
-				str_nanoseconds, strlen(str_nanoseconds)
+				str_response, &int_response_len
+				, ".", (size_t)1
+				, str_nanoseconds, strlen(str_nanoseconds)
 			);
 #endif
 		} else {
@@ -1478,20 +1597,29 @@ bool ws_file_move_step3(EV_P, void *cb_data, bool bol_group) {
 		SFREE(client_file->str_path);
 		client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "read_file");
 		if (client_file->str_path != NULL) {
-			SFINISH_CHECK(canonical_copy(client_file->str_canonical_start, client_file->str_partial_path,
-							  client_file->str_canonical_start_to, client_file->str_partial_path_to),
-				"canonical_copy failed");
+			SFINISH_CHECK(
+				canonical_copy(
+					client_file->str_canonical_start, client_file->str_partial_path
+					, client_file->str_canonical_start_to, client_file->str_partial_path_to
+				)
+				, "canonical_copy failed"
+			);
 
 			SFINISH_SALLOC(str_response, 101);
 #ifdef _WIN32
 			CloseHandle(client_file->h_file);
 			SetLastError(0);
-			client_file->h_file =
-				CreateFileA(client_file->str_path_to, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+			client_file->h_file
+				= CreateFileA(
+					client_file->str_path_to, GENERIC_READ, FILE_SHARE_READ
+					, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+				);
 			if (client_file->h_file == INVALID_HANDLE_VALUE) {
 				int int_err = GetLastError();
-				FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err,
-					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL);
+				FormatMessageA(
+					FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, int_err
+					, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&strErrorText, 0, NULL
+				);
 
 				if (strErrorText != NULL) {
 					SFINISH("CreateFile failed: 0x%X (%s)", int_err, strErrorText);
@@ -1505,14 +1633,17 @@ bool ws_file_move_step3(EV_P, void *cb_data, bool bol_group) {
 			SFINISH_CHECK(FileTimeToSystemTime(&ft_last_write_time, &st_last_write_time) != 0, "FileTimeToSystemTime failed");
 
 			SFINISH_CHECK(
-				snprintf(str_response, 100, "%d-%d-%d %d:%d:%d.%d",
-					st_last_write_time.wYear,
-					st_last_write_time.wMonth,
-					st_last_write_time.wDay,
-					st_last_write_time.wHour,
-					st_last_write_time.wMinute,
-					st_last_write_time.wSecond,
-					st_last_write_time.wMilliseconds
+				snprintf(
+					str_response
+					, 100
+					, "%d-%d-%d %d:%d:%d.%d"
+					, st_last_write_time.wYear
+					, st_last_write_time.wMonth
+					, st_last_write_time.wDay
+					, st_last_write_time.wHour
+					, st_last_write_time.wMinute
+					, st_last_write_time.wSecond
+					, st_last_write_time.wMilliseconds
 				) > 0,
 				"snprintf() failed"
 			);
@@ -1536,9 +1667,9 @@ bool ws_file_move_step3(EV_P, void *cb_data, bool bol_group) {
 
 				int_response_len = strlen(str_response);
 				SFINISH_SNFCAT(
-					str_response, &int_response_len,
-					".", (size_t)1,
-					str_nanoseconds, strlen(str_nanoseconds)
+					str_response, &int_response_len
+					, ".", (size_t)1
+					, str_nanoseconds, strlen(str_nanoseconds)
 				);
 #endif
 			} else {
@@ -1552,9 +1683,13 @@ bool ws_file_move_step3(EV_P, void *cb_data, bool bol_group) {
 			SDEBUG("client_file->str_partial_path_to: %s", client_file->str_partial_path_to);
 			client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "read_dir");
 			SFINISH_CHECK(client_file->str_path != NULL, "canonical failed");
-			SFINISH_CHECK(canonical_recurse_directory(EV_A, client_file->str_canonical_start, client_file->str_partial_path,
-							  client_request, ws_file_copy_step4, ws_file_copy_step5),
-				"canonical_delete failed");
+			SFINISH_CHECK(
+				canonical_recurse_directory(
+					EV_A, client_file->str_canonical_start, client_file->str_partial_path
+					, client_request, ws_file_copy_step4, ws_file_copy_step5
+				)
+				, "canonical_delete failed"
+			);
 			client_file = NULL;
 		}
 	}
@@ -1578,27 +1713,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to stat file ", (size_t)16,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to stat file ", (size_t)16
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -1612,13 +1747,13 @@ finish:
 			snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 			WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
@@ -1628,12 +1763,12 @@ finish:
 			memset(str_temp, 0, 101);
 			snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012TRANSACTION COMPLETED", (size_t)22
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012TRANSACTION COMPLETED", (size_t)22
 			);
 			WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 			DArray_push(client_request->arr_response, str_response);
@@ -1665,27 +1800,27 @@ bool ws_file_copy_step4(EV_P, void *cb_data, char *str_path) {
 	size_t int_new_path_to_len = 0;
 	if (*str_path == '/') {
 		SFINISH_SNCAT(
-			str_new_path, &int_new_path_len,
-			client_file->str_partial_path, strlen(client_file->str_partial_path),
-			str_path, strlen(str_path)
+			str_new_path, &int_new_path_len
+			, client_file->str_partial_path, strlen(client_file->str_partial_path)
+			, str_path, strlen(str_path)
 		);
 		SFINISH_SNCAT(
-			str_new_path_to, &int_new_path_to_len,
-			client_file->str_partial_path_to, strlen(client_file->str_partial_path_to),
-			str_path, strlen(str_path)
+			str_new_path_to, &int_new_path_to_len
+			, client_file->str_partial_path_to, strlen(client_file->str_partial_path_to)
+			, str_path, strlen(str_path)
 		);
 	} else {
 		SFINISH_SNCAT(
-			str_new_path, &int_new_path_len,
-			client_file->str_partial_path, strlen(client_file->str_partial_path),
-			"/", (size_t)1,
-			str_path, strlen(str_path)
+			str_new_path, &int_new_path_len
+			, client_file->str_partial_path, strlen(client_file->str_partial_path)
+			, "/", (size_t)1
+			, str_path, strlen(str_path)
 		);
 		SFINISH_SNCAT(
-			str_new_path_to, &int_new_path_to_len,
-			client_file->str_partial_path_to, strlen(client_file->str_partial_path_to),
-			"/", (size_t)1,
-			str_path, strlen(str_path)
+			str_new_path_to, &int_new_path_to_len
+			, client_file->str_partial_path_to, strlen(client_file->str_partial_path_to)
+			, "/", (size_t)1
+			, str_path, strlen(str_path)
 		);
 	}
 	SDEBUG("str_new_path: %s", str_new_path);
@@ -1694,8 +1829,9 @@ bool ws_file_copy_step4(EV_P, void *cb_data, char *str_path) {
 	str_result_path = canonical(client_file->str_canonical_start, str_new_path, "read_file");
 	if (str_result_path != NULL) {
 		SFINISH_CHECK(
-			canonical_copy(client_file->str_canonical_start, str_new_path, client_file->str_canonical_start_to, str_new_path_to),
-			"canonical_copy failed");
+			canonical_copy(client_file->str_canonical_start, str_new_path, client_file->str_canonical_start_to, str_new_path_to)
+			, "canonical_copy failed"
+		);
 		SFREE(str_result_path);
 	} else {
 		SFREE(str_global_error);
@@ -1716,27 +1852,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to delete file ", (size_t)18,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to delete file ", (size_t)18
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -1780,27 +1916,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to stat file ", (size_t)16,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to stat file ", (size_t)16
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -1813,13 +1949,13 @@ finish:
 		snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 		char *_str_response = str_response;
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012", (size_t)1,
-			_str_response, strlen(_str_response)
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012", (size_t)1
+			, _str_response, strlen(_str_response)
 		);
 		SFREE(_str_response);
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
@@ -1829,12 +1965,12 @@ finish:
 		memset(str_temp, 0, 101);
 		snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012TRANSACTION COMPLETED", (size_t)22
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012TRANSACTION COMPLETED", (size_t)22
 		);
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 		DArray_push(client_request->arr_response, str_response);
@@ -1866,16 +2002,18 @@ bool ws_file_delete_step2(EV_P, void *cb_data, bool bol_group) {
 	if (client_file->str_path != NULL) {
 		SFINISH_CHECK(unlink(client_file->str_path) == 0, "unlink failed");
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"OK", (size_t)2
+			str_response, &int_response_len
+			, "OK", (size_t)2
 		);
 	} else {
 		SFREE(str_global_error);
 		client_file->str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "read_dir");
 		SFINISH_CHECK(client_file->str_path != NULL, "canonical failed");
-		SFINISH_CHECK(canonical_recurse_directory(EV_A, client_file->str_canonical_start, client_file->str_partial_path,
-						  client_request, ws_file_delete_step3, ws_file_delete_step4),
-			"canonical_delete failed");
+		SFINISH_CHECK(
+			canonical_recurse_directory(EV_A, client_file->str_canonical_start, client_file->str_partial_path
+			, client_request, ws_file_delete_step3, ws_file_delete_step4)
+			, "canonical_delete failed"
+		);
 	}
 	SFREE(str_global_error);
 
@@ -1889,27 +2027,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to stat file ", (size_t)16,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to stat file ", (size_t)16
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -1922,13 +2060,13 @@ finish:
 		snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 		char *_str_response = str_response;
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012", (size_t)1,
-			_str_response, strlen(_str_response)
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012", (size_t)1
+			, _str_response, strlen(_str_response)
 		);
 		SFREE(_str_response);
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
@@ -1938,12 +2076,12 @@ finish:
 		memset(str_temp, 0, 101);
 		snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012TRANSACTION COMPLETED", (size_t)22
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012TRANSACTION COMPLETED", (size_t)22
 		);
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 		DArray_push(client_request->arr_response, str_response);
@@ -1967,16 +2105,16 @@ bool ws_file_delete_step3(EV_P, void *cb_data, char *str_path) {
 	size_t int_new_path_len = 0;
 	if (*str_path == '/') {
 		SFINISH_SNCAT(
-			str_new_path, &int_new_path_len,
-			client_file->str_partial_path, strlen(client_file->str_partial_path),
-			str_path, strlen(str_path)
+			str_new_path, &int_new_path_len
+			, client_file->str_partial_path, strlen(client_file->str_partial_path)
+			, str_path, strlen(str_path)
 		);
 	} else {
 		SFINISH_SNCAT(
-			str_new_path, &int_new_path_len,
-			client_file->str_partial_path, strlen(client_file->str_partial_path),
-			"/", (size_t)1,
-			str_path, strlen(str_path)
+			str_new_path, &int_new_path_len
+			, client_file->str_partial_path, strlen(client_file->str_partial_path)
+			, "/", (size_t)1
+			, str_path, strlen(str_path)
 		);
 	}
 
@@ -1996,27 +2134,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to delete file ", (size_t)18,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to delete file ", (size_t)18
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -2054,27 +2192,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to stat file ", (size_t)16,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to stat file ", (size_t)16
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -2087,13 +2225,13 @@ finish:
 		snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 		char *_str_response = str_response;
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012", (size_t)1,
-			_str_response, strlen(_str_response)
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012", (size_t)1
+			, _str_response, strlen(_str_response)
 		);
 		SFREE(_str_response);
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
@@ -2103,12 +2241,12 @@ finish:
 		memset(str_temp, 0, 101);
 		snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012TRANSACTION COMPLETED", (size_t)22
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012TRANSACTION COMPLETED", (size_t)22
 		);
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 		DArray_push(client_request->arr_response, str_response);
@@ -2161,27 +2299,27 @@ finish:
 		if (errno != 0) {
 			SFREE(str_response);
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012FATAL\012", (size_t)7,
-				"Failed to create file ", (size_t)22,
-				client_file->str_path, strlen(client_file->str_path),
-				": ", (size_t)2,
-				strerror(errno), strlen(strerror(errno))
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012FATAL\012", (size_t)7
+				, "Failed to create file ", (size_t)22
+				, client_file->str_path, strlen(client_file->str_path)
+				, ": ", (size_t)2
+				, strerror(errno), strlen(strerror(errno))
 			);
 		} else {
 			char *_str_response = str_response;
 			SFINISH_SNCAT(
-				str_response, &int_response_len,
-				"messageid = ", (size_t)12,
-				client_request->str_message_id, client_request->int_message_id_len,
-				"\012responsenumber = ", (size_t)18,
-				str_temp, strlen(str_temp),
-				"\012", (size_t)1,
-				_str_response, strlen(_str_response)
+				str_response, &int_response_len
+				, "messageid = ", (size_t)12
+				, client_request->str_message_id, client_request->int_message_id_len
+				, "\012responsenumber = ", (size_t)18
+				, str_temp, strlen(str_temp)
+				, "\012", (size_t)1
+				, _str_response, strlen(_str_response)
 			);
 			SFREE(_str_response);
 		}
@@ -2194,13 +2332,13 @@ finish:
 		snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 		char *_str_response = str_response;
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012", (size_t)1,
-			_str_response, strlen(_str_response)
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012", (size_t)1
+			, _str_response, strlen(_str_response)
 		);
 		SFREE(_str_response);
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
@@ -2210,12 +2348,12 @@ finish:
 		memset(str_temp, 0, 101);
 		snprintf(str_temp, 100, "%zd", client_request->int_response_id);
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012TRANSACTION COMPLETED", (size_t)22
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012TRANSACTION COMPLETED", (size_t)22
 		);
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
 		DArray_push(client_request->arr_response, str_response);
@@ -2250,8 +2388,14 @@ bool ws_file_search_step2(EV_P, void *cb_data, bool bol_group) {
 
 	if (client_file->bol_regex) {
 		int int_err;
-		if ((int_err = tre_regcomp(&client_file->reg, client_file->str_search,
-				 REG_EXTENDED | (client_file->bol_case_insensitive ? REG_ICASE : 0) | REG_NOSUB | REG_NEWLINE)) != 0) {
+		if (
+			(
+				int_err = tre_regcomp(
+					&client_file->reg, client_file->str_search
+					, REG_EXTENDED | (client_file->bol_case_insensitive ? REG_ICASE : 0) | REG_NOSUB | REG_NEWLINE
+				)
+			) != 0
+		) {
 			char str_temp[256];
 			memset(str_temp, 0, 256);
 			tre_regerror(int_err, &client_file->reg, str_temp, 255);
@@ -2260,16 +2404,22 @@ bool ws_file_search_step2(EV_P, void *cb_data, bool bol_group) {
 	}
 
 	if (client_file->bol_recursive) {
-		SFINISH_CHECK(canonical_recurse_directory(EV_A, client_file->str_canonical_start, client_file->str_partial_path,
-						  client_request, ws_file_search_step3, ws_file_search_step4),
-			"canonical_recurse_directory failed");
+		SFINISH_CHECK(
+			canonical_recurse_directory(
+				EV_A, client_file->str_canonical_start, client_file->str_partial_path
+				, client_request, ws_file_search_step3, ws_file_search_step4
+			)
+			, "canonical_recurse_directory failed"
+		);
 	} else {
 		size_t int_len = strlen(client_file->str_path);
 		if (client_file->str_path[int_len - 1] == '\\') {
 			client_file->str_path[int_len - 1] = 0;
 		}
-		SFINISH_CHECK((str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "read_dir")),
-			"canonical failed");
+		SFINISH_CHECK(
+			(str_path = canonical(client_file->str_canonical_start, client_file->str_partial_path, "read_dir"))
+			, "canonical failed"
+		);
 		dirp = opendir(str_path);
 		SFINISH_ERROR_CHECK(dirp != NULL, "opendir failed");
 
@@ -2317,13 +2467,13 @@ finish:
 
 		char *_str_response = str_response;
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012", (size_t)1,
-			_str_response, strlen(_str_response)
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012", (size_t)1
+			, _str_response, strlen(_str_response)
 		);
 		SFREE(_str_response);
 
@@ -2345,21 +2495,23 @@ bool ws_file_search_step3(EV_P, void *cb_data, char *_str_file_name) {
 	ptr_extension = strrchr(_str_file_name, '.');
 	if (ptr_extension != NULL) {
 		ptr_extension += 1;
-		if (false || strcmp(ptr_extension, "eot") == 0 || strcmp(ptr_extension, "ico") == 0 ||
-			strcmp(ptr_extension, "jpg") == 0 || strcmp(ptr_extension, "mov") == 0 || strcmp(ptr_extension, "mp3") == 0 ||
-			strcmp(ptr_extension, "otf") == 0 || strcmp(ptr_extension, "pdf") == 0 || strcmp(ptr_extension, "png") == 0 ||
-			strcmp(ptr_extension, "pkg") == 0 || strcmp(ptr_extension, "svg") == 0 || strcmp(ptr_extension, "ttf") == 0 ||
-			strcmp(ptr_extension, "woff") == 0 || strcmp(ptr_extension, "woff2") == 0 || strcmp(ptr_extension, "zip") == 0) {
+		if (
+			false || strcmp(ptr_extension, "eot") == 0 || strcmp(ptr_extension, "ico") == 0
+			|| strcmp(ptr_extension, "jpg") == 0 || strcmp(ptr_extension, "mov") == 0 || strcmp(ptr_extension, "mp3") == 0
+			|| strcmp(ptr_extension, "otf") == 0 || strcmp(ptr_extension, "pdf") == 0 || strcmp(ptr_extension, "png") == 0
+			|| strcmp(ptr_extension, "pkg") == 0 || strcmp(ptr_extension, "svg") == 0 || strcmp(ptr_extension, "ttf") == 0
+			|| strcmp(ptr_extension, "woff") == 0 || strcmp(ptr_extension, "woff2") == 0 || strcmp(ptr_extension, "zip") == 0
+		) {
 			goto finish;
 		}
 	}
 
 #ifdef _WIN32
 	SFINISH_SNCAT(
-		str_file_name, &int_file_name_len,
-		client_file->str_path, strlen(client_file->str_path),
-		"\\", (size_t)1,
-		_str_file_name, strlen(_str_file_name)
+		str_file_name, &int_file_name_len
+		, client_file->str_path, strlen(client_file->str_path)
+		, "\\", (size_t)1
+		, _str_file_name, strlen(_str_file_name)
 	);
 	SFINISH_SALLOC(statdata, sizeof(struct stat));
 	stat(str_file_name, statdata);
@@ -2369,10 +2521,10 @@ bool ws_file_search_step3(EV_P, void *cb_data, char *_str_file_name) {
 	}
 #else
 	SFINISH_SNCAT(
-		str_file_name, &int_file_name_len,
-		client_file->str_path, strlen(client_file->str_path),
-		"/", (size_t)1,
-		_str_file_name, strlen(_str_file_name)
+		str_file_name, &int_file_name_len
+		, client_file->str_path, strlen(client_file->str_path)
+		, "/", (size_t)1
+		, _str_file_name, strlen(_str_file_name)
 	);
 	Queue_send(client_file->que_file, str_file_name);
 #endif
@@ -2388,13 +2540,13 @@ finish:
 
 		char *_str_response = str_response;
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012", (size_t)1,
-			_str_response, strlen(_str_response)
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012", (size_t)1
+			, _str_response, strlen(_str_response)
 		);
 		SFREE(_str_response);
 
@@ -2425,13 +2577,13 @@ finish:
 
 		char *_str_response = str_response;
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012", (size_t)1,
-			_str_response, strlen(_str_response)
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012", (size_t)1
+			, _str_response, strlen(_str_response)
 		);
 		SFREE(_str_response);
 
@@ -2472,12 +2624,12 @@ void ws_file_search_step5(EV_P, ev_check *w, int revents) {
 		snprintf(str_temp, 255, "%zd", client_request->int_response_id);
 
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012TRANSACTION COMPLETED", (size_t)22
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012TRANSACTION COMPLETED", (size_t)22
 		);
 
 		WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
@@ -2526,8 +2678,8 @@ void ws_file_search_step5(EV_P, ev_check *w, int revents) {
 			bool bol_match = false;
 			if (!client_file->bol_regex) {
 				SFINISH_SNCAT(
-					str_line_copy, &int_line_length,
-					str_line, int_line_length
+					str_line_copy, &int_line_length
+					,str_line, int_line_length
 				);
 				if (client_file->bol_case_insensitive) {
 					bstr_toupper(str_line_copy, int_line_length);
@@ -2549,14 +2701,14 @@ void ws_file_search_step5(EV_P, ev_check *w, int revents) {
 				snprintf(str_temp, 255, "%zd", client_request->int_response_id);
 
 				SFINISH_SNCAT(
-					str_response, &int_response_len,
-					"messageid = ", (size_t)12,
-					client_request->str_message_id, client_request->int_message_id_len,
-					"\012responsenumber = ", (size_t)18,
-					str_temp, strlen(str_temp),
-					"\012", (size_t)1,
-					str_current_file_name + strlen(client_file->str_path), strlen(str_current_file_name) - strlen(client_file->str_path),
-					":", (size_t)1
+					str_response, &int_response_len
+					, "messageid = ", (size_t)12
+					, client_request->str_message_id, client_request->int_message_id_len
+					, "\012responsenumber = ", (size_t)18
+					, str_temp, strlen(str_temp)
+					, "\012", (size_t)1
+					, str_current_file_name + strlen(client_file->str_path), strlen(str_current_file_name) - strlen(client_file->str_path)
+					, ":", (size_t)1
 				);
 
 				snprintf(str_temp, 255, "%zd", client_file->int_line_number);
@@ -2567,10 +2719,10 @@ void ws_file_search_step5(EV_P, ev_check *w, int revents) {
                 }
 
 				SFINISH_SNFCAT(
-					str_response, &int_response_len,
-					str_temp, strlen(str_temp),
-					":", (size_t)1,
-					str_line, int_line_length
+					str_response, &int_response_len
+					, str_temp, strlen(str_temp)
+					, ":", (size_t)1
+					, str_line, int_line_length
 				);
                 // SINFO("str_response: %s", str_response);
 				WS_sendFrame(EV_A, client_request->parent, true, 0x01, str_response, int_response_len);
@@ -2592,13 +2744,13 @@ finish:
 
 		char *_str_response = str_response;
 		SFINISH_SNCAT(
-			str_response, &int_response_len,
-			"messageid = ", (size_t)12,
-			client_request->str_message_id, client_request->int_message_id_len,
-			"\012responsenumber = ", (size_t)18,
-			str_temp, strlen(str_temp),
-			"\012", (size_t)1,
-			_str_response, strlen(_str_response)
+			str_response, &int_response_len
+			, "messageid = ", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
+			, "\012responsenumber = ", (size_t)18
+			, str_temp, strlen(str_temp)
+			, "\012", (size_t)1
+			, _str_response, strlen(_str_response)
 		);
 		SFREE(_str_response);
 
