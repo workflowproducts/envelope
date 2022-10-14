@@ -22,11 +22,13 @@ void ws_insert_step1(EV_P, struct sock_ev_client_request *client_request) {
 		SFINISH_SNCAT(
 			client_insert->str_temp_table_name, &client_insert->int_temp_table_name_len
 			, "temp_insert", (size_t)11
+			, client_request->str_message_id, client_request->int_message_id_len
 		);
 	} else {
 		SFINISH_SNCAT(
 			client_insert->str_temp_table_name, &client_insert->int_temp_table_name_len
 			, "#temp_insert", (size_t)12
+			, client_request->str_message_id, client_request->int_message_id_len
 		);
 	}
 	client_insert->int_temp_table_name_len = strlen(client_insert->str_temp_table_name);
