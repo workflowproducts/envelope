@@ -709,7 +709,7 @@ id	test_name
 {{test_random}}3	Eve
 */
 			}),
-			["DB_exec failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 2: SELECT \"id\",\"test_name\" FROM \"\" LIMIT 0;\\n                                     ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t78\n"]],
+			["DB_exec failed:\nFATAL\nerror_text\tERROR:  zero-length delimited identifier at or near \"\"\"\"\\nLINE 2: SELECT \"id\",\"test_name\" FROM \"\" LIMIT 0;\\n                                     ^\\n\nerror_detail\t\nerror_hint\t\nerror_query\t\nerror_context\t\nerror_position\t91\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
@@ -843,7 +843,7 @@ SEQ
 iπd	test_name
 2	rest*/
 			}),
-			["DB_exec failed:\nFATAL\nerror_text\tERROR:  column \"iπd\" does not exist\\nLINE 2: SELECT \"iπd\",\"test_name\" FROM \"rtesting_table\" LIMIT 0;\\n               ^\\nHINT:  Perhaps you meant to reference the column \"rtesting_table.id\".\\n\nerror_detail\t\nerror_hint\tPerhaps you meant to reference the column \"rtesting_table.id\".\nerror_query\t\nerror_context\t\nerror_position\t56\n"]],
+			["DB_exec failed:\nFATAL\nerror_text\tERROR:  column \"iπd\" does not exist\\nLINE 2: SELECT \"iπd\",\"test_name\" FROM \"rtesting_table\" LIMIT 0;\\n               ^\\nHINT:  Perhaps you meant to reference the column \"rtesting_table.id\".\\n\nerror_detail\t\nerror_hint\tPerhaps you meant to reference the column \"rtesting_table.id\".\nerror_query\t\nerror_context\t\nerror_position\t69\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],
@@ -855,7 +855,7 @@ SEQ
 iπd	test_name
 {{test_random}}2	rest*/
 			})]),
-            ["DB_exec failed:\nFATAL\nerror_text\tERROR:  column \"iπd\" does not exist\\nLINE 2: SELECT \"iπd\",\"test_name\" FROM \"rtesting_table\" LIMIT 0;\\n               ^\\nHINT:  Perhaps you meant to reference the column \"rtesting_table.id\".\\n\nerror_detail\t\nerror_hint\tPerhaps you meant to reference the column \"rtesting_table.id\".\nerror_query\t\nerror_context\t\nerror_position\t56\n"]],
+            ["DB_exec failed:\nFATAL\nerror_text\tERROR:  column \"iπd\" does not exist\\nLINE 2: SELECT \"iπd\",\"test_name\" FROM \"rtesting_table\" LIMIT 0;\\n               ^\\nHINT:  Perhaps you meant to reference the column \"rtesting_table.id\".\\n\nerror_detail\t\nerror_hint\tPerhaps you meant to reference the column \"rtesting_table.id\".\nerror_query\t\nerror_context\t\nerror_position\t69\n"]],
 			['ROLLBACK', 'websocket', '', 'ROLLBACK', ['OK']],
 
 			['BEGIN', 'websocket', '', 'BEGIN', ['OK']],

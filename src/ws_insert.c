@@ -256,9 +256,9 @@ void ws_insert_step1(EV_P, struct sock_ev_client_request *client_request) {
 					, client_insert->str_real_table_name, client_insert->int_real_table_name_len
 					, ".", (size_t)1
 					, str_col_name, int_col_name_len
-					, " = currval(", (size_t)11
+					, " = (SELECT currval(", (size_t)19
 					, str_col_seq, int_col_seq_len
-					, "::name::regclass)", (size_t)17
+					, "::name::regclass))", (size_t)18
 				);
 
 				char *str_temp_sequence = NULL;
@@ -301,7 +301,7 @@ void ws_insert_step1(EV_P, struct sock_ev_client_request *client_request) {
 						, client_insert->str_real_table_name, client_insert->int_real_table_name_len
 						, ".", (size_t)1
 						, str_col_name, int_col_name_len
-						, " = lastval()", (size_t)12
+						, " = (SELECT lastval())", (size_t)21
 					);
 				} else {
 					SFINISH_SNFCAT(
