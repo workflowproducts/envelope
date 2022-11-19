@@ -1175,15 +1175,21 @@ static void db_cnxn_cb(EV_P, ev_io *w, int revents) {
 		case CONNECTION_CONSUME:
 			SDEBUG("CONNECTION_CONSUME");
 			break;
+#if PG_MAJOR_VERSION >= 11
 		case CONNECTION_GSS_STARTUP:
 			SDEBUG("CONNECTION_GSS_STARTUP");
 			break;
+#endif
+#if PG_MAJOR_VERSION >= 14
 		case CONNECTION_CHECK_TARGET:
 			SDEBUG("CONNECTION_CHECK_TARGET");
 			break;
+#endif
+#if PG_MAJOR_VERSION >= 14
 		case CONNECTION_CHECK_STANDBY:
 			SDEBUG("CONNECTION_CHECK_STANDBY");
 			break;
+#endif
 	}
 
 	if (status == PGRES_POLLING_OK) {

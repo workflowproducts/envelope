@@ -111,7 +111,7 @@ fi
 
 #### LIBPQ
 LDFLAGS="$LDFLAGS -L$(pg_config --libdir) -lpq"
-CPPFLAGS="$CPPFLAGS -I$(pg_config --includedir)"
+CPPFLAGS="$CPPFLAGS -I$(pg_config --includedir) -DPG_MAJOR_VERSION=$(pg_config --version | sed -e 's/^[^0-9]*\([0-9][0-9]*\).*/\1/')"
 
 #### OPENSSL
 OPENSSL_PATH=$(command -v openssl)
