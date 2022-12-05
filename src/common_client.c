@@ -198,15 +198,6 @@ static void cnxn_reset_cb(EV_P, ev_io *w, int revents) {
 		case CONNECTION_CONSUME:
 			SDEBUG("CONNECTION_CONSUME");
 			break;
-		case CONNECTION_GSS_STARTUP:
-			SDEBUG("CONNECTION_GSS_STARTUP");
-			break;
-		case CONNECTION_CHECK_TARGET:
-			SDEBUG("CONNECTION_CHECK_TARGET");
-			break;
-		case CONNECTION_CHECK_STANDBY:
-			SDEBUG("CONNECTION_CHECK_STANDBY");
-			break;
 	}
 
 	if (status == PGRES_POLLING_OK) {
