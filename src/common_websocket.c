@@ -72,7 +72,6 @@ void _WS_readFrame(EV_P, struct sock_ev_client *client, void (*cb)(EV_P, WSFrame
 	client_message->frame = frame;
 	frame->parent = client;
 	client_message->int_position = 0;
-	client_message->int_ioctl_count = 0;
 
 	ev_io_stop(EV_A, &client->io);
 
@@ -102,7 +101,12 @@ void WS_readFrame_step2(EV_P, ev_io *w, int revents) {
 	SDEBUG("client_message: %p", client_message);
 	WSFrame *frame = client_message->frame;
 	unsigned char *buf = NULL;
-	// This was unsigned, but it was messing with the < -1 conditionals below
+	// This was unsigned, but it was messing with the error conditionals below
+	// - Unknown author, probably Nunzio
+	// Note that the error handling has been changed so if anything in this function
+	// errors and this value is untouched, the websocket will be closed. In most
+	// cases this is fine because the client can just reconnect their session.
+	// - Nunzio on 2022-11-30
 	int64_t int_request_len = 0;
 	SERROR_SALLOC(buf, BUF_LEN + 1);
 
@@ -111,28 +115,9 @@ void WS_readFrame_step2(EV_P, ev_io *w, int revents) {
 	memset(buf, 0, BUF_LEN + 1);
 
 	if (client_message->bol_have_header == false) {
-		int int_avail = 0;
-#ifdef _WIN32
-		SERROR_CHECK(ioctlsocket(frame->parent->int_sock, FIONREAD, &int_avail) == 0, "ioctlsocket() failed: %d", WSAGetLastError());
-#else
-		SERROR_CHECK(ioctl(frame->parent->int_sock, FIONREAD, &int_avail) != -1, "ioctl() failed!");
-#endif
-		SDEBUG("int_avail: %d", int_avail);
-		if (int_avail < WEBSOCKET_HEADER_LENGTH) {
-			bol_error_state = false;
-			SFREE(buf);
-			client_message->int_ioctl_count += 1;
-			if (client_message->int_ioctl_count > 100) {
-				goto error;
-			}
-			return;
-		}
 		int_request_len = read(frame->parent->int_sock, buf, WEBSOCKET_HEADER_LENGTH);
-		if (int_request_len < -1) {
-			// This is a state where we want to read (or write) but can't
-			// Silently ignore it, it will be taken care of below
-			goto error;
-		}
+		SERROR_CHECK(int_request_len != 0, "Libev said EV_READ, but there is nothing to read. Closing socket")
+		SERROR_CHECK(int_request_len > 0, "read() failed")
 		SDEBUG("int_request_len    : %d", int_request_len);
 		SDEBUG("buf[0]: 0x%02x", buf[0]);
 		SDEBUG("buf[1]: 0x%02x", buf[1]);
@@ -269,11 +254,10 @@ void WS_readFrame_step2(EV_P, ev_io *w, int revents) {
 error:
 	SFREE(buf);
 	SDEBUG("frame->parent: %p", frame->parent);
-	SDEBUG("client_message->int_ioctl_count: %d", client_message->int_ioctl_count);
 	SDEBUG("int_request_len: %d", int_request_len);
 	SDEBUG("errno: %d", errno);
 
-	if (int_request_len < 0 && errno != EAGAIN) {
+	if (int_request_len <= 0 && errno != EAGAIN) {
 		SERROR_NORESPONSE("disconnect");
 		SFREE(str_global_error);
 
@@ -294,19 +278,6 @@ error:
 		bol_error_state = false;
 		errno = 0;
 
-	} else if (int_request_len == 0 && (errno != 0 || client_message->int_ioctl_count > 100)) {
-		SERROR_NORESPONSE("int_request_len == 0, errno = %d", errno);//" disconnecting");
-		SFREE(str_global_error);
-
-		ev_io_stop(EV_A, w);
-
-		struct sock_ev_client *client = frame->parent;
-		WS_client_message_free(client_message);
-		WS_freeFrame(frame);
-
-		SERROR_CLIENT_CLOSE_NORESPONSE(client);
-		bol_error_state = false;
-		errno = 0;
 	}
 }
 
@@ -397,7 +368,7 @@ void WS_sendFrame_step2(EV_P, ev_io *w, int revents) {
 	SDEBUG("WS_sendFrame_step2");
 	struct sock_ev_client_message *client_message = (struct sock_ev_client_message *)w;
 	WSFrame *frame = client_message->frame;
-	SDEBUG("got writable on client %p for message %p", client_message->frame->parent, client_message);
+	SINFO("got writable on client %p for message %p", client_message->frame->parent, client_message);
 
 	if (client_message->frame->parent->que_message->last->value != (void *)client_message) {
 		return;
@@ -411,8 +382,10 @@ void WS_sendFrame_step2(EV_P, ev_io *w, int revents) {
 		return;
 	}
 
+	errno = 0;
+
 	// Send and free
-	SDEBUG(
+	SINFO(
 		"attempting to write %d bytes at offset %d"
 		, (client_message->int_message_header_length + client_message->int_length) - client_message->int_written
 		, client_message->int_written
@@ -424,6 +397,7 @@ void WS_sendFrame_step2(EV_P, ev_io *w, int revents) {
 	if (int_len < 0) {
 		SERROR("write() failed");
 	}
+	SINFO("wrote %d bytes", int_len);
 	client_message->int_written += (uint64_t)int_len;
 	if (client_message->int_written < client_message->int_length) {
 		bol_error_state = false;
@@ -438,7 +412,7 @@ void WS_sendFrame_step2(EV_P, ev_io *w, int revents) {
 			}
 		}
 
-		SDEBUG("sent message with opcode %x", frame->int_opcode);
+		SINFO("sent message with opcode %x", frame->int_opcode);
 		ev_io_stop(EV_A, w);
 		WS_client_message_free(client_message);
 		WS_freeFrame(frame);
@@ -447,32 +421,47 @@ void WS_sendFrame_step2(EV_P, ev_io *w, int revents) {
 	}
 
 error:
-	SERROR_NORESPONSE("errno: %d", errno);
-	SERROR_NORESPONSE("EAGAIN: %d", EAGAIN);
 	if (errno == EAGAIN) {
 		SERROR_NORESPONSE("should never get to EAGAIN with libev");
 		SFREE(str_global_error);
+		errno = 0;
 		bol_error_state = false;
 	} else if (int_len == -1 || errno == EPIPE) {
-		SDEBUG("disconnect");
+		SERROR_NORESPONSE("int_len: %d, fd: %d, w: %p, disconnect", int_len, w->fd, w);
 
 		ev_io_stop(EV_A, w);
 
 		struct sock_ev_client *client = frame->parent;
 		WS_client_message_free(client_message);
 		WS_freeFrame(frame);
+		client_message = NULL;
+
+		while (client->que_message->last != NULL) {
+                        client_message = client->que_message->last->value;
+                        ev_io_stop(EV_A, &client_message->io);
+                        WSFrame *frame = client_message->frame;
+                        // This removes this node from the queue, so that the next element we want
+                        // is the last one
+                        WS_client_message_free(client_message);
+                        WS_freeFrame(frame);
+                }
+		client->bol_is_open = false;
 
 		SERROR_CLIENT_CLOSE_NORESPONSE(client);
+		errno = 0;
 		bol_error_state = false;
 	}
 }
 
 void WS_client_message_free(struct sock_ev_client_message *client_message) {
-	QUEUE_FOREACH(client_message->frame->parent->que_message, node) {
-		if (client_message == node->value) {
-			List_remove(client_message->frame->parent->que_message, node);
-			break;
+	if (client_message != NULL) {
+		QUEUE_FOREACH(client_message->frame->parent->que_message, node) {
+			if (client_message == node->value) {
+				List_remove(client_message->frame->parent->que_message, node);
+				break;
+			}
 		}
+		ev_io_stop(global_loop, &client_message->io);
 	}
 	SFREE(client_message);
 }

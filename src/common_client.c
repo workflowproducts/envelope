@@ -942,13 +942,12 @@ void client_frame_cb(EV_P, WSFrame *frame) {
 			SDEBUG("Client closed connection with code %u for reason: \"%s\"", int_close_code, frame->str_message + 2);
 		}
 #endif // UTIL_DEBUG
-		while (client->que_message->first != NULL) {
-			SDEBUG("client->que_message->first: %p", client->que_message->first);
-			struct sock_ev_client_message *client_message = client->que_message->first->value;
+		while (client->que_message->last != NULL) {
+			struct sock_ev_client_message *client_message = client->que_message->last->value;
 			ev_io_stop(EV_A, &client_message->io);
 			WSFrame *frame_temp = client_message->frame;
 			// This removes this node from the queue, so that the next element we want
-			// is the first one
+			// is the last one
 			WS_client_message_free(client_message);
 			WS_freeFrame(frame_temp);
 		}
@@ -2024,18 +2023,19 @@ bool client_close(struct sock_ev_client *client) {
 	//ListNode *client_node = NULL; //xld
 	bool bol_authorized = false;
 
-	SDEBUG("Client %p closing", client);
+	SINFO("Client %p closing", client);
 	if (client->que_message != NULL && client->bol_handshake == true && client->bol_is_open == true) {
-		while (client->que_message->first != NULL) {
-			client_message = client->que_message->first->value;
+		while (client->que_message->last != NULL) {
+			client_message = client->que_message->last->value;
 			ev_io_stop(EV_A, &client_message->io);
 			WSFrame *frame = client_message->frame;
 			// This removes this node from the queue, so that the next element we want
-			// is the first one
+			// is the last one
 			WS_client_message_free(client_message);
 			WS_freeFrame(frame);
 		}
 		WS_sendFrame(EV_A, client, true, 0x08, "\01\00", 2);
+		SINFO("SENDING CLOSE FRAME");
 	}
 	ev_io_stop(EV_A, &client->io);
 
@@ -2145,10 +2145,6 @@ void client_close_timeout_prepare_cb(EV_P, ev_prepare *w, int revents) {
 	ev_io_stop(EV_A, &client_timeout_prepare->parent->io);
 	if (
 		(client_timeout_prepare->close_time + 10) <= ev_now(EV_A)
-		|| (
-			client->bol_is_open == false // this means we got a close message, rather than just a network error
-			&& (client_timeout_prepare->close_time + 1) <= ev_now(EV_A) // so only wait one second, enough to send the close frame back
-		)
 	) {
 		SDEBUG("test2: %p", client);
 		ev_prepare_stop(EV_A, w);
