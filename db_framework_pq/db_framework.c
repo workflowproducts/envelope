@@ -241,9 +241,10 @@ bool DB_get_column_types_for_query2(EV_P, void *cb_data, DB_result *res);
 bool DB_get_column_types_for_query(EV_P, DB_conn *conn, char *str_sql, void *cb_data, query_cb_t column_type_cb) {
 	SDEBUG("DB_get_column_types_for_query: %s", str_sql);
 	DB_result_poll *res_poll = NULL;
+	DB_result_poll *res_poll_child = NULL;
+	SERROR_CHECK(conn != NULL, "conn must not be null!")
 
 	// Put all the stuff we will need for the callback in a struct, we will pull it out later
-	DB_result_poll *res_poll_child = NULL;
 	SERROR_SALLOC(res_poll_child, sizeof(DB_result_poll));
 	res_poll_child->conn = conn;
 	res_poll_child->cb_data = cb_data;
