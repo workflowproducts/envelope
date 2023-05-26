@@ -708,7 +708,6 @@ void client_cb(EV_P, ev_io *w, int revents) {
 						SDEBUG("client: %p", client);
 						client->que_request = session_client->que_request;
 						session_client->que_request = NULL;
-						#ifdef UTIL_DEBUG
 						if (client->que_request != NULL) {
 							QUEUE_FOREACH(client->que_request, node) {
 								struct sock_ev_client_request *client_request = (struct sock_ev_client_request *)node->value;
@@ -717,7 +716,6 @@ void client_cb(EV_P, ev_io *w, int revents) {
 								SDEBUG("client_request->parent: %p", client_request->parent);
 							}
 						}
-						#endif
 
 						client->bol_request_in_progress = session_client->bol_request_in_progress;
 
